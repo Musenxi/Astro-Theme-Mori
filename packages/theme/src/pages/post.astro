@@ -38,7 +38,7 @@ const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | '
       <TravelCorners allowed={tv.reading.allowed.map(short)} stops={tv.stops} track={tv.track} />
     </main>
   ) : (
-    <main>
+    <main data-page="post">
       <header class="wrap g post-h">
         <div class="kicker mono">{entry.category.zh} · {dotDate(d.date)}</div>
         <h1>{d.title}</h1>
