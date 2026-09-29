@@ -67,6 +67,8 @@ const metaBase = (image: ImageFn) => ({
   updated: z.coerce.date().optional(),
   /** 栏目 id，对应 mori.config.ts 里的 categories */
   category: z.string(),
+  /** 标签，可选；Studio 里按标签管理，主题暂不按标签筛 */
+  tags: z.array(z.string()).default([]),
   /** 一句摘要：目次里每篇标题下面那行 */
   excerpt: z.string(),
   cover: image().optional(),

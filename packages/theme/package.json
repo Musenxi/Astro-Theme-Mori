@@ -22,7 +22,8 @@
     "./schema": "./src/content/schema.ts",
     "./validate": "./src/content/validate.ts",
     "./config": "./src/config.ts",
-    "./anchor": "./src/lib/anchor-text.ts"
+    "./anchor": "./src/lib/anchor-text.ts",
+    "./markdown": "./src/lib/markdown.mjs"
   },
   "files": [
     "src",
