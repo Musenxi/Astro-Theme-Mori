@@ -44,6 +44,21 @@ function serveFile(res, file) {
   createReadStream(file).pipe(res);
 }
 
+/** 把 publish 设置变成要跑的命令（参数用数组，不经过 shell） */
+export function publishCommand(publish, root) {
+  if (!publish) return { error: '还没有发布设置。在 mori.config.ts 里加 publish: { target: \'cloudflare-pages\', project: \'…\' } 或 { target: \'rsync\', dest: \'user@host:/var/www/site/\' }。' };
+  if (publish.target === 'cloudflare-pages') {
+    if (!publish.project) return { error: 'publish.project 没填（Cloudflare Pages 的项目名）。' };
+    const args = ['--yes', 'wrangler', 'pages', 'deploy', 'dist', '--project-name', publish.project, ...(publish.branch ? ['--branch', publish.branch] : [])];
+    return { cmd: 'npx', args, label: `Cloudflare Pages · ${publish.project}` };
+  }
+  if (publish.target === 'rsync') {
+    if (!publish.dest) return { error: 'publish.dest 没填（如 user@host:/var/www/site/）。' };
+    return { cmd: 'rsync', args: ['-az', '--delete', '--stats', 'dist/', publish.dest], label: `rsync → ${publish.dest}` };
+  }
+  return { error: `不认识的发布目标：${publish.target}` };
+}
+
 export async function startStudio({ root, port = 4400 }) {
   root = resolve(root);
   const { path: configPath, config: first } = await loadConfig(root);
@@ -89,7 +104,7 @@ export async function startStudio({ root, port = 4400 }) {
       if (req.method === 'GET' && p === '/api/project') {
         return send(res, 200, {
           root, configPath, config: { title: config.title ?? 'MORI', description: config.description ?? '', accent: config.accent ?? '#002fa7', accentDark: config.accentDark, categories: config.categories ?? [], home: config.home, archive: config.archive },
-          entries: listEntries(root), assets: listAssets(root), preview: { port: preview.port, up: await isUp(preview.port) },
+          entries: listEntries(root), assets: listAssets(root), preview: { port: preview.port, up: await isUp(preview.port) }, publish: config.publish ?? null,
         });
       }
 
@@ -151,6 +166,21 @@ export async function startStudio({ root, port = 4400 }) {
         // 只停自己拉起的；用户自己开的 dev 服务器不动
         if (preview.startedByStudio) { runAstro(['dev', 'stop'], { stdio: 'ignore' }); preview.startedByStudio = false; }
         return send(res, 200, { ok: true });
+      }
+
+      /* ── 发布：先构建，再按 mori.config 里的 publish 上传 dist/。输出一路推给界面 ── */
+      if (req.method === 'POST' && p === '/api/publish') {
+        const target = publishCommand(config.publish, root);
+        res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
+        if (target.error) return res.end(`${target.error}\n[exit 2]\n`);
+        const pipe = (child, done) => { child.stdout.on('data', (d) => res.write(d)); child.stderr.on('data', (d) => res.write(d)); child.on('error', (e) => { res.write(`${e.message}\n`); done(127); }); child.on('close', done); };
+        res.write('▸ 构建\n');
+        pipe(runAstro(['build'], { env: { ...process.env, FORCE_COLOR: '0' } }), (code) => {
+          if (code) return res.end(`\n构建失败，没有发布。\n[exit ${code}]\n`);
+          res.write(`\n▸ 上传：${target.label}\n`);
+          pipe(spawn(target.cmd, target.args, { cwd: root, env: { ...process.env, FORCE_COLOR: '0' } }), (c) => res.end(`\n${c ? '发布失败' : '已发布'}\n[exit ${c}]\n`));
+        });
+        return;
       }
 
       /* ── 构建：输出一路推给界面 ── */

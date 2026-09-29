@@ -14,6 +14,15 @@ export interface MoriNavItem {
   href: string;
 }
 
+/**
+ * 发布目标（Studio 的“发布”按钮用；不会进入站点页面）。
+ *  - cloudflare-pages：用 wrangler 直接上传 dist/，不需要 git（先在本机 `wrangler login` 过）
+ *  - rsync：用 rsync 上传到 VPS（`user@host:/var/www/site/`），需要本机能 ssh 过去
+ */
+export type MoriPublish =
+  | { target: 'cloudflare-pages'; project: string; branch?: string }
+  | { target: 'rsync'; dest: string };
+
 export interface MoriUserConfig {
   /** 站点根地址，用于 canonical / RSS；部署时填 */
   site?: string;
@@ -36,6 +45,7 @@ export interface MoriUserConfig {
     /** 归档 / 栏目刻度页的排法 */
     direction?: 'h' | 'v';
   };
+  publish?: MoriPublish;
 }
 
 export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'accent' | 'categories' | 'nav'>> {

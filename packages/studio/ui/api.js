@@ -15,17 +15,20 @@ export const api = {
   upload: (file) => fetch(`/api/asset/${encodeURIComponent(file.name)}`, { method: 'PUT', body: file }).then(j),
   previewStart: () => send('POST', '/api/preview/start', {}),
   previewStop: () => send('POST', '/api/preview/stop', {}),
-  /** 构建：一路把输出交给 onChunk，结束时返回退出码 */
-  async build(onChunk) {
-    const res = await fetch('/api/build', { method: 'POST' });
-    const reader = res.body.getReader(), dec = new TextDecoder();
-    let all = '';
-    for (;;) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      all += dec.decode(value);
-      onChunk(all);
-    }
-    return +(all.match(/\[exit (\d+)\]/)?.[1] ?? 1);
-  },
+  build: (onChunk) => stream('/api/build', onChunk),
+  publish: (onChunk) => stream('/api/publish', onChunk),
 };
+
+/** 长任务：一路把输出交给 onChunk，结束时返回退出码 */
+async function stream(url, onChunk) {
+  const res = await fetch(url, { method: 'POST' });
+  const reader = res.body.getReader(), dec = new TextDecoder();
+  let all = '';
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    all += dec.decode(value);
+    onChunk(all);
+  }
+  return +(all.match(/\[exit (\d+)\]/)?.[1] ?? 1);
+}

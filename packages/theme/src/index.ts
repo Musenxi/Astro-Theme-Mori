@@ -2,7 +2,7 @@ import type { AstroIntegration } from 'astro';
 import { resolveConfig, type MoriUserConfig } from './config.ts';
 
 export { defineMoriConfig } from './config.ts';
-export type { MoriUserConfig, MoriCategory, MoriNavItem } from './config.ts';
+export type { MoriUserConfig, MoriCategory, MoriNavItem, MoriPublish } from './config.ts';
 
 const VIRTUAL = 'virtual:mori/config';
 

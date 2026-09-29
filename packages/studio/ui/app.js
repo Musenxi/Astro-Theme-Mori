@@ -32,7 +32,7 @@ function App() {
   let main;
   if (route.kind === 'new') main = html`<${NewEntry} kind=${route.id || 'post'} project=${project} refresh=${refresh} />`;
   else if (route.kind === 'settings') main = html`<${Settings} project=${project} refresh=${refresh} />`;
-  else if (route.kind === 'build') main = html`<${Build} />`;
+  else if (route.kind === 'build') main = html`<${Build} project=${project} />`;
   else if (route.kind === 'post' || route.kind === 'travel') main = html`<${EntryRoute} key=${route.kind + route.id} kind=${route.kind} id=${route.id} project=${project} refresh=${refresh} preview=${preview} />`;
   else main = html`<div class="empty-state">从左边选一篇，或新建一篇。</div>`;
 
@@ -90,13 +90,21 @@ function NewEntry({ kind, project, refresh }) {
     </form></div>`;
 }
 
-function Build() {
-  const [log, setLog] = useState(''), [busy, setBusy] = useState(false), [code, setCode] = useState(null);
-  const run = async () => { setBusy(true); setCode(null); setLog(''); const c = await api.build(setLog); setCode(c); setBusy(false); };
-  return html`<div class="pad"><h2 style="font-weight:400;font-size:20px;letter-spacing:.1em">构建</h2>
-    <p class="lbl" style="margin:10px 0">运行 astro build，输出静态文件到项目的 dist/。发布（Cloudflare Pages / VPS）稍后接进来。</p>
-    <button class="btn primary" disabled=${busy} onClick=${run}>${busy ? '构建中……' : '开始构建'}</button>
-    ${code !== null && html`<span class=${'status mono' + (code ? ' bad' : '')} style="margin-left:12px">${code ? `失败（退出码 ${code}）` : '完成'}</span>`}
+function Build({ project }) {
+  const [log, setLog] = useState(''), [busy, setBusy] = useState(false), [code, setCode] = useState(null), [what, setWhat] = useState('');
+  const pub = project.publish;
+  const desc = !pub ? '' : pub.target === 'cloudflare-pages' ? `Cloudflare Pages · ${pub.project}` : `rsync → ${pub.dest}`;
+  const run = async (kind) => {
+    if (kind === 'publish' && !confirm(`发布会把当前内容上传到：${desc}\n线上的站点会随之更新。继续？`)) return;
+    setBusy(true); setCode(null); setLog(''); setWhat(kind);
+    const c = await (kind === 'publish' ? api.publish : api.build)(setLog);
+    setCode(c); setBusy(false);
+  };
+  return html`<div class="pad"><h2 style="font-weight:400;font-size:20px;letter-spacing:.1em">构建与发布</h2>
+    <p class="lbl" style="margin:10px 0">构建：运行 astro build，输出静态文件到项目的 dist/。发布：先构建，再上传 dist/。${pub ? html`当前发布目标：<span class="mono">${desc}</span>` : html`还没有发布目标——在 mori.config.ts 里加 <span class="mono">publish</span>（Cloudflare Pages 或 rsync 到 VPS）。`}</p>
+    <div class="row"><button class="btn" disabled=${busy} onClick=${() => run('build')}>${busy && what === 'build' ? '构建中……' : '只构建'}</button>
+      <button class="btn primary" disabled=${busy || !pub} onClick=${() => run('publish')}>${busy && what === 'publish' ? '发布中……' : '构建并发布'}</button>
+      ${code !== null && html`<span class=${'status mono' + (code ? ' bad' : '')}>${code ? `失败（退出码 ${code}）` : '完成'}</span>`}</div>
     ${log && html`<pre class="log">${log}</pre>`}</div>`;
 }
 
