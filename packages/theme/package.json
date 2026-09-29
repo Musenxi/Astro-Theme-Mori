@@ -22,12 +22,16 @@
   },
   "files": [
     "src",
-    "fonts"
+    "fonts",
+    "bin"
   ],
   "peerDependencies": {
     "astro": "^7.0.0"
   },
   "dependencies": {
     "@fontsource/cormorant-garamond": "^5.3.0"
+  },
+  "bin": {
+    "mori-md": "./bin/mori-md.mjs"
   }
 }
