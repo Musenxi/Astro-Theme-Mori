@@ -46,6 +46,8 @@ const canonical = config.site ? new URL(Astro.url.pathname, config.site).href : 
     <meta property="og:type" content={type} />
     {description && <meta property="og:description" content={description} />}
     <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title={config.title} href="/rss.xml" />
     <style is:inline set:html={`:root{--accent-base:${config.accent}}`} />
     <!-- 昼夜：先于首次绘制，避免闪一下；换页时 <html> 的属性会被换掉，所以每次换页后再补上 -->
     <script is:inline>

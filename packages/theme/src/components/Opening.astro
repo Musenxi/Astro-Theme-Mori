@@ -29,6 +29,7 @@ const slides = pinned.map((e) => {
     quote,
     caption: pin?.caption ?? `${e.category.zh} · ${dotDate(d.date)}`,
     meta: pin?.meta ?? [{ label: '日期', value: dotDate(d.date) }],
+    /** 0.5 是默认的淡出强度（k=1）；0 不淡出，1 淡得更多 */
     fade: pin?.fade,
   };
 });
@@ -67,7 +68,7 @@ const first = slides[0];
             slides.map((s, k) => (
               <article class:list={['fo-slide', k === 0 && 'on']} data-no={pad3(s.e.n)} data-cat={`${s.e.category.zh} · ${s.e.category.en}`} inert={k !== 0}>
                 <div class="fo-art">
-                  <figure class="fo-cover" style={s.fade !== undefined ? `--fade:${s.fade}` : undefined}>
+                  <figure class="fo-cover" style={s.fade !== undefined ? `--k:${s.fade * 2}` : undefined}>
                     <div class="ph">
                       {s.image && <Image src={s.image} alt={s.alt} widths={[800, 1200, 1600, 2000]} sizes="(max-width: 760px) 100vw, 83vw" loading={k === 0 ? 'eager' : 'lazy'} fetchpriority={k === 0 ? 'high' : 'auto'} />}
                     </div>
