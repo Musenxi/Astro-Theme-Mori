@@ -39,3 +39,14 @@ h1, h2, h3, blockquote, figcaption, .ex { text-wrap: balance; }
 @media (prefers-reduced-motion: reduce) {
   body::before { animation: none !important; transform: none !important; opacity: 0; }
 }
+
+/* 窄屏页头：入口多了不能把刊名挤成一字一行。胶囊自己横向滚动；入口有 4 个以上时刊名文字让位（读屏和页面转场仍然有它） */
+@media (max-width: 560px) {
+  .site { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .mark { white-space: nowrap; font-size: 15px; letter-spacing: .18em; }
+  .lg-nav { position: relative; justify-self: center; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .lg-nav::-webkit-scrollbar { display: none; }
+  .lg-nav a { flex: none; }
+  .site:has(.lg-nav a:nth-child(5)) { grid-template-columns: minmax(0, 1fr) auto; }
+  .site:has(.lg-nav a:nth-child(5)) .mark { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+}
