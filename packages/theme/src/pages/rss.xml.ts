@@ -12,7 +12,7 @@ import { postHtml, travelHtml } from '../lib/feed-html.ts';
 export const GET: APIRoute = async ({ site }) => {
   const base = siteUrl(site);
   const entries = (await getEntries()).slice(0, 30);
-  const full = config.feed.content === 'full';
+  const full = config.feed?.content === 'full'; // ?. ：开发服务器没重启过、还在用旧的配置解析时，也不要 500
   const ctx = {
     base,
     // 订阅里的图不能太大：缩到 1200 宽的 jpeg，并换成绝对地址
