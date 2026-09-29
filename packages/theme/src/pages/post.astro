@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import PostBody from '../components/PostBody.astro';
+import EntryNav from '../components/EntryNav.astro';
 import { getEntries } from '../lib/entries.ts';
 import type { Entry } from '../lib/entries.ts';
 import { countChars } from '../lib/inline.ts';
@@ -26,9 +27,6 @@ const approx = chars >= 1000 ? chars.toLocaleString('en-US').replace(/\d{2}$/, '
       <div class="meta mono">约 {approx} 字 · {Math.max(1, Math.round(chars / 450))} 分钟</div>
     </header>
     <PostBody blocks={d.blocks} notes={d.notes} />
-    <nav class="wrap g post-end" aria-label="上一篇 / 下一篇">
-      {older ? <a href={older.href}><span class="mono lbl">← 上一篇</span><span class="ul">{older.data.title}</span></a> : <span />}
-      {newer ? <a href={newer.href}><span class="mono lbl">下一篇 →</span><span class="ul">{newer.data.title}</span></a> : <span />}
-    </nav>
+    <EntryNav older={older} newer={newer} />
   </main>
 </Base>

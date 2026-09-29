@@ -1,0 +1,171 @@
+---
+/**
+ * 游记正文（框架版，只有竖向读法）：块序列，每块属于一个站点。
+ * 站点标题挂在每站第一个文字块上（block.head 可以覆盖）。混合 / 横向读法之后在这个结构上加。
+ */
+import { Image } from 'astro:assets';
+import type { Inline, TravelData } from '../content/schema.ts';
+import { numberNotes, renderInline } from '../lib/inline.ts';
+import { coord } from '../lib/geo.ts';
+import { cnNumber, pad2 } from '../lib/zh.ts';
+import MapPlaceholder from './MapPlaceholder.astro';
+
+interface Props {
+  travel: TravelData;
+}
+const { travel } = Astro.props;
+const { blocks, stops, notes } = travel;
+
+// 游记里旁注和脚注不分栏：都在文末列成“注”，编号统一
+const raw = numberNotes(blocks);
+const all = new Map<string, number>();
+for (const [ref] of [...raw.side, ...raw.foot]) if (!all.has(ref)) all.set(ref, all.size + 1);
+const numbers = { side: all, foot: all };
+const html = (spans: Inline) => renderInline(spans, numbers);
+const endnotes = [...all].map(([ref, n]) => ({ ref, n, text: notes[ref]?.text ?? [] }));
+
+const stopIndex = new Map(stops.map((s, i) => [s.id, i]));
+/** 每个站点第一次出现的块 id（行程表的锚点），和第一个文字块 id（站点标题挂在它上面） */
+const firstBlock = new Map<string, string>();
+const firstText = new Map<string, string>();
+for (const b of blocks) {
+  if (!firstBlock.has(b.stop)) firstBlock.set(b.stop, b.id);
+  if (b.type === 'text' && !firstText.has(b.stop)) firstText.set(b.stop, b.id);
+}
+
+let fig = 0;
+const nextFig = () => pad2(++fig);
+const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:${b.y}`, b.scale !== undefined && `--s:${b.scale}`].filter(Boolean).join(';') || undefined;
+---
+
+<div class="t-body">
+  <div class="t-vp">
+    <div class="t-track">
+      {
+        blocks.map((b) => {
+          const stop = stops[stopIndex.get(b.stop)!];
+          const si = stopIndex.get(b.stop)!;
+          const anchor = firstBlock.get(b.stop) === b.id ? `stop-${b.stop}` : undefined;
+          switch (b.type) {
+            case 'text': {
+              const v = b.writing === 'v';
+              const head = b.head ?? firstText.get(b.stop) === b.id;
+              return (
+                <section id={anchor} class:list={['blk', 'b-text', v && 'v']} data-b={b.id} data-stop={b.stop} style={place(b)}>
+                  {head && (
+                    <header class="stop">
+                      {v ? (
+                        <>
+                          <span class="no">第{cnNumber(si + 1)}站{stop.date ? `　${stop.date}` : ''}</span>
+                          <h2>{stop.name}</h2>
+                          {stop.en && <span class="en">{stop.en}　{coord(stop.lnglat)}</span>}
+                        </>
+                      ) : (
+                        <>
+                          <span class="no mono">{pad2(si + 1)}{stop.date ? ` · ${stop.date}` : ''}</span>
+                          <h2>{stop.name}</h2>
+                          {stop.en && <span class="en">{stop.en}</span>}
+                          <span class="co mono">{coord(stop.lnglat)}</span>
+                        </>
+                      )}
+                    </header>
+                  )}
+                  {b.paras.map((p) => <p data-b={p.id} set:html={html(p.text)} />)}
+                </section>
+              );
+            }
+            case 'single':
+              return (
+                <figure id={anchor} class:list={['blk', 'b-single', 'rv', b.layout === 'inset' && 'inset']} data-b={b.id} data-stop={b.stop} style={place(b)}>
+                  <Image src={b.src} alt={b.alt} widths={[800, 1200, 1800, 2400]} sizes="100vw" />
+                  {b.caption && <figcaption><span class="mono">{nextFig()}</span>{b.caption}</figcaption>}
+                </figure>
+              );
+            case 'pair':
+              return (
+                <figure id={anchor} class="blk b-pair rv" data-b={b.id} data-stop={b.stop} style={place(b)}>
+                  <div class="imgs">
+                    {b.images.map((im) => <Image src={im.src} alt={im.alt} widths={[600, 900, 1400]} sizes="(max-width: 760px) 50vw, 45vw" />)}
+                  </div>
+                  {b.images.some((i) => i.caption) && <figcaption><span class="mono">{nextFig()}</span>{b.images.map((i) => i.caption).filter(Boolean).join(' / ')}</figcaption>}
+                </figure>
+              );
+            case 'strip':
+              return (
+                <figure id={anchor} class="blk b-strip rv" data-b={b.id} data-stop={b.stop} style={place(b)}>
+                  <div class="strip-sc">
+                    <div class="strip-track">
+                      {b.images.map((im) => <Image src={im.src} alt={im.alt} height={900} widths={[600, 900, 1400]} sizes="60vw" style={`--s:${im.scale};--o:${im.offset}`} />)}
+                    </div>
+                  </div>
+                  {b.images.some((i) => i.caption) && <figcaption><span class="mono">{nextFig()}</span>{b.images.map((i) => i.caption).filter(Boolean).join(' / ')}</figcaption>}
+                </figure>
+              );
+            case 'grid':
+              return (
+                <figure id={anchor} class="blk b-grid rv" data-b={b.id} data-stop={b.stop} style={place(b)}>
+                  <div class="imgs">
+                    {b.images.map((im, i) => <Image src={im.src} alt={im.alt} widths={[500, 900, 1400]} sizes={i === 0 ? '66vw' : '33vw'} />)}
+                  </div>
+                  {b.images.some((i) => i.caption) && <figcaption><span class="mono">{nextFig()}</span>{b.images.map((i) => i.caption).filter(Boolean).join(' / ')}</figcaption>}
+                </figure>
+              );
+            case 'free':
+              return (
+                <div id={anchor} class="blk b-free rv" data-b={b.id} data-stop={b.stop} style={place(b)}>
+                  <div class="canvas" style={`--ar:${b.ar}`}>
+                    {b.items.map((it, i) =>
+                      it.kind === 'image' ? (
+                        <Image class="fi" src={it.src} alt={it.alt} widths={[400, 800, 1400]} sizes={`${Math.round(it.w * 100)}vw`} style={`--x:${it.x};--y:${it.y};--w:${it.w};--z:${it.z};--i:${i}`} />
+                      ) : (
+                        <p class="fnote" style={`--x:${it.x};--y:${it.y}`} set:html={html(it.text)} />
+                      ),
+                    )}
+                  </div>
+                </div>
+              );
+            case 'map':
+              return (
+                <div id={anchor} class="blk b-map" data-b={b.id} data-stop={b.stop} style={place(b)}>
+                  <MapPlaceholder stops={b.scope === 'stop' ? [stop] : stops} />
+                </div>
+              );
+          }
+        })
+      }
+    </div>
+  </div>
+</div>
+
+{
+  endnotes.length > 0 && (
+    <section class="wrap fns t-fns" aria-label="注">
+      <ol>
+        {endnotes.map((f) => (
+          <li id={`fn-${f.ref}`}>
+            <sup class="nref" id={`note-${f.ref}`}>{f.n}</sup>
+            <span set:html={html(f.text)} />
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
+<section class="wrap g t-end">
+  <h2>行程</h2>
+  <ol class="itin">
+    {
+      stops.map((s, i) => (
+        <li>
+          <a href={`#stop-${s.id}`} style="display:contents">
+            <span class="mono">{pad2(i + 1)}</span>
+            <span class="mono">{s.date ?? ''}</span>
+            <span class="zh">{s.name}{s.en && <small>{s.en}</small>}</span>
+            <span class="mono co">{coord(s.lnglat)}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+</section>

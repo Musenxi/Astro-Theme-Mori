@@ -30,6 +30,14 @@
   .prose .n{display:block}
   .prose .n > .ns{margin:-.4em 0 1.4em}
   .prose .n aside{padding-top:.5em}
+  .t-hero .mapbox{order:-1}
+  .travel:not([data-mode="h"]) .t-track > *{grid-column:1/-1!important}
+  .travel:not([data-mode="h"]) .b-strip{width:100vw;margin-left:calc(-1*var(--gut))}
+  .travel:not([data-mode="h"]) .b-free .canvas{aspect-ratio:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .travel:not([data-mode="h"]) .fi,.travel:not([data-mode="h"]) .fnote{position:static;width:100%}
+  .travel:not([data-mode="h"]) .fnote{height:9em;justify-self:center}
+  .itin li{grid-template-columns:2.2em 4.6em 1fr}
+  .itin li .co{display:none}
   .post-end a{grid-column:1/-1!important;text-align:left!important;align-items:flex-start!important;margin-bottom:18px}
 }
 @media (prefers-reduced-motion:reduce){

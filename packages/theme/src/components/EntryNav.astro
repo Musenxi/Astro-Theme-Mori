@@ -1,0 +1,13 @@
+---
+import type { Entry } from '../lib/entries.ts';
+interface Props {
+  older?: Entry;
+  newer?: Entry;
+}
+const { older, newer } = Astro.props;
+---
+
+<nav class="wrap g post-end" aria-label="上一篇 / 下一篇">
+  {older ? <a href={older.href}><span class="mono lbl">← 上一篇</span><span class="ul">{older.data.title}</span></a> : <span />}
+  {newer ? <a href={newer.href}><span class="mono lbl">下一篇 →</span><span class="ul">{newer.data.title}</span></a> : <span />}
+</nav>
