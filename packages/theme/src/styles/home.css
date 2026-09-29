@@ -99,3 +99,6 @@
 :root[data-hdir="v"] .f-note{writing-mode:vertical-rl;height:15em;max-width:none;margin-top:0}
 :root[data-hdir="v"] .f-ed{display:flex;flex-direction:row-reverse;gap:40px;justify-content:flex-end}
 
+/* 暗色：封面图压暗一点，浮在上面的页头和引文才读得清 */
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .fo-cover img{filter:saturate(.9) brightness(.8)}}
+:root[data-theme="dark"] .fo-cover img{filter:saturate(.9) brightness(.8)}
