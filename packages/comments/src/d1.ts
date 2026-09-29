@@ -14,7 +14,7 @@ export function d1Store(db: D1Like): Store {
     async insert(c) { return (await run(SQL.insert, ...insertArgs(c))).meta.last_row_id; },
     async get(id) { const r = await one(SQL.get, id); return r ? fromDb(r) : null; },
     async listApproved(entry) { return (await all(SQL.listApproved, entry)).map(fromDb); },
-    async listAdmin(status, limit) { return (status ? await all(SQL.listAdminBy, status, limit) : await all(SQL.listAdminAll, limit)).map(fromDb); },
+    async listAdmin(status, limit, entry) { return (await all(SQL.listAdmin, status ?? null, status ?? null, entry ?? null, entry ?? null, limit)).map(fromDb); },
     async countByStatus() { return statusCounts(await all(SQL.count)); },
     async setStatus(id, status: Status) { return (await run(SQL.setStatus, status, id)).meta.changes > 0; },
     async remove(id) { return (await run(SQL.remove, id, id)).meta.changes > 0; },

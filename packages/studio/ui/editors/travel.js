@@ -1,5 +1,5 @@
 import { html, useState, useRef } from '../h.js';
-import { Field, Text, Num, InlineField, ImagePicker, assetUrl, useAutosave, SaveBar, Issues } from '../components.js';
+import { Field, Text, Num, InlineField, ImagePicker, assetUrl, useAutosave, SaveBar, Issues, Warnings } from '../components.js';
 import { MetaEditor } from './meta.js';
 import { NotesEditor } from './notes.js';
 import { BlockList, nextId, allIds } from './blocks.js';
@@ -33,6 +33,7 @@ export function TravelEditor({ id, initial, project, refresh, preview }) {
     <div class="pad">
       <${MetaEditor} doc=${doc} set=${set} project=${project} refresh=${refresh} />
       <${Issues} issues=${state.issues} />
+      <${Warnings} warnings=${state.warnings} />
       <${ReadingEditor} doc=${doc} set=${set} />
       <${FactsEditor} facts=${doc.facts ?? []} set=${(v) => set({ facts: v })} />
       <${StopsEditor} doc=${doc} set=${set} />

@@ -75,7 +75,7 @@ export function ImagePicker({ value, onChange, project, refresh, optional = true
  * 返回 { status: 'saved' | 'saving' | 'error', issues }
  */
 export function useAutosave(kind, id, doc, onSaved) {
-  const [state, setState] = useState({ status: 'saved', issues: [] });
+  const [state, setState] = useState({ status: 'saved', issues: [], warnings: [] });
   const first = useRef(true), timer = useRef(), latest = useRef(doc);
   latest.current = doc;
   useEffect(() => {
@@ -85,9 +85,9 @@ export function useAutosave(kind, id, doc, onSaved) {
     timer.current = setTimeout(async () => {
       try {
         const r = await api.save(kind, id, latest.current);
-        setState({ status: 'saved', issues: r.errors ?? [] });
+        setState({ status: 'saved', issues: r.errors ?? [], warnings: r.annotationWarnings ?? [] });
         onSaved?.();
-      } catch (e) { setState({ status: 'error', issues: [{ path: '', message: e.message }] }); }
+      } catch (e) { setState({ status: 'error', issues: [{ path: '', message: e.message }], warnings: [] }); }
     }, 700);
     return () => clearTimeout(timer.current);
   }, [doc]);
@@ -107,4 +107,13 @@ export function SaveBar({ state, title, children }) {
 export function Issues({ issues }) {
   if (!issues.length) return null;
   return html`<ul class="issues">${issues.map((i) => html`<li><span class="mono">${i.path || '文章'}</span> ${i.message}</li>`)}</ul>`;
+}
+
+/** 这次修改会让已有的划词批注找不到原文：只提醒，不阻止保存（读者的批注在评论区照常显示，只是引用旁会标“原文已修改”） */
+export function Warnings({ warnings }) {
+  if (!warnings?.length) return null;
+  return html`<div class="notice"><b>这次修改会让 ${warnings.length} 条读者批注找不到原文：</b>
+    <ul>${warnings.slice(0, 5).map((w) => html`<li>“${(w.quote ?? '').slice(0, 30)}${(w.quote ?? '').length > 30 ? '……' : ''}”</li>`)}</ul>
+    ${warnings.length > 5 && html`<span class="lbl">还有 ${warnings.length - 5} 条。</span>`}
+    <span class="lbl">这些批注会在评论区里保留，引用旁标注“原文已修改”，点击不再跳转。想保留的话，把这段文字改回去。</span></div>`;
 }

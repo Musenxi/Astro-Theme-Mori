@@ -13,7 +13,7 @@ export function sqliteStore(path: string): Store {
     async insert(c) { return Number(db.prepare(SQL.insert).run(...insertArgs(c)).lastInsertRowid); },
     async get(id) { const r = one(SQL.get, id); return r ? fromDb(r) : null; },
     async listApproved(entry) { return all(SQL.listApproved, entry).map(fromDb); },
-    async listAdmin(status, limit) { return (status ? all(SQL.listAdminBy, status, limit) : all(SQL.listAdminAll, limit)).map(fromDb); },
+    async listAdmin(status, limit, entry) { return all(SQL.listAdmin, status ?? null, status ?? null, entry ?? null, entry ?? null, limit).map(fromDb); },
     async countByStatus() { return statusCounts(all(SQL.count)); },
     async setStatus(id, status: Status) { return Number(db.prepare(SQL.setStatus).run(status, id).changes) > 0; },
     async remove(id) { return Number(db.prepare(SQL.remove).run(id, id).changes) > 0; },

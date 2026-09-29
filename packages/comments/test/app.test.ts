@@ -101,6 +101,17 @@ for (const [name, mk] of STORES) {
     assert.equal((await post({ body: '过了一分钟' })).status, 201);
   });
 
+  test(`[${name}] 管理列表可以按状态和文章筛选`, async () => {
+    const { post, admin } = await setup({ autoApprove: 'all' });
+    await post({ body: 'a' });
+    await post({ body: 'b', entry: 'travels/x' }, { 'cf-connecting-ip': '2.2.2.2' });
+    const n = async (q: string) => ((await (await admin('GET', `/comments${q}`)).json()) as any).comments.length;
+    assert.equal(await n(''), 2);
+    assert.equal(await n(`?entry=${ENTRY}`), 1);
+    assert.equal(await n('?entry=travels/x&status=approved'), 1);
+    assert.equal(await n('?status=pending'), 0);
+  });
+
   test(`[${name}] 蜜罐字段有内容：假装成功但不存`, async () => {
     const { post, admin } = await setup();
     const r = await post({ website: 'http://spam' });

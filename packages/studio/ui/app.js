@@ -4,6 +4,7 @@ import { PostEditor } from './editors/post.js';
 import { TravelEditor } from './editors/travel.js';
 import { RawEditor } from './editors/raw.js';
 import { Settings } from './editors/settings.js';
+import { Comments } from './editors/comments.js';
 
 const KIND_NAME = { post: '文章', travel: '游记' };
 const parseHash = () => { const [, kind, id] = location.hash.match(/^#\/([a-z]+)(?:\/(.+))?$/) ?? []; return { kind: kind ?? '', id: id ? decodeURIComponent(id) : '' }; };
@@ -31,6 +32,7 @@ function App() {
 
   let main;
   if (route.kind === 'new') main = html`<${NewEntry} kind=${route.id || 'post'} project=${project} refresh=${refresh} />`;
+  else if (route.kind === 'comments') main = html`<${Comments} project=${project} refresh=${refresh} />`;
   else if (route.kind === 'settings') main = html`<${Settings} project=${project} refresh=${refresh} />`;
   else if (route.kind === 'build') main = html`<${Build} project=${project} />`;
   else if (route.kind === 'post' || route.kind === 'travel') main = html`<${EntryRoute} key=${route.kind + route.id} kind=${route.kind} id=${route.id} project=${project} refresh=${refresh} preview=${preview} />`;
@@ -57,7 +59,7 @@ function Side({ project, route }) {
           <span class="t">${e.title}</span><span class="m mono">${e.date.slice(2)}</span></a></li>`)}</ul>
       </div>`)}
     </nav>
-    <footer class="mono"><a class="linkbtn" href="#/settings">设置</a><a class="linkbtn" href="#/build">构建</a></footer>
+    <footer class="mono"><a class="linkbtn" href="#/comments">评论${project.comments.pending ? html`<span class="badge">${project.comments.pending}</span>` : ''}</a><a class="linkbtn" href="#/settings">设置</a><a class="linkbtn" href="#/build">构建</a></footer>
   </aside>`;
 }
 

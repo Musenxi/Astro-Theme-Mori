@@ -4,7 +4,7 @@
  *
  *   GET    /comments?entry=posts/xxx         某篇文章下已通过的评论（含划词批注）
  *   POST   /comments                         提交评论 / 批注 / 回复
- *   GET    /admin/comments?status=pending    管理：列表        ┐ 只接受管理令牌
+ *   GET    /admin/comments?status=&entry=    管理：列表        ┐ 只接受管理令牌
  *   GET    /admin/stats                      管理：各状态数量  │ Authorization: Bearer <token>
  *   PATCH  /admin/comments/:id  {status}     管理：通过 / 隐藏 │
  *   DELETE /admin/comments/:id               管理：删除        ┘
@@ -151,7 +151,8 @@ export function createApp(opts: AppOptions) {
     const status = s === 'pending' || s === 'approved' || s === 'hidden' ? s : undefined;
     const limit = Math.min(500, Math.max(1, Number(c.req.query('limit')) || 100));
     // 管理列表多带一个 status，其余同对外字段
-    return c.json({ comments: (await store.listAdmin(status, limit)).map((r) => ({ ...publicOf(r), entry: r.entry, status: r.status })) });
+    const entry = c.req.query('entry');
+    return c.json({ comments: (await store.listAdmin(status, limit, entry && ENTRY.test(entry) ? entry : undefined)).map((r) => ({ ...publicOf(r), entry: r.entry, status: r.status })) });
   });
   admin.get('/stats', async (c) => c.json(await store.countByStatus()));
   admin.patch('/comments/:id', async (c) => {

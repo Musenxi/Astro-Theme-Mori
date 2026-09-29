@@ -3,7 +3,7 @@
  * 界面用 Preact + htm，不需要构建：/vendor/ 直接指向 node_modules 里的现成模块文件。
  */
 import { createServer } from 'node:http';
-import { createReadStream, existsSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, statSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, extname, normalize, resolve, dirname } from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -11,6 +11,7 @@ import { spawn } from 'node:child_process';
 import sharp from 'sharp';
 import { loadConfig, setConfigValue, listEntries, readEntry, writeEntry, entryExists, skeleton, trashEntry, listAssets, saveAsset, isId, KINDS, IMAGE_EXT } from './project.mjs';
 import { validateEntry } from 'astro-mori/validate';
+import { locate } from 'astro-mori/anchor';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const ui = join(here, '../ui');
@@ -44,6 +45,26 @@ function serveFile(res, file) {
   createReadStream(file).pipe(res);
 }
 
+/** 从内容 JSON 里取出每个能划词的块的纯文字（和页面上 DOM 的文字一致：不含旁注编号，换行符不算字符） */
+export function blockTexts(kind, data) {
+  const spanText = (v) => (typeof v === 'string' ? v : (v ?? []).map((s) => s.t).join('')).replace(/\n/g, '');
+  const out = new Map();
+  for (const b of data.blocks ?? []) {
+    if (kind === 'post' && ['p', 'h', 'quote'].includes(b.type)) out.set(b.id, spanText(b.text));
+    if (kind === 'travel' && b.type === 'text') for (const p of b.paras ?? []) out.set(p.id, spanText(p.text));
+  }
+  return out;
+}
+
+/** 这次修改会让哪些批注找不到原文（块没了，或原文对不上）——保存时提醒作者 */
+export function brokenAnnotations(kind, data, comments) {
+  const texts = blockTexts(kind, data);
+  return comments
+    .filter((c) => c.block)
+    .filter((c) => { const t = texts.get(c.block); return t === undefined || !locate(t, { start: c.start ?? 0, end: c.end ?? 0, quote: c.quote ?? '', prefix: c.prefix ?? '', suffix: c.suffix ?? '' }); })
+    .map((c) => ({ id: c.id, block: c.block, quote: c.quote }));
+}
+
 /** 把 publish 设置变成要跑的命令（参数用数组，不经过 shell） */
 export function publishCommand(publish, root) {
   if (!publish) return { error: '还没有发布设置。在 mori.config.ts 里加 publish: { target: \'cloudflare-pages\', project: \'…\' } 或 { target: \'rsync\', dest: \'user@host:/var/www/site/\' }。' };
@@ -69,6 +90,20 @@ export async function startStudio({ root, port = 4400 }) {
 
   async function isUp(p) {
     try { return (await fetch(`http://127.0.0.1:${p}/`, { signal: AbortSignal.timeout(1500) })).ok; } catch { return false; }
+  }
+
+  // ── 评论管理：Studio 服务替浏览器去调评论服务的管理接口，管理令牌只存在本机（环境变量或项目里的 .mori-studio.json） ──
+  const tokenFile = join(root, '.mori-studio.json');
+  const adminToken = () => process.env.MORI_ADMIN_TOKEN || (existsSync(tokenFile) ? JSON.parse(readFileSync(tokenFile, 'utf8')).adminToken : '');
+  const commentsEndpoint = () => (config.comments?.provider === 'mori' ? String(config.comments.endpoint ?? '').replace(/\/$/, '') : '');
+  async function admin(method, path, body) {
+    const ep = commentsEndpoint(), tk = adminToken();
+    if (!ep) throw Object.assign(new Error('mori.config.ts 里没有启用自建评论（comments.provider = mori）'), { code: 400 });
+    if (!tk) throw Object.assign(new Error('还没有管理令牌'), { code: 401 });
+    const r = await fetch(`${ep}/admin${path}`, { method, headers: { Authorization: `Bearer ${tk}`, 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body), signal: AbortSignal.timeout(8000) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw Object.assign(new Error(j.error ?? `评论服务返回 ${r.status}`), { code: r.status === 401 ? 401 : 502 });
+    return j;
   }
 
   const server = createServer(async (req, res) => {
@@ -102,9 +137,11 @@ export async function startStudio({ root, port = 4400 }) {
 
       /* ── 项目概况 ── */
       if (req.method === 'GET' && p === '/api/project') {
+        let pending = 0; // 侧栏上的待审数量；评论服务连不上就当 0
+        try { if (commentsEndpoint() && adminToken()) pending = (await admin('GET', '/stats')).pending ?? 0; } catch {}
         return send(res, 200, {
           root, configPath, config: { title: config.title ?? 'MORI', description: config.description ?? '', accent: config.accent ?? '#002fa7', accentDark: config.accentDark, categories: config.categories ?? [], home: config.home, archive: config.archive },
-          entries: listEntries(root), assets: listAssets(root), preview: { port: preview.port, up: await isUp(preview.port) }, publish: config.publish ?? null,
+          entries: listEntries(root), assets: listAssets(root), preview: { port: preview.port, up: await isUp(preview.port) }, publish: config.publish ?? null, comments: { provider: config.comments?.provider ?? null, endpoint: commentsEndpoint(), hasToken: !!adminToken(), pending },
         });
       }
 
@@ -116,8 +153,24 @@ export async function startStudio({ root, port = 4400 }) {
         return send(res, 200, { ok: true, config });
       }
 
-      /* ── 文章 ── */
       let mm;
+
+      /* ── 评论管理 ── */
+      if ((mm = m(/^\/api\/comments(?:\/(stats|token|(\d+)))?$/))) {
+        try {
+          if (!mm[1] && req.method === 'GET') return send(res, 200, await admin('GET', `/comments?limit=300${url.searchParams.get('status') ? `&status=${url.searchParams.get('status')}` : ''}`));
+          if (mm[1] === 'stats' && req.method === 'GET') return send(res, 200, await admin('GET', '/stats'));
+          if (mm[1] === 'token' && req.method === 'PUT') {
+            const { token } = await readJson(req);
+            writeFileSync(tokenFile, JSON.stringify({ adminToken: String(token ?? '').trim() }) + '\n', { mode: 0o600 });
+            return send(res, 200, { ok: true });
+          }
+          if (mm[2] && req.method === 'PATCH') return send(res, 200, await admin('PATCH', `/comments/${mm[2]}`, await readJson(req)));
+          if (mm[2] && req.method === 'DELETE') return send(res, 200, await admin('DELETE', `/comments/${mm[2]}`));
+        } catch (e) { return send(res, e.code ?? 500, { error: e.message }); }
+      }
+
+      /* ── 文章 ── */
       if ((mm = m(/^\/api\/entry\/(post|travel)\/([^/]+)$/))) {
         const [, kind, id] = mm;
         if (!isId(id)) return send(res, 400, { error: 'id 只能用字母、数字、下划线和连字符' });
@@ -128,7 +181,15 @@ export async function startStudio({ root, port = 4400 }) {
           // 校验不通过也允许保存草稿（写作过程中难免不完整），但把问题原样返回；`?strict=1` 时拒绝
           if (!v.ok && url.searchParams.get('strict')) return send(res, 422, v);
           writeEntry(root, kind, id, data);
-          return send(res, 200, { ...v, saved: true });
+          // 使用自建评论时：这次修改会不会让已有的批注找不到原文？只提醒，不阻止保存
+          let annotationWarnings;
+          if (commentsEndpoint() && adminToken()) {
+            try {
+              const list = await admin('GET', `/comments?status=approved&limit=500&entry=${encodeURIComponent(`${KINDS[kind]}/${id}`)}`);
+              annotationWarnings = brokenAnnotations(kind, data, list.comments);
+            } catch { /* 评论服务连不上就不检查 */ }
+          }
+          return send(res, 200, { ...v, saved: true, annotationWarnings });
         }
         if (req.method === 'DELETE') { trashEntry(root, kind, id); return send(res, 200, { ok: true }); }
       }

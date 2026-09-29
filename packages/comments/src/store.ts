@@ -31,8 +31,8 @@ export interface Store {
   get(id: number): Promise<CommentRow | null>;
   /** 某篇文章下已通过的评论，按时间从早到晚 */
   listApproved(entry: string): Promise<CommentRow[]>;
-  /** 管理用：按状态列出（不给 status 就是全部），新的在前 */
-  listAdmin(status: Status | undefined, limit: number): Promise<CommentRow[]>;
+  /** 管理用：按状态、按文章筛选（都不给就是全部），新的在前 */
+  listAdmin(status: Status | undefined, limit: number, entry?: string): Promise<CommentRow[]>;
   countByStatus(): Promise<Record<Status, number>>;
   setStatus(id: number, status: Status): Promise<boolean>;
   /** 删除；有回复时回复一起删 */
@@ -49,8 +49,8 @@ export const SQL = {
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   get: `SELECT * FROM comments WHERE id = ?`,
   listApproved: `SELECT * FROM comments WHERE entry = ? AND status = 'approved' ORDER BY created_at ASC, id ASC`,
-  listAdminAll: `SELECT * FROM comments ORDER BY created_at DESC, id DESC LIMIT ?`,
-  listAdminBy: `SELECT * FROM comments WHERE status = ? ORDER BY created_at DESC, id DESC LIMIT ?`,
+  // 筛选条件传 NULL 表示不限；SQLite 和 D1 都是同一条语句
+  listAdmin: `SELECT * FROM comments WHERE (? IS NULL OR status = ?) AND (? IS NULL OR entry = ?) ORDER BY created_at DESC, id DESC LIMIT ?`,
   count: `SELECT status, COUNT(*) AS n FROM comments GROUP BY status`,
   setStatus: `UPDATE comments SET status = ? WHERE id = ?`,
   remove: `DELETE FROM comments WHERE id = ? OR parent_id = ?`,

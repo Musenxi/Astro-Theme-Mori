@@ -1,5 +1,5 @@
 import { html, useState } from '../h.js';
-import { Field, Text, InlineField, ImagePicker, useAutosave, SaveBar, Issues } from '../components.js';
+import { Field, Text, InlineField, ImagePicker, useAutosave, SaveBar, Issues, Warnings } from '../components.js';
 import { spansToText, textToSpans, asSpans, compact } from '../inline.js';
 import { MetaEditor } from './meta.js';
 import { NotesEditor } from './notes.js';
@@ -26,6 +26,7 @@ export function PostEditor({ id, initial, project, refresh, preview }) {
     <div class="pad">
       <${MetaEditor} doc=${doc} set=${set} project=${project} refresh=${refresh} />
       <${Issues} issues=${state.issues} />
+      <${Warnings} warnings=${state.warnings} />
       <section class="box"><h2>正文</h2>
         <${BlockList} blocks=${doc.blocks} setBlocks=${setBlocks} label=${(b) => NAMES[b.type] ?? b.type}
           render=${(b, patch) => html`<${PostBlock} b=${b} patch=${patch} project=${project} refresh=${refresh} />`}

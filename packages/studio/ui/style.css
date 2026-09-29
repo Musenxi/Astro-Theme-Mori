@@ -110,3 +110,17 @@ section.box > h2{font-size:12px;font-weight:400;letter-spacing:.2em;color:var(--
   .pad{padding-left:20px;padding-right:20px}
 }
 .row .mono.lbl,.row > .lbl{white-space:nowrap}
+
+.notice{border:1px solid var(--rule);border-left:2px solid var(--accent);padding:8px 12px;margin:14px 0;font-size:13px}
+.notice ul{margin:4px 0 4px 1em;list-style:"· "}
+.notice .lbl{display:block;margin-top:4px}
+.tabs{display:flex;gap:18px;border-bottom:1px solid var(--rule);margin:16px 0 4px}
+.tabs button{padding:6px 0;color:var(--ink-3);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button[aria-pressed=true]{color:var(--ink);border-bottom-color:var(--accent)}
+.cm{border-bottom:1px solid var(--rule);padding:14px 0}
+.cm .meta{display:flex;gap:12px;color:var(--ink-3);flex-wrap:wrap}
+.cm .meta b{color:var(--ink);font-weight:400;font-family:var(--serif);font-size:14px}
+.cm blockquote{margin:8px 0;padding-left:10px;border-left:1px solid var(--accent);color:var(--ink-2);font-size:13px}
+.cm .txt{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0}
+.cm .acts{display:flex;gap:16px}
+.badge{display:inline-block;min-width:1.6em;padding:0 6px;text-align:center;background:var(--accent);color:var(--paper);border-radius:999px;font-size:11px;margin-left:6px}

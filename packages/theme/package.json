@@ -21,7 +21,8 @@
     "./fonts/*": "./fonts/*",
     "./schema": "./src/content/schema.ts",
     "./validate": "./src/content/validate.ts",
-    "./config": "./src/config.ts"
+    "./config": "./src/config.ts",
+    "./anchor": "./src/lib/anchor-text.ts"
   },
   "files": [
     "src",

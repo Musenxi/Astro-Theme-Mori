@@ -95,7 +95,8 @@ function whenSettled(cb: () => void) {
   const bump = () => { clearTimeout(idle); idle = window.setTimeout(finish, 160); };
   addEventListener('scroll', bump, { passive: true });
   const cap = window.setTimeout(finish, 4000); // 最多等 4 秒
-  bump();
+  // 平滑滚动不是立刻开始：给 500ms 宽限，期间没开始滚动才当作“不需要滚”
+  idle = window.setTimeout(finish, reduce ? 0 : 500);
 }
 
 let fadeTimer = 0;

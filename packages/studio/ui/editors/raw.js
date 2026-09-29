@@ -1,5 +1,5 @@
 import { html, useState } from '../h.js';
-import { useAutosave, SaveBar, Issues } from '../components.js';
+import { useAutosave, SaveBar, Issues, Warnings } from '../components.js';
 
 /** 源码模式：直接编辑 JSON。JSON 语法有错时不保存，只提示；语法对了才走自动保存和校验 */
 export function RawEditor({ kind, id, initial, preview }) {
@@ -11,6 +11,7 @@ export function RawEditor({ kind, id, initial, preview }) {
     <div class="pad">
       ${syntax && html`<p class="issues">JSON 语法错误：${syntax}（修好之前不会保存）</p>`}
       <${Issues} issues=${state.issues} />
+      <${Warnings} warnings=${state.warnings} />
       <textarea class="code" rows="40" style="width:100%;font:12.5px/1.6 var(--mono);white-space:pre;border:1px solid var(--rule);padding:10px" spellcheck="false" value=${text}
         onInput=${(e) => {
           setText(e.target.value);
