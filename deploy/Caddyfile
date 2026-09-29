@@ -12,6 +12,10 @@
 	@assets path /_astro/*
 	header @assets Cache-Control "public, max-age=31536000, immutable"
 
+	# /feed 是没有扩展名的 RSS 文件，明确告诉阅读器和浏览器它是 RSS
+	@feed path /feed /rss.xml
+	header @feed Content-Type "application/rss+xml; charset=utf-8"
+
 	try_files {path} {path}/index.html
 	file_server
 

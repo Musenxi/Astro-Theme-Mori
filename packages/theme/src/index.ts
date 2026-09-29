@@ -32,6 +32,8 @@ export default function mori(userConfig: MoriUserConfig): AstroIntegration {
         injectRoute({ pattern: '/', entrypoint: 'astro-mori/pages/index.astro' });
         injectRoute({ pattern: '/search', entrypoint: 'astro-mori/pages/search.astro' });
         injectRoute({ pattern: '/search.json', entrypoint: 'astro-mori/pages/search.json.ts' });
+        // 订阅地址是 /feed；/rss.xml 保留为同一份内容的别名，已经订阅了旧地址的读者不受影响
+        injectRoute({ pattern: '/feed', entrypoint: 'astro-mori/pages/rss.xml.ts' });
         injectRoute({ pattern: '/rss.xml', entrypoint: 'astro-mori/pages/rss.xml.ts' });
         injectRoute({ pattern: '/sitemap.xml', entrypoint: 'astro-mori/pages/sitemap.xml.ts' });
         injectRoute({ pattern: '/robots.txt', entrypoint: 'astro-mori/pages/robots.txt.ts' });
