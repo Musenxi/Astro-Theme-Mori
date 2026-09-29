@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "astro-mori": "workspace:*",
+    "exif-reader": "^2.0.3",
     "htm": "^3.1.1",
     "preact": "^10.29.8",
     "sharp": "^0.35.5",

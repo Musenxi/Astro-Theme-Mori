@@ -51,6 +51,9 @@ importers:
       astro-mori:
         specifier: workspace:*
         version: link:../theme
+      exif-reader:
+        specifier: ^2.0.3
+        version: 2.0.3
       htm:
         specifier: ^3.1.1
         version: 3.1.1
@@ -1086,6 +1089,9 @@ packages:
 
   eventemitter3@5.0.4:
     resolution: {integrity: sha512-mlsTRyGaPBjPedk6Bvw+aqbsXDtoAyAzm5MO7JgU+yVRyMQ5O8bD4Kcci7BS85f93veegeCPkL8R4GLClnjLFw==}
+
+  exif-reader@2.0.3:
+    resolution: {integrity: sha512-zFbQvguwT9JkqyYhR7pjE1Yn8SagwaGLNRU0Oh14xFa1paSf5Gzxn4gxgk0XhnudI0UIqU+HgnBX93+nva592A==}
 
   extend@3.0.2:
     resolution: {integrity: sha512-fjquC59cD7CyW6urNXK0FBufkZcoiGG80wTuPujX590cB5Ttln20E2UB4S/WARVqhXffZl2LNgS+gQdPIIim/g==}
@@ -2793,6 +2799,8 @@ snapshots:
   escalade@3.2.0: {}
 
   eventemitter3@5.0.4: {}
+
+  exif-reader@2.0.3: {}
 
   extend@3.0.2: {}
 

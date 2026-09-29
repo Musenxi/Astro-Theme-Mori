@@ -37,6 +37,7 @@ export function TravelEditor({ id, initial, project, refresh, preview }) {
       <${ReadingEditor} doc=${doc} set=${set} />
       <${FactsEditor} facts=${doc.facts ?? []} set=${(v) => set({ facts: v })} />
       <${StopsEditor} doc=${doc} set=${set} />
+      <${RouteData} doc=${doc} set=${set} />
       <section class="box"><h2>内容块 <span class="lbl mono">${doc.blocks.length} 个</span></h2>
         <${BlockList} blocks=${doc.blocks} setBlocks=${(blocks) => set({ blocks })} label=${(b) => NAMES[b.type] ?? b.type}
           render=${(b, patch) => html`<${TravelBlock} b=${b} patch=${patch} doc=${doc} project=${project} refresh=${refresh} ids=${ids} />`}
@@ -200,4 +201,54 @@ function FreeCanvas({ b, patch, project, refresh }) {
 import { Library } from '../components.js';
 function LibraryPick({ project, refresh, onPick, onClose }) {
   return html`<${Library} assets=${project.assets} onPick=${onPick} onClose=${onClose} onUploaded=${refresh} />`;
+}
+
+
+/* ───────────── 路线数据：GPX 轨迹、照片 EXIF 建议站点 ───────────── */
+
+function RouteData({ doc, set }) {
+  const [msg, setMsg] = useState(''), [sug, setSug] = useState(null), [names, setNames] = useState({}), [picked, setPicked] = useState({});
+  const track = doc.track;
+
+  const importGpx = async (file) => {
+    setMsg('读取中……');
+    try {
+      const r = await fetch('/api/gpx', { method: 'POST', body: file });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error);
+      set({ track: j.track });
+      setMsg(`已导入：${j.points} 个点，简化成 ${j.simplified} 个`);
+    } catch (e) { setMsg(e.message); }
+  };
+  const suggest = async () => {
+    setMsg('读取照片的 EXIF……');
+    try {
+      const j = await (await fetch('/api/exif')).json();
+      setSug(j); setPicked(Object.fromEntries(j.stops.map((_, i) => [i, true]))); setNames({});
+      setMsg(j.stops.length ? `${j.photos} 张图里 ${j.withGps} 张带位置，建议 ${j.stops.length} 站` : `${j.photos} 张图里没有带位置的（GPS）`);
+    } catch (e) { setMsg(e.message); }
+  };
+  const addStops = () => {
+    const chosen = sug.stops.map((s, i) => ({ s, i })).filter(({ i }) => picked[i]);
+    const used = new Set(doc.stops.map((x) => x.id));
+    let n = doc.stops.length;
+    const added = chosen.map(({ s, i }) => { while (used.has('s' + ++n)); used.add('s' + n); return { id: 's' + n, name: (names[i] ?? '').trim() || `未命名 ${n}`, lnglat: s.lnglat, ...(s.date ? { date: s.date } : {}) }; });
+    set({ stops: [...doc.stops, ...added] });
+    setSug(null); setMsg(`已加入 ${added.length} 个站点，记得给它们起名字`);
+  };
+
+  return html`<section class="box"><h2>路线数据 <span class="lbl mono">${track ? `轨迹 ${track.length} 个点` : '没有轨迹：按站点顺序连线'}</span></h2>
+    <div class="row" style="flex-wrap:wrap;gap:16px">
+      <label class="linkbtn" style="cursor:pointer">导入 GPX 轨迹<input type="file" accept=".gpx,application/gpx+xml,text/xml" hidden onChange=${(e) => e.target.files[0] && importGpx(e.target.files[0])} /></label>
+      ${track && html`<button class="linkbtn" onClick=${() => { set({ track: undefined }); setMsg('已清除轨迹'); }}>清除轨迹</button>`}
+      <button class="linkbtn" onClick=${suggest}>从图库照片的 EXIF 建议站点</button>
+    </div>
+    ${msg && html`<p class="mono lbl" style="margin-top:8px">${msg}</p>`}
+    ${sug && sug.stops.length > 0 && html`<div style="margin-top:8px">
+      ${sug.stops.map((s, i) => html`<div class="row" key=${i} style="margin:4px 0">
+        <input type="checkbox" checked=${!!picked[i]} onChange=${(e) => setPicked({ ...picked, [i]: e.target.checked })} />
+        <span class="mono lbl" style="width:12em">${s.date ?? '无日期'} · ${s.count} 张 · ${s.lnglat[1].toFixed(2)}, ${s.lnglat[0].toFixed(2)}</span>
+        <input class="cell" placeholder="站名（可稍后再填）" value=${names[i] ?? ''} onInput=${(e) => setNames({ ...names, [i]: e.target.value })} /></div>`)}
+      <div class="add"><button onClick=${addStops}>把选中的加入站点</button><button onClick=${() => setSug(null)}>取消</button></div></div>`}
+  </section>`;
 }

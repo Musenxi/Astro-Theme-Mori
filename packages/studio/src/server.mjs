@@ -12,6 +12,7 @@ import sharp from 'sharp';
 import { loadConfig, setConfigValue, listEntries, readEntry, writeEntry, entryExists, skeleton, trashEntry, listAssets, saveAsset, isId, KINDS, IMAGE_EXT } from './project.mjs';
 import { validateEntry } from 'astro-mori/validate';
 import { locate } from 'astro-mori/anchor';
+import { parseGpx, simplify, readExif, clusterStops } from './geo.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const ui = join(here, '../ui');
@@ -204,6 +205,22 @@ export async function startStudio({ root, port = 4400 }) {
       if (req.method === 'POST' && p === '/api/validate') {
         const { kind, data } = await readJson(req);
         return send(res, 200, validateEntry(kind, data));
+      }
+
+      /* ── 路线数据：导入 GPX、从照片 EXIF 建议站点 ── */
+      if (req.method === 'POST' && p === '/api/gpx') {
+        const pts = parseGpx((await readBody(req, 30 * 1024 * 1024)).toString('utf8'));
+        if (!pts.length) return send(res, 400, { error: '没有在这个 GPX 里找到轨迹点（trkpt / rtept / wpt）' });
+        const track = simplify(pts);
+        return send(res, 200, { track, points: pts.length, simplified: track.length });
+      }
+      if (req.method === 'GET' && p === '/api/exif') {
+        const photos = [];
+        for (const name of listAssets(root)) {
+          try { photos.push({ name, ...readExif((await sharp(join(root, 'src/assets', name)).metadata()).exif) }); } catch { photos.push({ name, lnglat: null, time: null }); }
+        }
+        const gps = photos.filter((x) => x.lnglat).length;
+        return send(res, 200, { photos: photos.length, withGps: gps, stops: clusterStops(photos) });
       }
 
       /* ── 图片 ── */
