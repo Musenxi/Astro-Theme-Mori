@@ -2,7 +2,7 @@
 
 一个安静的、编辑排版式的 Astro 博客主题：竖排文字、游记（竖向 / 混合 / 横向三种读法）、剪影地图、克莱因蓝的单一强调色。
 
-> 状态：开发中（v0.0.x）。主题已经可用：首页、文章、游记（三种读法、剪影地图）、刻度页（归档 / 栏目）、看大图。Studio 编辑器有了雏形。自建评论还没做。
+> 状态：开发中（v0.0.x）。已经有：首页、文章、游记（三种读法、剪影地图）、刻度页（归档 / 栏目）、看大图、自建评论（含划词批注）、第三方评论接入、Studio 编辑器（文章 / 游记表单、预览、评论管理、构建发布）。还没有：搜索、多语言界面、桌面版打包。
 > 需求与设计决定见 [docs/需求草案.md](docs/需求草案.md)，视觉的实物参照是 [design/style-probe](design/style-probe/index.html)。
 
 ## 目录
@@ -10,6 +10,8 @@
 ```
 packages/theme     主题包 astro-mori（Astro 集成：注入页面、样式、脚本、字体）
 packages/studio    Studio：本地写作与排版编辑器（读写项目里的内容文件）
+packages/comments  自建评论服务（Hono；Node + SQLite / Cloudflare Workers + D1）
+deploy             VPS 的 Docker Compose + Caddy 模板、GitHub Actions 模板
 examples/demo      示例站：只有内容（src/content）和配置（mori.config.ts）
 design/style-probe 风格试样（所有视觉决定的实物参照）
 docs               需求草案、写作指南
@@ -24,8 +26,9 @@ pnpm install
 pnpm dev        # 示例站，http://localhost:4321
 pnpm build      # 静态构建到 examples/demo/dist
 pnpm studio     # Studio 编辑器，http://127.0.0.1:4400
+pnpm comments   # 本地跑自建评论服务，http://127.0.0.1:8787（示例站已指向它）
 pnpm check      # 主题包的 TypeScript 检查
-pnpm test       # Studio 的测试
+pnpm test       # 各包的测试（Studio、评论服务、批注定位）
 ```
 
 ## 在自己的站里使用
@@ -81,6 +84,21 @@ pnpm studio          # 在站点项目里运行；默认 http://127.0.0.1:4400
 publish: { target: 'rsync', dest: 'user@host:/var/www/site/' }                  // VPS（需要本机能 ssh 过去）
 publish: { target: 'cloudflare-pages', project: 'my-site' }                      // 先在本机 wrangler login
 ```
+
+## 评论
+
+二选一，互相隔离，在 `mori.config.ts` 里配：
+
+```ts
+comments: { provider: 'mori', endpoint: 'https://你的域名/_comments', turnstileSiteKey: '…' }   // 自建：文末评论 + 划词批注
+comments: { provider: 'giscus', repo: '…', repoId: '…', category: '…', categoryId: '…' }        // 第三方：只有文末评论
+// 也支持 waline（serverURL）、twikoo（envId）、artalk（server、site）
+```
+
+- **自建评论**（`packages/comments`）：读者选中正文里的一段文字就能针对这段发表评论；批注和普通评论一起显示在文末评论区，带着引用的原文，点一下回到正文并临时高亮，正文里不留记号。文章改动后按“块 id + 位置 → 原文 + 前后文”重新定位，找不到的引用旁标“原文已修改”。
+- 第一次留言的人先审后发；蜜罐、按 IP 限流、可选 Turnstile。邮箱和 IP 只存加盐哈希。
+- 本地跑：`pnpm comments`（管理令牌 `ADMIN_TOKEN` 用环境变量设）。部署：VPS 见 [deploy/](deploy/README.md)，Cloudflare 见 `packages/comments/wrangler.example.toml`。
+- 管理在 Studio 的“评论”页：待审列表、通过 / 隐藏 / 删除；保存文章时，如果改动会让已有批注找不到原文，会先提醒。
 
 ## 从 Markdown 迁移
 

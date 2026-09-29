@@ -42,5 +42,4 @@ jobs:
       - run: |
           install -m 600 -D /dev/null ~/.ssh/id
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id
-          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" 2>/dev/null | sed 's/^[^ ]* //' >/dev/null || true
           rsync -az --delete -e "ssh -i ~/.ssh/id -o StrictHostKeyChecking=accept-new" dist/ "${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}"
