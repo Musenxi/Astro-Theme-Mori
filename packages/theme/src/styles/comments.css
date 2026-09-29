@@ -64,3 +64,11 @@ li > .cmt-form{margin:8px 0 18px}
   /* 手机上输入框从底部弹出 */
   .anno-pop{left:0!important;right:0;top:auto!important;bottom:0;width:100%;border-radius:12px 12px 0 0;padding-bottom:calc(12px + env(safe-area-inset-bottom))}
 }
+
+/* ───────── 第三方评论框：改写成本站的纸、墨、字体和细线（尽量用它们各自开放的变量） ───────── */
+.cmt-embed{--waline-font-size:15px;--waline-theme-color:var(--accent);--waline-active-color:var(--accent);--waline-color:var(--ink);--waline-bgcolor:transparent;--waline-bgcolor-light:var(--paper-2);--waline-bgcolor-hover:var(--paper-2);--waline-border-color:var(--rule);--waline-disable-bgcolor:var(--paper-2);--waline-disable-color:var(--ink-3);--waline-code-bgcolor:var(--paper-2);--waline-bq-color:var(--paper-2);--waline-info-bgcolor:var(--paper-2);--waline-info-color:var(--ink-3);--waline-border:1px solid var(--rule);--waline-avatar-size:2rem;--waline-m-avatar-size:1.6rem;--waline-badge-color:var(--accent);
+  --at-color-main:var(--accent);--at-color-font:var(--ink);--at-color-meta:var(--ink-3);--at-color-border:var(--rule);--at-color-bg:transparent;--at-color-bg-grey:var(--paper-2);--at-color-bg-transl:var(--paper-2);--at-color-deep:var(--ink);--at-color-light:var(--ink-3);--at-color-gray:var(--ink-3);--at-color-red:#b0442b}
+.cmt-embed,.cmt-embed *{font-family:var(--serif)}
+.cmt-embed .wl-panel{border-radius:0}
+.cmt-embed .wl-btn{border-radius:0}
+.cmt-embed .wl-avatar,.cmt-embed .atk-avatar img,.cmt-embed .tk-avatar{border-radius:50%}

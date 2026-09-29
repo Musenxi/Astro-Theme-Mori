@@ -1,0 +1,36 @@
+# MORI 的 VPS 部署：Caddy（自动 HTTPS）+ 静态站 + 自建评论服务，一台机器全部搞定。
+# 用法见 README.md。注意：这份模板还没有在真实服务器上跑过，第一次部署请留意报错并告诉我们。
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?在 .env 里填 SITE_DOMAIN，如 blog.example.com}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./site:/srv/site:ro            # Studio 的“发布”（rsync）把 dist/ 传到这里
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [comments]
+
+  comments:
+    build:
+      context: ..
+      dockerfile: deploy/comments.Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: "8787"
+      DB_PATH: /data/comments.db
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?在 .env 里填 ADMIN_TOKEN（管理令牌，用长一点的随机字符串）}
+      SALT: ${SALT:?在 .env 里填 SALT（随机字符串，给邮箱和 IP 做哈希）}
+      ALLOW_ORIGIN: https://${SITE_DOMAIN}
+      TURNSTILE_SECRET: ${TURNSTILE_SECRET:-}
+      AUTO_APPROVE: ${AUTO_APPROVE:-returning}
+    volumes:
+      - comments_data:/data
+
+volumes:
+  caddy_data:
+  caddy_config:
+  comments_data:

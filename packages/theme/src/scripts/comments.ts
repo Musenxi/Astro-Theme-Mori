@@ -2,6 +2,7 @@
  * 文末评论区（自建评论）：进入视口才加载；列表按时间排，回复缩进一层；批注在列表里带一段引用的原文，点一下回到正文（annotate.ts 处理）。
  * 第三方评论（giscus / waline / twikoo / artalk）见 cmt-embed.ts。
  */
+import { mountEmbed } from './cmt-embed.ts';
 import { moriConfig, listComments, sendComment, mountTurnstile, remember, dotDate, type MoriComment, type MoriCommentsConfig } from './cmt-api.ts';
 
 type Child = Node | string | null | false | undefined;
@@ -19,8 +20,23 @@ let offAdded: (() => void) | null = null;
 
 function init() {
   const section = document.querySelector<HTMLElement>('#comments');
+  if (!section || section.dataset.ready) return;
+  // 第三方评论：进入视口再加载脚本；每次换页都用新的页面标识重新挂载
+  if (section.dataset.provider !== 'mori') {
+    section.dataset.ready = '1';
+    const c = JSON.parse(section.dataset.config!);
+    const host = section.querySelector<HTMLElement>('[data-body]')!;
+    const io = new IntersectionObserver((es) => {
+      if (!es.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      host.replaceChildren(h('p', { class: 'mono lbl' }, '评论加载中……'));
+      mountEmbed(c, host, { entry: section.dataset.entry!, title: document.title }).catch((e) => host.replaceChildren(h('p', { class: 'mono lbl' }, e.message)));
+    }, { rootMargin: '500px' });
+    io.observe(section);
+    return;
+  }
   const cfg = moriConfig();
-  if (!section || !cfg || section.dataset.ready) return;
+  if (!cfg) return;
   section.dataset.ready = '1';
   const body = section.querySelector<HTMLElement>('[data-body]')!;
   const count = section.querySelector<HTMLElement>('[data-count]')!;
