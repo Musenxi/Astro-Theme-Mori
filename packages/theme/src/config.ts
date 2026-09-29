@@ -22,6 +22,8 @@ export interface MoriUserConfig {
   description?: string;
   /** 主题色（唯一的强调色），默认克莱因蓝 #002fa7；亮暗两个版本由 OKLCH 自动推出 */
   accent?: string;
+  /** 暗色下的主题色；不写就从 accent 自动推（保持色相和饱和度，亮度托底） */
+  accentDark?: string;
   categories: MoriCategory[];
   nav?: MoriNavItem[];
   home?: {
@@ -38,6 +40,7 @@ export interface MoriUserConfig {
 
 export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'accent' | 'categories' | 'nav'>> {
   site?: string;
+  accentDark?: string;
   description: string;
   home: { direction: 'h' | 'v'; editorNote: string };
   archive: { direction: 'h' | 'v' };
@@ -51,6 +54,7 @@ export function resolveConfig(c: MoriUserConfig): MoriConfig {
     title: c.title ?? 'MORI',
     description: c.description ?? '',
     accent: c.accent ?? '#002fa7',
+    accentDark: c.accentDark,
     categories: c.categories,
     nav: c.nav ?? [
       { label: '文章', href: '/posts/' },

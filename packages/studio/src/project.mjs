@@ -86,3 +86,30 @@ export function saveAsset(root, name, buffer) {
   writeFileSync(join(dir, safe), buffer);
   return safe;
 }
+
+/* ───────────── mori.config.ts 里的单行字符串设置 ───────────── */
+const CONFIG_KEYS = new Set(['title', 'description', 'accent', 'accentDark', 'editorNote']);
+const quote = (v) => `'${String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n')}'`;
+
+/**
+ * 改配置文件里的一个字符串设置：只替换那一行的值，其余原样不动（保留作者的注释和排版）。
+ * key 不在文件里时：顶层的 key 插到配置对象开头；editorNote 这种嵌套的要作者先自己写出来。value 为 null 表示删掉这一行。
+ */
+export function setConfigValue(configPath, key, value) {
+  if (!CONFIG_KEYS.has(key)) throw new Error(`不支持修改 ${key}`);
+  let src = readFileSync(configPath, 'utf8');
+  // 行尾允许有逗号和 // 注释，替换时原样保留
+  const line = new RegExp(`^([ \\t]*)${key}[ \\t]*:[ \\t]*(['"\`])(?:\\\\.|(?!\\2).)*\\2([ \\t]*,?)([ \\t]*\\/\\/.*)?$`, 'm');
+  if (value === null) {
+    src = src.replace(new RegExp(line.source + '\\n?', 'm'), '');
+  } else if (line.test(src)) {
+    src = src.replace(line, (_, indent, _q, tail, comment) => `${indent}${key}: ${quote(value)}${tail}${comment ?? ''}`);
+  } else if (key === 'editorNote') {
+    throw new Error('mori.config.ts 里还没有 editorNote：请先在 home: { } 里写一行 editorNote: \'\'，再回来改。');
+  } else {
+    const open = src.match(/(defineMoriConfig\(\{|export default \{)[ \t]*\n/);
+    if (!open) throw new Error('没在 mori.config.ts 里找到配置对象的开头，请手动添加。');
+    src = src.replace(open[0], `${open[0]}  ${key}: ${quote(value)},\n`);
+  }
+  writeFileSync(configPath, src);
+}

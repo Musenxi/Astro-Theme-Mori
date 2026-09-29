@@ -21,13 +21,13 @@
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --paper:#151412; --paper-2:#1f1d1a; --ink:#e8e3d9; --ink-2:#b2ab9f; --ink-3:#7b756b; --rule:#34302b;
-    --accent:oklch(from var(--accent-base) max(l,.7) min(c,.18) h); --land:#2a2723; --land-edge:#3d3832; color-scheme:dark;
+    --accent:var(--accent-dark,oklch(from var(--accent-base) max(l,.7) min(c,.18) h)); --land:#2a2723; --land-edge:#3d3832; color-scheme:dark;
     --glass:color-mix(in srgb,var(--paper) 56%,transparent); --glass-hi:rgba(255,255,255,.07);
   }
 }
 :root[data-theme="dark"]{
   --paper:#151412; --paper-2:#1f1d1a; --ink:#e8e3d9; --ink-2:#b2ab9f; --ink-3:#7b756b; --rule:#34302b;
-  --accent:oklch(from var(--accent-base) max(l,.7) min(c,.18) h); --land:#2a2723; --land-edge:#3d3832; color-scheme:dark;
+  --accent:var(--accent-dark,oklch(from var(--accent-base) max(l,.7) min(c,.18) h)); --land:#2a2723; --land-edge:#3d3832; color-scheme:dark;
   --glass:color-mix(in srgb,var(--paper) 56%,transparent); --glass-hi:rgba(255,255,255,.07);
 }
 

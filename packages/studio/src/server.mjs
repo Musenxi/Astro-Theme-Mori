@@ -9,7 +9,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import sharp from 'sharp';
-import { loadConfig, listEntries, readEntry, writeEntry, entryExists, skeleton, trashEntry, listAssets, saveAsset, isId, KINDS, IMAGE_EXT } from './project.mjs';
+import { loadConfig, setConfigValue, listEntries, readEntry, writeEntry, entryExists, skeleton, trashEntry, listAssets, saveAsset, isId, KINDS, IMAGE_EXT } from './project.mjs';
 import { validateEntry } from 'astro-mori/validate';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -46,7 +46,8 @@ function serveFile(res, file) {
 
 export async function startStudio({ root, port = 4400 }) {
   root = resolve(root);
-  const { path: configPath, config } = await loadConfig(root);
+  const { path: configPath, config: first } = await loadConfig(root);
+  let config = first; // 改了 mori.config.ts 之后重新读
   const preview = { port: 4321, startedByStudio: false }; // Astro 默认端口；项目已经在跑 dev（有锁，只能有一个）就直接复用
   const astroBin = () => join(dirname(require.resolve('astro/package.json', { paths: [root] })), 'bin/astro.mjs');
   const runAstro = (args, opts = {}) => spawn(process.execPath, [astroBin(), ...args], { cwd: root, ...opts });
@@ -87,9 +88,17 @@ export async function startStudio({ root, port = 4400 }) {
       /* ── 项目概况 ── */
       if (req.method === 'GET' && p === '/api/project') {
         return send(res, 200, {
-          root, configPath, config: { title: config.title ?? 'MORI', accent: config.accent ?? '#002fa7', categories: config.categories ?? [], home: config.home, archive: config.archive },
+          root, configPath, config: { title: config.title ?? 'MORI', description: config.description ?? '', accent: config.accent ?? '#002fa7', accentDark: config.accentDark, categories: config.categories ?? [], home: config.home, archive: config.archive },
           entries: listEntries(root), assets: listAssets(root), preview: { port: preview.port, up: await isUp(preview.port) },
         });
+      }
+
+      /* ── 站点设置：改 mori.config.ts 里的单行字符串 ── */
+      if (req.method === 'PUT' && p === '/api/config') {
+        const { key, value } = await readJson(req);
+        setConfigValue(configPath, key, value);
+        config = (await loadConfig(root)).config;
+        return send(res, 200, { ok: true, config });
       }
 
       /* ── 文章 ── */

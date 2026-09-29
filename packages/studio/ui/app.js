@@ -3,6 +3,7 @@ import { api } from './api.js';
 import { PostEditor } from './editors/post.js';
 import { TravelEditor } from './editors/travel.js';
 import { RawEditor } from './editors/raw.js';
+import { Settings } from './editors/settings.js';
 
 const KIND_NAME = { post: '文章', travel: '游记' };
 const parseHash = () => { const [, kind, id] = location.hash.match(/^#\/([a-z]+)(?:\/(.+))?$/) ?? []; return { kind: kind ?? '', id: id ? decodeURIComponent(id) : '' }; };
@@ -30,6 +31,7 @@ function App() {
 
   let main;
   if (route.kind === 'new') main = html`<${NewEntry} kind=${route.id || 'post'} project=${project} refresh=${refresh} />`;
+  else if (route.kind === 'settings') main = html`<${Settings} project=${project} refresh=${refresh} />`;
   else if (route.kind === 'build') main = html`<${Build} />`;
   else if (route.kind === 'post' || route.kind === 'travel') main = html`<${EntryRoute} key=${route.kind + route.id} kind=${route.kind} id=${route.id} project=${project} refresh=${refresh} preview=${preview} />`;
   else main = html`<div class="empty-state">从左边选一篇，或新建一篇。</div>`;
@@ -55,7 +57,7 @@ function Side({ project, route }) {
           <span class="t">${e.title}</span><span class="m mono">${e.date.slice(2)}</span></a></li>`)}</ul>
       </div>`)}
     </nav>
-    <footer class="mono"><a class="linkbtn" href="#/build">构建</a></footer>
+    <footer class="mono"><a class="linkbtn" href="#/settings">设置</a><a class="linkbtn" href="#/build">构建</a></footer>
   </aside>`;
 }
 
