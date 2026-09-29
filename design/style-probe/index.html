@@ -1,0 +1,1800 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MORI 风格试样</title>
+<link rel="stylesheet" href="../../packages/theme/fonts/STD/light/font.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap">
+<!-- 朱雀仿宋 v0.212（SIL OFL 1.1）：试样用的子集，只含本页用到的字 -->
+<style>@font-face{font-family:"ZhuqueFS";src:url("fonts/zhuque-probe.woff2") format("woff2");font-display:swap}</style>
+<link rel="stylesheet" href="../../packages/theme/fonts/STD/regular/font.css">
+<link rel="stylesheet" href="../../packages/theme/fonts/STD/bold/font.css">
+<style>
+:root{
+  --paper:#f3f0e9; --paper-2:#e9e5db; --ink:#1d1b18; --ink-2:#55504a; --ink-3:#8f887d; --rule:#d7d0c3;
+  /* 主题色：作者在编辑器里改，默认克莱因蓝。亮色下压暗、暗色下提亮到可读的亮度，色相和饱和度不变 */
+  --accent-base:#002fa7; --accent:oklch(from var(--accent-base) min(l,.52) c h); --land:#e0d9cb; --land-edge:#c8bfae;
+  --serif:"STDongGuanTi","ZhuqueFS","Songti SC","Noto Serif SC",serif;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,monospace;
+  --display:"Cormorant Garamond","Cormorant",Georgia,serif;
+  --ease:cubic-bezier(.2,.75,.15,1);
+  --gut:clamp(16px,4vw,56px);
+  --maxw:1360px;
+  --gap:clamp(12px,2vw,28px);
+  --edge:max(var(--gut),calc((100vw - var(--maxw))/2 + var(--gut)));
+  /* 磨砂玻璃：半透明纸色 + 模糊 + 细颗粒 */
+  --glass:color-mix(in srgb,var(--paper) 64%,transparent);
+  --glass-line:color-mix(in srgb,var(--ink) 11%,transparent);
+  --glass-hi:rgba(255,255,255,.5);
+  --grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .14 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#151412; --paper-2:#1f1d1a; --ink:#e8e3d9; --ink-2:#b2ab9f; --ink-3:#7b756b; --rule:#34302b;
+    --accent:oklch(from var(--accent-base) max(l,.7) min(c,.18) h); --land:#2a2723; --land-edge:#3d3832; color-scheme:dark;
+    --glass:color-mix(in srgb,var(--paper) 56%,transparent); --glass-hi:rgba(255,255,255,.07);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#151412; --paper-2:#1f1d1a; --ink:#e8e3d9; --ink-2:#b2ab9f; --ink-3:#7b756b; --rule:#34302b;
+  --accent:oklch(from var(--accent-base) max(l,.7) min(c,.18) h); --land:#2a2723; --land-edge:#3d3832; color-scheme:dark;
+  --glass:color-mix(in srgb,var(--paper) 56%,transparent); --glass-hi:rgba(255,255,255,.07);
+}
+
+:root[data-font="fs"]{--serif:"ZhuqueFS","Songti SC",serif}
+/* 朱雀仿宋只有常规体，不让浏览器伪造粗体 */
+:root[data-font="fs"] body{font-synthesis-weight:none}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow-x:clip}
+html{background:var(--paper)}
+body{background:var(--paper);color:var(--ink);font:400 17px/1.9 var(--serif);letter-spacing:.02em;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transition:background-color .4s,color .4s}
+img{display:block;max-width:100%;height:auto}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;letter-spacing:inherit}
+ol,ul{list-style:none}
+[hidden]{display:none!important}
+::selection{background:var(--accent);color:var(--paper)}
+:focus-visible{outline:1px solid var(--accent);outline-offset:3px}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gut)}
+.g{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gap)}
+.mono{font-family:var(--mono);font-size:11.5px;line-height:1.6;letter-spacing:.06em;font-feature-settings:"tnum"}
+.lbl{color:var(--ink-3)}
+.ul{background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .5s var(--ease)}
+a:hover .ul,a.ul:hover{background-size:100% 1px}
+.tcy{text-combine-upright:all}
+
+/* ---------- site header ---------- */
+.glass{background:var(--grain),var(--glass);-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);border:1px solid var(--glass-line);box-shadow:inset 0 1px 0 var(--glass-hi),0 12px 32px -20px rgba(0,0,0,.4)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.glass,.lb::before{background:var(--paper)!important}.lg{background:color-mix(in srgb,var(--paper) 88%,transparent)!important}}
+/* 页头：左边刊名是纯文字（也是封面刊头缩小后落下的位置），中间一颗液态玻璃胶囊放栏目，右边一颗玻璃圆钮切昼夜 */
+.site{position:sticky;top:0;z-index:25;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-gap:12px;padding:clamp(10px,1.8vw,18px) var(--edge) 0;pointer-events:none;transition:transform .55s var(--ease)}
+.site > *{pointer-events:auto}
+.site.hide{transform:translateY(calc(-100% - 24px))}
+.mark{justify-self:start;font-weight:700;font-size:19px;letter-spacing:.32em;view-transition-name:site-mark}
+.theme{justify-self:end}
+
+/* 液态玻璃（做法参考 kube.io/blog/liquid-glass-css-svg）：轻模糊 + 提饱和；边缘一圈按 squircle 斜面和斯涅尔定律算出折射位移（SVG 位移贴图），
+   再叠一张按边的朝向算出的高光贴图。backdrop-filter:url() 只有 Chromium 支持，其余浏览器退回轻模糊 + 高光，边缘不弯。 */
+:root{--lg-tint:rgba(255,255,255,.2);--lg-spec-o:1;--lg-rim:rgba(255,255,255,.95);--lg-rim-2:rgba(60,45,30,.16);--lg-glow:rgba(255,255,255,.55);--lg-drop:rgba(60,45,30,.3);--lg-lens:rgba(255,255,255,.62);--lg-lens-rim:rgba(255,255,255,1);--lg-fg:var(--ink-2);--lg-fg-on:var(--ink)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--lg-tint:rgba(24,22,20,.3);--lg-spec-o:.7;--lg-rim:rgba(255,255,255,.34);--lg-rim-2:rgba(255,255,255,.12);--lg-glow:rgba(255,255,255,.05);--lg-drop:rgba(0,0,0,.55);--lg-lens:rgba(255,255,255,.12);--lg-lens-rim:rgba(255,255,255,.3)}}
+:root[data-theme="dark"]{--lg-tint:rgba(24,22,20,.3);--lg-spec-o:.7;--lg-rim:rgba(255,255,255,.34);--lg-rim-2:rgba(255,255,255,.12);--lg-glow:rgba(255,255,255,.05);--lg-drop:rgba(0,0,0,.55);--lg-lens:rgba(255,255,255,.12);--lg-lens-rim:rgba(255,255,255,.3)}
+.lg{position:relative;border-radius:999px;background:var(--lg-tint);
+  -webkit-backdrop-filter:blur(5px) saturate(1.7) brightness(1.05);backdrop-filter:blur(5px) saturate(1.7) brightness(1.05);
+  box-shadow:inset 0 0 0 .5px var(--lg-rim-2),inset 0 0 14px var(--lg-glow),0 8px 24px -10px var(--lg-drop),0 1px 2px var(--lg-drop);
+  transition:background-color .4s,box-shadow .4s}
+:root.lg-refract .lg-nav{-webkit-backdrop-filter:url(#lg-f-nav) blur(4px) saturate(1.7) brightness(1.05);backdrop-filter:url(#lg-f-nav) blur(4px) saturate(1.7) brightness(1.05)}
+:root.lg-refract .lg-btn{-webkit-backdrop-filter:url(#lg-f-btn) blur(4px) saturate(1.7) brightness(1.05);backdrop-filter:url(#lg-f-btn) blur(4px) saturate(1.7) brightness(1.05)}
+/* 高光：JS 按元素尺寸画好的一张贴图（lgSpec），盖在玻璃最上层 */
+.lg::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:var(--lg-spec,none) 0 0/100% 100% no-repeat;opacity:var(--lg-spec-o)}
+/* 过渡名直接放在玻璃元素自身上没问题；只是不能放在带玻璃的元素的祖先上（祖先会变成 backdrop root，里面的模糊就看不到背后了） */
+.lg-nav{display:flex;padding:4px;view-transition-name:site-nav}
+.theme{view-transition-name:site-theme}
+.lg-nav a{position:relative;z-index:1;padding:8px clamp(12px,1.4vw,17px);font-size:14.5px;line-height:1.3;letter-spacing:.08em;border-radius:999px;color:var(--lg-fg);transition:color .3s}
+.lg-nav a:hover,.lg-nav a[aria-current]{color:var(--lg-fg-on)}
+/* 选中透镜：一颗更亮的小玻璃，跟着当前栏目，悬停时弹过去，松开回到当前栏目 */
+.lg-lens{position:absolute;top:4px;bottom:4px;left:0;width:var(--w,0);transform:translateX(var(--x,0));border-radius:999px;background:var(--lg-lens);opacity:0;
+  box-shadow:inset 0 0 0 .5px var(--lg-rim-2),inset 1px 1px 1px -.5px var(--lg-lens-rim),inset -1px -1px 1px -.5px var(--lg-rim-2),0 2px 8px -3px var(--lg-drop);
+  transition:transform .55s cubic-bezier(.34,1.45,.5,1),width .55s cubic-bezier(.34,1.45,.5,1),opacity .3s}
+.lg-lens.on{opacity:1}
+.lg-lens.snap{transition:none}
+.lg-btn{width:39px;height:39px;display:grid;place-items:center;font-size:13.5px;color:var(--lg-fg);transition:color .3s,transform .4s cubic-bezier(.34,1.45,.5,1)}
+.lg-btn:hover{color:var(--lg-fg-on)}
+.lg-btn:active{transform:scale(.92)}
+
+/* ---------- maps ---------- */
+.map{display:block;width:100%;height:auto;overflow:visible}
+.land{fill:var(--land);stroke:var(--land-edge);stroke-width:1;vector-effect:non-scaling-stroke;transition:fill .4s}
+.map .route{fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.map .route-bg{fill:none;stroke:var(--ink-3);stroke-width:1;stroke-dasharray:2 4;opacity:.6;vector-effect:non-scaling-stroke}
+.map .arctic{fill:none;stroke:var(--ink-3);stroke-width:1;stroke-dasharray:6 5;opacity:.7;vector-effect:non-scaling-stroke}
+.map .dot{fill:var(--paper);stroke:var(--accent);stroke-width:2;vector-effect:non-scaling-stroke}
+.map .dot.first{fill:var(--accent)}
+.map text{fill:var(--ink)}
+.map .t-zh{font-family:var(--serif);font-size:22px}
+.map .t-en{font-family:var(--mono);font-size:15px;fill:var(--ink-3);letter-spacing:.05em}
+.map .t-meta{font-family:var(--mono);font-size:15px;fill:var(--ink-3);letter-spacing:.08em}
+.map .scale{stroke:var(--ink-2);stroke-width:1;vector-effect:non-scaling-stroke}
+
+/* ---------- 首页 F：期刊 ---------- */
+/* 开篇：不用横幅，用本期特稿里的一句话开场 */
+.fo{padding-top:clamp(36px,8vh,110px);padding-bottom:clamp(64px,13vh,160px)}
+.fo-side{grid-column:1/3;display:flex;flex-direction:column;gap:5px;color:var(--ink-3);padding-top:.5em}
+.fo-side .k{color:var(--accent);margin-bottom:12px}
+.fo-side b{font-family:var(--display);font-weight:300;font-size:34px;line-height:1;letter-spacing:0;color:var(--ink);font-variant-numeric:oldstyle-nums;margin-bottom:10px}
+/* 本期收录：置顶可以有好几篇，点左边目录里的某一篇就换成那一篇（交叉溶解）。页面照常滚动，不钉住、不跟滚动联动。
+   只有一篇（或没设置置顶）时没有目录，就是一张静止的封面 */
+.fo-pin{grid-column:3/13;grid-row:1;display:grid}
+.fo-stage{grid-area:1/1}
+.fo-side{grid-row:1}
+/* 目录：紧跟在刊期信息下面；当前一篇高亮，上沿画一条主题色细线 */
+.fo-more{margin-top:clamp(28px,5vh,48px)}
+.fo-more ol{display:flex;flex-direction:column}
+.fo-more li{position:relative;border-top:1px solid var(--rule)}
+.fo-more li::after{content:"";position:absolute;left:0;top:-1px;height:1px;width:0;background:var(--accent);transition:width .65s cubic-bezier(.22,1,.36,1)}
+.fo-more li[aria-current]::after{width:100%}
+.fo-more button{width:100%;text-align:left;display:flex;gap:12px;align-items:baseline;padding:13px 0 14px;font-family:var(--serif);cursor:pointer}
+.fo-more button b{font-family:var(--display);font-weight:300;font-style:italic;font-size:20px;line-height:1;color:var(--ink-3);flex:none;min-width:1.7em;transition:color .4s}
+.fo-more button span{font-size:17px;line-height:1.45;letter-spacing:.03em;color:var(--ink-3);transition:color .4s}
+.fo-more button:hover span,.fo-more li[aria-current] span{color:var(--ink)}
+.fo-more button:hover b,.fo-more li[aria-current] b{color:var(--accent)}
+/* 舞台：几篇叠在同一格里，同时只显示当前一篇（换篇时上一篇留着做底）。封面图铺满，引文直接压在图上；
+   图朝着引文的一侧淡出（纸色），字落在淡出的那一段：横排时引文在左、图淡左缘；竖排时引文在右、图淡右缘。淡出用多停点近似缓动，避免色带 */
+.fo-stage{display:flex;flex-direction:column;min-width:0}
+.fo-track{display:grid}
+.fo-slide{grid-area:1/1;display:flex;flex-direction:column;min-width:0;visibility:hidden}
+.fo-slide.on,.fo-slide.out{visibility:visible}
+.fo-slide.on{z-index:2}.fo-slide.out{z-index:1}
+.fo-art{display:grid}
+.fo-art > *{grid-area:1/1}
+.fo-cover{display:flex;flex-direction:column;gap:10px}
+.fo-cover .ph{--dir:to right;position:relative;height:clamp(300px,calc(100svh - 330px),620px);overflow:hidden;
+  -webkit-mask-image:linear-gradient(var(--dir),rgba(0,0,0,.05) 0,rgba(0,0,0,.12) 12%,rgba(0,0,0,.24) 26%,rgba(0,0,0,.5) 40%,rgba(0,0,0,.8) 52%,#000 64%);
+  mask-image:linear-gradient(var(--dir),rgba(0,0,0,.05) 0,rgba(0,0,0,.12) 12%,rgba(0,0,0,.24) 26%,rgba(0,0,0,.5) 40%,rgba(0,0,0,.8) 52%,#000 64%)}
+:root[data-hdir="v"] .fo-cover .ph{--dir:to left}
+.fo-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.9);transform-origin:50% 50%}
+.fo-cover figcaption{display:flex;justify-content:space-between;gap:16px;color:var(--ink-3);letter-spacing:.06em}
+.fo-qa{display:block;position:relative;z-index:2;align-self:center;justify-self:start;max-width:min(100%,800px);padding-left:clamp(16px,3vw,48px)}
+.fo-q{font-size:clamp(32px,4vw,66px);font-weight:300;line-height:1.6;letter-spacing:.05em;text-indent:-1em;transition:color .5s}
+.fo-qa:hover .fo-q{color:var(--ink-2)}
+.fo-cite{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.4fr auto;column-gap:var(--gap);align-items:end;margin-top:clamp(22px,4vh,44px);padding-top:16px;background:linear-gradient(var(--ink),var(--ink)) 0 0/100% 1px no-repeat}
+.fo-cite dt{font:10.5px/1.6 var(--mono);letter-spacing:.1em;color:var(--ink-3);margin-bottom:4px}
+.fo-cite dd{font-size:15px;line-height:1.6}
+.fo-cite .ttl dd{font-size:23px;letter-spacing:.06em;line-height:1.3;width:fit-content}
+.fo-go{white-space:nowrap;font-size:15px;padding-bottom:2px}
+.fo-go span{display:inline-block;color:var(--accent);transition:transform .5s var(--ease)}
+.fo-go:hover span{transform:translateX(5px)}
+/* 进场（第一次打开）：图从上往下展开，引文一个字一个字像墨一样洇开，细线画开，最后出现篇名等信息 */
+.fo.play .fo-slide.on:not(.enter) .ph{animation:cover-in 1.4s var(--ease) .5s both}
+.fo.play .fo-slide.on .fo-q .ch{animation:ink 1s ease calc(.2s + var(--i)*40ms) both}
+@keyframes ink{from{opacity:0;filter:blur(7px)}}
+.fo.play .fo-slide.on:not(.enter) .fo-cite{animation:cite-rule 1.3s var(--ease) 1.2s both}
+@keyframes cite-rule{from{background-size:0 1px}}
+.fo.play .fo-slide.on:not(.enter) .fo-cite > *,.fo.play .fo-side,.fo.play .fo-slide.on:not(.enter) figcaption{animation:fade .9s ease 1.6s both}
+@keyframes cover-in{from{clip-path:inset(0 0 100% 0)}}
+@keyframes fade{from{opacity:0}}
+/* 换篇：交叉溶解（参考 velasx.com 精选区）。新旧两篇叠在一起，旧的淡出、新的淡入，同时进行；
+   图、引文、图注、篇名信息是一整块，一起溶过去；没有位移、缩放、裁切，引文也不再逐字洇开。
+   0.65 秒，quint-out（先快后慢）：前五分之一已经换过去大半，后面慢慢收尾 */
+.fo-slide.on.enter{animation:dissolve-in .65s cubic-bezier(.22,1,.36,1) both}
+.fo-slide.out{animation:dissolve-out .65s cubic-bezier(.22,1,.36,1) both}
+@keyframes dissolve-in{from{opacity:0}}
+@keyframes dissolve-out{to{opacity:0}}
+.fo.play .fo-slide.on.enter .fo-q .ch{animation:none}
+/* 竖排：引文竖排成一首诗的样子 */
+:root[data-hdir="v"] .fo-qa{justify-self:end;padding:0 clamp(8px,1.4vw,24px) 0 0}
+:root[data-hdir="v"] .fo-q{writing-mode:vertical-rl;font-size:clamp(30px,3.2vw,52px);line-height:2}
+/* 目次 */
+.fcon{padding-top:clamp(56px,11vh,128px);padding-bottom:clamp(40px,8vh,96px)}
+.f-run{display:flex;justify-content:space-between;gap:20px;color:var(--ink-3);padding-bottom:10px;border-bottom:1px solid var(--ink)}
+.fcon-body{padding-top:clamp(32px,6vh,72px)}
+.f-ed{grid-column:1/5;position:sticky;top:110px;align-self:start}
+.f-toc{font-size:clamp(56px,6.6vw,108px);font-weight:400;letter-spacing:.12em;line-height:1}
+.f-toc em{display:block;font-family:var(--display);font-style:italic;font-weight:300;font-size:.3em;letter-spacing:.01em;color:var(--ink-3);margin-top:.35em}
+.f-note{margin-top:44px;max-width:14.5em;font-size:15px;line-height:1.95;color:var(--ink-2)}
+.f-note .mono{display:block;color:var(--accent);margin-bottom:8px}
+.f-secs{grid-column:6/13}
+.f-sec{margin-bottom:clamp(44px,8vh,88px)}
+.f-sh{display:flex;align-items:baseline;gap:16px;padding-bottom:12px;background:linear-gradient(var(--ink),var(--ink)) 0 100%/0 1px no-repeat;transition:background-size 1.3s var(--ease)}
+.f-sec.in .f-sh{background-size:100% 1px}
+.f-sh .rn{font-family:var(--display);font-weight:300;font-size:46px;line-height:.9;min-width:1.4em}
+.f-sh h3{font-size:22px;font-weight:400;letter-spacing:.14em}
+.f-sh em{font-family:var(--display);font-style:italic;font-weight:300;font-size:20px;color:var(--ink-3)}
+.f-sh .ct{margin-left:auto;color:var(--ink-3);transition:color .3s}
+.f-sh h3{transition:color .3s}
+.f-sh:hover h3,.f-sh:hover .ct{color:var(--accent)}
+.f-en a{display:grid;grid-template-columns:4.4em 1fr auto;column-gap:18px;align-items:baseline;padding:17px 0 19px;border-bottom:1px solid var(--rule)}
+.f-en .pn{font-family:var(--display);font-weight:300;font-size:36px;line-height:1;font-variant-numeric:oldstyle-nums;transition:color .3s}
+.f-en .tt{font-size:clamp(20px,1.75vw,26px);line-height:1.4;letter-spacing:.04em;width:fit-content;background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .6s var(--ease)}
+.f-en .ex{grid-column:2;font-size:14px;line-height:1.8;color:var(--ink-3);margin-top:6px}
+.f-en .dt{color:var(--ink-3)}
+.f-en a:hover .pn{color:var(--accent)}
+.f-en a:hover .tt{background-size:100% 1px}
+/* 竖排：目次、编者按改为竖排 */
+:root[data-hdir="v"] .f-toc{writing-mode:vertical-rl}
+:root[data-hdir="v"] .f-toc em{margin:0;margin-block-start:.4em}
+:root[data-hdir="v"] .f-note{writing-mode:vertical-rl;height:15em;max-width:none;margin-top:0}
+:root[data-hdir="v"] .f-ed{display:flex;flex-direction:row-reverse;gap:40px;justify-content:flex-end}
+
+/* ---------- 首页 F·封面版：墨色封面 + 满版刊名（往下滚时缩进页头） ---------- */
+/* 封面用墨色底，暗色模式下自动反过来；封面上的主题色提亮一点 */
+.fc{--on:var(--paper);--on-2:color-mix(in srgb,var(--paper) 66%,transparent);--on-3:color-mix(in srgb,var(--paper) 42%,transparent);--on-line:color-mix(in srgb,var(--paper) 22%,transparent);--acc:color-mix(in srgb,var(--accent) 80%,var(--paper));
+  background:var(--ink);color:var(--on);margin-top:calc(-1*var(--hh,82px));padding-top:var(--hh,82px);min-height:100svh;display:flex;flex-direction:column;transition:background-color .4s}
+.fc-in{flex:1;display:flex;flex-direction:column;width:100%;padding-bottom:clamp(20px,4vh,40px)}
+.f-mast{font-family:var(--display);font-weight:300;line-height:.8;letter-spacing:-.01em;white-space:nowrap;display:flex;justify-content:space-between;margin-top:clamp(4px,1.6vh,20px);position:relative;z-index:30;transform-origin:0 0;will-change:transform,opacity}
+.f-mast span{display:inline-block}
+.f-rule{height:1px;background:var(--on-line);transform-origin:0 50%;margin-top:clamp(10px,2vh,20px)}
+.f-strap{padding-top:10px;color:var(--on-2);row-gap:6px}
+.f-strap span{grid-column:span 3}
+.f-strap span:last-child{text-align:right}
+.f-cover{margin-top:auto;padding-top:clamp(36px,7vh,96px);align-items:end;row-gap:40px}
+.f-lead{grid-column:1/7;display:block}
+.f-kick{color:var(--acc)}
+.f-kick em{font-family:var(--display);font-style:italic;font-size:14px;letter-spacing:0}
+.f-ttl{font-size:clamp(44px,6vw,100px);line-height:1.08;letter-spacing:.04em;font-weight:400;margin:16px 0 12px;width:fit-content;background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .8s var(--ease)}
+.f-lead:hover .f-ttl{background-size:100% 1px}
+.f-deck{font-family:var(--display);font-style:italic;font-weight:300;font-size:clamp(20px,1.8vw,28px);line-height:1.3;color:var(--on-2);letter-spacing:.01em}
+.f-ex{max-width:25em;margin-top:14px;font-size:15px;line-height:1.85;color:var(--on-2)}
+.f-lines{grid-column:8/13;border-top:1px solid var(--on-line)}
+.f-lines a{display:grid;grid-template-columns:3em 1fr;column-gap:14px;padding:13px 0 14px;border-bottom:1px solid var(--on-line)}
+.f-lines .no{font-family:var(--display);font-style:italic;font-weight:300;font-size:26px;line-height:1.1;color:var(--on-3);transition:color .3s}
+.f-lines .tt{font-size:19px;line-height:1.45;letter-spacing:.04em}
+.f-lines .kk{grid-column:2;font:10.5px/1.6 var(--mono);letter-spacing:.08em;color:var(--on-3)}
+.f-lines a:hover .no{color:var(--acc)}
+/* 刊期：一格一个月，每篇是一个点 */
+.f-ruler{position:relative;margin-top:clamp(36px,7vh,80px);height:46px;border-top:1px solid var(--on-line)}
+.f-ruler .tk{position:absolute;top:0;height:5px;border-left:1px solid var(--on-line)}
+.f-ruler .tk.y{height:12px;border-left-color:var(--on-2)}
+.f-ruler .tk i{position:absolute;top:16px;left:5px;font:10px var(--mono);letter-spacing:.08em;color:var(--on-3);font-style:normal;white-space:nowrap}
+.f-ruler .pt{position:absolute;top:-4px;width:7px;height:7px;margin-left:-3.5px;border-radius:50%;background:var(--on)}
+.f-ruler .pt.tr{background:var(--acc)}
+.f-ruler .pt::after{content:attr(data-t);position:absolute;bottom:16px;left:50%;transform:translate(-50%,4px);white-space:nowrap;font:14px/1.4 var(--serif);letter-spacing:.04em;color:var(--on);opacity:0;pointer-events:none;transition:opacity .3s,transform .4s var(--ease)}
+.f-ruler .pt:hover::after{opacity:1;transform:translate(-50%,0)}
+.f-ruler .cap{position:absolute;right:0;top:-22px;font:10px var(--mono);letter-spacing:.08em;color:var(--on-3)}
+/* 进场：刊名自下而上露出，细线从左画开，小点依次落下 */
+.fc.play .f-mast span{animation:mast-in 1.2s var(--ease) calc(var(--i)*80ms) both}
+@keyframes mast-in{from{clip-path:inset(100% 0 0 0);transform:translateY(.1em)}to{clip-path:inset(-10% 0 -10% 0)}}
+.fc.play .f-rule{animation:rule-in 1.3s var(--ease) .3s both}
+@keyframes rule-in{from{transform:scaleX(0)}}
+.fc.play .f-strap,.fc.play .f-cover{animation:rise .9s var(--ease) .55s both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}}
+.fc.play .f-ruler{animation:rule-in 1.2s var(--ease) .8s both}
+.fc.play .f-ruler .pt{animation:pt-in .5s var(--ease) calc(1.2s + var(--i)*55ms) both}
+@keyframes pt-in{from{transform:scale(0)}}
+/* 页头压在封面上时换成反色 */
+.site .mark{transition:color .4s,opacity .3s}
+.site.on-cover .mark{color:var(--paper)}
+/* 封面底色和页面相反，玻璃直接借用另一套主题的参数 */
+.site.on-cover{--lg-fg:color-mix(in srgb,var(--paper) 72%,transparent);--lg-fg-on:var(--paper);--lg-tint:rgba(24,22,20,.3);--lg-spec-o:.7;--lg-rim:rgba(255,255,255,.34);--lg-rim-2:rgba(255,255,255,.12);--lg-glow:rgba(255,255,255,.05);--lg-drop:rgba(0,0,0,.55);--lg-lens:rgba(255,255,255,.12);--lg-lens-rim:rgba(255,255,255,.3)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .site.on-cover{--lg-tint:rgba(255,255,255,.3);--lg-rim:rgba(255,255,255,.95);--lg-rim-2:rgba(255,255,255,.4);--lg-glow:rgba(255,255,255,.35);--lg-drop:rgba(60,45,30,.2);--lg-lens:rgba(255,255,255,.62);--lg-lens-rim:rgba(255,255,255,1)}}
+:root[data-theme="dark"] .site.on-cover{--lg-tint:rgba(255,255,255,.3);--lg-rim:rgba(255,255,255,.95);--lg-rim-2:rgba(255,255,255,.4);--lg-glow:rgba(255,255,255,.35);--lg-drop:rgba(60,45,30,.2);--lg-lens:rgba(255,255,255,.62);--lg-lens-rim:rgba(255,255,255,1)}
+/* 竖排：特稿标题、封面标题改为竖排 */
+:root[data-hdir="v"] .f-lead{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:clamp(24px,3vw,48px);align-items:end}
+:root[data-hdir="v"] .f-lead > *{grid-column:1}
+:root[data-hdir="v"] .f-lead .f-ttl{grid-column:2;grid-row:1/5;writing-mode:vertical-rl;font-size:clamp(34px,3.6vw,60px);margin:0;background-position:100% 0;background-size:1px 0}
+:root[data-hdir="v"] .f-lead:hover .f-ttl{background-size:1px 100%}
+:root[data-hdir="v"] .f-lines{writing-mode:vertical-rl;border-top:0;border-right:1px solid var(--on-line);height:min(46vh,24em);justify-self:end;max-width:100%;overflow-x:auto;scrollbar-width:none}
+:root[data-hdir="v"] .f-lines a{display:flex;gap:12px;padding:0 14px;border-bottom:0;border-left:1px solid var(--on-line);height:100%}
+:root[data-hdir="v"] .f-lines .no{font-size:22px}
+:root[data-hdir="v"] .f-lines .kk{margin-block-start:auto}
+
+/* ---------- 首页 E：刻度（也是栏目页） ---------- */
+.he-head{padding-top:clamp(28px,6vh,72px)}
+.he-back{color:var(--ink-3);transition:color .3s}
+.he-back:hover{color:var(--accent)}
+.he-ttl{display:flex;align-items:baseline;gap:18px;margin-top:18px;padding-bottom:14px;border-bottom:1px solid var(--ink)}
+.he-ttl .rn{font-family:var(--display);font-weight:300;font-size:60px;line-height:.9}
+.he-ttl h1{font-size:clamp(32px,3.4vw,50px);font-weight:400;letter-spacing:.14em;line-height:1.2;width:fit-content;view-transition-name:cat-title}
+.he-ttl em{font-family:var(--display);font-style:italic;font-weight:300;font-size:26px;color:var(--ink-3)}
+.he-ttl .ct{margin-left:auto;color:var(--ink-3)}
+.he{padding-top:clamp(20px,4vh,48px);padding-bottom:40px;--mh:112px;--mw:150px}
+.he-note{font-size:14px;color:var(--ink-3);letter-spacing:.08em;margin-bottom:28px}
+.he-note b{font-weight:400;color:var(--ink)}
+.he-axis{position:relative}
+.tick{position:absolute;pointer-events:none}
+.tick i{position:absolute;font:11px/1 var(--mono);color:var(--ink-3);white-space:nowrap;font-style:normal}
+.tick.y i{color:var(--ink);font-size:12px;letter-spacing:.1em}
+.he-item{position:absolute;display:flex;align-items:baseline;gap:14px;white-space:nowrap}
+.he-item .t{font-size:clamp(19px,1.9vw,27px);letter-spacing:.06em;transition:color .3s}
+.he-item .k{font-size:13px;color:var(--ink-3)}
+.he-item .k.tr{color:var(--accent)}
+.he-item .d{font:11px var(--mono);color:var(--ink-3)}
+.he-item:hover .t{color:var(--accent)}
+.he-counter{font:300 clamp(56px,9.5vw,164px)/1 var(--mono);letter-spacing:-.02em;color:var(--ink);white-space:nowrap;pointer-events:none}
+.he-counter .dot{color:var(--accent)}
+.dg{display:inline-block;height:1em;overflow:hidden;vertical-align:top}
+.dg i{display:block;font-style:normal;transition:transform .8s var(--ease)}
+.dg i b{display:block;height:1em;font-weight:inherit}
+/* 横排：时间轴竖着往下走 */
+:root:not([data-hdir="v"]) .he-body{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:var(--gap);max-width:var(--maxw);margin:0 auto;padding:0 var(--gut)}
+:root:not([data-hdir="v"]) .he-vp{display:contents}
+:root:not([data-hdir="v"]) .he-wrap{grid-column:1/-1;padding:0;max-width:none;margin:0}
+:root:not([data-hdir="v"]) .he-axis{grid-column:1;grid-row:2}
+.tick.m{border:0!important}
+:root:not([data-hdir="v"]) .he-axis{height:calc(var(--months)*var(--mh));border-left:1px solid var(--ink)}
+:root:not([data-hdir="v"]) .tick{left:0;top:calc(var(--p)*var(--mh));width:12px;border-top:1px solid var(--ink-3)}
+:root:not([data-hdir="v"]) .tick.y{width:40px;border-top-color:var(--ink)}
+:root:not([data-hdir="v"]) .tick i{left:52px;top:-.5em}
+:root:not([data-hdir="v"]) .tick.m i{left:20px;top:calc(var(--mh)/2 - .5em)}
+:root:not([data-hdir="v"]) .he-item{left:clamp(96px,12vw,180px);top:var(--q,calc(var(--p)*var(--mh)));transform:translateY(-50%)}
+:root:not([data-hdir="v"]) .he-counter{grid-column:2;grid-row:2;position:sticky;top:34vh;align-self:start}
+/* 竖排：时间轴横着走，像手卷一样从右往左展开 */
+:root[data-hdir="v"] .he-vp{position:sticky;top:0;height:100vh;overflow:hidden;direction:rtl}
+:root[data-hdir="v"] .he-wrap{display:contents}
+:root[data-hdir="v"] .he-axis{direction:ltr;height:100%;width:calc(var(--months)*var(--mw) + 2*var(--edge));will-change:transform}
+:root[data-hdir="v"] .he-axis::before{content:"";position:absolute;left:var(--edge);right:var(--edge);top:30vh;border-top:1px solid var(--ink)}
+:root[data-hdir="v"] .tick{right:calc(var(--edge) + var(--p)*var(--mw));top:calc(30vh - 12px);height:12px;border-left:1px solid var(--ink-3)}
+:root[data-hdir="v"] .tick.y{top:calc(30vh - 40px);height:40px;border-left-color:var(--ink)}
+:root[data-hdir="v"] .tick i{left:6px;top:0}
+:root[data-hdir="v"] .tick.m i{left:auto;right:calc(var(--mw)/2 - 1em);top:-4px}
+:root[data-hdir="v"] .he-item{right:calc(var(--edge) + var(--q,calc(var(--p)*var(--mw))));top:calc(30vh + 22px);writing-mode:vertical-rl;transform:translateX(50%);max-height:56vh}
+:root[data-hdir="v"] .he-item .d{text-combine-upright:none}
+:root[data-hdir="v"] .he-counter{position:absolute;left:var(--edge);bottom:8vh;direction:ltr}
+:root[data-hdir="v"] .he-note{position:absolute;right:var(--edge);top:calc(30vh - 110px);direction:ltr;margin:0}
+
+/* ---------- 普通文章 ---------- */
+.post-h{padding-top:clamp(40px,8vw,112px);padding-bottom:clamp(36px,5vw,64px)}
+.post-h > *{grid-column:3/11}
+.kicker{color:var(--ink-3);margin-bottom:18px}
+.post-h h1{font-size:clamp(34px,4.6vw,60px);line-height:1.2;font-weight:400;letter-spacing:.06em;width:fit-content;view-transition-name:title-post}
+.post-h .meta{color:var(--ink-3);margin-top:22px}
+.prose{padding-bottom:80px}
+.prose > *{grid-column:3/9}
+.prose p{text-align:justify;margin-bottom:1.1em}
+.prose h2{font-size:24px;font-weight:700;letter-spacing:.08em;margin:2.4em 0 .8em;display:flex;align-items:baseline;gap:14px}
+.prose h2 .mono{color:var(--accent);font-weight:400}
+.prose .n{grid-column:3/12;display:grid;grid-template-columns:subgrid}
+.prose .n > p{grid-column:1/7}
+.prose .n > aside{grid-column:7/10;font-size:13.5px;line-height:1.75;color:var(--ink-3);padding-top:.35em;border-top:1px solid var(--rule)}
+.prose sup{font-family:var(--mono);font-size:10px;color:var(--accent);margin-right:4px}
+.prose blockquote.vq{writing-mode:vertical-rl;justify-self:center;height:12.5em;margin:1.4em 0 2.2em;padding-right:1.1em;border-right:1px solid var(--accent);font-size:21px;line-height:2.1;letter-spacing:.2em;color:var(--ink-2)}
+.prose blockquote.vq cite{display:block;font-style:normal;font-size:13px;color:var(--ink-3);text-align:end;margin-block-start:.4em}
+.prose ul{margin:0 0 1.2em}
+.prose li{padding:.35em 0 .35em 1.6em;position:relative;border-bottom:1px dotted var(--rule)}
+.prose li::before{content:"";position:absolute;left:0;top:1.05em;width:.7em;height:1px;background:var(--ink-3)}
+.prose code{font-family:var(--mono);font-size:.82em;background:var(--paper-2);padding:.1em .35em;border-radius:2px}
+.prose pre{grid-column:3/10;background:var(--paper-2);padding:18px 22px;margin:.4em 0 1.6em;overflow-x:auto;font:12.5px/1.75 var(--mono);color:var(--ink-2);border-left:2px solid var(--ink-3)}
+.prose pre .c{color:var(--ink-3)}
+.prose pre .k{color:var(--ink)}
+.prose pre .s{color:var(--accent)}
+.prose figure{grid-column:2/12;margin:2em 0 2.4em}
+.prose figure img{width:100%;aspect-ratio:16/9;object-fit:cover}
+figcaption{font-size:13px;color:var(--ink-3);margin-top:10px;display:flex;gap:12px;align-items:baseline}
+figcaption .mono{flex:none}
+.post-end{border-top:1px solid var(--ink);padding-top:18px;padding-bottom:100px}
+.post-end a{grid-column:span 6;display:flex;flex-direction:column;gap:4px;font-size:19px}
+.post-end a:last-child{text-align:right;align-items:flex-end}
+
+/* ---------- 游记：封面 ---------- */
+.t-hero{padding-top:clamp(28px,5vw,72px);padding-bottom:clamp(48px,7vw,96px);align-items:center;row-gap:32px}
+.t-hero .info{grid-column:1/6}
+.t-hero h1{font-size:clamp(40px,5.6vw,76px);line-height:1.15;font-weight:400;letter-spacing:.06em;width:fit-content;view-transition-name:title-is}
+.t-hero .ex{color:var(--ink-2);margin:22px 0 28px;max-width:24em}
+.facts{display:grid;grid-template-columns:auto 1fr;column-gap:22px;row-gap:6px;border-top:1px solid var(--rule);padding-top:16px}
+.facts dt{color:var(--ink-3)}
+.facts dd{font-family:var(--mono);font-size:13px;letter-spacing:.04em}
+.t-hero .mapbox{grid-column:6/13}
+
+/* ---------- 游记：块（通用） ---------- */
+.t-body,.t-vp,.t-track,.blk{position:relative}
+.stop{margin-bottom:14px}
+.stop .no{color:var(--accent);display:block;margin-bottom:6px}
+.stop h2{display:inline;font-size:30px;font-weight:400;letter-spacing:.08em;margin-right:12px}
+.stop .en{font-size:15px;color:var(--ink-3)}
+.stop .co{display:block;color:var(--ink-3);margin-top:2px}
+.b-text p{text-align:justify}
+.b-text p + p{margin-top:.9em}
+/* 竖排文字 */
+.b-text.v{writing-mode:vertical-rl;letter-spacing:.12em;line-height:2.05}
+.b-text.v p + p{margin:0;margin-block-start:.9em}
+.b-text.v .stop{margin:0;margin-block-end:1.2em}
+.b-text.v .stop .no{font-family:var(--serif);font-size:13px;letter-spacing:.26em;margin:0;margin-block-end:.3em}
+.b-text.v .stop h2{display:block;font-size:28px;letter-spacing:.18em;margin:0}
+.b-text.v .stop .en{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;margin-block-start:.2em}
+
+.blk img{background:var(--paper-2);object-fit:cover}
+.rv img{clip-path:inset(5% 0 5% 0);transform:scale(1.035);opacity:0;transition:clip-path 1.1s var(--ease),transform 1.4s var(--ease),opacity .8s ease}
+.rv.in img{clip-path:inset(0);transform:none;opacity:1}
+.b-free.rv img{transition-delay:calc(var(--i,0)*120ms)}
+
+/* 自由排布：每张图的 x / y / 宽度 由作者指定（占画布的比例） */
+.canvas{position:relative}
+.fi{position:absolute;left:calc(var(--x)*100%);top:calc(var(--y)*100%);width:calc(var(--w)*100%);height:auto;z-index:var(--z,1)}
+.fnote{position:absolute;left:calc(var(--x)*100%);top:calc(var(--y)*100%);writing-mode:vertical-rl;font-size:15px;letter-spacing:.26em;line-height:1.9;color:var(--ink-2);z-index:3}
+
+.strip-track{display:flex;align-items:flex-start;gap:clamp(8px,1vw,14px);width:max-content}
+.strip-track img{width:auto;max-width:none;height:calc(var(--sh)*var(--s,1));margin-top:calc(var(--sh)*var(--o,0))}
+.strip-ctl{margin-left:auto;display:flex;gap:4px}
+.strip-ctl button{width:28px;height:24px;border:1px solid var(--rule);border-radius:2px;color:var(--ink-2);font-size:14px;line-height:1}
+.strip-ctl button:hover{border-color:var(--ink-3);color:var(--ink)}
+
+/* ---------- 竖向 + 混合 ---------- */
+.travel:not([data-mode="h"]) .t-track{max-width:var(--maxw);margin:0 auto;padding:0 var(--gut);display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gap);row-gap:clamp(56px,9vw,128px)}
+.travel:not([data-mode="h"]) .b-text{grid-column:3/9}
+.travel:not([data-mode="h"]) .b-text.v{grid-column:2/10;justify-self:end;height:min(21em,64vh);max-width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+.travel:not([data-mode="h"]) .b-single{grid-column:1/-1}
+.travel:not([data-mode="h"]) .b-single.inset{grid-column:3/11}
+.travel:not([data-mode="h"]) .b-single img{width:100%}
+.travel:not([data-mode="h"]) .b-pair{grid-column:2/12}
+.travel:not([data-mode="h"]) .b-pair .imgs{display:grid;grid-template-columns:1fr 1fr;gap:clamp(8px,1.2vw,16px)}
+.travel:not([data-mode="h"]) .b-pair img{width:100%}
+.travel:not([data-mode="h"]) .b-grid{grid-column:1/-1}
+.travel:not([data-mode="h"]) .b-grid .imgs{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(6px,.9vw,12px)}
+.travel:not([data-mode="h"]) .b-grid img{width:100%;height:100%;aspect-ratio:4/3}
+.travel:not([data-mode="h"]) .b-grid img:first-child{grid-column:span 2;grid-row:span 2}
+.travel:not([data-mode="h"]) .b-free{grid-column:1/-1}
+.travel:not([data-mode="h"]) .b-free .canvas{width:100%;aspect-ratio:var(--ar)}
+.travel:not([data-mode="h"]) .b-strip{grid-column:1/-1;width:100vw;margin-left:calc(50% - 50vw)}
+.travel:not([data-mode="h"]) .b-strip figcaption{max-width:var(--maxw);margin:10px auto 0;padding:0 var(--gut)}
+.travel:not([data-mode="h"]) .strip-track{padding:0 var(--edge)}
+.travel[data-mode="v"] .b-strip{--sh:min(58vh,70vw)}
+.travel[data-mode="v"] .strip-sc{overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:var(--rule) transparent;overscroll-behavior-x:contain}
+.travel[data-mode="v"] .strip-track img{scroll-snap-align:center}
+.travel[data-mode="m"] .b-strip{--sh:min(66vh,70vw)}
+.travel[data-mode="m"] .strip-vp{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
+.travel[data-mode="m"] .strip-track{will-change:transform}
+.travel[data-mode="m"] .b-strip figcaption{max-width:none;margin:12px 0 0;padding:0 var(--edge)}
+.travel[data-mode="m"] .strip-ctl,.travel[data-mode="h"] .strip-ctl{display:none}
+
+/* ---------- 横向 ---------- */
+.travel[data-mode="h"]{--ph:min(66vh,64vw)}
+.travel[data-mode="h"] .t-vp{position:sticky;top:0;height:100vh;overflow:hidden}
+.travel[data-mode="h"] .t-track{display:flex;align-items:flex-start;height:100%;width:max-content;gap:clamp(40px,6vw,104px);padding:8vh var(--edge) 13vh;will-change:transform}
+/* --y：块在上下方向的位置（0 顶 / 1 底），--s：缩放。默认居中、原尺寸 */
+.travel[data-mode="h"] .blk{flex:none;top:calc(var(--y,.5)*100%);transform:translateY(calc(var(--y,.5)*-100%))}
+.travel[data-mode="h"] .b-text:not(.v){width:min(23em,84vw)}
+.travel[data-mode="h"] .b-text.v{height:calc(var(--ph)*.92*var(--s,1))}
+.travel[data-mode="h"] .b-single img{height:calc(var(--ph)*var(--s,1));width:auto}
+.travel[data-mode="h"] .b-pair .imgs{display:flex;gap:14px}
+.travel[data-mode="h"] .b-pair img{height:calc(var(--ph)*var(--s,1));width:auto}
+.travel[data-mode="h"] .b-grid .imgs{display:grid;grid-template-rows:repeat(2,calc(var(--ph)*var(--s,1)/2 - 5px));grid-auto-flow:column;grid-auto-columns:calc((var(--ph)*var(--s,1)/2 - 5px)*4/3);gap:10px}
+.travel[data-mode="h"] .b-grid img{width:100%;height:100%}
+.travel[data-mode="h"] .b-grid img:first-child{grid-row:span 2;grid-column:span 2}
+.travel[data-mode="h"] .b-grid img:last-child{grid-row:span 2}
+.travel[data-mode="h"] .b-free .canvas{height:calc(var(--ph)*1.04*var(--s,1));width:calc(var(--ph)*1.04*var(--s,1)*var(--ar))}
+.travel[data-mode="h"] .b-strip{--sh:calc(var(--ph)*var(--s,1))}
+.travel[data-mode="h"] .b-strip figcaption{margin:12px 0 0}
+.b-endcard{display:none}
+.travel[data-mode="h"] .b-endcard{display:flex;flex-direction:column;justify-content:center;width:min(18em,70vw);gap:10px;color:var(--ink-2)}
+.b-endcard .big{font-size:44px;color:var(--ink);letter-spacing:.04em}
+.h-progress{display:none}
+.travel[data-mode="h"] .h-progress{display:block;position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--rule)}
+.h-progress i{position:absolute;inset:0;background:var(--accent);transform-origin:0 50%;transform:scaleX(0)}
+
+/* ---------- 横滚方向：右→左（作者按篇设置） ---------- */
+.travel[data-dir="rtl"][data-mode="h"] .t-vp{direction:rtl}
+.travel[data-dir="rtl"][data-mode="h"] .t-track > *{direction:ltr}
+.travel[data-dir="rtl"] .strip-sc,.travel[data-dir="rtl"][data-mode="m"] .strip-vp{direction:rtl}
+.travel[data-dir="rtl"] .b-strip figcaption{direction:ltr}
+.travel[data-dir="rtl"] .h-progress i{transform-origin:100% 50%}
+
+/* ---------- 游记：结尾 ---------- */
+.t-end{padding-top:clamp(80px,10vw,140px);padding-bottom:40px}
+.t-end > h2{grid-column:1/3;font-weight:400;padding-top:14px;border-top:1px solid var(--ink)}
+.itin{grid-column:3/13;border-top:1px solid var(--ink)}
+.itin li{display:grid;grid-template-columns:3em 5.5em 1fr auto;gap:var(--gap);align-items:baseline;padding:12px 0;border-bottom:1px solid var(--rule);cursor:pointer;transition:color .3s}
+.itin li .mono{color:var(--ink-3)}
+.itin li:hover{color:var(--accent)}
+.itin li .zh{font-size:18px}
+.itin li .zh small{font-size:13px;color:var(--ink-3);margin-left:10px}
+
+/* ---------- 角落：读法切换（右下）、当前位置（左下） ---------- */
+.corner{position:fixed;bottom:18px;z-index:20;border-radius:4px;transition:transform .6s var(--ease),opacity .4s}
+.mc{right:18px;display:flex;flex-direction:column;padding:2px}
+.mc button{position:relative;z-index:1;width:30px;height:30px;font-size:14px;color:var(--ink-3);transition:color .4s}
+.mc button:hover{color:var(--ink)}
+.mc button[aria-pressed="true"]{color:var(--paper)}
+.mc i{position:absolute;left:2px;top:2px;width:30px;height:30px;border-radius:2px;background:var(--ink);transform:translateY(calc(var(--i,0)*30px));transition:transform .55s var(--ease)}
+.mc .tip{position:absolute;right:calc(100% + 10px);bottom:4px;font-size:12px;color:var(--ink-3);white-space:nowrap;opacity:0;transform:translateX(6px);transition:opacity .3s,transform .4s var(--ease);pointer-events:none}
+.mc:hover .tip{opacity:1;transform:none}
+.loc{left:18px;display:flex;align-items:center;gap:10px;padding:6px 12px 6px 8px;opacity:0;transform:translateY(12px);pointer-events:none}
+.loc.on{opacity:1;transform:none;pointer-events:auto}
+.loc svg{width:60px;height:auto;flex:none}
+.loc .route{stroke-width:1.5}
+.loc .route-p{transition:stroke-dashoffset .9s var(--ease)}
+.loc .here{transition:transform .9s var(--ease)}
+.loc .where{line-height:1.35;white-space:nowrap}
+.loc .where b{display:block;font-weight:400;font-size:15px}
+.loc .where .mono{color:var(--ink-3);font-size:10.5px}
+
+/* ---------- 作者设置（仅试样） ---------- */
+.author{position:fixed;left:0;top:50%;z-index:30;display:flex;align-items:flex-start;transform:translate(calc(-100% + 30px),-50%);transition:transform .6s var(--ease)}
+.author.open{transform:translate(0,-50%)}
+.au-panel{width:260px;border-left:0!important;border-radius:0 0 4px 0;padding:16px 18px;font-size:14px}
+.au-tab{order:2;writing-mode:vertical-rl;width:30px;padding:12px 0;font-size:13px;letter-spacing:.3em;color:var(--ink-2);border-left:0!important;border-radius:0 4px 4px 0}
+.au-tab:hover{color:var(--accent)}
+.au-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:3px;padding:2px;gap:2px}
+.seg button{padding:1px 9px;font-size:13px;color:var(--ink-3);border-radius:2px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.sw{align-items:center}
+.sw button{width:20px;height:20px;padding:0;border-radius:50%;background:var(--c)!important;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.sw button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--paper),0 0 0 3px var(--ink)}
+.sw label{position:relative;width:20px;height:20px;border-radius:50%;overflow:hidden;background:conic-gradient(#e33,#ec3,#3c6,#3ae,#63e,#e3a,#e33);cursor:pointer}
+.sw input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.au-sec{margin-top:4px}
+.au-sec[hidden]{display:none}
+.au-hint{margin-top:14px;font-size:12.5px;line-height:1.7;color:var(--ink-3)}
+html.editing .fi{cursor:move}
+html.editing .fi.sel{outline:2px solid var(--accent);outline-offset:2px}
+html.editing .travel[data-mode="h"] .blk{outline:1px dashed color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:6px;cursor:ns-resize}
+html.editing .blk img{-webkit-user-drag:none;user-select:none}
+.etag{position:absolute;z-index:6;font:10.5px/1.5 var(--mono);letter-spacing:.02em;background:var(--accent);color:#fff;padding:0 5px;white-space:nowrap;pointer-events:none;transform:translateY(-100%)}
+
+/* ---------- 看大图：背景是磨砂玻璃 ---------- */
+.blk img,.prose figure img{cursor:zoom-in}
+html.editing .blk img{cursor:inherit}
+.lb{position:fixed;inset:0;z-index:50;display:grid;place-items:center;cursor:zoom-out}
+.lb::before{content:"";position:absolute;inset:0;background:var(--grain),color-mix(in srgb,var(--paper) 52%,transparent);-webkit-backdrop-filter:blur(28px) saturate(1.3);backdrop-filter:blur(28px) saturate(1.3);opacity:0;transition:opacity .45s ease}
+.lb.on::before{opacity:1}
+.lb-img{position:relative;max-width:min(88vw,1600px);max-height:78vh;width:auto;height:auto;object-fit:contain;will-change:transform,clip-path}
+.lb-cap{position:absolute;left:50%;bottom:22px;display:flex;gap:14px;align-items:baseline;padding:7px 16px;border-radius:4px;font-size:14px;color:var(--ink-2);white-space:nowrap;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis;opacity:0;transform:translate(-50%,10px);transition:opacity .4s ease .12s,transform .55s var(--ease) .12s}
+.lb.on .lb-cap{opacity:1;transform:translate(-50%,0)}
+.lb-cap .lbl{margin-left:6px}
+footer.foot{padding-top:28px;padding-bottom:90px;color:var(--ink-3);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;border-top:1px solid var(--rule);margin-top:40px}
+footer.foot a{color:var(--ink-2)}
+footer.foot a[aria-current]{color:var(--accent)}
+
+/* ---------- 页面切换 ---------- */
+::view-transition-group(*){animation-duration:.62s;animation-timing-function:cubic-bezier(.2,.75,.15,1)}
+::view-transition-old(root){animation:.32s ease both vt-out}
+::view-transition-new(root){animation:.55s cubic-bezier(.2,.75,.15,1) .08s both vt-in}
+@keyframes vt-out{to{opacity:0}}
+@keyframes vt-in{from{opacity:0;transform:translateY(14px)}}
+html.vt-turn::view-transition-old(root){animation:.36s ease both vt-turn-out}
+html.vt-turn::view-transition-new(root){animation:.62s cubic-bezier(.2,.75,.15,1) .06s both vt-turn-in}
+@keyframes vt-turn-out{to{opacity:0;transform:translateX(28px)}}
+@keyframes vt-turn-in{from{opacity:0;transform:translateX(-28px)}}
+html.vt-mode::view-transition-old(root){animation:.28s ease both vt-out}
+html.vt-mode::view-transition-new(root){animation:.5s ease both vt-fade}
+@keyframes vt-fade{from{opacity:0}}
+
+/* ---------- 窄屏 ---------- */
+@media (max-width:760px){
+  body{font-size:16px}
+  .g > *,.prose > *,.post-h > *{grid-column:1/-1!important}
+  .fo-side{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin-bottom:28px;padding:0}
+  .fo-side .k{margin:0}
+  .fo-side b{font-size:24px;margin:0}
+  .fo-more{flex-basis:100%;margin-top:22px}
+  /* 手机上的封面：整幅图铺满屏宽、顶到屏幕最上（玻璃页头浮在图上），引文压在图里，刊期信息和“同时收录”放在图下面 */
+  .fo{padding-top:0}
+  .fo-stage{margin:-53px calc(-1*var(--gut)) 0}
+  .fo-side{grid-row:2;position:static;margin:26px 0 0}
+  .fo-cover .ph{height:clamp(320px,calc(100svh - 200px),660px)}
+  .fo-cite{padding-left:var(--gut);padding-right:var(--gut);background-position:var(--gut) 0;background-size:calc(100% - 2*var(--gut)) 1px}
+  .fo-cite > div:not(.ttl){display:none}
+  .fo-cover .ph{--dir:to left}
+  .fo-cover figcaption{padding:0 var(--gut)}
+  :root:not([data-hdir="v"]) .fo-cover .ph{-webkit-mask-image:linear-gradient(to bottom,#000 32%,rgba(0,0,0,.8) 48%,rgba(0,0,0,.5) 62%,rgba(0,0,0,.24) 78%,rgba(0,0,0,.08) 100%);mask-image:linear-gradient(to bottom,#000 32%,rgba(0,0,0,.8) 48%,rgba(0,0,0,.5) 62%,rgba(0,0,0,.24) 78%,rgba(0,0,0,.08) 100%)}
+  :root[data-hdir="v"] .fo-cover .ph{-webkit-mask-image:linear-gradient(to left,rgba(0,0,0,.05) 0,rgba(0,0,0,.12) 12%,rgba(0,0,0,.24) 26%,rgba(0,0,0,.5) 40%,rgba(0,0,0,.8) 52%,#000 64%),linear-gradient(to bottom,#000 74%,rgba(0,0,0,.5) 90%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to left,rgba(0,0,0,.05) 0,rgba(0,0,0,.12) 12%,rgba(0,0,0,.24) 26%,rgba(0,0,0,.5) 40%,rgba(0,0,0,.8) 52%,#000 64%),linear-gradient(to bottom,#000 74%,rgba(0,0,0,.5) 90%,transparent 100%);mask-composite:intersect}
+  .fo-qa{align-self:end;padding:0 0 46px 1em!important}
+  :root:not([data-hdir="v"]) .fo-q{text-indent:-1em;font-size:clamp(25px,7.6vw,32px)}
+  :root[data-hdir="v"] .fo-qa{align-self:center;padding:0 4px 0 0!important}
+  :root[data-hdir="v"] .fo-q{text-indent:0}
+  .f-strap span{grid-column:span 6!important}
+  .f-strap span:nth-child(even){text-align:right}
+  .f-strap span:nth-child(3){display:none}
+  .f-ruler .tk:not(.y) i{display:none}
+  .fo-cite{grid-template-columns:1fr auto;row-gap:16px}
+  .fo-cite dd{font-size:14px}
+  .he-ttl .rn{font-size:40px}
+  .he-ttl em{font-size:20px}
+  .f-ed{position:static;margin-bottom:56px}
+  .f-en a{grid-template-columns:3.2em 1fr}
+  .f-en .dt{grid-column:2}
+  .f-en .pn{font-size:28px}
+  .he{--mh:92px;--mw:120px}
+  :root:not([data-hdir="v"]) .he-body{grid-template-columns:1fr}
+  :root:not([data-hdir="v"]) .he-counter{grid-column:1;grid-row:1;position:sticky;top:60px;justify-self:end;font-size:44px;z-index:2}
+  :root:not([data-hdir="v"]) .he-wrap{grid-row:2}
+  :root:not([data-hdir="v"]) .he-axis{grid-row:3}
+  :root:not([data-hdir="v"]) .he-item{left:64px;flex-wrap:wrap;white-space:normal;max-width:calc(100% - 64px);column-gap:10px}
+  :root:not([data-hdir="v"]) .he-item .t{flex-basis:100%}
+  :root:not([data-hdir="v"]) .tick.y i{left:4px;top:-1.5em}
+  .prose .n{display:block}
+  .prose .n > aside{margin:-.4em 0 1.4em;padding-top:.5em}
+  .t-hero .mapbox{order:-1}
+  .t-hero .lab{display:none}
+  .travel:not([data-mode="h"]) .t-track > *{grid-column:1/-1!important}
+  .travel:not([data-mode="h"]) .b-strip{width:100vw;margin-left:calc(-1*var(--gut))}
+  .travel:not([data-mode="h"]) .b-free .canvas{aspect-ratio:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .travel:not([data-mode="h"]) .fi,.travel:not([data-mode="h"]) .fnote{position:static;width:100%}
+  .travel:not([data-mode="h"]) .fnote{height:9em;justify-self:center}
+  .travel[data-mode="h"]{--ph:min(60vh,116vw)}
+  .itin li{grid-template-columns:2.2em 4.6em 1fr}
+  .itin li .co{display:none}
+  .corner{bottom:12px}
+  .mc{right:12px}
+  .loc{left:12px}
+  .loc .where .mono{display:none}
+  .author{top:auto;bottom:120px;transform:translate(calc(-100% + 30px),0)}
+  .author.open{transform:none}
+  .post-end a{grid-column:1/-1!important;text-align:left!important;align-items:flex-start!important;margin-bottom:18px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important;transition:none!important}
+  .rv img{clip-path:none;transform:none;opacity:1}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="is-land" viewBox="0 0 1000 720"><path class="land" id="is-land-path"/></symbol>
+  <defs id="lg-defs"></defs>
+</svg>
+
+<header class="site" id="site">
+  <a class="mark" href="#/">MORI</a>
+  <nav class="lg lg-nav" id="lg-nav">
+    <span class="lg-lens" id="lg-lens" aria-hidden="true"></span>
+    <a href="#/post" data-nav="post">文章</a>
+    <a href="#/travel" data-nav="travel">游记</a>
+    <a href="#/e" data-nav="e">归档</a>
+  </nav>
+  <button class="lg lg-btn theme" id="theme" title="切换昼夜">夜</button>
+</header>
+
+<!-- ================= 首页 F：期刊 ================= -->
+<main id="p-f" data-page="f" data-home>
+  <section class="wrap fo" id="fo">
+    <div class="g">
+      <div class="fo-side mono">
+        <span class="k" id="fo-k">本期特稿</span>
+        <b id="fo-no">047</b>
+        <span id="fo-cat">游记 · Journeys</span>
+        <span>第四十八期</span>
+        <span>二〇二五年 · 秋</span>
+        <div class="fo-more" id="fo-more" hidden></div>
+      </div>
+      <div class="fo-pin">
+        <div class="fo-stage" id="fo-stage" role="region" aria-label="本期收录">
+          <div class="fo-track" id="fo-track"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="wrap fcon">
+    <header class="f-run mono"><span>MORI — 第四十八期</span><span>目次 · CONTENTS</span></header>
+    <div class="g fcon-body">
+      <aside class="f-ed">
+        <h2 class="f-toc">目次<em>Contents</em></h2>
+        <p class="f-note"><span class="mono">编者按</span>这一期没有主题。几篇文章写于不同的季节，放在一起，只是因为它们都写完了。</p>
+      </aside>
+      <div class="f-secs" id="f-secs"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ================= 首页 F·封面版 ================= -->
+<main id="p-f1" data-page="f1" data-home hidden>
+  <section class="fc" id="fc">
+    <div class="wrap fc-in">
+      <h1 class="f-mast" id="f-mast" aria-label="MORI"><span style="--i:0">M</span><span style="--i:1">O</span><span style="--i:2">R</span><span style="--i:3">I</span></h1>
+      <div class="f-rule"></div>
+      <div class="g f-strap mono">
+        <span>VOL.07 — NO.48</span>
+        <span>二〇二五年 · 秋季号</span>
+        <span>文章 · 游记 · 读书 · 摄影</span>
+        <span>始于 2019 · 不定期</span>
+      </div>
+      <div class="g f-cover">
+        <a class="f-lead" href="#/travel">
+          <span class="f-kick mono">本期特稿 · FEATURE · <em>p.</em> 047</span>
+          <h2 class="f-ttl t">冰岛，逆时针</h2>
+          <p class="f-deck">Iceland, counter-clockwise — ten days on Route One.</p>
+          <p class="f-ex">沿一号公路绕岛一圈。十天，两千一百四十公里，六月没有夜晚。</p>
+        </a>
+        <ol class="f-lines" id="f-lines"></ol>
+      </div>
+      <div class="f-ruler" id="f-ruler"></div>
+    </div>
+  </section>
+
+  <section class="wrap fcon">
+    <header class="f-run mono"><span>MORI — 第四十八期</span><span>目次 · CONTENTS</span></header>
+    <div class="g fcon-body">
+      <aside class="f-ed">
+        <h2 class="f-toc">目次<em>Contents</em></h2>
+        <p class="f-note"><span class="mono">编者按</span>这一期没有主题。几篇文章写于不同的季节，放在一起，只是因为它们都写完了。</p>
+      </aside>
+      <div class="f-secs" id="f1-secs"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ================= 首页 E：刻度 ================= -->
+<main id="p-e" data-page="e" data-home hidden>
+  <header class="wrap he-head">
+    <a class="he-back mono" href="#/f">← 目次</a>
+    <div class="he-ttl"><span class="rn" id="he-rn"></span><h1 id="he-h1">全部文章</h1><em id="he-en">Archive</em><span class="mono ct" id="he-ct"></span></div>
+  </header>
+  <section class="he">
+    <div class="he-body" id="he-body">
+      <div class="he-vp">
+        <div class="wrap he-wrap">
+          <p class="he-note" id="he-note"></p>
+        </div>
+        <div class="he-axis" id="he-axis"></div>
+        <div class="he-counter" id="he-counter" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ================= 普通文章 ================= -->
+<main id="p-post" data-page="post" hidden>
+  <header class="wrap g post-h">
+    <div class="kicker mono">随笔 · 2025.09.14</div>
+    <h1>少一点，但别太少</h1>
+    <div class="meta mono">约 1,300 字 · 5 分钟</div>
+  </header>
+
+  <article class="wrap g prose">
+    <p>这个博客重做了三次。前两次都停在同一个地方：做得太素，像一份没排版的文档；往上加东西，又很快变成一个模板网站。这篇记下第三次定下来的几条规矩，免得以后又改回去。</p>
+
+    <h2><span class="mono">01</span>字</h2>
+    <div class="n">
+      <p>正文和标题都用上图东观体<sup>1</sup>。它的字形来自宋刻本，横细竖粗，起笔带一点刀刻的方角。同一套字从标题用到正文，页面就不需要再靠颜色和装饰去区分层级，字号、字重和留白已经够用。</p>
+      <aside><sup>1</sup>上海图书馆发布的字体。这里已用 cn-font-split 切成 156 个子集，浏览器只下载页面上用到的那部分字。字体带竖排标点，可以直接竖排。</aside>
+    </div>
+    <p>日期、坐标、里程这类数字用等宽字体，排成小字号。它们是数据，不是文字，看上去应该不一样。需要的时候，一段引文也可以竖排：</p>
+    <blockquote class="vq">天有时，地有气，材有美，工有巧。合此四者，然后可以为良。<cite>《考工记》</cite></blockquote>
+
+    <h2><span class="mono">02</span>纸和墨</h2>
+    <p>底色是偏暖的纸白，不是纯白；字是墨色，不是纯黑。全站只有一个强调色，默认是克莱因蓝，只用在两处：地图上的路线，和“你现在读到哪里”的标记。链接平时不变色，悬停时才出现一条细下划线。</p>
+    <p>浮在内容上面的东西，比如滚动后的页头、角落里的小控件、点开大图时的背景，用磨砂玻璃：纸色半透明，加一层模糊和很细的颗粒，底下的照片隐约透出来。只有浮着的东西用，平铺在页面上的内容不用。</p>
+
+    <h2><span class="mono">03</span>动</h2>
+    <div class="n">
+      <p>动画只做一件事：告诉你东西从哪里来、到哪里去。从列表点进文章，标题会从原来的位置移到新位置，而不是整页闪白<sup>2</sup>；读游记的时候，地图上的路线跟着阅读进度往前走。</p>
+      <aside><sup>2</sup>页面切换用浏览器原生的 View Transitions，Astro 内置支持，不需要额外的动画库。</aside>
+    </div>
+    <p>不做的：图片从四面八方飞进来，滚动时每段文字依次淡入，跟着鼠标走的光晕。这些第一次看觉得新鲜，第三次就烦了。</p>
+
+    <figure>
+      <img src="https://picsum.photos/id/1036/1600/900" width="1600" height="900" alt="">
+      <figcaption><span class="mono">图 1</span>占位图。正式版里，图片在构建时自动压缩成 AVIF 和 WebP，并按屏幕宽度输出几种尺寸。</figcaption>
+    </figure>
+
+    <h2><span class="mono">04</span>代码</h2>
+    <p>技术文章里的代码同样用等宽字体，底色比纸深一档，高亮只分三种颜色，不用花哨的主题。</p>
+<pre><code><span class="c">// src/content.config.ts —— 游记的块：位置由作者指定</span>
+<span class="k">const</span> block = z.object({
+  type: z.enum([<span class="s">'text'</span>, <span class="s">'single'</span>, <span class="s">'pair'</span>, <span class="s">'strip'</span>, <span class="s">'grid'</span>, <span class="s">'free'</span>]),
+  writing: z.enum([<span class="s">'horizontal'</span>, <span class="s">'vertical'</span>]).optional(),
+  y: z.number().min(0).max(1).optional(),   <span class="c">// 横滚时的上下位置</span>
+  scale: z.number().optional(),
+});</code></pre>
+
+    <h2><span class="mono">05</span>不要的东西</h2>
+    <ul>
+      <li>渐变背景和发光的按钮</li>
+      <li>什么都装进一张带阴影的圆角卡片</li>
+      <li>用 emoji 当图标</li>
+      <li>首屏一句大口号，下面并排两个按钮</li>
+    </ul>
+    <p>这些东西本身没有错，只是出现得太多，已经不代表任何人了。留下来的是：细线分隔而不是色块，正文靠左，右边留给注释；图片不加圆角也不加阴影。</p>
+    <p>这些规矩大概还会改。但改之前，至少先写清楚为什么。</p>
+  </article>
+
+  <nav class="wrap g post-end">
+    <a href="#/travel"><span class="mono lbl">← 上一篇</span><span class="ul">冰岛，逆时针</span></a>
+    <a href="#/post"><span class="mono lbl">下一篇 →</span><span class="ul">（暂无）</span></a>
+  </nav>
+</main>
+
+<!-- ================= 游记 ================= -->
+<main id="p-travel" data-page="travel" hidden>
+  <article class="travel" data-mode="m" data-dir="rtl">
+    <header class="wrap g t-hero">
+      <div class="info">
+        <div class="kicker mono">游记 · 冰岛 · 2025.06</div>
+        <h1>冰岛，逆时针</h1>
+        <p class="ex">沿一号公路绕岛一圈。租车公司的人说，逆时针走，把最好的留到最后。我们没问什么是最好的。</p>
+        <dl class="facts">
+          <dt>日期</dt><dd>2025.06.12 — 06.21</dd>
+          <dt>天数</dt><dd>10</dd>
+          <dt>里程</dt><dd>2,140 KM</dd>
+          <dt>站点</dt><dd>8</dd>
+        </dl>
+      </div>
+      <div class="mapbox"><svg class="map" data-map="hero" viewBox="0 0 1000 720"></svg></div>
+    </header>
+
+    <div class="t-body">
+      <div class="t-vp">
+        <div class="t-track">
+
+          <section class="blk b-text" data-stop="0" style="--y:.3">
+            <header class="stop"></header>
+            <p>落地是晚上十一点，天还亮着。六月的冰岛没有夜，只有一段很长的黄昏，接着又是早晨。</p>
+            <p>在超市买了一周的面包和咖啡，第一晚住在港口边上，窗帘很厚。</p>
+          </section>
+          <figure class="blk b-single rv" data-stop="0" style="--y:.15;--s:.92">
+            <img src="https://picsum.photos/id/16/1800/1000" width="1800" height="1000" alt="">
+            <figcaption><span class="mono">01</span>凌晨一点的海，天没有黑过。</figcaption>
+          </figure>
+
+          <section class="blk b-text v" data-stop="1" style="--y:.2">
+            <header class="stop"></header>
+            <p>北美板块和欧亚板块在这里裂开，每年分开两厘米左右。</p>
+            <p>裂缝里的水清得看不出深浅。</p>
+          </section>
+          <figure class="blk b-pair rv" data-stop="1" style="--y:.85;--s:.74">
+            <div class="imgs">
+              <img src="https://picsum.photos/id/15/880/1100" width="880" height="1100" alt="">
+              <img src="https://picsum.photos/id/1044/880/1100" width="880" height="1100" alt="">
+            </div>
+            <figcaption><span class="mono">02—03</span>双图并列</figcaption>
+          </figure>
+
+          <section class="blk b-text" data-stop="2" style="--y:.62">
+            <header class="stop"></header>
+            <p>黑沙滩上的风大到站不稳。海里那几根石柱，传说是天亮前没来得及回去的巨人。</p>
+          </section>
+          <figure class="blk b-single inset rv" data-stop="2" style="--y:0;--s:.66">
+            <img src="https://picsum.photos/id/1019/1500/1000" width="1500" height="1000" alt="">
+            <figcaption><span class="mono">04</span>维克的海，风从这里开始</figcaption>
+          </figure>
+
+          <figure class="blk b-strip" data-stop="2">
+            <div class="strip-vp">
+              <div class="strip-sc">
+                <div class="strip-track">
+                  <img src="https://picsum.photos/id/10/1200/800" width="1200" height="800" alt="" style="--s:1;--o:0">
+                  <img src="https://picsum.photos/id/1061/800/1000" width="800" height="1000" alt="" style="--s:.72;--o:.24">
+                  <img src="https://picsum.photos/id/12/1200/800" width="1200" height="800" alt="" style="--s:.86;--o:.06">
+                  <img src="https://picsum.photos/id/14/900/900" width="900" height="900" alt="" style="--s:.58;--o:.38">
+                  <img src="https://picsum.photos/id/1053/800/1000" width="800" height="1000" alt="" style="--s:.8;--o:.1">
+                  <img src="https://picsum.photos/id/384/1200/800" width="1200" height="800" alt="" style="--s:.94;--o:.03">
+                </div>
+              </div>
+              <figcaption><span class="mono">05—10</span>横向图组 · 一号公路沿南岸走，差不多每十分钟就想停一次车。<span class="strip-ctl"><button data-dir="-1" aria-label="向左">‹</button><button data-dir="1" aria-label="向右">›</button></span></figcaption>
+            </div>
+          </figure>
+
+          <section class="blk b-text v" data-stop="3" style="--y:.5">
+            <header class="stop"></header>
+            <p>冰块从冰川上断下来，在湖里漂几年，漂到出海口。</p>
+            <p>再被浪推回黑沙滩，像被人扔了一地的玻璃。</p>
+          </section>
+          <figure class="blk b-pair rv" data-stop="3" style="--y:.3;--s:.9">
+            <div class="imgs">
+              <img src="https://picsum.photos/id/465/880/1100" width="880" height="1100" alt="">
+              <img src="https://picsum.photos/id/256/880/1100" width="880" height="1100" alt="">
+            </div>
+            <figcaption><span class="mono">11—12</span>冰河湖</figcaption>
+          </figure>
+
+          <section class="blk b-text" data-stop="4" style="--y:.15">
+            <header class="stop"></header>
+            <p>东部峡湾。路窄，弯多。镇上只有六百多人，一条彩色的路通向一座浅蓝色的教堂。</p>
+          </section>
+          <figure class="blk b-free rv" data-stop="4" style="--ar:2.3;--y:.55">
+            <div class="canvas">
+              <img class="fi" style="--x:0;--y:.06;--w:.36;--i:0" src="https://picsum.photos/id/1015/1200/800" width="1200" height="800" alt="">
+              <img class="fi" style="--x:.3;--y:.44;--w:.19;--z:2;--i:1" src="https://picsum.photos/id/443/800/1000" width="800" height="1000" alt="">
+              <img class="fi" style="--x:.53;--y:0;--w:.25;--i:2" src="https://picsum.photos/id/450/1000/700" width="1000" height="700" alt="">
+              <img class="fi" style="--x:.6;--y:.53;--w:.17;--i:3" src="https://picsum.photos/id/353/800/800" width="800" height="800" alt="">
+              <img class="fi" style="--x:.81;--y:.15;--w:.19;--i:4" src="https://picsum.photos/id/1018/800/1000" width="800" height="1000" alt="">
+              <p class="fnote" style="--x:.52;--y:.5">峡湾的雾，一阵一阵。</p>
+            </div>
+            <figcaption><span class="mono">13—17</span>自由排布 · 每张图的位置和大小由作者指定</figcaption>
+          </figure>
+
+          <section class="blk b-text v" data-stop="5" style="--y:.4">
+            <header class="stop"></header>
+            <p>地热区的硫磺味很重。附近的众神瀑布，据说一千年前有人把旧神像扔进了这里，从此改信了新的神。</p>
+          </section>
+          <figure class="blk b-single rv" data-stop="5" style="--y:.7;--s:.8">
+            <img src="https://picsum.photos/id/1039/1800/1100" width="1800" height="1100" alt="">
+            <figcaption><span class="mono">18</span>众神瀑布</figcaption>
+          </figure>
+
+          <section class="blk b-text" data-stop="6" style="--y:.8">
+            <header class="stop"></header>
+            <p>北部最大的镇子。红绿灯里的红灯是心形的，等灯的时候不太想走。</p>
+          </section>
+          <figure class="blk b-grid rv" data-stop="6" style="--y:.4;--s:.94">
+            <div class="imgs">
+              <img src="https://picsum.photos/id/1036/1200/900" width="1200" height="900" alt="">
+              <img src="https://picsum.photos/id/287/800/600" width="800" height="600" alt="">
+              <img src="https://picsum.photos/id/29/800/600" width="800" height="600" alt="">
+              <img src="https://picsum.photos/id/327/800/600" width="800" height="600" alt="">
+              <img src="https://picsum.photos/id/235/800/600" width="800" height="600" alt="">
+              <img src="https://picsum.photos/id/1043/800/600" width="800" height="600" alt="">
+            </div>
+            <figcaption><span class="mono">19—24</span>多图网格 · 北部的两天</figcaption>
+          </figure>
+
+          <section class="blk b-text v" data-stop="7" style="--y:.35">
+            <header class="stop"></header>
+            <p>最后一天。凡尔纳让他的主角从这座火山口下去，一直走到地心。</p>
+            <p>我们只是在山脚下的海边坐了一个下午。</p>
+          </section>
+          <figure class="blk b-single inset rv" data-stop="7" style="--y:.6;--s:.84">
+            <img src="https://picsum.photos/id/1057/1500/1000" width="1500" height="1000" alt="">
+            <figcaption><span class="mono">25</span>半岛西端的海崖</figcaption>
+          </figure>
+
+          <div class="blk b-endcard" data-stop="7">
+            <span class="mono lbl">全程</span>
+            <span class="big">2,140 KM</span>
+            <span>回到雷克雅未克。继续向下滚动，是整段行程。</span>
+          </div>
+        </div>
+        <div class="h-progress"><i></i></div>
+      </div>
+    </div>
+
+    <section class="wrap g t-end">
+      <h2 class="mono lbl">行程</h2>
+      <ol class="itin"></ol>
+    </section>
+    <nav class="wrap g post-end" style="margin-top:56px">
+      <a href="#/travel"><span class="mono lbl">← 上一篇</span><span class="ul">京都下了三天雨</span></a>
+      <a href="#/post"><span class="mono lbl">下一篇 →</span><span class="ul">少一点，但别太少</span></a>
+    </nav>
+  </article>
+
+  <div class="corner mc glass" id="mc" role="group" aria-label="阅读方式">
+    <i></i>
+    <button data-m="v" aria-label="竖向阅读">竖</button>
+    <button data-m="h" aria-label="横向阅读">横</button>
+    <button data-m="m" aria-label="混合阅读">混</button>
+    <span class="tip" id="mc-tip">读法</span>
+  </div>
+
+  <div class="corner loc glass" id="loc">
+    <svg class="map" viewBox="0 0 1000 720" data-map="mini"></svg>
+    <div class="where"><span class="mono" id="rb-n">01 / 08</span><b id="rb-name">雷克雅未克</b></div>
+  </div>
+
+</main>
+
+<div class="author" id="author">
+  <button class="au-tab glass" id="au-tab">作者设置</button>
+  <div class="au-panel glass">
+    <div class="mono lbl">试样专用 · 对应后台里的设置，读者看不到</div>
+    <div class="au-row"><span>主题色</span><div class="seg sw" id="accent-seg"><button data-accent="#002fa7" style="--c:#002fa7" title="克莱因蓝"></button><button data-accent="#b0442b" style="--c:#b0442b" title="朱"></button><button data-accent="#3f6b4f" style="--c:#3f6b4f" title="松绿"></button><label title="自定义"><input type="color" id="accent-pick" value="#002fa7"></label></div></div>
+    <div class="au-row"><span>正文字体</span><div class="seg" id="font-seg"><button data-font="dg">东观体</button><button data-font="fs">朱雀仿宋</button></div></div>
+    <div class="au-sec" data-for="home">
+      <div class="au-row"><span>首页排法</span><div class="seg" id="hdir-seg"><button data-hdir="h">横排</button><button data-hdir="v">竖排</button></div></div>
+      <p class="au-hint">只对首页 F（两版）生效；归档页单独设置。</p>
+    </div>
+    <div class="au-sec" data-for="archive">
+      <div class="au-row"><span>归档排法</span><div class="seg" id="edir-seg"><button data-edir="h">横排</button><button data-edir="v">竖排</button></div></div>
+      <p class="au-hint">对刻度页 E（归档和各栏目页）生效；首页单独设置。</p>
+    </div>
+    <div class="au-sec" data-for="travel">
+      <div class="au-row"><span>横滚方向</span><div class="seg" id="dir-seg"><button data-dir="ltr">左→右</button><button data-dir="rtl">右→左</button></div></div>
+      <div class="au-row"><span>调整图片位置</span><div class="seg"><button id="edit-toggle" aria-pressed="false">开启</button></div></div>
+      <p class="au-hint">开启后切到“横”：上下拖动任一块改变高低，按住 Shift 拖动改变大小；“自由排布”里的图可以任意拖动，选中后按 − / = 调宽度。数值会标在块上，正式版里由编辑器保存到文章里。</p>
+    </div>
+  </div>
+</div>
+
+<div class="lb" id="lb" hidden>
+  <img class="lb-img" alt="">
+  <div class="lb-cap glass"><span class="mono" id="lb-n"></span><span id="lb-t"></span><span class="mono lbl">Esc 关闭</span></div>
+</div>
+
+<footer class="wrap foot mono">
+  <span>MORI · 风格试样 0.8 · 首页：<a href="#/f" data-home-link="f">F 引文版</a> / <a href="#/f1" data-home-link="f1">F 封面版</a> / <a href="#/e" data-home-link="e">E 刻度</a></span>
+  <span>字体 上图东观体（后备：朱雀仿宋，OFL）· 图片为占位图 · 地图数据 Natural Earth</span>
+</footer>
+
+<script src="geo.js"></script>
+<script>
+const GEO = window.GEO;
+const DAYS = ['06.12','06.13','06.14','06.15','06.16','06.18','06.19','06.20'];
+const DAYN = [1,2,3,4,5,7,8,9];
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const NS = 'http://www.w3.org/2000/svg';
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+};
+const dms = (v, p, n) => { const a = Math.abs(v), d = Math.floor(a), m = Math.round((a - d) * 60); return `${d}°${String(m).padStart(2, '0')}′${v >= 0 ? p : n}`; };
+const coord = s => `${dms(s.lat, 'N', 'S')} ${dms(s.lon, 'E', 'W')}`;
+const pad = n => String(n).padStart(2, '0');
+const CN = '〇一二三四五六七八九';
+const cn = n => n < 10 ? CN[n] : n < 20 ? '十' + (n % 10 ? CN[n % 10] : '') : CN[Math.floor(n / 10)] + '十' + (n % 10 ? CN[n % 10] : '');
+const cnDate = s => { const [m, d] = s.split('.').map(Number); return `${cn(m)}月${cn(d)}日`; };
+const root = document.documentElement;
+
+/* ---------- 地图（在 Astro 里这一步在构建时完成，输出纯 SVG） ---------- */
+$('#is-land-path').setAttribute('d', GEO.land);
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent && parent.appendChild(e); return e; };
+const S = GEO.stops;
+
+function drawHero(svg) {
+  el('use', { href: '#is-land', width: 1000, height: 720 }, svg);
+  const cp = el('clipPath', { id: 'vb-clip' }, el('defs', {}, svg)); el('rect', { width: 1000, height: 720 }, cp);
+  el('path', { d: GEO.arctic, class: 'arctic', 'clip-path': 'url(#vb-clip)' }, svg);
+  el('text', { x: 985, y: 52, class: 't-meta', 'text-anchor': 'end' }, svg).textContent = '北极圈 66°33′N';
+  const g = el('g', { transform: 'translate(40 690)' }, svg);
+  el('path', { d: `M0,-6V0H${GEO.scale100}V-6M${GEO.scale100 / 2},0V-4`, class: 'scale', fill: 'none' }, g);
+  el('text', { x: GEO.scale100 + 10, y: 0, class: 't-meta' }, g).textContent = '100 KM';
+  el('path', { d: GEO.route, class: 'route-bg' }, svg);
+  const route = el('path', { d: GEO.route, class: 'route' }, svg);
+  const dotEls = S.map((s, i) => el('circle', { cx: s.x, cy: s.y, r: 7, class: 'dot' + (i === 0 ? ' first' : '') }, svg));
+  const L = { reykjavik:[-16,30,'end'], thingvellir:[16,-14,'start'], vik:[-16,6,'end'], jokulsarlon:[16,28,'start'], seydisfjordur:[-4,-42,'end'], myvatn:[18,30,'start'], akureyri:[-16,-18,'end'], snaefellsnes:[-24,40,'start'] };
+  const labelEls = S.map(s => {
+    const [dx, dy, a] = L[s.id];
+    const lg = el('g', { class: 'lab' }, svg);
+    el('text', { x: s.x + dx, y: s.y + dy, 'text-anchor': a, class: 't-zh' }, lg).textContent = s.zh;
+    el('text', { x: s.x + dx, y: s.y + dy + 18, 'text-anchor': a, class: 't-en' }, lg).textContent = s.en;
+    return lg;
+  });
+  return { route, dotEls, labelEls };
+}
+
+let stopLen = [], routeLen = 0;
+function measure(path) {
+  routeLen = path.getTotalLength();
+  const N = 600, pts = [];
+  for (let i = 0; i <= N; i++) { const l = routeLen * i / N; const p = path.getPointAtLength(l); pts.push([l, p.x, p.y]); }
+  let from = 0;
+  stopLen = S.map((s, k) => {
+    if (k === 0) return 0;
+    let best = Infinity, bl = 0, bi = from;
+    for (let i = from; i < pts.length; i++) { const d = (pts[i][1] - s.x) ** 2 + (pts[i][2] - s.y) ** 2; if (d < best) { best = d; bl = pts[i][0]; bi = i; } }
+    from = bi; return bl;
+  });
+}
+
+const hero = drawHero($('[data-map="hero"]'));
+measure(hero.route);
+
+const mini = (() => {
+  const svg = $('[data-map="mini"]');
+  el('use', { href: '#is-land', width: 1000, height: 720 }, svg);
+  el('path', { d: GEO.route, class: 'route-bg' }, svg);
+  const p = el('path', { d: GEO.route, class: 'route route-p' }, svg);
+  p.style.strokeDasharray = routeLen; p.style.strokeDashoffset = routeLen;
+  const here = el('g', { class: 'here' }, svg);
+  el('circle', { cx: 0, cy: 0, r: 120, fill: 'var(--accent)', opacity: .12 }, here);
+  el('circle', { cx: 0, cy: 0, r: 52, class: 'dot first' }, here);
+  return { p, here };
+})();
+
+function playHeroMap() {
+  if (reduce) return;
+  const D = 2600, ease = 'cubic-bezier(.45,0,.2,1)';
+  hero.route.style.strokeDasharray = routeLen;
+  hero.route.animate([{ strokeDashoffset: routeLen }, { strokeDashoffset: 0 }], { duration: D, easing: ease, fill: 'both', delay: 350 });
+  hero.dotEls.forEach((d, i) => {
+    const t = 350 + D * (stopLen[i] / routeLen) * .92;
+    d.animate([{ opacity: 0, r: 0 }, { opacity: 1, r: 7 }], { duration: 420, delay: t, fill: 'both', easing: 'cubic-bezier(.3,1.6,.5,1)' });
+    hero.labelEls[i].animate([{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: 600, delay: t + 80, fill: 'both', easing: 'ease-out' });
+  });
+}
+
+/* ---------- 游记正文：站点标题（横排 / 竖排两种写法）、行程表 ---------- */
+$$('.b-text[data-stop]').forEach(b => {
+  const i = +b.dataset.stop, s = S[i];
+  b.querySelector('.stop').innerHTML = b.classList.contains('v')
+    ? `<span class="no">第${cn(i + 1)}站　第${cn(DAYN[i])}天　${cnDate(DAYS[i])}</span><h2>${s.zh}</h2><span class="en">${s.en}　${coord(s)}</span>`
+    : `<span class="no mono">${pad(i + 1)} · 第 ${DAYN[i]} 天 · ${DAYS[i]}</span><h2>${s.zh}</h2><span class="en">${s.en}</span><span class="co mono">${coord(s)}</span>`;
+});
+$('.itin').innerHTML = S.map((s, i) => `<li data-go="${i}"><span class="mono">${pad(i + 1)}</span><span class="mono">${DAYS[i]}</span><span class="zh">${s.zh}<small>${s.en}</small></span><span class="mono co">${coord(s)}</span></li>`).join('');
+
+/* ---------- 路由 + 页面切换 ---------- */
+const PAGES = { '': 'f', '/': 'f', '/e': 'e', '/f': 'f', '/f1': 'f1', '/post': 'post', '/travel': 'travel' };
+const HOME = ['e', 'f', 'f1'];
+// 首页（f、f1）和归档（e）的横竖排分开存；root.dataset.hdir 是当前页的有效值，页面里原有的样式和脚本都读它
+const hp = k => { const v = store.get(k); return v === 'h' || v === 'v' ? v : null; };
+let hPref = hp('mori-hdir') || 'v', ePref = hp('mori-edir') || hPref;
+const applyHdir = () => { root.dataset.hdir = page === 'e' ? ePref : hPref; };
+const hashPath = () => decodeURIComponent(location.hash.slice(1));
+const pageFromHash = () => hashPath().startsWith('/cat/') ? 'e' : PAGES[hashPath()] || 'f';
+const pages = $$('[data-page]');
+let page = null;
+function show() {
+  page = pageFromHash();
+  applyHdir();
+  pages.forEach(p => p.hidden = p.dataset.page !== page);
+  $$('[data-nav]').forEach(a => a.toggleAttribute('aria-current', a.dataset.nav === page));
+  $$('[data-home-link]').forEach(a => a.toggleAttribute('aria-current', a.dataset.homeLink === page));
+  $$('.au-sec').forEach(x => x.hidden = !(x.dataset.for === 'travel' ? page === 'travel' : x.dataset.for === 'archive' ? page === 'e' : ['f', 'f1'].includes(page)));
+  window.scrollTo(0, 0);
+  if (page === 'travel') { layout(); snap = true; lastStop = -1; playHeroMap(); }
+  $('.mark').style.opacity = ''; $('#f-mast').style.transform = ''; $('#f-mast').style.opacity = ''; mast0 = null;
+  site.classList.remove('on-cover');
+  if (page === 'f') showF();
+  if (page === 'f1') showF1();
+  if (page === 'e') { CAT = hashPath().startsWith('/cat/') ? hashPath().slice(5) : null; renderE(); layoutE(); }
+  reveal();
+  lgLens();
+}
+function go() {
+  const to = pageFromHash();
+  if (!document.startViewTransition || reduce) return show();
+  // 横排标题能原位移动到文章页；竖排的对不上，用一次轻微的“翻页”代替
+  const morph = document.querySelector('[data-vtdyn]');
+  const turn = !morph && (HOME.includes(page) || HOME.includes(to));
+  if (turn) root.classList.add('vt-turn');
+  const t = document.startViewTransition(show);
+  t.ready.catch(() => {}); t.updateCallbackDone.catch(() => {});
+  t.finished.catch(() => {}).finally(() => {
+    root.classList.remove('vt-turn');
+    $$('[data-vtdyn]').forEach(x => { x.style.viewTransitionName = ''; delete x.dataset.vtdyn; });
+    $$('.picked').forEach(x => x.classList.remove('picked'));
+  });
+}
+// 从首页点进文章前，给被点的标题临时起过渡名（只在横排时）
+document.addEventListener('click', e => {
+  const a = e.target.closest('main[data-home] a[href^="#/"]');
+  if (!a) return;
+  a.classList.add('picked');
+  // 栏目标题 → 栏目页的大标题
+  if (a.getAttribute('href').startsWith('#/cat/')) { const h = a.querySelector('[data-cat-t], h3'); if (h) { h.style.viewTransitionName = 'cat-title'; h.dataset.vtdyn = ''; } return; }
+  const horiz = HOME.includes(page) && root.dataset.hdir !== 'v';
+  const t = a.querySelector('.t, .rc-t, .tt');
+  const name = { '#/travel': 'title-is', '#/post': 'title-post' }[a.getAttribute('href')];
+  if (horiz && t && name) { t.style.viewTransitionName = name; t.dataset.vtdyn = ''; }
+}, true);
+addEventListener('hashchange', go);
+
+/* ---------- 首页数据（正式版来自 content collection） ---------- */
+const POSTS = [
+  ['少一点，但别太少', '随笔', '2025-09-14', '#/post'],
+  ['冰岛，逆时针', '游记', '2025-06-30', '#/travel'],
+  ['把博客从 Hexo 搬到 Astro', '技术', '2025-05-02', '#/post'],
+  ['修好了那台 FM2', '摄影', '2025-03-18', '#/post'],
+  ['春天读的几本书', '读书', '2025-03-02', '#/post'],
+  ['坐慢车去大理', '游记', '2025-02-11', '#/travel'],
+  ['新年的第一卷胶片', '摄影', '2025-01-05', '#/post'],
+  ['年末清单', '随笔', '2024-12-29', '#/post'],
+  ['京都下了三天雨', '游记', '2024-11-03', '#/travel'],
+  ['重读《看不见的城市》', '读书', '2024-08-21', '#/post'],
+  ['夏天的厨房', '随笔', '2024-07-09', '#/post'],
+  ['换了一把机械键盘', '技术', '2024-04-16', '#/post'],
+].map(([t, k, d, href], i) => { const [y, m, dd] = d.split('-').map(Number); return { t, k, d, href, y, m, dd, n: 48 - i, travel: k === '游记' }; });
+const pad3 = n => String(n).padStart(3, '0');
+const cnYear = y => String(y).split('').map(c => CN[+c]).join('');
+
+/* F 期刊：开篇引文 + 目次 */
+const EXCERPT = {
+  '少一点，但别太少': '这个博客的第三次重做，和定下来的几条规矩。',
+  '冰岛，逆时针': '沿一号公路绕岛一圈。十天，两千一百四十公里。',
+  '把博客从 Hexo 搬到 Astro': '迁移花了三个周末，其中两个在修链接。',
+  '修好了那台 FM2': '快门帘换了，测光表还是不准，但能拍了。',
+  '春天读的几本书': '四本书，读完了三本。',
+  '坐慢车去大理': '绿皮车，二十一个小时，对面坐着一位修表师傅。',
+  '新年的第一卷胶片': '三十六张，洗出来能看的有九张。',
+  '年末清单': '今年做完的、没做完的，和不打算做了的。',
+  '京都下了三天雨': '原定的寺都没去成，倒是把几家咖啡店坐遍了。',
+  '重读《看不见的城市》': '十年前读的是城市，这次读的是马可·波罗。',
+  '夏天的厨房': '整个夏天都在做同一道凉面。',
+  '换了一把机械键盘': '打字的声音变大了，写得并没有变多。',
+};
+const SECTIONS = [['游记', 'Journeys', '没写游记'], ['随笔', 'Essays', '没写随笔'], ['读书', 'Reading', '没写读书笔记'], ['摄影', 'Photographs', '没发照片'], ['技术', 'Technology', '没写技术文章']];
+const ROMAN = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ'];
+// 置顶：作者可以选零篇、一篇或好几篇；留空则退回最新文章。第一篇是头条。每篇要有：封面图、一句开篇引文（已断好行，正式版是文章的字段）、图注和三条信息
+// 引文按句读断行，不让词被拆开；用全角的「」，开头那个悬挂在版心外
+const PINNED = ['冰岛，逆时针', '把博客从 Hexo 搬到 Astro', '坐慢车去大理'];
+const FO_DATA = {
+  '冰岛，逆时针': { img: 1018, alt: '冰岛一号公路上的山', quote: ['六月的冰岛没有夜，', '只有一段很长的黄昏，', '接着又是早晨。'], cap: '冰岛 · 2025.06 · 一号公路',
+    meta: [['日期', '二〇二五年六月'], ['篇幅', '约三千二百字 · 图二十五'], ['路线', '一号公路环岛，二千一百四十公里']] },
+  '把博客从 Hexo 搬到 Astro': { img: 0, alt: '桌上的笔记本电脑', quote: ['迁移花了三个周末，', '其中两个在修链接。'], cap: '技术 · 2025.05 · 迁移记录',
+    meta: [['日期', '二〇二五年五月'], ['篇幅', '约两千字 · 图三'], ['用时', '三个周末']] },
+  '坐慢车去大理': { img: 1039, alt: '山间的水', quote: ['绿皮车，二十一个小时，', '对面坐着一位修表师傅。'], cap: '大理 · 2025.02 · 昆明至大理',
+    meta: [['日期', '二〇二五年二月'], ['篇幅', '约两千四百字 · 图十六'], ['路线', '昆明至大理，二十一小时']] },
+};
+function pinnedList() {
+  const list = PINNED.map(t => POSTS.find(p => p.t === t)).filter(Boolean);
+  return list.length ? list : POSTS.slice(0, 1);
+}
+let foI = 0, foN = 1, foList = [];
+function renderFo(keep) {
+  foList = pinnedList().slice(0, 4).filter(p => FO_DATA[p.t]);
+  if (!foList.length) foList = [POSTS[1]];
+  foN = foList.length; foI = keep ? clamp(foI, 0, foN - 1) : 0;
+  $('#fo-track').innerHTML = foList.map((p, k) => {
+    const d = FO_DATA[p.t], href = p.href; let i = 0;
+    const lines = d.quote.map((l, n) => (n === 0 ? '「' : '') + l + (n === d.quote.length - 1 ? '」' : ''));
+    const q = lines.map(l => [...l].map(ch => `<span class="ch" style="--i:${i++}">${ch}</span>`).join('')).join('<br>');
+    const count = foN > 1 ? `<span>${pad(k + 1)} / ${pad(foN)}</span>` : '';
+    const cite = `<dl class="fo-cite"><div class="ttl"><dt>篇名</dt><dd class="t">${p.t}</dd></div>${d.meta.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}<a class="fo-go" href="${href}">阅读全文 <span>→</span></a></dl>`;
+    return `<article class="fo-slide"><div class="fo-art"><figure class="fo-cover"><div class="ph"><img src="https://picsum.photos/id/${d.img}/1400/1000" width="1400" height="1000" alt="${d.alt}"></div><figcaption class="mono"><span>${d.cap}</span>${count}</figcaption></figure><a class="fo-qa" href="${href}"><p class="fo-q">${q}</p></a></div>${cite}</article>`;
+  }).join('');
+  const nav = $('#fo-more'); nav.hidden = foN < 2;
+  nav.innerHTML = foN < 2 ? '' : `<ol>${foList.map((p, k) => `<li><button data-i="${k}"><b>${pad3(p.n)}</b><span>${p.t}</span></button></li>`).join('')}</ol>`;
+  foGo(foI, true);
+}
+function foGo(i, first) {
+  const prev = foI; foI = clamp(i, 0, foN - 1);
+  if (!first && foI === prev) return;
+  const p = foList[foI], en = (SECTIONS.find(x => x[0] === p.k) || [])[1] || '', st = $('#fo-stage');
+  st.dataset.dir = foI < prev ? 'up' : 'down';
+  $$('.fo-slide').forEach((el, k) => {
+    el.classList.remove('on', 'enter', 'out');
+    if (k === foI) el.classList.add('on', ...(first ? [] : ['enter']));
+    else if (k === prev && !first) { el.classList.add('out'); setTimeout(() => el.classList.remove('out'), 700); }
+    el.inert = k !== foI;
+  });
+  $$('#fo-more li').forEach((li, k) => li.toggleAttribute('aria-current', k === foI));
+  const no = $('#fo-no'); no.textContent = pad3(p.n);
+  $('#fo-cat').textContent = `${p.k} · ${en}`;
+  if (!first && !reduce) [no, $('#fo-cat')].forEach(el => el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 650, easing: 'cubic-bezier(.22,1,.36,1)' }));
+}
+// 点目录换篇；目录里上下方向键也能换。手机上目录在图下面，换篇时如果图已经滚出屏幕，就把图滚回来
+function foPick(k) {
+  foGo(k);
+  const st = $('#fo-stage').getBoundingClientRect();
+  if (st.top < -st.height * .35) scrollTo({ top: scrollY + st.top - (innerWidth > 760 ? 80 : 0), behavior: reduce ? 'auto' : 'smooth' });
+}
+$('#fo-more').addEventListener('click', e => { const b = e.target.closest('button'); if (b) foPick(+b.dataset.i); });
+$('#fo-more').addEventListener('keydown', e => {
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  e.preventDefault();
+  const k = clamp(foI + (e.key === 'ArrowDown' ? 1 : -1), 0, foN - 1);
+  foPick(k); $$('#fo-more button')[k].focus();
+});
+function renderF() {
+  // 目次：按栏目分组，栏目标题点进去是这个栏目的刻度页
+  $('#f-secs').innerHTML = SECTIONS.map(([zh, en], si) => {
+    const list = POSTS.filter(p => p.k === zh);
+    if (!list.length) return '';
+    return `<section class="f-sec"><a class="f-sh" href="#/cat/${zh}"><span class="rn">${ROMAN[si]}</span><h3>${zh}</h3><em>${en}</em><span class="ct mono">${cn(list.length)}篇 · 按时间看 →</span></a><ol class="f-en">${list.map(p =>
+      `<li><a href="${p.href}"><span class="pn">${pad3(p.n)}</span><span class="tt">${p.t}</span><span class="dt mono">${p.d.replaceAll('-', '.')}</span><span class="ex">${EXCERPT[p.t] || ''}</span></a></li>`).join('')}</ol></section>`;
+  }).join('');
+}
+function showF() {
+  renderFo();
+  const fo = $('#fo');
+  if (!reduce) { fo.classList.remove('play'); fo.offsetWidth; fo.classList.add('play'); }
+  $$('.f-sec').forEach(x => { x.classList.remove('in'); fio.observe(x); });
+}
+const fio = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); fio.unobserve(e.target); } }), { threshold: .2 });
+
+/* F·封面版：墨色封面 + 满版刊名 + 封面标题 + 刊期刻度；目次与引文版相同 */
+const FEATURE = POSTS[1];
+function renderF1() {
+  $('#f-lines').innerHTML = POSTS.filter(p => p !== FEATURE).slice(0, 4).map(p =>
+    `<li><a href="${p.href}"><span class="no">${pad3(p.n)}</span><span class="tt">${p.t}</span><span class="kk">${p.k} · ${p.d.slice(5).replace('-', '.')}</span></a></li>`).join('');
+  // 刊期刻度：从最早一个月到最近一个月，左旧右新
+  const first = { y: 2024, m: 1 }, span = monthsAgo(first.y, first.m) + 1;
+  let r = '';
+  for (let k = 0; k < span; k++) {
+    const tm = first.y * 12 + first.m - 1 + k, y = Math.floor(tm / 12), m = tm % 12 + 1;
+    r += `<span class="tk${m === 1 ? ' y' : ''}" style="left:${(k / span * 100).toFixed(3)}%"><i>${m === 1 ? y : pad(m)}</i></span>`;
+  }
+  POSTS.slice().reverse().forEach((p, i) => {
+    const x = (span - 1 - monthsAgo(p.y, p.m) + (p.dd - 1) / 31) / span * 100;
+    r += `<a class="pt${p.travel ? ' tr' : ''}" href="${p.href}" data-t="${p.t}" style="left:${x.toFixed(3)}%;--i:${i}" aria-label="${p.t}"></a>`;
+  });
+  r += '<span class="cap">刊期 · 一格一个月</span>';
+  $('#f-ruler').innerHTML = r;
+  $('#f1-secs').innerHTML = $('#f-secs').innerHTML;
+}
+// 刊名按版心宽度排满
+let mast0 = null;
+function fitMast() {
+  const m = $('#f-mast');
+  m.style.transform = ''; m.style.fontSize = '100px'; m.style.width = 'max-content'; m.style.justifyContent = 'flex-start';
+  const pcs = getComputedStyle(m.parentElement);
+  const w = m.getBoundingClientRect().width, W = m.parentElement.clientWidth - parseFloat(pcs.paddingLeft) - parseFloat(pcs.paddingRight);
+  m.style.width = ''; m.style.justifyContent = '';
+  m.style.fontSize = (100 * W / w * .99).toFixed(2) + 'px';
+  mast0 = null;
+}
+function showF1() {
+  root.style.setProperty('--hh', site.offsetHeight + 'px');
+  fitMast();
+  const fc = $('#fc');
+  if (!reduce) { fc.classList.remove('play'); fc.offsetWidth; fc.classList.add('play'); }
+  $$('#p-f1 .f-sec').forEach(x => { x.classList.remove('in'); fio.observe(x); });
+  onScrollF1();
+}
+// 往下滚时，刊名缩小并移到页头的位置，变成页头里的 MORI
+const easeIO = t => t < .5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+function onScrollF1() {
+  const cover = $('#fc').getBoundingClientRect();
+  site.classList.toggle('on-cover', cover.bottom > site.offsetHeight * .6);
+  const m = $('#f-mast'), mark = $('.mark');
+  if (reduce) return;
+  if (!mast0) {
+    m.style.transform = '';
+    const r = m.getBoundingClientRect();
+    mast0 = { L: r.left, T: r.top + scrollY, H: r.height, fs: parseFloat(m.style.fontSize) || 100 };
+  }
+  const mk = mark.getBoundingClientRect();
+  const p = clamp(scrollY / (innerHeight * .5), 0, 1), e = easeIO(p);
+  // 让刊名的大写字母高度落到页头 MORI 的大写字母高度（Cormorant 大写约 .63em，页头字母约 .7em）
+  const s = (parseFloat(getComputedStyle(mark).fontSize) * .7) / (mast0.fs * .63);
+  const S = 1 + (s - 1) * e;
+  const tx = (mk.left - mast0.L) * e;
+  const targetTop = mk.top + mk.height / 2 - mast0.H * s / 2;
+  const Y = mast0.T + (targetTop - mast0.T) * e;
+  m.style.transform = `translate(${tx.toFixed(2)}px,${(Y - (mast0.T - scrollY)).toFixed(2)}px) scale(${S.toFixed(4)})`;
+  const f = clamp((p - .82) / .18, 0, 1);
+  m.style.opacity = 1 - f;
+  mark.style.opacity = f;
+}
+
+/* E 刻度：位置就是时间，一格一个月 */
+const NEWEST = { y: 2025, m: 9 }, MONTHS = 21;
+const monthsAgo = (y, m) => (NEWEST.y * 12 + NEWEST.m) - (y * 12 + m);
+// CAT 为空时是全部文章（归档），否则只看这个栏目
+let CAT = null;
+function renderE() {
+  const sec = SECTIONS.findIndex(x => x[0] === CAT);
+  const list = sec >= 0 ? POSTS.filter(p => p.k === CAT) : POSTS;
+  $('#he-rn').textContent = sec >= 0 ? ROMAN[sec] : '';
+  $('#he-h1').textContent = sec >= 0 ? CAT : '全部文章';
+  $('#he-en').textContent = sec >= 0 ? SECTIONS[sec][1] : 'Archive';
+  $('#he-ct').textContent = `${cn(list.length)}篇`;
+  $('#he-note').innerHTML = `一格是一个月。<b>空着的地方，是${sec >= 0 ? SECTIONS[sec][2] : '没写东西'}的月份。</b>`;
+  const axis = $('#he-axis');
+  axis.style.setProperty('--months', MONTHS);
+  let html = '';
+  for (let k = 0; k < MONTHS; k++) {
+    const tm = NEWEST.y * 12 + NEWEST.m - 1 - k, y = Math.floor(tm / 12), m = tm % 12 + 1;
+    const yearTop = m === 12 || k === 0;
+    html += `<span class="tick${yearTop ? ' y' : ''}" style="--p:${k}">${yearTop ? `<i>${y}</i>` : ''}</span>`;
+    html += `<span class="tick m" style="--p:${k}"><i>${pad(m)}</i></span>`;
+  }
+  list.forEach(p => {
+    const pos = monthsAgo(p.y, p.m) + 1 - (p.dd - 1) / 31;
+    html += `<a class="he-item" href="${p.href}" style="--p:${pos.toFixed(3)}"><span class="t">${p.t}</span><span class="k${p.travel ? ' tr' : ''}">${p.k}</span><span class="d">${pad(p.m)}.${pad(p.dd)}</span></a>`;
+  });
+  axis.innerHTML = html;
+  $('#he-counter').innerHTML = [0, 0, 0, 0, '.', 0, 0].map(d => d === '.' ? '<span class="dot">.</span>' : `<span class="dg"><i>${[...'0123456789'].map(x => `<b>${x}</b>`).join('')}</i></span>`).join('');
+}
+let eMonth = -1;
+function setCounter(k) {
+  k = clamp(Math.floor(k), 0, MONTHS - 1);
+  if (k === eMonth) return;
+  eMonth = k;
+  const tm = NEWEST.y * 12 + NEWEST.m - 1 - k, digits = `${Math.floor(tm / 12)}${pad(tm % 12 + 1)}`;
+  $$('#he-counter .dg i').forEach((el, i) => el.style.transform = `translateY(${-digits[i]}em)`);
+}
+function layoutE() {
+  const body = $('#he-body'), axis = $('#he-axis');
+  axis.style.transform = ''; axis._x = null;
+  body.style.height = root.dataset.hdir === 'v' ? Math.max(innerHeight, axis.offsetWidth - vw() + innerHeight) + 'px' : '';
+  eMonth = -1;
+  declutterE();
+}
+// 日期挨得太近的几篇会叠在一起：按实际占的高度（竖排时是宽度）依次往后让开，日期文字仍显示真实日期
+function declutterE() {
+  const v = root.dataset.hdir === 'v';
+  const unit = parseFloat(getComputedStyle($('.he')).getPropertyValue(v ? '--mw' : '--mh'));
+  let end = -Infinity;
+  $$('.he-item').forEach(it => {
+    it.style.removeProperty('--q');
+    const size = v ? it.offsetWidth : it.offsetHeight;
+    const c = Math.max(parseFloat(it.style.getPropertyValue('--p')) * unit, end + size / 2 + 10);
+    it.style.setProperty('--q', c + 'px');
+    end = c + size / 2;
+  });
+}
+function tickE() {
+  const axis = $('#he-axis');
+  if (root.dataset.hdir === 'v') {
+    const body = $('#he-body'), r = body.getBoundingClientRect();
+    const max = Math.max(0, axis.offsetWidth - vw()), span = r.height - innerHeight;
+    const target = (span > 0 ? clamp(-r.top / span, 0, 1) : 0) * max;
+    let x = axis._x ?? target; x = reduce ? target : x + (target - x) * .14; if (Math.abs(target - x) < .25) x = target;
+    if (x !== axis._x) { axis._x = x; axis.style.transform = `translate3d(${x}px,0,0)`; }
+    const mw = parseFloat(getComputedStyle($('.he')).getPropertyValue('--mw'));
+    const edge = (axis.offsetWidth - MONTHS * mw) / 2;
+    setCounter((x + vw() * .5 - edge) / mw);
+  } else {
+    const mh = parseFloat(getComputedStyle($('.he')).getPropertyValue('--mh'));
+    setCounter((innerHeight * .42 - axis.getBoundingClientRect().top) / mh);
+  }
+}
+
+/* 首页排法、字体：后台设置 */
+const f0 = store.get('mori-font');
+const setAccent = c => { root.style.setProperty('--accent-base', c); $('#accent-pick').value = c; $$('#accent-seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.accent === c)); };
+setAccent(store.get('mori-accent') || '#002fa7');
+$$('#accent-seg button').forEach(b => b.onclick = () => { setAccent(b.dataset.accent); store.set('mori-accent', b.dataset.accent); });
+$('#accent-pick').oninput = e => { setAccent(e.target.value); store.set('mori-accent', e.target.value); };
+if (f0 === 'dg' || f0 === 'fs') root.dataset.font = f0;
+function syncAuthor() {
+  $$('#hdir-seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.hdir === hPref));
+  $$('#edir-seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.edir === ePref));
+  $$('#font-seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.font === (root.dataset.font || 'dg')));
+}
+function viewChange(fn) {
+  if (document.startViewTransition && !reduce) { root.classList.add('vt-mode'); const t = document.startViewTransition(fn); t.ready.catch(() => {}); t.updateCallbackDone.catch(() => {}); t.finished.catch(() => {}).finally(() => root.classList.remove('vt-mode')); }
+  else fn();
+}
+$$('#hdir-seg button').forEach(b => b.onclick = () => viewChange(() => {
+  hPref = b.dataset.hdir; store.set('mori-hdir', hPref); applyHdir(); syncAuthor();
+  scrollTo(0, 0);
+  if (page === 'f') { renderFo(true); const fo = $('#fo'); if (!reduce) { fo.classList.remove('play'); fo.offsetWidth; fo.classList.add('play'); } }
+  if (page === 'f1') { fitMast(); onScrollF1(); }
+}));
+$$('#edir-seg button').forEach(b => b.onclick = () => viewChange(() => {
+  ePref = b.dataset.edir; store.set('mori-edir', ePref); applyHdir(); syncAuthor();
+  scrollTo(0, 0);
+  if (page === 'e') layoutE();
+}));
+$$('#font-seg button').forEach(b => b.onclick = () => viewChange(() => {
+  root.dataset.font = b.dataset.font; store.set('mori-font', b.dataset.font); syncAuthor();
+  if (page === 'travel') layout();
+}));
+renderE(); renderF(); renderF1(); syncAuthor();
+
+/* ---------- 昼夜 ---------- */
+const saved = store.get('mori-theme');
+if (saved) root.dataset.theme = saved;
+const isDark = () => root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+const syncTheme = () => $('#theme').textContent = isDark() ? '昼' : '夜';
+syncTheme();
+$('#theme').onclick = () => { root.dataset.theme = isDark() ? 'light' : 'dark'; store.set('mori-theme', root.dataset.theme); syncTheme(); };
+
+/* ---------- 图片进场 ---------- */
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
+function reveal() { $$('.rv:not(.in)').forEach(x => io.observe(x)); }
+
+/* ---------- 游记：读法（读者选）+ 方向（作者定） ---------- */
+const travel = $('.travel'), tbody = $('.t-body'), track = $('.t-track');
+const strips = $$('.b-strip'), blocks = $$('.t-track .blk');
+const vw = () => root.clientWidth;
+const rtl = () => travel.dataset.dir === 'rtl';
+let snap = true;
+
+function layout() {
+  const m = travel.dataset.mode;
+  tbody.style.height = '';
+  strips.forEach(s => { s.style.height = ''; const t = $('.strip-track', s); t.style.transform = ''; t._x = null; });
+  track.style.transform = ''; track._x = null;
+  if (m === 'h') tbody.style.height = Math.max(innerHeight, track.offsetWidth - vw() + innerHeight) + 'px';
+  if (m === 'm') strips.forEach(s => s.style.height = Math.max(innerHeight, $('.strip-track', s).offsetWidth - vw() + innerHeight) + 'px');
+}
+
+function current() {
+  const m = travel.dataset.mode;
+  const X = vw() * (rtl() ? .6 : .4), Y = innerHeight * .45;
+  let best = blocks[0], bd = Infinity;
+  for (const b of blocks) {
+    if (b.offsetParent === null) continue;
+    const r = b.getBoundingClientRect();
+    const d = m === 'h' ? (X < r.left ? r.left - X : X > r.right ? X - r.right : 0) : (Y < r.top ? r.top - Y : Y > r.bottom ? Y - r.bottom : 0);
+    if (d < bd) { bd = d; best = b; }
+  }
+  return best;
+}
+
+function scrollToBlock(b) {
+  if (travel.dataset.mode === 'h') {
+    const top = tbody.getBoundingClientRect().top + scrollY;
+    const edge = parseFloat(getComputedStyle(track).paddingLeft);
+    const max = Math.max(0, track.offsetWidth - vw());
+    const x = rtl() ? track.offsetWidth - (b.offsetLeft + b.offsetWidth) - edge : b.offsetLeft - edge;
+    scrollTo(0, top + clamp(x, 0, max));
+  } else {
+    scrollTo(0, b.getBoundingClientRect().top + scrollY - innerHeight * .2);
+  }
+}
+
+function transition(fn) {
+  if (document.startViewTransition && !reduce && page === 'travel') {
+    root.classList.add('vt-mode');
+    const t = document.startViewTransition(fn);
+    t.ready.catch(() => {}); t.updateCallbackDone.catch(() => {});
+    t.finished.catch(() => {}).finally(() => root.classList.remove('vt-mode'));
+  } else fn();
+}
+
+const MODES = ['v', 'h', 'm'], MODE_NAME = { v: '竖向', h: '横向', m: '混合' };
+function syncModeUI() {
+  const m = travel.dataset.mode;
+  $$('#mc button').forEach(b => b.setAttribute('aria-pressed', b.dataset.m === m));
+  $('#mc').style.setProperty('--i', MODES.indexOf(m));
+  $('#mc-tip').textContent = `读法：${MODE_NAME[m]}`;
+  $$('#dir-seg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.dir === travel.dataset.dir));
+}
+
+function relayout(change) {
+  const cur = page === 'travel' && tbody.getBoundingClientRect().top < innerHeight * .5 ? current() : null;
+  // 切换后回到当前站点的开头，而不是停在半张图上
+  const anchor = cur && blocks.find(b => b.dataset.stop === cur.dataset.stop);
+  transition(() => { change(); syncModeUI(); layout(); snap = true; if (anchor) scrollToBlock(anchor); refreshTags(); });
+}
+function setMode(m) { if (travel.dataset.mode !== m) relayout(() => { travel.dataset.mode = m; store.set('mori-mode', m); }); }
+function setDir(d) { if (travel.dataset.dir !== d) relayout(() => { travel.dataset.dir = d; store.set('mori-dir', d); }); }
+
+$$('#mc button').forEach(b => b.onclick = () => setMode(b.dataset.m));
+$$('#dir-seg button').forEach(b => b.onclick = () => setDir(b.dataset.dir));
+const m0 = store.get('mori-mode'), d0 = store.get('mori-dir');
+if (MODES.includes(m0)) travel.dataset.mode = m0;
+if (d0 === 'ltr' || d0 === 'rtl') travel.dataset.dir = d0;
+syncModeUI();
+
+$$('.strip-ctl button').forEach(b => b.onclick = () => { const sc = b.closest('.b-strip').querySelector('.strip-sc'); sc.scrollBy({ left: +b.dataset.dir * sc.clientWidth * .7, behavior: 'smooth' }); });
+$('.itin').addEventListener('click', e => { const li = e.target.closest('li'); if (!li) return; const b = blocks.find(x => +x.dataset.stop === +li.dataset.go); b && scrollToBlock(b); });
+
+function drive(outer, tr, prog) {
+  const r = outer.getBoundingClientRect();
+  const max = Math.max(0, tr.offsetWidth - vw());
+  const span = r.height - innerHeight;
+  const p = span > 0 ? clamp(-r.top / span, 0, 1) : 0;
+  const target = p * max;
+  let x = tr._x ?? target;
+  x = (snap || reduce) ? target : x + (target - x) * .14;
+  if (Math.abs(target - x) < .25) x = target;
+  if (x !== tr._x) { tr._x = x; tr.style.transform = `translate3d(${rtl() ? x : -x}px,0,0)`; }
+  if (prog) prog.style.transform = `scaleX(${max ? x / max : 0})`;
+}
+
+let lastStop = -1;
+const loc = $('#loc');
+function updateLoc() {
+  const hr = $('.t-hero').getBoundingClientRect(), er = $('.t-end').getBoundingClientRect();
+  loc.classList.toggle('on', hr.bottom < innerHeight * .35 && er.top > innerHeight * .5);
+  const i = +current().dataset.stop;
+  if (i === lastStop) return;
+  lastStop = i;
+  $('#rb-n').textContent = `${pad(i + 1)} / ${pad(S.length)} · ${DAYS[i]}`;
+  $('#rb-name').textContent = S[i].zh;
+  mini.p.style.strokeDashoffset = routeLen - stopLen[i];
+  mini.here.style.transform = `translate(${S[i].x}px,${S[i].y}px)`;
+}
+
+function tick() {
+  if (page === 'e') tickE();
+  if (page === 'travel') {
+    const m = travel.dataset.mode;
+    if (m === 'h') drive(tbody, track, $('.h-progress i'));
+    else if (m === 'm') strips.forEach(s => drive(s, $('.strip-track', s)));
+    updateLoc();
+    snap = false;
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ---------- 作者设置：逐块 / 逐张调整位置（试样演示，正式版在编辑器里） ---------- */
+$('#au-tab').onclick = () => $('#author').classList.toggle('open');
+const num = (e, k, d) => { const v = parseFloat(e.style.getPropertyValue(k)); return isNaN(v) ? d : v; };
+const f2 = v => v.toFixed(2).replace(/^0/, '').replace(/^-0/, '-');
+function tagOf(target, host) {
+  if (!target._tag) { target._tag = document.createElement('span'); target._tag.className = 'etag'; host.appendChild(target._tag); }
+  return target._tag;
+}
+function refreshTags() {
+  const on = root.classList.contains('editing');
+  $$('.etag').forEach(t => t.hidden = !on);
+  if (!on) return;
+  blocks.forEach(b => {
+    if (b.classList.contains('b-endcard')) return;
+    const t = tagOf(b, b);
+    t.style.left = '0'; t.style.top = '-8px';
+    t.hidden = travel.dataset.mode !== 'h';
+    t.textContent = `y ${f2(num(b, '--y', .5))} · s ${f2(num(b, '--s', 1))}${b.classList.contains('v') ? ' · 竖排' : ''}`;
+  });
+  $$('.fi').forEach(tagFi);
+}
+function tagFi(img) {
+  const t = tagOf(img, img.parentElement);
+  t.style.left = `calc(${num(img, '--x', 0)} * 100%)`; t.style.top = `calc(${num(img, '--y', 0)} * 100%)`; t.style.zIndex = 7;
+  t.textContent = `x ${f2(num(img, '--x', 0))} y ${f2(num(img, '--y', 0))} w ${f2(num(img, '--w', .2))}`;
+}
+$('#edit-toggle').onclick = e => {
+  const on = root.classList.toggle('editing');
+  e.currentTarget.setAttribute('aria-pressed', on);
+  e.currentTarget.textContent = on ? '关闭' : '开启';
+  refreshTags();
+};
+let sel = null;
+track.addEventListener('pointerdown', e => {
+  if (!root.classList.contains('editing')) return;
+  const fi = e.target.closest('.fi');
+  const b = e.target.closest('.blk');
+  if (!fi && !(b && travel.dataset.mode === 'h')) return;
+  e.preventDefault();
+  const tgt = fi || b;
+  tgt.setPointerCapture(e.pointerId);
+  const px = e.clientX, py = e.clientY;
+  let move;
+  if (fi) {
+    sel && sel.classList.remove('sel'); sel = fi; fi.classList.add('sel');
+    const cv = fi.parentElement.getBoundingClientRect(), sx = num(fi, '--x', 0), sy = num(fi, '--y', 0);
+    move = ev => {
+      fi.style.setProperty('--x', clamp(sx + (ev.clientX - px) / cv.width, -.1, 1).toFixed(3));
+      fi.style.setProperty('--y', clamp(sy + (ev.clientY - py) / cv.height, -.1, 1).toFixed(3));
+      tagFi(fi);
+    };
+  } else {
+    const sy = num(b, '--y', .5), ss = num(b, '--s', 1);
+    const cs = getComputedStyle(track);
+    const avail = Math.max(1, track.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - b.offsetHeight);
+    move = ev => {
+      if (ev.shiftKey) b.style.setProperty('--s', clamp(ss - (ev.clientY - py) / 400, .4, 1.15).toFixed(3));
+      else b.style.setProperty('--y', clamp(sy + (ev.clientY - py) / avail, 0, 1).toFixed(3));
+      refreshTags();
+    };
+  }
+  const up = () => { tgt.removeEventListener('pointermove', move); tgt.removeEventListener('pointerup', up); if (!fi) layout(); };
+  tgt.addEventListener('pointermove', move);
+  tgt.addEventListener('pointerup', up);
+});
+addEventListener('keydown', e => {
+  if (!sel || !root.classList.contains('editing')) return;
+  const d = e.key === '=' || e.key === '+' ? .01 : e.key === '-' ? -.01 : 0;
+  if (!d) return;
+  sel.style.setProperty('--w', clamp(num(sel, '--w', .2) + d, .05, .8).toFixed(3));
+  tagFi(sel);
+  if (travel.dataset.mode === 'h') layout();
+});
+
+/* ---------- 页头：滚动后变成磨砂玻璃，向下滚时收起，向上滚时出现 ---------- */
+const site = $('#site');
+let lastY = scrollY;
+addEventListener('scroll', () => {
+  const y = scrollY;
+  site.classList.toggle('stuck', y > 8);
+  if (page === 'f1') onScrollF1();
+  if (page === 'f1' && site.classList.contains('on-cover')) site.classList.remove('hide');
+  else if (y > lastY + 4 && y > 160) site.classList.add('hide');
+  else if (y < lastY - 4 || y <= 160) site.classList.remove('hide');
+  lastY = y;
+}, { passive: true });
+
+/* ---------- 液态玻璃：选中透镜 + 边缘折射 ---------- */
+// 透镜停在当前栏目；悬停时弹到悬停的那一项，离开后回来。当前页不在导航里（首页）时透镜不显示
+function lgLens(a) {
+  const lens = $('#lg-lens');
+  a = a || $('#lg-nav a[aria-current]');
+  if (!a) { lens.classList.remove('on'); return; }
+  const snap = !lens.classList.contains('on');
+  if (snap) lens.classList.add('snap');
+  lens.style.setProperty('--x', a.offsetLeft + 'px');
+  lens.style.setProperty('--w', a.offsetWidth + 'px');
+  if (snap) { lens.offsetWidth; lens.classList.remove('snap'); }
+  lens.classList.add('on');
+}
+$('#lg-nav').addEventListener('pointerover', e => { const a = e.target.closest('a'); if (a) lgLens(a); });
+$('#lg-nav').addEventListener('pointerleave', () => lgLens());
+$('#lg-nav').addEventListener('focusin', e => lgLens(e.target.closest('a')));
+$('#lg-nav').addEventListener('focusout', () => lgLens());
+
+// 液态玻璃的物理：玻璃边缘是一个凸的 squircle 斜面（离边 x∈[0,1] 处高度 (1-(1-x)^4)^(1/4)），
+// 垂直入射的光线在斜面上按斯涅尔定律折射（空气 1 → 玻璃 1.5），落到背景平面上的横向偏移就是该处的位移量。
+// 位移只和"离边多远"有关，所以只算一条半径上的 127 个采样，再按胶囊的形状绕一圈贴出来。
+const LG = (() => {
+  const N = 127, ETA = 1 / 1.5, T = 1, GAP = .4, f = x => Math.pow(1 - Math.pow(1 - x, 4), .25);
+  const prof = [];
+  for (let i = 0; i < N; i++) {
+    const x = (i + .5) / N, dx = .001, slope = T * (f(Math.min(1, x + dx)) - f(Math.max(0, x - dx))) / (Math.min(1, x + dx) - Math.max(0, x - dx));
+    const L = Math.hypot(slope, 1), nu = -slope / L, nz = 1 / L, c = nz;
+    const k = ETA * c - Math.sqrt(1 - ETA * ETA * (1 - c * c));
+    const tu = k * nu, tz = -ETA + k * nz;
+    prof.push(tu / -tz * (T * f(x) + GAP));
+  }
+  return { N, prof, max: Math.max(...prof) };
+})();
+// 到胶囊边的距离和向外的法线（圆角矩形的有向距离场）
+function lgSdf(x, y, w, h) {
+  const r = Math.min(w, h) / 2, ax = w / 2 - r, ay = h / 2 - r, px = x + .5 - w / 2, py = y + .5 - h / 2, qx = Math.abs(px) - ax, qy = Math.abs(py) - ay;
+  const sdf = Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - r;
+  let nx = 0, ny = 0;
+  if (qx > 0 && qy > 0) { const l = Math.hypot(qx, qy); nx = Math.sign(px) * qx / l; ny = Math.sign(py) * qy / l; }
+  else if (qx > qy) nx = Math.sign(px); else ny = Math.sign(py);
+  return { d: -sdf, nx, ny };
+}
+const LG_BEZEL = h => Math.min(h * .42, 20), LG_POWER = 1.7;
+// 位移贴图：R/G 编码每个像素"去哪里取背景"（向里取），128 为不动
+function lgMap(w, h) {
+  const bz = LG_BEZEL(h), c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'), img = g.createImageData(w, h), d = img.data;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const { d: dist, nx, ny } = lgSdf(x, y, w, h), u = dist / bz;
+    const m = u >= 1 || u < 0 ? 0 : LG.prof[Math.min(LG.N - 1, Math.floor(u * LG.N))] / LG.max;
+    const i = (y * w + x) * 4;
+    d[i] = 128 - nx * m * 127; d[i + 1] = 128 - ny * m * 127; d[i + 2] = 128; d[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  return c.toDataURL();
+}
+// 高光：一圈贴着边的亮线，强度取决于边的朝向和固定光源方向（左上），左上和右下两端最亮、直边中段最淡
+function lgSpec(w, h) {
+  const S = 2, W = w * S, H = h * S, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d'), img = g.createImageData(W, H), d = img.data, lx = -Math.SQRT1_2, ly = -Math.SQRT1_2;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const { d: dist, nx, ny } = lgSdf(x, y, W, H), px = dist / S;
+    if (px < 0) continue;
+    const a = Math.min(1, Math.abs(nx * lx + ny * ly) ** 2.4 * (Math.exp(-px / .9) + .22 * Math.exp(-px / 5)));
+    const i = (y * W + x) * 4; d[i] = d[i + 1] = d[i + 2] = 255; d[i + 3] = Math.round(a * 255);
+  }
+  g.putImageData(img, 0, 0);
+  return c.toDataURL();
+}
+function lgFilter(id, el) {
+  const w = Math.round(el.offsetWidth), h = Math.round(el.offsetHeight);
+  if (!w || !h) return '';
+  const box = `x="0" y="0" width="${w}" height="${h}"`, scale = (2 * LG.max * LG_BEZEL(h) * LG_POWER * 255 / 254).toFixed(1);
+  return `<filter id="${id}" ${box} filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+    <feImage href="${lgMap(w, h)}" ${box} preserveAspectRatio="none" result="m"/>
+    <feDisplacementMap in="SourceGraphic" in2="m" scale="${scale}" xChannelSelector="R" yChannelSelector="G"/></filter>`;
+}
+function lgRefract() {
+  [$('#lg-nav'), $('#theme')].forEach(el => { if (el.offsetWidth) el.style.setProperty('--lg-spec', `url(${lgSpec(Math.round(el.offsetWidth), Math.round(el.offsetHeight))})`); });
+  if (!root.classList.contains('lg-refract')) return;
+  $('#lg-defs').innerHTML = lgFilter('lg-f-nav', $('#lg-nav')) + lgFilter('lg-f-btn', $('#theme'));
+}
+if (navigator.userAgentData && CSS.supports('backdrop-filter', 'url(#a)')) root.classList.add('lg-refract');
+lgRefract(); lgLens();
+addEventListener('resize', () => { lgRefract(); lgLens(); });
+document.fonts && document.fonts.ready.then(() => { lgRefract(); lgLens(); });
+
+/* ---------- 看大图：从原位放大，裁切同步展开 ---------- */
+const lb = $('#lb'), lbImg = $('.lb-img', lb);
+let lbSrc = null;
+function captionOf(img) {
+  const fc = img.closest('figure')?.querySelector('figcaption');
+  if (!fc) return ['', ''];
+  const n = fc.querySelector('.mono')?.textContent || '';
+  const t = [...fc.childNodes].filter(x => !(x.classList && (x.classList.contains('mono') || x.classList.contains('strip-ctl')))).map(x => x.textContent).join('').trim();
+  return [n, t];
+}
+function flip(img, back) {
+  lbImg.getAnimations().forEach(a => a.cancel());
+  const r = img.getBoundingClientRect(), t = lbImg.getBoundingClientRect();
+  const nw = img.naturalWidth || t.width, nh = img.naturalHeight || t.height;
+  const s = Math.max(r.width / nw, r.height / nh) / (t.width / nw);
+  const dx = r.left + r.width / 2 - (t.left + t.width / 2), dy = r.top + r.height / 2 - (t.top + t.height / 2);
+  const ix = Math.max(0, (t.width - r.width / s) / 2), iy = Math.max(0, (t.height - r.height / s) / 2);
+  const from = { transform: `translate(${dx}px,${dy}px) scale(${s})`, clipPath: `inset(${iy}px ${ix}px)` };
+  const to = { transform: 'none', clipPath: 'inset(0px 0px)' };
+  return lbImg.animate(back ? [to, from] : [from, to], { duration: back ? 440 : 600, easing: 'cubic-bezier(.2,.75,.15,1)', fill: 'both' });
+}
+async function openLB(img) {
+  lbSrc = img;
+  lbImg.src = img.currentSrc || img.src;
+  const [n, t] = captionOf(img);
+  $('#lb-n').textContent = n; $('#lb-t').textContent = t;
+  lb.hidden = false;
+  await lbImg.decode().catch(() => {});
+  img.style.visibility = 'hidden';
+  lb.offsetWidth; lb.classList.add('on');
+  if (!reduce) flip(img, false);
+}
+function closeLB() {
+  if (lb.hidden || !lb.classList.contains('on')) return;
+  lb.classList.remove('on');
+  const img = lbSrc;
+  const done = () => { lb.hidden = true; img.style.visibility = ''; lbImg.getAnimations().forEach(a => a.cancel()); };
+  if (reduce) return done();
+  flip(img, true).finished.then(done, done);
+}
+document.addEventListener('click', e => {
+  const img = e.target.closest('.blk img, .prose figure img');
+  if (!img || root.classList.contains('editing')) return;
+  e.preventDefault(); openLB(img);
+});
+lb.addEventListener('click', closeLB);
+addEventListener('keydown', e => { if (e.key === 'Escape') closeLB(); });
+addEventListener('wheel', e => { if (!lb.hidden) { e.preventDefault(); closeLB(); } }, { passive: false });
+
+let rt;
+addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (page === 'travel') { const a = current(); layout(); snap = true; scrollToBlock(a); } if (page === 'e') layoutE(); if (page === 'f1') { root.style.setProperty('--hh', site.offsetHeight + 'px'); fitMast(); onScrollF1(); } }, 150); });
+addEventListener('load', () => { if (page === 'travel') layout(); });
+document.fonts && document.fonts.ready.then(() => { if (page === 'travel') layout(); if (page === 'e') layoutE(); if (page === 'f1') { fitMast(); onScrollF1(); } });
+// 刊名用的西文字体来自网络，样式表是异步加载的，所以监听“有字体加载完成”，再按实际字宽排满一次
+document.fonts && document.fonts.addEventListener('loadingdone', () => { if (page === 'f1') { fitMast(); onScrollF1(); } });
+
+show();
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
