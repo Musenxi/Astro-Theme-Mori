@@ -33,6 +33,8 @@ for (const b of blocks) {
   if (b.type === 'text' && !firstText.has(b.stop)) firstText.set(b.stop, b.id);
 }
 
+const endStat = travel.facts.find((f) => /里程|距离|全程/.test(f.label))?.value ?? `${stops.length} 站`;
+
 let fig = 0;
 const nextFig = () => pad2(++fig);
 const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:${b.y}`, b.scale !== undefined && `--s:${b.scale}`].filter(Boolean).join(';') || undefined;
@@ -93,12 +95,21 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
             case 'strip':
               return (
                 <figure id={anchor} class="blk b-strip rv" data-b={b.id} data-stop={b.stop} style={place(b)}>
-                  <div class="strip-sc">
-                    <div class="strip-track">
-                      {b.images.map((im) => <Image src={im.src} alt={im.alt} height={900} widths={[600, 900, 1400]} sizes="60vw" style={`--s:${im.scale};--o:${im.offset}`} />)}
+                  <div class="strip-vp">
+                    <div class="strip-sc">
+                      <div class="strip-track">
+                        {b.images.map((im) => <Image src={im.src} alt={im.alt} height={900} widths={[600, 900, 1400]} sizes="60vw" style={`--s:${im.scale};--o:${im.offset}`} />)}
+                      </div>
                     </div>
+                    <figcaption>
+                      <span class="mono">{nextFig()}</span>
+                      {b.images.map((i) => i.caption).filter(Boolean).join(' / ')}
+                      <span class="strip-ctl">
+                        <button type="button" data-dir="-1" aria-label="向左">‹</button>
+                        <button type="button" data-dir="1" aria-label="向右">›</button>
+                      </span>
+                    </figcaption>
                   </div>
-                  {b.images.some((i) => i.caption) && <figcaption><span class="mono">{nextFig()}</span>{b.images.map((i) => i.caption).filter(Boolean).join(' / ')}</figcaption>}
                 </figure>
               );
             case 'grid':
@@ -133,7 +144,13 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
           }
         })
       }
+      <div class="blk b-endcard" data-stop={stops[stops.length - 1].id}>
+        <span class="mono lbl">全程</span>
+        <span class="big">{endStat}</span>
+        <span>回到起点。继续向下滚动，是整段行程。</span>
+      </div>
     </div>
+    <div class="h-progress"><i></i></div>
   </div>
 </div>
 

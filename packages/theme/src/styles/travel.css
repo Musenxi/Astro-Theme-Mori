@@ -1,4 +1,4 @@
-/* 游记：封面、块、竖向读法、行程表 —— 由 design/style-probe/index.html 还原。混合 / 横向读法随后加入 */
+/* 游记：封面、块、三种读法、角落控件、行程表 —— 由 design/style-probe/index.html 还原 */
 /* ---------- 游记：封面 ---------- */
 .t-hero{padding-top:clamp(28px,5vw,72px);padding-bottom:clamp(48px,7vw,96px);align-items:center;row-gap:32px}
 .t-hero .info{grid-column:1/6}
@@ -64,6 +64,43 @@
 .travel[data-mode="v"] .b-strip{--sh:min(58vh,70vw)}
 .travel[data-mode="v"] .strip-sc{overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:var(--rule) transparent;overscroll-behavior-x:contain}
 .travel[data-mode="v"] .strip-track img{scroll-snap-align:center}
+.travel[data-mode="m"] .b-strip{--sh:min(66vh,70vw)}
+.travel[data-mode="m"] .strip-vp{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
+.travel[data-mode="m"] .strip-track{will-change:transform}
+.travel[data-mode="m"] .b-strip figcaption{max-width:none;margin:12px 0 0;padding:0 var(--edge)}
+.travel[data-mode="m"] .strip-ctl,.travel[data-mode="h"] .strip-ctl{display:none}
+
+/* ---------- 横向 ---------- */
+.travel[data-mode="h"]{--ph:min(66vh,64vw)}
+.travel[data-mode="h"] .t-vp{position:sticky;top:0;height:100vh;overflow:hidden}
+.travel[data-mode="h"] .t-track{display:flex;align-items:flex-start;height:100%;width:max-content;gap:clamp(40px,6vw,104px);padding:8vh var(--edge) 13vh;will-change:transform}
+/* --y：块在上下方向的位置（0 顶 / 1 底），--s：缩放。默认居中、原尺寸 */
+.travel[data-mode="h"] .blk{flex:none;top:calc(var(--y,.5)*100%);transform:translateY(calc(var(--y,.5)*-100%))}
+.travel[data-mode="h"] .b-text:not(.v){width:min(23em,84vw)}
+.travel[data-mode="h"] .b-text.v{height:calc(var(--ph)*.92*var(--s,1))}
+.travel[data-mode="h"] .b-single img{height:calc(var(--ph)*var(--s,1));width:auto}
+.travel[data-mode="h"] .b-pair .imgs{display:flex;gap:14px}
+.travel[data-mode="h"] .b-pair img{height:calc(var(--ph)*var(--s,1));width:auto}
+.travel[data-mode="h"] .b-grid .imgs{display:grid;grid-template-rows:repeat(2,calc(var(--ph)*var(--s,1)/2 - 5px));grid-auto-flow:column;grid-auto-columns:calc((var(--ph)*var(--s,1)/2 - 5px)*4/3);gap:10px}
+.travel[data-mode="h"] .b-grid img{width:100%;height:100%}
+.travel[data-mode="h"] .b-grid img:first-child{grid-row:span 2;grid-column:span 2}
+.travel[data-mode="h"] .b-grid img:last-child{grid-row:span 2}
+.travel[data-mode="h"] .b-free .canvas{height:calc(var(--ph)*1.04*var(--s,1));width:calc(var(--ph)*1.04*var(--s,1)*var(--ar))}
+.travel[data-mode="h"] .b-strip{--sh:calc(var(--ph)*var(--s,1))}
+.travel[data-mode="h"] .b-strip figcaption{margin:12px 0 0}
+.b-endcard{display:none}
+.travel[data-mode="h"] .b-endcard{display:flex;flex-direction:column;justify-content:center;width:min(18em,70vw);gap:10px;color:var(--ink-2)}
+.b-endcard .big{font-size:44px;color:var(--ink);letter-spacing:.04em}
+.h-progress{display:none}
+.travel[data-mode="h"] .h-progress{display:block;position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--rule)}
+.h-progress i{position:absolute;inset:0;background:var(--accent);transform-origin:0 50%;transform:scaleX(0)}
+
+/* ---------- 横滚方向：右→左（作者按篇设置） ---------- */
+.travel[data-dir="rtl"][data-mode="h"] .t-vp{direction:rtl}
+.travel[data-dir="rtl"][data-mode="h"] .t-track > *{direction:ltr}
+.travel[data-dir="rtl"] .strip-sc,.travel[data-dir="rtl"][data-mode="m"] .strip-vp{direction:rtl}
+.travel[data-dir="rtl"] .b-strip figcaption{direction:ltr}
+.travel[data-dir="rtl"] .h-progress i{transform-origin:100% 50%}
 
 /* ---------- 游记：结尾 ---------- */
 .t-end{padding-top:clamp(80px,10vw,140px);padding-bottom:40px}
@@ -74,7 +111,27 @@
 .itin li:hover{color:var(--accent)}
 .itin li .zh{font-size:18px}
 .itin li .zh small{font-size:13px;color:var(--ink-3);margin-left:10px}
+/* ---------- 角落：读法切换（右下）、当前位置（左下） ---------- */
+.corner{position:fixed;bottom:18px;z-index:20;border-radius:4px;transition:transform .6s var(--ease),opacity .4s}
+.mc{right:18px;display:flex;flex-direction:column;padding:2px}
+.mc button{position:relative;z-index:1;width:30px;height:30px;font-size:14px;color:var(--ink-3);transition:color .4s}
+.mc button:hover{color:var(--ink)}
+.mc button[aria-pressed="true"]{color:var(--paper)}
+.mc i{position:absolute;left:2px;top:2px;width:30px;height:30px;border-radius:2px;background:var(--ink);transform:translateY(calc(var(--i,0)*30px));transition:transform .55s var(--ease)}
+.mc .tip{position:absolute;right:calc(100% + 10px);bottom:4px;font-size:12px;color:var(--ink-3);white-space:nowrap;opacity:0;transform:translateX(6px);transition:opacity .3s,transform .4s var(--ease);pointer-events:none}
+.mc:hover .tip{opacity:1;transform:none}
+.loc{left:18px;display:flex;align-items:center;gap:10px;padding:6px 12px 6px 8px;opacity:0;transform:translateY(12px);pointer-events:none}
+.loc.on{opacity:1;transform:none;pointer-events:auto}
+.loc svg{width:60px;height:auto;flex:none}
+.loc .route{stroke-width:1.5}
+.loc .route-p{transition:stroke-dashoffset .9s var(--ease)}
+.loc .here{transition:transform .9s var(--ease)}
+.loc .where{line-height:1.35;white-space:nowrap}
+.loc .where b{display:block;font-weight:400;font-size:15px}
+.loc .where .mono{color:var(--ink-3);font-size:10.5px}
+/* —— 以下是主题包自己加的 —— */
 .travel:not([data-mode="h"]) .b-map{grid-column:2/12}
+.travel[data-mode="h"] .b-map{width:min(78vh,60vw)}
 /* 文末的注：游记里旁注和脚注不分栏 */
 .t-fns{margin-top:clamp(56px,8vw,96px);padding-top:1.2em;padding-bottom:0;border-top:1px solid var(--rule);font-size:14px;line-height:1.8;color:var(--ink-3)}
 .t-fns ol{list-style:none;max-width:40em}

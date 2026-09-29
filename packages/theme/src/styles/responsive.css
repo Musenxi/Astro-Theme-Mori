@@ -36,6 +36,11 @@
   .travel:not([data-mode="h"]) .b-free .canvas{aspect-ratio:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .travel:not([data-mode="h"]) .fi,.travel:not([data-mode="h"]) .fnote{position:static;width:100%}
   .travel:not([data-mode="h"]) .fnote{height:9em;justify-self:center}
+  .travel[data-mode="h"]{--ph:min(60vh,116vw)}
+  .corner{bottom:12px}
+  .mc{right:12px}
+  .loc{left:12px}
+  .loc .where .mono{display:none}
   .itin li{grid-template-columns:2.2em 4.6em 1fr}
   .itin li .co{display:none}
   .post-end a{grid-column:1/-1!important;text-align:left!important;align-items:flex-start!important;margin-bottom:18px}

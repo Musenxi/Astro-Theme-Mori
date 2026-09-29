@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import TravelBody from '../components/TravelBody.astro';
 import MapPlaceholder from '../components/MapPlaceholder.astro';
+import TravelCorners from '../components/TravelCorners.astro';
 import EntryNav from '../components/EntryNav.astro';
 import { getEntries } from '../lib/entries.ts';
 import type { Entry } from '../lib/entries.ts';
@@ -15,11 +16,15 @@ export async function getStaticPaths() {
 
 const { entry, older, newer } = Astro.props as { entry: Entry; older?: Entry; newer?: Entry };
 const d = entry.data as TravelData;
+// 内容里叫 v / h / mix，样式和脚本里混合读法叫 m
+const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | 'm';
+const allowed = d.reading.allowed.map(short);
+const initial = allowed.includes(short(d.reading.default)) ? short(d.reading.default) : allowed[0];
 ---
 
 <Base title={d.title} description={d.excerpt} type="article">
   <main data-page="travel">
-    <article class="travel" data-mode="v" data-dir={d.reading.direction}>
+    <article class="travel" data-mode={initial} data-dir={d.reading.direction}>
       <header class="wrap g t-hero">
         <div class="info">
           <div class="kicker mono">{entry.category.zh} · {dotDate(d.date)}</div>
@@ -37,8 +42,10 @@ const d = entry.data as TravelData;
       <TravelBody travel={d} />
     </article>
     <EntryNav older={older} newer={newer} />
+    <TravelCorners allowed={allowed} stops={d.stops} />
   </main>
   <script>
     import '../scripts/reveal.ts';
+    import '../scripts/travel.ts';
   </script>
 </Base>

@@ -1,0 +1,32 @@
+---
+/**
+ * 游记的两个角落控件（玻璃）：右下角读法切换（竖 / 横 / 混），左下角当前位置。
+ * 读者选读法并被记住；作者只决定默认值和允许哪几种（reading.default / allowed）。
+ */
+import type { TravelData } from '../content/schema.ts';
+
+interface Props {
+  allowed: Array<'v' | 'h' | 'm'>;
+  stops: TravelData['stops'];
+}
+const { allowed, stops } = Astro.props;
+const LABEL = { v: ['竖', '竖向阅读'], h: ['横', '横向阅读'], m: ['混', '混合阅读'] } as const;
+const stopData = stops.map((s) => ({ id: s.id, name: s.name, date: s.date ?? '' }));
+---
+
+{
+  allowed.length > 1 && (
+    <div class="corner mc glass" id="mc" role="group" aria-label="阅读方式" data-modes={allowed.join(',')}>
+      <i />
+      {allowed.map((m) => <button type="button" data-m={m} aria-label={LABEL[m][1]}>{LABEL[m][0]}</button>)}
+      <span class="tip" id="mc-tip">读法</span>
+    </div>
+  )
+}
+
+<div class="corner loc glass" id="loc" data-stops={JSON.stringify(stopData)}>
+  <div class="where">
+    <span class="mono" id="rb-n">01 / {String(stops.length).padStart(2, '0')}</span>
+    <b id="rb-name">{stops[0].name}</b>
+  </div>
+</div>
