@@ -14,7 +14,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'travel.endNote': 'Back where we started. Keep scrolling for the whole itinerary.', 'travel.left': 'Left', 'travel.right': 'Right', 'travel.readingGroup': 'Reading mode',
   'travel.mode.v': 'V', 'travel.mode.h': 'H', 'travel.mode.m': 'M',
   'travel.modeLabel.v': 'Vertical reading', 'travel.modeLabel.h': 'Horizontal reading', 'travel.modeLabel.m': 'Mixed reading',
-  'map.route': 'Route: {list}', 'map.arctic': 'Arctic Circle 66°34′N', 'map.tropicN': 'Tropic of Cancer 23°26′N', 'map.equator': 'Equator 0°', 'map.tropicS': 'Tropic of Capricorn 23°26′S', 'map.antarctic': 'Antarctic Circle 66°34′S',
+  'map.route': 'Route: {list}', 'map.arctic': 'Arctic Circle 66°33′N', 'map.tropicN': 'Tropic of Cancer 23°26′N', 'map.equator': 'Equator 0°', 'map.tropicS': 'Tropic of Capricorn 23°26′S', 'map.antarctic': 'Antarctic Circle 66°33′S',
   'scale.note': 'One tick is one month.', 'scale.empty': 'Blank stretches are months with {what}.', 'empty.all': 'nothing written', 'empty.posts': 'no posts', 'empty.travels': 'no journeys', 'empty.default': 'no {name}',
   'archive.title': 'All posts', 'archive.sub': 'Archive', 'posts.sub': 'Posts', 'travels.sub': 'Journeys',
   'lightbox.close': 'Esc to close', 'footer.search': 'Search', 'footer.rss': 'Subscribe',

@@ -2,7 +2,7 @@
  * 剪影地图（spec §3.2）：构建时用 d3-geo + Natural Earth（world-atlas，公有领域）生成 SVG 的几何，页面上不加载任何地图 JS。
  * 包含：陆地轮廓、路线、站点、站点标签（自动避让）、比例尺、纬线（北极圈 / 回归线 / 赤道，在画面里才画）。
  */
-import { geoMercator, geoNaturalEarth1, geoPath, geoDistance } from 'd3-geo';
+import { geoMercator, geoNaturalEarth1, geoConicConformal, geoPath, geoDistance } from 'd3-geo';
 import { line, curveCatmullRom } from 'd3-shape';
 import { feature } from 'topojson-client';
 import type { Topology } from 'topojson-specification';
@@ -33,6 +33,15 @@ async function landTopology(res: '10m' | '50m' | '110m') {
   return topoCache.get(res)!;
 }
 
+/**
+ * d3 在 clipExtent 下，遇到覆盖整个画面的环会补一个和裁剪框一样大的矩形子路径，把海面也填成了陆地。
+ * 陆地路径里凡是和裁剪框重合的矩形子路径都去掉。
+ */
+function withoutClipRect(d: string) {
+  const rect = `M-60,-60L${W + 60},-60L${W + 60},${H + 60}L-60,${H + 60}Z`;
+  return d.split(/(?=M)/).filter((sub) => sub !== rect).join('');
+}
+
 const PARALLELS = (): Array<[number, string]> => [
   [66.5626, t('map.arctic')], [23.4366, t('map.tropicN')], [0, t('map.equator')], [-23.4366, t('map.tropicS')], [-66.5626, t('map.antarctic')],
 ];
@@ -43,7 +52,7 @@ const NICE_KM = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 
  * @param track    可选的轨迹点；不给就按站点顺序连线
  * @param minSpan  取景范围的最小度数（只有一个站点、或站点挤在一起时，不能无限放大）
  */
-async function compute(stops: Array<MapStop & { lnglat: LngLat }>, track: LngLat[] | undefined, { minSpan = 3, padX = 120, padY = 100 } = {}): Promise<MapResult> {
+async function compute(stops: Array<MapStop & { lnglat: LngLat }>, track: LngLat[] | undefined, { minSpan = 3, padX = 80, padY = 80 } = {}): Promise<MapResult> {
   const pts: LngLat[] = [...stops.map((s) => s.lnglat), ...(track ?? [])];
   let [w, e, s, n] = [Math.min(...pts.map((p) => p[0])), Math.max(...pts.map((p) => p[0])), Math.min(...pts.map((p) => p[1])), Math.max(...pts.map((p) => p[1]))];
   // 至少有 minSpan 度宽，高度按画面比例；范围太小就以中心为准往外撑
@@ -52,10 +61,29 @@ async function compute(stops: Array<MapStop & { lnglat: LngLat }>, track: LngLat
   const spanX = need(e - w, minSpan), spanY = need(n - s, minSpan * (H / W));
   [w, e, s, n] = [cx - spanX / 2, cx + spanX / 2, cy - spanY / 2, cy + spanY / 2];
 
+  // 纬线离画面很近（比如冰岛之于北极圈）就把它纳进取景，画面里才有这条参照线
+  if (Math.max(spanX, spanY) <= 25) {
+    const reach = Math.max(1, spanY * 0.4);
+    for (const [lat] of PARALLELS()) {
+      if (lat > n && lat - n <= reach) n = lat + 0.1;
+      else if (lat < s && s - lat <= reach) s = lat - 0.1;
+    }
+  }
+
   const span = Math.max(spanX, spanY);
-  const projection = span > 60 || spanY > 45 ? geoNaturalEarth1() : geoMercator();
-  const corners: LngLat[] = [[w, s], [e, s], [e, n], [w, n]];
-  projection.fitExtent([[padX, padY], [W - padX, H - padY]], { type: 'MultiPoint', coordinates: corners });
+  const midLat = (s + n) / 2;
+  // 世界尺度用 Natural Earth；中高纬度的区域用兰勃特等角圆锥（纬线是弧线，像地图集里那样）；低纬度用墨卡托
+  const projection = span > 60 || spanY > 45
+    ? geoNaturalEarth1()
+    : Math.abs(midLat) >= 20 && Math.abs(midLat) <= 75
+      ? geoConicConformal().rotate([-(w + e) / 2, 0]).center([0, midLat]).parallels([s + (n - s) / 6, n - (n - s) / 6])
+      : geoMercator();
+  // 用画面四边（沿纬线 / 经线加密）拟合，圆锥投影下边是弧线，只用四个角会取景不准
+  const ring: LngLat[] = [];
+  const seg = (a: LngLat, b: LngLat) => { for (let i = 0; i < 24; i++) ring.push([a[0] + ((b[0] - a[0]) * i) / 24, a[1] + ((b[1] - a[1]) * i) / 24]); };
+  // d3 的球面多边形外环要顺时针，写反了会被当成“除这块以外的整个地球”
+  seg([w, s], [w, n]); seg([w, n], [e, n]); seg([e, n], [e, s]); seg([e, s], [w, s]);
+  projection.fitExtent([[padX, padY], [W - padX, H - padY]], { type: 'Polygon', coordinates: [[...ring, ring[0]]] } as any);
   projection.clipExtent([[-60, -60], [W + 60, H + 60]]);
 
   const res = span <= 12 ? '10m' : span <= 70 ? '50m' : '110m';
@@ -111,17 +139,18 @@ async function compute(stops: Array<MapStop & { lnglat: LngLat }>, track: LngLat
   const kmPerPx = geoDistance(a, b) * 6371;
   const nice = [...NICE_KM].reverse().find((k) => k / kmPerPx <= 200 && k / kmPerPx >= 50) ?? NICE_KM[0];
 
-  // 纬线（只画在画面里的）
+  // 纬线（只画在画面里的）：沿纬线取样，标签放在靠右边缘处，圆锥投影下纬线是弧线，各处 y 不同
   const parallels: MapResult['parallels'] = [];
   for (const [lat, label] of PARALLELS()) {
-    const y = xy([cx, lat])[1];
-    if (!(y > 30 && y < H - 30)) continue;
+    const samples = Array.from({ length: 121 }, (_, i) => xy([cx - 90 + (i * 180) / 120, lat] as LngLat));
+    const right = samples.filter(([x]) => x >= 0 && x <= W).reduce<[number, number] | null>((b, q) => (!b || Math.abs(q[0] - (W - 15)) < Math.abs(b[0] - (W - 15)) ? q : b), null);
+    if (!right || !(right[1] > 30 && right[1] < H - 30)) continue;
     const coordinates: LngLat[] = Array.from({ length: 181 }, (_, i) => [-180 + i * 2, lat] as LngLat);
-    parallels.push({ d: path({ type: 'LineString', coordinates })!, label, y });
+    parallels.push({ d: path({ type: 'LineString', coordinates })!, label, y: right[1] });
   }
 
   return {
-    land: path(land as any) ?? '',
+    land: withoutClipRect(path(land as any) ?? ''),
     route: routeD,
     stops: stops.map((st, i) => ({ id: st.id, name: st.name, en: st.en, x: +stopXY[i][0].toFixed(1), y: +stopXY[i][1].toFixed(1), t: +along(stopXY[i]).toFixed(4), label: { x: +placed[i].x.toFixed(1), y: +placed[i].y.toFixed(1), anchor: placed[i].anchor } })),
     scale: { px: +(nice / kmPerPx).toFixed(1), label: `${nice} KM` },

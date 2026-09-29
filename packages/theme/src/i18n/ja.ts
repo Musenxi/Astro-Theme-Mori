@@ -14,7 +14,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'travel.endNote': '出発点に戻りました。このまま下へ進むと行程の一覧です。', 'travel.left': '左へ', 'travel.right': '右へ', 'travel.readingGroup': '読み方',
   'travel.mode.v': '縦', 'travel.mode.h': '横', 'travel.mode.m': '混',
   'travel.modeLabel.v': '縦に読む', 'travel.modeLabel.h': '横に読む', 'travel.modeLabel.m': '混合で読む',
-  'map.route': '経路：{list}', 'map.arctic': '北極圏 66°34′N', 'map.tropicN': '北回帰線 23°26′N', 'map.equator': '赤道 0°', 'map.tropicS': '南回帰線 23°26′S', 'map.antarctic': '南極圏 66°34′S',
+  'map.route': '経路：{list}', 'map.arctic': '北極圏 66°33′N', 'map.tropicN': '北回帰線 23°26′N', 'map.equator': '赤道 0°', 'map.tropicS': '南回帰線 23°26′S', 'map.antarctic': '南極圏 66°33′S',
   'scale.note': '一目盛りが一か月。', 'scale.empty': '空いているところは、{what}の月。', 'empty.all': '何も書いていない', 'empty.posts': '記事のない', 'empty.travels': '旅の記のない', 'empty.default': '{name}のない',
   'archive.title': 'すべての記事', 'archive.sub': 'Archive', 'posts.sub': 'Posts', 'travels.sub': 'Journeys',
   'lightbox.close': 'Esc で閉じる', 'footer.search': '検索', 'footer.rss': '購読',
