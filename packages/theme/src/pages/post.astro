@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import PostBody from '../components/PostBody.astro';
+import Comments from '../components/Comments.astro';
 import EntryNav from '../components/EntryNav.astro';
 import { getEntries } from '../lib/entries.ts';
 import type { Entry } from '../lib/entries.ts';
@@ -27,6 +28,7 @@ const approx = chars >= 1000 ? chars.toLocaleString('en-US').replace(/\d{2}$/, '
       <div class="meta mono">约 {approx} 字 · {Math.max(1, Math.round(chars / 450))} 分钟</div>
     </header>
     <PostBody blocks={d.blocks} notes={d.notes} />
+    <Comments entry={`posts/${entry.id}`} />
     <EntryNav older={older} newer={newer} />
   </main>
 </Base>

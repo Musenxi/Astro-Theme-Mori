@@ -23,6 +23,18 @@ export type MoriPublish =
   | { target: 'cloudflare-pages'; project: string; branch?: string }
   | { target: 'rsync'; dest: string };
 
+/**
+ * 评论（spec §5）：二选一，互相隔离。
+ *  - mori：自建评论服务（packages/comments），文末评论 + 划词批注
+ *  - 其余是第三方，只有文末评论，没有批注
+ */
+export type MoriComments =
+  | { provider: 'mori'; /** 评论服务的地址，如 https://comments.example.com */ endpoint: string; /** Cloudflare Turnstile 的站点密钥（公开的那个） */ turnstileSiteKey?: string; /** 是否开启划词批注，默认开 */ annotations?: boolean }
+  | { provider: 'giscus'; repo: string; repoId: string; category: string; categoryId: string; mapping?: string }
+  | { provider: 'waline'; serverURL: string }
+  | { provider: 'twikoo'; envId: string }
+  | { provider: 'artalk'; server: string; site?: string };
+
 export interface MoriUserConfig {
   /** 站点根地址，用于 canonical / RSS；部署时填 */
   site?: string;
@@ -46,11 +58,13 @@ export interface MoriUserConfig {
     direction?: 'h' | 'v';
   };
   publish?: MoriPublish;
+  comments?: MoriComments;
 }
 
 export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'accent' | 'categories' | 'nav'>> {
   site?: string;
   accentDark?: string;
+  comments?: MoriComments;
   description: string;
   home: { direction: 'h' | 'v'; editorNote: string };
   archive: { direction: 'h' | 'v' };
@@ -65,6 +79,7 @@ export function resolveConfig(c: MoriUserConfig): MoriConfig {
     description: c.description ?? '',
     accent: c.accent ?? '#002fa7',
     accentDark: c.accentDark,
+    comments: c.comments,
     categories: c.categories,
     nav: c.nav ?? [
       { label: '文章', href: '/posts/' },

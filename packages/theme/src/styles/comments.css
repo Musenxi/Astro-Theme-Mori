@@ -1,0 +1,40 @@
+/* 评论区：细线分隔，名字和日期用等宽小字，不用卡片和头像 */
+.cmt{padding-top:clamp(56px,8vw,104px);padding-bottom:clamp(56px,8vw,96px)}
+.cmt > *{grid-column:3/11}
+.cmt-h{display:flex;align-items:baseline;gap:14px;border-top:1px solid var(--ink);padding-top:14px;margin-bottom:8px}
+.cmt-h h2{font-size:22px;font-weight:400;letter-spacing:.14em}
+.cmt-none{color:var(--ink-3);padding:18px 0}
+.cmt-list,.cmt-replies{list-style:none}
+.cmt-item{padding:18px 0 4px;border-bottom:1px solid var(--rule)}
+.cmt-replies{margin:14px 0 6px 1.2em;padding-left:1.2em;border-left:1px solid var(--rule)}
+.cmt-replies .cmt-item{border-bottom:0;padding:10px 0 6px}
+.cmt-meta{display:flex;gap:12px;align-items:baseline;color:var(--ink-3)}
+.cmt-meta b{color:var(--ink);font-weight:400;font-family:var(--serif);font-size:15px;letter-spacing:.04em}
+.cmt-tag{color:var(--accent)}
+.cmt-text{white-space:pre-line;overflow-wrap:anywhere;margin:6px 0 4px}
+/* 批注引用的原文：细线引用样式，过长截断 */
+.cmt-quote{margin:8px 0;padding-left:12px;border-left:1px solid var(--accent);color:var(--ink-2);font-size:14px;line-height:1.7;cursor:pointer;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;transition:color .3s}
+.cmt-quote:hover{color:var(--ink)}
+.cmt-quote.gone{cursor:default}
+.cmt-quote.gone::after{content:"　（原文已修改）";color:var(--ink-3);font-size:12px}
+.cmt-reply{display:inline-block;margin:0 0 12px;color:var(--ink-3);font-size:13px}
+.linkbtn{color:inherit;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--rule);transition:color .3s}
+.linkbtn:hover{color:var(--accent)}
+
+.cmt-form{margin:22px 0 6px}
+li > .cmt-form{margin:8px 0 18px}
+.cmt-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
+.cmt-form input:not(.cmt-trap),.cmt-form textarea{width:100%;font:inherit;font-size:15px;color:inherit;background:none;border:0;border-bottom:1px solid var(--rule);padding:8px 0;outline:0;transition:border-color .3s}
+.cmt-form textarea{resize:vertical;line-height:1.8;margin-top:6px}
+.cmt-form input:focus,.cmt-form textarea:focus{border-bottom-color:var(--ink)}
+.cmt-form ::placeholder{color:var(--ink-3)}
+.cmt-trap{position:absolute!important;left:-9999px;width:1px;height:1px;opacity:0}
+.cmt-ts{margin-top:10px}
+.cmt-foot{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:12px}
+.cmt-msg{color:var(--ink-3)}
+.cmt-msg.bad{color:#b0442b}
+.cmt-send{font-size:15px;letter-spacing:.06em;padding-bottom:2px}
+.cmt-send span{display:inline-block;color:var(--accent);transition:transform .5s var(--ease)}
+.cmt-send:hover span{transform:translateX(5px)}
+.cmt-send[disabled]{opacity:.5;cursor:default}
+@media (max-width:760px){.cmt-row{grid-template-columns:1fr}.cmt-replies{margin-left:.4em}}

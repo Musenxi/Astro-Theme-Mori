@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import TravelBody from '../components/TravelBody.astro';
 import RouteMap from '../components/RouteMap.astro';
 import TravelCorners from '../components/TravelCorners.astro';
+import Comments from '../components/Comments.astro';
 import EntryNav from '../components/EntryNav.astro';
 import { getEntries } from '../lib/entries.ts';
 import type { Entry } from '../lib/entries.ts';
@@ -41,6 +42,7 @@ const initial = allowed.includes(short(d.reading.default)) ? short(d.reading.def
       </header>
       <TravelBody travel={d} />
     </article>
+    <Comments entry={`travels/${entry.id}`} />
     <EntryNav older={older} newer={newer} />
     <TravelCorners allowed={allowed} stops={d.stops} track={d.track} />
   </main>
