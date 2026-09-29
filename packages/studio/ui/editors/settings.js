@@ -43,6 +43,10 @@ export function Settings({ project, refresh }) {
           options=${[['h', '横排', '时间轴往下走'], ['v', '竖排', '像手卷一样从右往左展开']]} />
         ${cfg.lang === 'en' && html`<p class="lbl mono">英文站没有竖排（竖排只对中日文有意义）。</p>`}
       </section>
+      <section class="box"><h2>订阅 <span class="lbl mono">读者用阅读器订阅：/feed</span></h2>
+        <${Choice} label="订阅内容" value=${cfg.feed?.content ?? 'excerpt'} onPick=${(v) => save('feed.content', v)}
+          options=${[['excerpt', '只放摘要', '阅读器里只显示标题和摘要，读者点进来看全文'], ['full', '放全文', '文章的正文、游记的文字和图片都放进订阅，读者在阅读器里就能读完']]} />
+      </section>
       <section class="box"><h2>主题色 <span class="lbl mono">唯一的强调色；亮暗两个版本自动推出</span></h2>
         <div class="row" style="margin:8px 0">
           ${PRESETS.map(([c, n]) => html`<button key=${c} title=${n} onClick=${() => { setAccent(c); save('accent', c); }}

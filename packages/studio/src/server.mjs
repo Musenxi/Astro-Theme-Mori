@@ -188,7 +188,7 @@ export async function startStudio({ root, port = 4400, dev = false }) {
         const cn = await commentNumbers(); // 侧栏上的未读数量；评论服务连不上就当 0
         const pending = cn?.unread ?? 0;
         return send(res, 200, {
-          root, configPath, config: { title: config.title ?? 'MORI', description: config.description ?? '', accent: config.accent ?? '#002fa7', accentDark: config.accentDark, categories: config.categories ?? [], home: config.home, archive: config.archive, lang: config.lang ?? 'zh-CN' },
+          root, configPath, config: { title: config.title ?? 'MORI', description: config.description ?? '', accent: config.accent ?? '#002fa7', accentDark: config.accentDark, categories: config.categories ?? [], home: config.home, archive: config.archive, feed: config.feed, lang: config.lang ?? 'zh-CN' },
           entries: listEntries(root), assets: listAssets(root), dev, preview: { port: preview.port, url: await previewUrl(preview.port) }, publish: config.publish ?? null, comments: { provider: config.comments?.provider ?? null, endpoint: commentsEndpoint(), hasToken: !!adminToken(), pending },
         });
       }

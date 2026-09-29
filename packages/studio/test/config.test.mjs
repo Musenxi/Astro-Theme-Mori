@@ -64,3 +64,16 @@ test('home / archive 块里的取值：只改各自块里的，同名 key 互不
   setConfigValue(h, 'home.style', 'cover');       // 单行块里没有：加在 { 后面
   assert.match(readFileSync(h, 'utf8'), /home: \{ style: 'cover', editorNote: 'x' \}/);
 });
+
+test('feed.content：没有 feed 块时新建，有就只改取值；只接受 excerpt / full', () => {
+  const f = make();
+  setConfigValue(f, 'feed.content', 'full');
+  let s = readFileSync(f, 'utf8');
+  assert.match(s, /defineMoriConfig\(\{\n  feed: \{ content: 'full' \},\n/);
+  setConfigValue(f, 'feed.content', 'excerpt');
+  s = readFileSync(f, 'utf8');
+  assert.equal(s.match(/feed:/g).length, 1);
+  assert.match(s, /feed: \{ content: 'excerpt' \}/);
+  assert.match(s, /home: \{\n    editorNote/);
+  assert.throws(() => setConfigValue(f, 'feed.content', 'all'), /excerpt/);
+});

@@ -115,8 +115,8 @@ export function saveAsset(root, name, buffer) {
 
 /* ───────────── mori.config.ts 里的单行字符串设置 ───────────── */
 const CONFIG_KEYS = new Set(['title', 'description', 'accent', 'accentDark', 'editorNote']);
-/** 嵌套在 home / archive 块里的设置：'home.style'、'home.direction'、'archive.direction' */
-const BLOCK_KEYS = { 'home.style': ['quote', 'cover'], 'home.direction': ['h', 'v'], 'archive.direction': ['h', 'v'] };
+/** 嵌套在 home / archive / feed 块里的设置：'home.style'、'home.direction'、'archive.direction'、'feed.content' */
+const BLOCK_KEYS = { 'home.style': ['quote', 'cover'], 'home.direction': ['h', 'v'], 'archive.direction': ['h', 'v'], 'feed.content': ['excerpt', 'full'] };
 const quote = (v) => `'${String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n')}'`;
 
 /**
@@ -144,7 +144,7 @@ export function setConfigValue(configPath, key, value) {
 }
 
 /**
- * 改 `home: { … }` / `archive: { … }` 块里的一个取值（只在这个块里找，不会碰到别的块里同名的 key）。
+ * 改 `home: { … }` / `archive: { … }` / `feed: { … }` 块里的一个取值（只在这个块里找，不会碰到别的块里同名的 key）。
  * key 在块里没有就加进去；整个块都没有就新建一个。value 只能是允许的几个值之一。
  */
 function setBlockValue(configPath, dotted, value) {

@@ -64,6 +64,11 @@ export interface MoriUserConfig {
     /** 归档 / 栏目刻度页的排法 */
     direction?: 'h' | 'v';
   };
+  /** RSS 订阅（/feed） */
+  feed?: {
+    /** 订阅里放什么：excerpt 只放摘要（默认）；full 放全文（文章的正文、游记的文字和图片） */
+    content?: 'excerpt' | 'full';
+  };
   publish?: MoriPublish;
   comments?: MoriComments;
 }
@@ -76,6 +81,7 @@ export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'acc
   description: string;
   home: { style: 'quote' | 'cover'; direction: 'h' | 'v'; editorNote: string };
   archive: { direction: 'h' | 'v' };
+  feed: { content: 'excerpt' | 'full' };
 }
 
 export const defineMoriConfig = (c: MoriUserConfig) => c;
@@ -101,5 +107,6 @@ export function resolveConfig(c: MoriUserConfig): MoriConfig {
     ],
     home: { style: c.home?.style ?? 'quote', direction: dir(c.home?.direction), editorNote: c.home?.editorNote ?? '' },
     archive: { direction: dir(c.archive?.direction ?? c.home?.direction) },
+    feed: { content: c.feed?.content === 'full' ? 'full' : 'excerpt' },
   };
 }
