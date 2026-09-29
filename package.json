@@ -7,7 +7,7 @@
     "dev": "pnpm --parallel --filter demo --filter mori-comments --filter mori-studio dev",
     "build": "pnpm --filter demo build",
     "preview": "pnpm --filter demo preview",
-    "check": "pnpm -r --if-present check",
+    "check": "pnpm --filter demo exec astro sync && pnpm -r --if-present check",
     "studio": "pnpm --filter demo studio",
     "test": "pnpm -r --if-present test",
     "comments": "pnpm --filter mori-comments dev",
