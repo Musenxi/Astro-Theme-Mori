@@ -85,7 +85,7 @@ export interface MdEditor {
 }
 export type MdCommand = 'bold' | 'italic' | 'code' | 'link' | 'h2' | 'h3' | 'quote' | 'list';
 
-export function createEditor({ parent, doc, placeholder, onChange, onImages }: { parent: HTMLElement; doc: string; placeholder?: string; onChange?: (text: string) => void; onImages?: (files: File[]) => Promise<string[]> }): MdEditor {
+export function createEditor({ parent, doc, placeholder, cursor = 'start', onChange, onImages }: { parent: HTMLElement; doc: string; placeholder?: string; /** 光标起始位置：新文章（只有标题）放在末尾，接着往下写 */ cursor?: 'start' | 'end'; onChange?: (text: string) => void; onImages?: (files: File[]) => Promise<string[]> }): MdEditor {
   const insertImages = async (view: View, files: File[], pos?: number) => {
     const names = await onImages?.(files);
     if (!names?.length) return;
@@ -96,6 +96,7 @@ export function createEditor({ parent, doc, placeholder, onChange, onImages }: {
     parent,
     state: EditorState.create({
       doc,
+      selection: { anchor: cursor === 'end' ? doc.length : 0 },
       extensions: [
         history(), markdown(), syntaxHighlighting(style), theme, EditorView.lineWrapping,
         placeholder ? cmPlaceholder(placeholder) : [],
