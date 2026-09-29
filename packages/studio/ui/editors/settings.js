@@ -34,6 +34,15 @@ export function Settings({ project, refresh }) {
         <${Field} label="刊名"><input value=${title} onInput=${(e) => setTitle(e.target.value)} onBlur=${() => title !== cfg.title && title && save('title', title)} /><//>
         <${Field} label="简介"><input value=${description} onInput=${(e) => setDescription(e.target.value)} onBlur=${() => description !== (cfg.description ?? '') && save('description', description)} /><//>
       </section>
+      <section class="box"><h2>首页 <span class="lbl mono">改动写进 mori.config.ts，预览会随之刷新</span></h2>
+        <${Choice} label="版式" value=${cfg.home?.style ?? 'quote'} onPick=${(v) => save('home.style', v)}
+          options=${[['quote', '引文版', '封面大图，引文压在图上，点左侧目录切换'], ['cover', '封面版', '墨色封面 + 满版刊名，往下滚时刊名缩进页头']]} />
+        <${Choice} label="首页排法" value=${cfg.home?.direction ?? 'h'} onPick=${(v) => save('home.direction', v)} disabled=${cfg.lang === 'en'}
+          options=${[['h', '横排', ''], ['v', '竖排', '引文、目次、编者按竖着排']]} />
+        <${Choice} label="归档排法" value=${cfg.archive?.direction ?? cfg.home?.direction ?? 'h'} onPick=${(v) => save('archive.direction', v)} disabled=${cfg.lang === 'en'}
+          options=${[['h', '横排', '时间轴往下走'], ['v', '竖排', '像手卷一样从右往左展开']]} />
+        ${cfg.lang === 'en' && html`<p class="lbl mono">英文站没有竖排（竖排只对中日文有意义）。</p>`}
+      </section>
       <section class="box"><h2>主题色 <span class="lbl mono">唯一的强调色；亮暗两个版本自动推出</span></h2>
         <div class="row" style="margin:8px 0">
           ${PRESETS.map(([c, n]) => html`<button key=${c} title=${n} onClick=${() => { setAccent(c); save('accent', c); }}
@@ -55,4 +64,16 @@ export function Settings({ project, refresh }) {
       </section>
       <p class="lbl mono" style="margin-top:28px">改动写回 ${project.configPath}，只替换对应那一行，注释和排版不动；预览打开时会随之刷新。栏目、导航等复杂设置直接在这个文件里改。</p>
     </div>`;
+}
+
+/** 几个互斥的选项：当前的高亮，下面一行小字说明各自是什么 */
+function Choice({ label, value, options, onPick, disabled }) {
+  const cur = options.find(([v]) => v === value);
+  return html`<${Field} label=${label}>
+    <div class="row" style="gap:0">
+      ${options.map(([v, name]) => html`<button key=${v} class="btn" disabled=${disabled} aria-pressed=${v === value} onClick=${() => v !== value && onPick(v)}
+        style=${`border-radius:0;margin-right:-1px;${v === value ? 'background:var(--ink);color:var(--paper);border-color:var(--ink)' : ''}`}>${name}</button>`)}
+    </div>
+    ${cur?.[2] && html`<div class="mono lbl" style="margin-top:4px">${cur[2]}</div>`}
+  <//>`;
 }

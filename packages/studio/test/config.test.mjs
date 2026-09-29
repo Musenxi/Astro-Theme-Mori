@@ -38,3 +38,29 @@ test('嵌套的 editorNote 可改；不认识的 key 和缺失的 editorNote 报
   writeFileSync(g, `export default defineMoriConfig({\n  title: 'a',\n});\n`);
   assert.throws(() => setConfigValue(g, 'editorNote', 'x'), /editorNote/);
 });
+
+test('home / archive 块里的取值：只改各自块里的，同名 key 互不影响；缺了就加；整块缺了就建', () => {
+  const f = join(mkdtempSync(join(tmpdir(), 'mori-')), 'c.ts');
+  const src = `export default defineMoriConfig({\n  title: 'a',\n  home: {\n    direction: 'h',\n    editorNote: 'x',\n  },\n  archive: { direction: 'h' },\n});\n`;
+  writeFileSync(f, src);
+  setConfigValue(f, 'home.direction', 'v');
+  let s = readFileSync(f, 'utf8');
+  assert.match(s, /home: \{\n    direction: 'v',/);
+  assert.match(s, /archive: \{ direction: 'h' \}/); // archive 里的没动
+  setConfigValue(f, 'home.style', 'cover');       // 多行块里没有：加在开头
+  assert.match(readFileSync(f, 'utf8'), /home: \{\n    style: 'cover',\n    direction: 'v',/);
+  setConfigValue(f, 'home.style', 'quote');       // 已有：替换
+  assert.equal(readFileSync(f, 'utf8').match(/style:/g).length, 1);
+  setConfigValue(f, 'archive.direction', 'v');    // 单行块里改值
+  assert.match(readFileSync(f, 'utf8'), /archive: \{ direction: 'v' \}/);
+  assert.throws(() => setConfigValue(f, 'home.style', 'grid'), /只能是/);
+
+  const g = join(mkdtempSync(join(tmpdir(), 'mori-')), 'c.ts');
+  writeFileSync(g, `export default defineMoriConfig({\n  title: 'a',\n});\n`);
+  setConfigValue(g, 'home.style', 'cover');       // 整个 home 块都没有
+  assert.match(readFileSync(g, 'utf8'), /defineMoriConfig\(\{\n  home: \{ style: 'cover' \},\n  title/);
+  const h = join(mkdtempSync(join(tmpdir(), 'mori-')), 'c.ts');
+  writeFileSync(h, `export default defineMoriConfig({\n  home: { editorNote: 'x' },\n});\n`);
+  setConfigValue(h, 'home.style', 'cover');       // 单行块里没有：加在 { 后面
+  assert.match(readFileSync(h, 'utf8'), /home: \{ style: 'cover', editorNote: 'x' \}/);
+});

@@ -141,7 +141,7 @@ export async function startStudio({ root, port = 4400 }) {
         let pending = 0; // 侧栏上的待审数量；评论服务连不上就当 0
         try { if (commentsEndpoint() && adminToken()) pending = (await admin('GET', '/stats')).pending ?? 0; } catch {}
         return send(res, 200, {
-          root, configPath, config: { title: config.title ?? 'MORI', description: config.description ?? '', accent: config.accent ?? '#002fa7', accentDark: config.accentDark, categories: config.categories ?? [], home: config.home, archive: config.archive },
+          root, configPath, config: { title: config.title ?? 'MORI', description: config.description ?? '', accent: config.accent ?? '#002fa7', accentDark: config.accentDark, categories: config.categories ?? [], home: config.home, archive: config.archive, lang: config.lang ?? 'zh-CN' },
           entries: listEntries(root), assets: listAssets(root), preview: { port: preview.port, up: await isUp(preview.port) }, publish: config.publish ?? null, comments: { provider: config.comments?.provider ?? null, endpoint: commentsEndpoint(), hasToken: !!adminToken(), pending },
         });
       }

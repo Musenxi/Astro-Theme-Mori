@@ -89,6 +89,8 @@ export function saveAsset(root, name, buffer) {
 
 /* ───────────── mori.config.ts 里的单行字符串设置 ───────────── */
 const CONFIG_KEYS = new Set(['title', 'description', 'accent', 'accentDark', 'editorNote']);
+/** 嵌套在 home / archive 块里的设置：'home.style'、'home.direction'、'archive.direction' */
+const BLOCK_KEYS = { 'home.style': ['quote', 'cover'], 'home.direction': ['h', 'v'], 'archive.direction': ['h', 'v'] };
 const quote = (v) => `'${String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n')}'`;
 
 /**
@@ -96,6 +98,7 @@ const quote = (v) => `'${String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'").r
  * key 不在文件里时：顶层的 key 插到配置对象开头；editorNote 这种嵌套的要作者先自己写出来。value 为 null 表示删掉这一行。
  */
 export function setConfigValue(configPath, key, value) {
+  if (key in BLOCK_KEYS) return setBlockValue(configPath, key, value);
   if (!CONFIG_KEYS.has(key)) throw new Error(`不支持修改 ${key}`);
   let src = readFileSync(configPath, 'utf8');
   // 行尾允许有逗号和 // 注释，替换时原样保留
@@ -112,4 +115,32 @@ export function setConfigValue(configPath, key, value) {
     src = src.replace(open[0], `${open[0]}  ${key}: ${quote(value)},\n`);
   }
   writeFileSync(configPath, src);
+}
+
+/**
+ * 改 `home: { … }` / `archive: { … }` 块里的一个取值（只在这个块里找，不会碰到别的块里同名的 key）。
+ * key 在块里没有就加进去；整个块都没有就新建一个。value 只能是允许的几个值之一。
+ */
+function setBlockValue(configPath, dotted, value) {
+  const [block, key] = dotted.split('.');
+  if (!BLOCK_KEYS[dotted].includes(value)) throw new Error(`${dotted} 只能是 ${BLOCK_KEYS[dotted].join(' / ')}`);
+  let src = readFileSync(configPath, 'utf8');
+  const open = src.match(new RegExp(`^([ \\t]*)${block}[ \\t]*:[ \\t]*\\{`, 'm'));
+  if (!open) {
+    const top = src.match(/(defineMoriConfig\(\{|export default \{)[ \t]*\n/);
+    if (!top) throw new Error('没在 mori.config.ts 里找到配置对象的开头，请手动添加。');
+    writeFileSync(configPath, src.replace(top[0], `${top[0]}  ${block}: { ${key}: '${value}' },\n`));
+    return;
+  }
+  // 找这个块的结尾：从 { 之后数括号
+  const from = open.index + open[0].length;
+  let depth = 1, i = from;
+  for (; i < src.length && depth > 0; i++) { if (src[i] === '{') depth++; else if (src[i] === '}') depth--; }
+  const end = i - 1, body = src.slice(from, end);
+  const line = new RegExp(`(\\b${key}[ \\t]*:[ \\t]*)(['"\`])(?:\\\\.|(?!\\2).)*\\2`);
+  let next;
+  if (line.test(body)) next = body.replace(line, (_, k) => `${k}'${value}'`);
+  else if (body.includes('\n')) next = `\n${open[1]}  ${key}: '${value}',${body}`;   // 多行：加在块的开头
+  else next = ` ${key}: '${value}',${body.replace(/^\s*/, ' ')}`;                       // 单行：加在 { 后面
+  writeFileSync(configPath, src.slice(0, from) + next + src.slice(end));
 }
