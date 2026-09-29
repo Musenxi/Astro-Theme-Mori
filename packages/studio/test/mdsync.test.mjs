@@ -61,3 +61,12 @@ test('手写 JSON 里的裸字符串文字也能转，且不动就不变', () =>
   assert.match(md, /一段裸字符串。/);
   assert.deepEqual(fromMarkdown(md, d).blocks, d.blocks);
 });
+
+test('旁注：没改的原样保留（裸字符串不变成数组），改过的才更新', () => {
+  const d = { title: 'T', blocks: [{ id: 'b01', type: 'p', text: [{ t: '甲', marks: [{ type: 'note', ref: 'n1' }] }] }], notes: { n1: { text: '裸字符串旁注' }, n2: { text: [{ t: '数组旁注' }] } } };
+  const md = toMarkdown(d);
+  assert.deepEqual(fromMarkdown(md, d).notes, d.notes);
+  const edited = fromMarkdown(md.replace('裸字符串旁注', '改过的旁注'), d);
+  assert.deepEqual(edited.notes.n2, d.notes.n2);
+  assert.match(JSON.stringify(edited.notes.n1), /改过的旁注/);
+});

@@ -86,10 +86,16 @@ function restoreNoteKinds(blocks, oldBlocks) {
   return fix(blocks);
 }
 
+/** 旁注：正文没变的就原样保留（手写 JSON 里的裸字符串不会被悄悄改成数组），改过的才用新解析出的 */
+const noteKey = (n) => blocksToMarkdown({ blocks: [], notes: { x: n } });
+function alignNotes(oldNotes = {}, parsed) {
+  return Object.fromEntries(Object.entries(parsed).map(([id, n]) => [id, oldNotes[id] && noteKey(oldNotes[id]) === noteKey(n) ? oldNotes[id] : n]));
+}
+
 /** 文本 → 新文档（标题、块、注释）。其余元信息不动。文本里没有一级标题就保留原标题 */
 export function fromMarkdown(text, doc) {
   const parsed = parseBlocks(text);
   const blocks = alignBlocks(doc.blocks, mapImages(restoreNoteKinds(parsed.blocks, doc.blocks), addAsset));
-  const notes = restoreNoteKinds(parsed.notes, doc.blocks);
+  const notes = alignNotes(doc.notes, restoreNoteKinds(parsed.notes, doc.blocks));
   return { ...doc, title: parsed.title ?? doc.title, blocks: blocks.length ? blocks : [{ id: 'b01', type: 'p', text: '' }], notes: Object.keys(notes).length ? notes : undefined };
 }
