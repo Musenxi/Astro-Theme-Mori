@@ -1,0 +1,18 @@
+---
+import config from 'virtual:mori/config';
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="搜索" direction={config.archive.direction}>
+  <main data-page="search" class="wrap g srch">
+    <header>
+      <a class="he-back mono" href="/">← 目次</a>
+      <label class="srch-in"><span class="mono lbl">搜索</span><input id="q" type="search" placeholder="标题、摘要、正文" autocomplete="off" autofocus /></label>
+      <p class="mono lbl" id="srch-note"></p>
+    </header>
+    <ol class="srch-list" id="srch-list"></ol>
+  </main>
+  <script>
+    import '../scripts/search.ts';
+  </script>
+</Base>

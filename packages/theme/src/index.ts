@@ -30,6 +30,8 @@ export default function mori(userConfig: MoriUserConfig): AstroIntegration {
           },
         });
         injectRoute({ pattern: '/', entrypoint: 'astro-mori/pages/index.astro' });
+        injectRoute({ pattern: '/search', entrypoint: 'astro-mori/pages/search.astro' });
+        injectRoute({ pattern: '/search.json', entrypoint: 'astro-mori/pages/search.json.ts' });
         injectRoute({ pattern: '/rss.xml', entrypoint: 'astro-mori/pages/rss.xml.ts' });
         injectRoute({ pattern: '/sitemap.xml', entrypoint: 'astro-mori/pages/sitemap.xml.ts' });
         injectRoute({ pattern: '/robots.txt', entrypoint: 'astro-mori/pages/robots.txt.ts' });
