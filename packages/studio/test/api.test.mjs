@@ -106,3 +106,22 @@ test('界面：没构建时给出提示；路径穿越被拒', async () => {
   const idx = await fetch(`${base}/posts/hello`);
   assert.ok([200, 503].includes(idx.status));
 });
+
+import { request } from 'node:http';
+import { requestAllowed } from '../src/server.mjs';
+
+test('来源校验：别的网站的写请求、被重绑定的域名都被拒；本机页面照常', async () => {
+  const req = (headers, method = 'PUT') => ({ method, headers });
+  assert.equal(requestAllowed(req({ host: '127.0.0.1:4400', origin: 'http://127.0.0.1:4400' })), true);
+  assert.equal(requestAllowed(req({ host: 'localhost:5173', origin: 'http://localhost:5173' })), true); // Vite 开发界面
+  assert.equal(requestAllowed(req({ host: '127.0.0.1:4400' })), true);                                  // 没有 Origin（命令行、同源 GET）
+  assert.equal(requestAllowed(req({ host: '127.0.0.1:4400', origin: 'https://evil.example' })), false);
+  assert.equal(requestAllowed(req({ host: 'evil.example:4400' })), false);                              // 域名被解析到 127.0.0.1
+  assert.equal(requestAllowed(req({ host: '127.0.0.1:4400', origin: 'null' })), false);
+  assert.equal(requestAllowed(req({ host: '127.0.0.1:4400', origin: 'null' }, 'GET')), true);
+  // 真的走一遍 HTTP
+  const status = (headers) => new Promise((ok) => { const r = request({ host: '127.0.0.1', port: s.server.address().port, path: '/api/stats', method: 'GET', headers }, (res) => { res.resume(); ok(res.statusCode); }); r.end(); });
+  assert.equal(await status({ Host: 'evil.example' }), 403);
+  assert.equal(await status({ Origin: 'https://evil.example', Host: '127.0.0.1' }), 403);
+  assert.equal(await status({}), 200);
+});

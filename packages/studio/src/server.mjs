@@ -21,6 +21,17 @@ const dist = join(here, '../dist'); // 界面：app/ 用 Vite 构建出来的静
 const require = createRequire(import.meta.url);
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.avif': 'image/avif', '.gif': 'image/gif' };
 
+/** 只认本机的名字：防 DNS 重绑定（Host）和别的网站借你的浏览器来改文件、触发发布（Origin） */
+const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
+const hostnameOf = (v) => { try { return new URL(/^[a-z]+:\/\//i.test(v) ? v : `http://${v}`).hostname; } catch { return ''; } };
+export function requestAllowed(req) {
+  if (!LOCAL_HOSTS.has(hostnameOf(req.headers.host ?? ''))) return false;
+  const origin = req.headers.origin;
+  if (origin && origin !== 'null' && !LOCAL_HOSTS.has(hostnameOf(origin))) return false;
+  if (origin === 'null' && !['GET', 'HEAD'].includes(req.method)) return false; // 沙箱 iframe / file:// 页面发来的写请求
+  return true;
+}
+
 const send = (res, code, body, type = 'application/json; charset=utf-8') => {
   res.writeHead(code, { 'Content-Type': type, 'Cache-Control': 'no-store' });
   res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body));
@@ -148,6 +159,7 @@ export async function startStudio({ root, port = 4400, dev = false }) {
 
   const server = createServer(async (req, res) => {
     try {
+      if (!requestAllowed(req)) return send(res, 403, { error: '不接受这个来源的请求：Studio 只给本机的页面用' });
       const url = new URL(req.url, 'http://x');
       const p = decodeURIComponent(url.pathname);
       const m = (re) => p.match(re);
