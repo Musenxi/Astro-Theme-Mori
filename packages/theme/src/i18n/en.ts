@@ -1,0 +1,33 @@
+import type zhCN from './zh-CN.ts';
+/** English */
+const d: Record<keyof typeof zhCN, string> = {
+  'nav.posts': 'Posts', 'nav.travels': 'Journeys', 'nav.archive': 'Archive',
+  'a11y.mainNav': 'Main navigation', 'theme.toggle': 'Toggle light / dark', 'theme.toLight': 'Day', 'theme.toDark': 'Night',
+  'toc.title': 'Contents', 'toc.sub': '', 'toc.run': 'CONTENTS', 'toc.editor': 'Editor’s note', 'toc.back': '← Contents', 'toc.byTime': 'by date',
+  'issue': 'Issue {n}', 'yearSeason': '{season} {year}',
+  'season.spring': 'Spring', 'season.summer': 'Summer', 'season.autumn': 'Autumn', 'season.winter': 'Winter',
+  'home.feature': 'Feature', 'home.region': 'In this issue', 'home.title': 'Title', 'home.date': 'Date', 'home.readMore': 'Read', 'home.empty': 'Nothing here yet. Put JSON files in src/content/posts or src/content/travels.',
+  'count.one': '{n} piece', 'count.other': '{n} pieces',
+  'post.prev': '← Previous', 'post.next': 'Next →', 'post.nav': 'Previous / next', 'post.meta': '~{chars} characters · {min} min',
+  'fig': 'Fig. {n}', 'notes.foot': 'Footnotes', 'notes.all': 'Notes',
+  'travel.stop': 'Stop {n}', 'travel.stops': 'Stops', 'travel.itinerary': 'Itinerary', 'travel.total': 'Total', 'travel.fallbackStat': '{n} stops',
+  'travel.endNote': 'Back where we started. Keep scrolling for the whole itinerary.', 'travel.left': 'Left', 'travel.right': 'Right', 'travel.readingGroup': 'Reading mode',
+  'travel.mode.v': 'V', 'travel.mode.h': 'H', 'travel.mode.m': 'M',
+  'travel.modeLabel.v': 'Vertical reading', 'travel.modeLabel.h': 'Horizontal reading', 'travel.modeLabel.m': 'Mixed reading',
+  'map.route': 'Route: {list}', 'map.arctic': 'Arctic Circle 66°34′N', 'map.tropicN': 'Tropic of Cancer 23°26′N', 'map.equator': 'Equator 0°', 'map.tropicS': 'Tropic of Capricorn 23°26′S', 'map.antarctic': 'Antarctic Circle 66°34′S',
+  'scale.note': 'One tick is one month.', 'scale.empty': 'Blank stretches are months with {what}.', 'empty.all': 'nothing written', 'empty.posts': 'no posts', 'empty.travels': 'no journeys', 'empty.default': 'no {name}',
+  'archive.title': 'All posts', 'archive.sub': 'Archive', 'posts.sub': 'Posts', 'travels.sub': 'Journeys',
+  'lightbox.close': 'Esc to close', 'footer.search': 'Search', 'footer.rss': 'Subscribe',
+  'notfound.title': 'Page not found', 'notfound.h': 'This page is not in the contents.', 'notfound.back': 'Back to contents →',
+  'search.title': 'Search', 'search.placeholder': 'Title, summary, text',
+  'comments.title': 'Comments',
+  'js.theme.toLight': 'Day', 'js.theme.toDark': 'Night',
+  'js.cmt.loading': 'Loading comments…', 'js.cmt.retry': 'Retry', 'js.cmt.count': '{n} comments', 'js.cmt.none': 'No comments yet.', 'js.cmt.annotation': 'Note', 'js.cmt.reply': 'Reply', 'js.cmt.cancelReply': 'Cancel reply',
+  'js.cmt.jump': 'Back to this passage in the text', 'js.cmt.name': 'Name', 'js.cmt.email': 'Email (optional, never shown)', 'js.cmt.write': 'Write something', 'js.cmt.replyTo': 'Reply to {name}', 'js.cmt.send': 'Post', 'js.cmt.sendReply': 'Post reply',
+  'js.cmt.sending': 'Sending…', 'js.cmt.pending': 'Received. It will appear here once approved.', 'js.cmt.loadFail': 'Could not load comments ({status})', 'js.cmt.postFail': 'Could not post ({status})', 'js.cmt.tsFail': 'Could not load the human-verification script',
+  'js.cmt.scriptFail': 'Failed to load script: {src}', 'js.cmt.unknown': 'Unknown comment provider: {provider}',
+  'js.anno.btn': 'Note', 'js.anno.email': 'Email (optional)', 'js.anno.write': 'Write your thoughts', 'js.anno.cancel': 'Cancel', 'js.anno.posted': 'Posted — see the comments at the end', 'js.anno.pending': 'Received — it will appear in the comments once approved',
+  'js.search.count': '{n} found', 'js.search.none': 'Nothing found. Try another word?',
+  'js.travel.mode.v': 'Vertical', 'js.travel.mode.h': 'Horizontal', 'js.travel.mode.m': 'Mixed', 'js.travel.tip': 'Reading: {mode}',
+};
+export default d;

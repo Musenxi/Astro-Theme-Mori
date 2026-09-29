@@ -1,0 +1,33 @@
+import type zhCN from './zh-CN.ts';
+/** 繁體中文 */
+const d: Record<keyof typeof zhCN, string> = {
+  'nav.posts': '文章', 'nav.travels': '遊記', 'nav.archive': '歸檔',
+  'a11y.mainNav': '主導覽', 'theme.toggle': '切換晝夜', 'theme.toLight': '晝', 'theme.toDark': '夜',
+  'toc.title': '目次', 'toc.sub': 'Contents', 'toc.run': '目次 · CONTENTS', 'toc.editor': '編者按', 'toc.back': '← 目次', 'toc.byTime': '按時間看',
+  'issue': '第{n}期', 'yearSeason': '{year}年 · {season}',
+  'season.spring': '春', 'season.summer': '夏', 'season.autumn': '秋', 'season.winter': '冬',
+  'home.feature': '本期特稿', 'home.region': '本期收錄', 'home.title': '篇名', 'home.date': '日期', 'home.readMore': '閱讀全文', 'home.empty': '還沒有文章。把 JSON 放進 src/content/posts 或 src/content/travels。',
+  'count.one': '{n}篇', 'count.other': '{n}篇',
+  'post.prev': '← 上一篇', 'post.next': '下一篇 →', 'post.nav': '上一篇 / 下一篇', 'post.meta': '約 {chars} 字 · {min} 分鐘',
+  'fig': '圖 {n}', 'notes.foot': '腳註', 'notes.all': '註',
+  'travel.stop': '第{n}站', 'travel.stops': '站點', 'travel.itinerary': '行程', 'travel.total': '全程', 'travel.fallbackStat': '{n} 站',
+  'travel.endNote': '回到起點。繼續向下捲動，是整段行程。', 'travel.left': '向左', 'travel.right': '向右', 'travel.readingGroup': '閱讀方式',
+  'travel.mode.v': '直', 'travel.mode.h': '橫', 'travel.mode.m': '混',
+  'travel.modeLabel.v': '直向閱讀', 'travel.modeLabel.h': '橫向閱讀', 'travel.modeLabel.m': '混合閱讀',
+  'map.route': '路線：{list}', 'map.arctic': '北極圈 66°34′N', 'map.tropicN': '北回歸線 23°26′N', 'map.equator': '赤道 0°', 'map.tropicS': '南回歸線 23°26′S', 'map.antarctic': '南極圈 66°34′S',
+  'scale.note': '一格是一個月。', 'scale.empty': '空著的地方，是{what}的月份。', 'empty.all': '沒寫東西', 'empty.posts': '沒寫文章', 'empty.travels': '沒寫遊記', 'empty.default': '沒寫{name}',
+  'archive.title': '全部文章', 'archive.sub': 'Archive', 'posts.sub': 'Posts', 'travels.sub': 'Journeys',
+  'lightbox.close': 'Esc 關閉', 'footer.search': '搜尋', 'footer.rss': '訂閱',
+  'notfound.title': '找不到這一頁', 'notfound.h': '這一頁不在目次裡。', 'notfound.back': '回到目次 →',
+  'search.title': '搜尋', 'search.placeholder': '標題、摘要、正文',
+  'comments.title': '留言',
+  'js.theme.toLight': '晝', 'js.theme.toDark': '夜',
+  'js.cmt.loading': '留言載入中……', 'js.cmt.retry': '重試', 'js.cmt.count': '{n} 則', 'js.cmt.none': '還沒有留言。', 'js.cmt.annotation': '批註', 'js.cmt.reply': '回覆', 'js.cmt.cancelReply': '取消回覆',
+  'js.cmt.jump': '回到正文裡的這一段', 'js.cmt.name': '名字', 'js.cmt.email': '信箱（可不填，不會公開）', 'js.cmt.write': '寫點什麼', 'js.cmt.replyTo': '回覆 {name}', 'js.cmt.send': '發表', 'js.cmt.sendReply': '發表回覆',
+  'js.cmt.sending': '傳送中……', 'js.cmt.pending': '已收到。通過審核後會顯示在這裡。', 'js.cmt.loadFail': '留言載入失敗（{status}）', 'js.cmt.postFail': '送出失敗（{status}）', 'js.cmt.tsFail': '人機驗證腳本載入失敗',
+  'js.cmt.scriptFail': '腳本載入失敗：{src}', 'js.cmt.unknown': '不認識的留言服務：{provider}',
+  'js.anno.btn': '批註', 'js.anno.email': '信箱（可不填）', 'js.anno.write': '寫下你的想法', 'js.anno.cancel': '取消', 'js.anno.posted': '批註已發表，在文末留言區', 'js.anno.pending': '已收到，通過審核後會顯示在文末留言區',
+  'js.search.count': '{n} 篇', 'js.search.none': '沒有找到。換個詞試試？',
+  'js.travel.mode.v': '直向', 'js.travel.mode.h': '橫向', 'js.travel.mode.m': '混合', 'js.travel.tip': '讀法：{mode}',
+};
+export default d;

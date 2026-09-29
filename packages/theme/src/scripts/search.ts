@@ -3,6 +3,7 @@
  * 中文没有空格分词：整句先当一个词，再按空格拆成几个词，每个词都要命中（标题 > 副题 > 摘要 > 栏目 > 正文）。
  * 按 `/` 从任何页面跳到搜索页。
  */
+import { t } from './i18n.ts';
 interface Item { t: string; s: string; u: string; c: string; d: string; e: string; x: string }
 let index: Item[] | null = null;
 
@@ -43,7 +44,7 @@ async function init() {
     index ??= await (await fetch('/search.json')).json();
     const terms = [...new Set([q, ...q.split(/\s+/)].filter(Boolean))].slice(0, 6);
     const hits = index!.map((it) => ({ it, s: score(it, q.includes(' ') ? q.split(/\s+/).filter(Boolean) : [q]) })).filter((h) => h.s > 0).sort((a, b) => b.s - a.s || b.it.d.localeCompare(a.it.d));
-    note.textContent = hits.length ? `${hits.length} 篇` : '没有找到。换个词试试？';
+    note.textContent = hits.length ? t('js.search.count', { n: hits.length }) : t('js.search.none');
     list.innerHTML = hits.map(({ it }) => `<li><a href="${it.u}"><span class="mono lbl">${esc(it.c)} · ${it.d}</span><b>${esc(it.t)}</b><span class="srch-sn">${snippet(it, terms)}</span></a></li>`).join('');
   };
   input.addEventListener('input', run);

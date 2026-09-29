@@ -1,4 +1,5 @@
 ---
+import { t, lang } from '../lib/i18n.ts';
 import config from 'virtual:mori/config';
 import Base from '../layouts/Base.astro';
 import Opening from '../components/Opening.astro';
@@ -17,7 +18,7 @@ const latest = entries[0];
         <Contents entries={entries} latest={latest} />
       </>
     ) : (
-      <section class="wrap fo"><p class="mono lbl">还没有文章。把 JSON 放进 src/content/posts 或 src/content/travels。</p></section>
+      <section class="wrap fo"><p class="mono lbl">{t('home.empty')}</p></section>
     )}
   </main>
   <script>

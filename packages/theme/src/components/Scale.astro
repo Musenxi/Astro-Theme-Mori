@@ -5,7 +5,8 @@
  * 归档、栏目页、文章列表、游记列表都用它；时间范围总是整站的（这样栏目页的空档才有意义）。
  */
 import type { Entry } from '../lib/entries.ts';
-import { cnNumber, pad2 } from '../lib/zh.ts';
+import { pad2 } from '../lib/zh.ts';
+import { t, tn, fmt } from '../lib/i18n.ts';
 
 interface Props {
   title: string;
@@ -38,12 +39,12 @@ const posOf = (e: Entry) => {
 ---
 
 <header class="wrap he-head">
-  <a class="he-back mono" href="/">← 目次</a>
+  <a class="he-back mono" href="/">{t('toc.back')}</a>
   <div class="he-ttl">
     {roman && <span class="rn">{roman}</span>}
     <h1>{title}</h1>
     {en && <em>{en}</em>}
-    <span class="mono ct">{cnNumber(entries.length)}篇</span>
+    <span class="mono ct">{tn('count', entries.length, { n: fmt.num(entries.length) })}</span>
   </div>
 </header>
 
@@ -51,7 +52,7 @@ const posOf = (e: Entry) => {
   <div class="he-body" id="he-body">
     <div class="he-vp">
       <div class="wrap he-wrap">
-        <p class="he-note">一格是一个月。<b>空着的地方，是{empty}的月份。</b></p>
+        <p class="he-note">{t('scale.note')} <b>{t('scale.empty', { what: empty })}</b></p>
       </div>
       <div class="he-axis" id="he-axis" style={`--months:${months}`}>
         {

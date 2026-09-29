@@ -1,9 +1,10 @@
 ---
+import { t } from '../lib/i18n.ts';
 import config from 'virtual:mori/config';
 const year = new Date().getFullYear();
 ---
 
 <footer class="wrap foot mono">
-  <span>© {year} {config.title} · <a href="/search/">搜索</a> · <a href="/rss.xml">订阅</a></span>
+  <span>© {year} {config.title} · <a href="/search/">{t('footer.search')}</a> · <a href="/rss.xml">{t('footer.rss')}</a></span>
   <span>Astro · MORI</span>
 </footer>

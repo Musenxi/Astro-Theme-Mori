@@ -7,7 +7,8 @@ import { Image } from 'astro:assets';
 import type { Inline, TravelData } from '../content/schema.ts';
 import { numberNotes, renderInline } from '../lib/inline.ts';
 import { coord } from '../lib/geo.ts';
-import { cnNumber, pad2 } from '../lib/zh.ts';
+import { pad2 } from '../lib/zh.ts';
+import { t, fmt, vertical } from '../lib/i18n.ts';
 import RouteMap from './RouteMap.astro';
 
 interface Props {
@@ -33,7 +34,7 @@ for (const b of blocks) {
   if (b.type === 'text' && !firstText.has(b.stop)) firstText.set(b.stop, b.id);
 }
 
-const endStat = travel.facts.find((f) => /里程|距离|全程/.test(f.label))?.value ?? `${stops.length} 站`;
+const endStat = travel.facts.find((f) => /里程|距离|全程|里程|距離|総距離|distance|total|mileage/i.test(f.label))?.value ?? t('travel.fallbackStat', { n: stops.length });
 
 let fig = 0;
 const nextFig = () => pad2(++fig);
@@ -50,7 +51,7 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
           const anchor = firstBlock.get(b.stop) === b.id ? `stop-${b.stop}` : undefined;
           switch (b.type) {
             case 'text': {
-              const v = b.writing === 'v';
+              const v = b.writing === 'v' && vertical;
               const head = b.head ?? firstText.get(b.stop) === b.id;
               return (
                 <section id={anchor} class:list={['blk', 'b-text', v && 'v']} data-b={b.id} data-stop={b.stop} style={place(b)}>
@@ -58,7 +59,7 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
                     <header class="stop">
                       {v ? (
                         <>
-                          <span class="no">第{cnNumber(si + 1)}站{stop.date ? `　${stop.date}` : ''}</span>
+                          <span class="no">{fmt.stop(si + 1)}{stop.date ? `　${stop.date}` : ''}</span>
                           <h2>{stop.name}</h2>
                           {stop.en && <span class="en">{stop.en}　{coord(stop.lnglat)}</span>}
                         </>
@@ -105,8 +106,8 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
                       <span class="mono">{nextFig()}</span>
                       {b.images.map((i) => i.caption).filter(Boolean).join(' / ')}
                       <span class="strip-ctl">
-                        <button type="button" data-dir="-1" aria-label="向左">‹</button>
-                        <button type="button" data-dir="1" aria-label="向右">›</button>
+                        <button type="button" data-dir="-1" aria-label={t('travel.left')}>‹</button>
+                        <button type="button" data-dir="1" aria-label={t('travel.right')}>›</button>
                       </span>
                     </figcaption>
                   </div>
@@ -145,9 +146,9 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
         })
       }
       <div class="blk b-endcard" data-stop={stops[stops.length - 1].id}>
-        <span class="mono lbl">全程</span>
+        <span class="mono lbl">{t('travel.total')}</span>
         <span class="big">{endStat}</span>
-        <span>回到起点。继续向下滚动，是整段行程。</span>
+        <span>{t('travel.endNote')}</span>
       </div>
     </div>
     <div class="h-progress"><i></i></div>
@@ -156,7 +157,7 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
 
 {
   endnotes.length > 0 && (
-    <section class="wrap fns t-fns" aria-label="注">
+    <section class="wrap fns t-fns" aria-label={t('notes.all')}>
       <ol>
         {endnotes.map((f) => (
           <li id={`fn-${f.ref}`}>
@@ -170,7 +171,7 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
 }
 
 <section class="wrap g t-end">
-  <h2>行程</h2>
+  <h2>{t('travel.itinerary')}</h2>
   <ol class="itin">
     {
       stops.map((s, i) => (

@@ -7,6 +7,7 @@
  */
 import type { TravelData } from '../content/schema.ts';
 import { buildMap, W, H } from '../lib/map.ts';
+import { t, lang } from '../lib/i18n.ts';
 
 interface Props {
   variant: 'hero' | 'block' | 'mini';
@@ -22,7 +23,7 @@ const own = variant === 'block' && scope === 'stop'; // 只看一站：取景不
 const list = own ? stops.filter((s) => s.id === stopId) : stops;
 const m = await buildMap(list, own ? undefined : track, own ? { minSpan: 4 } : {});
 const full = variant !== 'mini';
-const label = `路线：${stops.map((s) => s.name).join('、')}`;
+const label = t('map.route', { list: stops.map((s) => s.name).join(lang === 'en' ? ', ' : '、') });
 ---
 
 {

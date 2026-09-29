@@ -2,6 +2,7 @@
  * 文末评论区（自建评论）：进入视口才加载；列表按时间排，回复缩进一层；批注在列表里带一段引用的原文，点一下回到正文（annotate.ts 处理）。
  * 第三方评论（giscus / waline / twikoo / artalk）见 cmt-embed.ts。
  */
+import { t } from './i18n.ts';
 import { mountEmbed } from './cmt-embed.ts';
 import { moriConfig, listComments, sendComment, mountTurnstile, remember, dotDate, type MoriComment, type MoriCommentsConfig } from './cmt-api.ts';
 
@@ -29,7 +30,7 @@ function init() {
     const io = new IntersectionObserver((es) => {
       if (!es.some((e) => e.isIntersecting)) return;
       io.disconnect();
-      host.replaceChildren(h('p', { class: 'mono lbl' }, '评论加载中……'));
+      host.replaceChildren(h('p', { class: 'mono lbl' }, t('js.cmt.loading')));
       mountEmbed(c, host, { entry: section.dataset.entry!, title: document.title }).catch((e) => host.replaceChildren(h('p', { class: 'mono lbl' }, e.message)));
     }, { rootMargin: '500px' });
     io.observe(section);
@@ -46,34 +47,34 @@ function init() {
   io.observe(section);
 
   async function load() {
-    body.replaceChildren(h('p', { class: 'mono lbl' }, '评论加载中……'));
+    body.replaceChildren(h('p', { class: 'mono lbl' }, t('js.cmt.loading')));
     try { comments = await listComments(cfg!, cfg!.entry); render(); } catch (e: any) {
-      body.replaceChildren(h('p', { class: 'mono lbl' }, `${e.message} `, h('button', { class: 'linkbtn', onclick: load }, '重试')));
+      body.replaceChildren(h('p', { class: 'mono lbl' }, `${e.message} `, h('button', { class: 'linkbtn', onclick: load }, t('js.cmt.retry'))));
     }
   }
 
   function render() {
     const top = comments.filter((c) => !c.parentId);
     const replies = (id: number) => comments.filter((c) => c.parentId === id);
-    count.textContent = comments.length ? `${comments.length} 条` : '';
+    count.textContent = comments.length ? t('js.cmt.count', { n: comments.length }) : '';
     queueMicrotask(() => document.dispatchEvent(new CustomEvent('mori:comments-rendered', { detail: comments })));
     const list = h('ol', { class: 'cmt-list' }, ...top.map((c) => item(c, replies(c.id))));
-    body.replaceChildren(...(comments.length ? [list] : [h('p', { class: 'cmt-none' }, '还没有评论。')]), form(cfg!, null));
+    body.replaceChildren(...(comments.length ? [list] : [h('p', { class: 'cmt-none' }, t('js.cmt.none'))]), form(cfg!, null));
   }
 
   function item(c: MoriComment, kids: MoriComment[]): HTMLLIElement {
     const li: HTMLLIElement = h('li', { id: `c${c.id}`, class: 'cmt-item' },
-      h('div', { class: 'cmt-meta mono' }, h('b', {}, c.name), dotDate(c.createdAt), c.block ? h('span', { class: 'cmt-tag' }, '批注') : null),
+      h('div', { class: 'cmt-meta mono' }, h('b', {}, c.name), dotDate(c.createdAt), c.block ? h('span', { class: 'cmt-tag' }, t('js.cmt.annotation')) : null),
       c.block && c.quote ? quote(c) : null,
       h('div', { class: 'cmt-text' }, c.body),
-      !c.parentId ? h('button', { class: 'linkbtn cmt-reply', type: 'button', onclick: (ev: Event) => toggleReply(li, c, ev.currentTarget as HTMLElement) }, '回复') : null,
+      !c.parentId ? h('button', { class: 'linkbtn cmt-reply', type: 'button', onclick: (ev: Event) => toggleReply(li, c, ev.currentTarget as HTMLElement) }, t('js.cmt.reply')) : null,
       kids.length ? h('ol', { class: 'cmt-replies' }, ...kids.map((k) => item(k, []))) : null);
     return li;
   }
 
   /** 批注带着引用的原文（细线引用样式，过长截断）；点一下回到正文里那一段 */
   function quote(c: MoriComment) {
-    const q = h('blockquote', { class: 'cmt-quote', tabindex: '0', role: 'button', title: '回到正文里的这一段' }, c.quote!);
+    const q = h('blockquote', { class: 'cmt-quote', tabindex: '0', role: 'button', title: t('js.cmt.jump') }, c.quote!);
     const go = () => document.dispatchEvent(new CustomEvent('mori:jump', { detail: c }));
     q.addEventListener('click', go);
     q.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
@@ -83,8 +84,8 @@ function init() {
 
   function toggleReply(li: HTMLElement, c: MoriComment, btn: HTMLElement) {
     const open = li.querySelector(':scope > form.cmt-form');
-    if (open) { open.remove(); btn.textContent = '回复'; return; }
-    btn.textContent = '取消回复';
+    if (open) { open.remove(); btn.textContent = t('js.cmt.reply'); return; }
+    btn.textContent = t('js.cmt.cancelReply');
     li.insertBefore(form(cfg!, c), li.querySelector(':scope > .cmt-replies'));
   }
 
@@ -99,14 +100,14 @@ function init() {
 
 /** 发表 / 回复的表单。parent 有值就是回复 */
 function form(cfg: MoriCommentsConfig & { entry: string }, parent: MoriComment | null) {
-  const name = h('input', { name: 'name', placeholder: '名字', required: true, maxlength: '40', autocomplete: 'nickname', value: remember.get('mori-cmt-name') });
-  const email = h('input', { name: 'email', type: 'email', placeholder: '邮箱（可不填，不会公开）', maxlength: '120', autocomplete: 'email', value: remember.get('mori-cmt-email') });
-  const text = h('textarea', { name: 'body', placeholder: parent ? `回复 ${parent.name}` : '写点什么', required: true, rows: '4', maxlength: '4000' });
+  const name = h('input', { name: 'name', placeholder: t('js.cmt.name'), required: true, maxlength: '40', autocomplete: 'nickname', value: remember.get('mori-cmt-name') });
+  const email = h('input', { name: 'email', type: 'email', placeholder: t('js.cmt.email'), maxlength: '120', autocomplete: 'email', value: remember.get('mori-cmt-email') });
+  const text = h('textarea', { name: 'body', placeholder: parent ? t('js.cmt.replyTo', { name: parent.name }) : t('js.cmt.write'), required: true, rows: '4', maxlength: '4000' });
   // 蜜罐：真人看不到，机器人会填
   const trap = h('input', { name: 'website', class: 'cmt-trap', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' });
   const ts = h('div', { class: 'cmt-ts' });
   const msg = h('p', { class: 'cmt-msg mono', role: 'status' });
-  const btn = h('button', { class: 'cmt-send', type: 'submit' }, parent ? '发表回复 ' : '发表 ', h('span', {}, '→'));
+  const btn = h('button', { class: 'cmt-send', type: 'submit' }, (parent ? t('js.cmt.sendReply') : t('js.cmt.send')) + ' ', h('span', {}, '→'));
   const f = h('form', { class: 'cmt-form' }, h('div', { class: 'cmt-row' }, name, email), text, trap, ts, h('div', { class: 'cmt-foot' }, msg, btn));
   let widget: { token(): string; reset(): void } | null = null;
   // 人机验证控件在第一次聚焦时才加载
@@ -114,14 +115,14 @@ function form(cfg: MoriCommentsConfig & { entry: string }, parent: MoriComment |
 
   f.addEventListener('submit', async (e) => {
     e.preventDefault();
-    btn.disabled = true; msg.textContent = '发送中……'; msg.classList.remove('bad');
+    btn.disabled = true; msg.textContent = t('js.cmt.sending'); msg.classList.remove('bad');
     try {
       const r = await sendComment(cfg, { entry: cfg.entry, name: name.value, email: email.value, body: text.value, website: trap.value, parentId: parent?.id, turnstile: widget?.token() });
       remember.set('mori-cmt-name', name.value); remember.set('mori-cmt-email', email.value);
       text.value = '';
       widget?.reset();
       if (r.status === 'approved' && r.comment) document.dispatchEvent(new CustomEvent('mori:comment-added', { detail: r.comment }));
-      else msg.textContent = '已收到。通过审核后会显示在这里。';
+      else msg.textContent = t('js.cmt.pending');
       if (r.status === 'approved') msg.textContent = '';
     } catch (err: any) { msg.textContent = err.message; msg.classList.add('bad'); }
     btn.disabled = false;

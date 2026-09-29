@@ -6,8 +6,8 @@
  *  - 横向（h）：整篇排进横轴，竖向滚动驱动整条轨道横移。
  * 切换读法时回到当前站点的开头，不丢阅读位置。
  */
+import { t } from './i18n.ts';
 type Mode = 'v' | 'h' | 'm';
-const NAME: Record<Mode, string> = { v: '竖向', h: '横向', m: '混合' };
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -106,7 +106,7 @@ function init() {
     const m = mode();
     mc.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.m === m)));
     mc.style.setProperty('--i', String(allowed.indexOf(m)));
-    mc.querySelector('#mc-tip')!.textContent = `读法：${NAME[m]}`;
+    mc.querySelector('#mc-tip')!.textContent = t('js.travel.tip', { mode: t(`js.travel.mode.${m}`) });
   }
 
   function setMode(m: Mode) {

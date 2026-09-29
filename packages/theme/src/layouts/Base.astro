@@ -3,6 +3,7 @@ import { ClientRouter } from 'astro:transitions';
 import config from 'virtual:mori/config';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { lang, clientJson } from '../lib/i18n.ts';
 import Lightbox from '../components/Lightbox.astro';
 
 import '../../fonts/STD/light/font.css';
@@ -39,7 +40,7 @@ const canonical = config.site ? new URL(Astro.url.pathname, config.site).href : 
 ---
 
 <!doctype html>
-<html lang="zh-CN" data-hdir={direction}>
+<html lang={lang} data-hdir={direction}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -66,6 +67,7 @@ const canonical = config.site ? new URL(Astro.url.pathname, config.site).href : 
         document.addEventListener('astro:after-swap', apply);
       })();
     </script>
+    <script type="application/json" id="mori-i18n" is:inline set:html={clientJson} />
     <ClientRouter />
   </head>
   <body>

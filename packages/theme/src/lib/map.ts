@@ -6,6 +6,7 @@ import { geoMercator, geoNaturalEarth1, geoPath, geoDistance } from 'd3-geo';
 import { line, curveCatmullRom } from 'd3-shape';
 import { feature } from 'topojson-client';
 import type { Topology } from 'topojson-specification';
+import { t } from './i18n.ts';
 
 export const W = 1000, H = 720;
 export type LngLat = [number, number];
@@ -32,8 +33,8 @@ async function landTopology(res: '10m' | '50m' | '110m') {
   return topoCache.get(res)!;
 }
 
-const PARALLELS: Array<[number, string]> = [
-  [66.5626, '北极圈 66°34′N'], [23.4366, '北回归线 23°26′N'], [0, '赤道 0°'], [-23.4366, '南回归线 23°26′S'], [-66.5626, '南极圈 66°34′S'],
+const PARALLELS = (): Array<[number, string]> => [
+  [66.5626, t('map.arctic')], [23.4366, t('map.tropicN')], [0, t('map.equator')], [-23.4366, t('map.tropicS')], [-66.5626, t('map.antarctic')],
 ];
 const NICE_KM = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000];
 
@@ -112,7 +113,7 @@ async function compute(stops: Array<MapStop & { lnglat: LngLat }>, track: LngLat
 
   // 纬线（只画在画面里的）
   const parallels: MapResult['parallels'] = [];
-  for (const [lat, label] of PARALLELS) {
+  for (const [lat, label] of PARALLELS()) {
     const y = xy([cx, lat])[1];
     if (!(y > 30 && y < H - 30)) continue;
     const coordinates: LngLat[] = Array.from({ length: 181 }, (_, i) => [-180 + i * 2, lat] as LngLat);

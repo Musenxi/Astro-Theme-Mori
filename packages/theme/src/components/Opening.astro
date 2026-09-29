@@ -5,7 +5,8 @@
  */
 import { Image } from 'astro:assets';
 import type { Entry } from '../lib/entries.ts';
-import { cnNumber, cnYear, dotDate, pad2, pad3, season } from '../lib/zh.ts';
+import { dotDate, pad2, pad3 } from '../lib/zh.ts';
+import { t, fmt } from '../lib/i18n.ts';
 
 interface Props {
   pinned: Entry[];
@@ -28,7 +29,7 @@ const slides = pinned.map((e) => {
     alt: pin?.alt ?? d.coverAlt ?? '',
     quote,
     caption: pin?.caption ?? `${e.category.zh} · ${dotDate(d.date)}`,
-    meta: pin?.meta ?? [{ label: '日期', value: dotDate(d.date) }],
+    meta: pin?.meta ?? [{ label: t('home.date'), value: dotDate(d.date) }],
     /** 0.5 是默认的淡出强度（k=1）；0 不淡出，1 淡得更多 */
     fade: pin?.fade,
   };
@@ -39,11 +40,11 @@ const first = slides[0];
 <section class="wrap fo" id="fo">
   <div class="g">
     <div class="fo-side mono">
-      <span class="k">本期特稿</span>
+      <span class="k">{t('home.feature')}</span>
       <b id="fo-no">{pad3(first.e.n)}</b>
       <span id="fo-cat">{first.e.category.zh} · {first.e.category.en}</span>
-      <span>第{cnNumber(latest.n)}期</span>
-      <span>{cnYear(ld.getFullYear())}年 · {season(ld.getMonth() + 1)}</span>
+      <span>{fmt.issue(latest.n)}</span>
+      <span>{fmt.yearSeason(ld)}</span>
       {
         many && (
           <div class="fo-more" id="fo-more">
@@ -62,7 +63,7 @@ const first = slides[0];
       }
     </div>
     <div class="fo-pin">
-      <div class="fo-stage" id="fo-stage" role="region" aria-label="本期收录">
+      <div class="fo-stage" id="fo-stage" role="region" aria-label={t('home.region')}>
         <div class="fo-track" id="fo-track">
           {
             slides.map((s, k) => (
@@ -89,9 +90,9 @@ const first = slides[0];
                   </a>
                 </div>
                 <dl class="fo-cite">
-                  <div class="ttl"><dt>篇名</dt><dd class="t">{s.e.data.title}</dd></div>
+                  <div class="ttl"><dt>{t('home.title')}</dt><dd class="t">{s.e.data.title}</dd></div>
                   {s.meta.map((m) => <div><dt>{m.label}</dt><dd>{m.value}</dd></div>)}
-                  <a class="fo-go" href={s.e.href}>阅读全文 <span>→</span></a>
+                  <a class="fo-go" href={s.e.href}>{t('home.readMore')} <span>→</span></a>
                 </dl>
               </article>
             ))

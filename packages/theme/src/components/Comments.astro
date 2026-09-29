@@ -1,4 +1,5 @@
 ---
+import { t } from '../lib/i18n.ts';
 /**
  * 文末评论区（spec §5.3）：进入视口才加载，不拖慢首屏；每次换页都用新的 entry 重新加载。
  * provider 为 mori 时是自建评论（文末评论 + 划词批注）；其余是第三方（只有文末评论）。
@@ -16,7 +17,7 @@ const c = config.comments;
 {
   c && (
     <section class="wrap g cmt" id="comments" data-entry={entry} data-provider={c.provider} data-config={JSON.stringify(c)}>
-      <header class="cmt-h"><h2>评论</h2><span class="mono lbl" data-count></span></header>
+      <header class="cmt-h"><h2>{t('comments.title')}</h2><span class="mono lbl" data-count></span></header>
       <div class="cmt-body" data-body></div>
     </section>
   )

@@ -1,4 +1,5 @@
 ---
+import { t, vertical } from '../lib/i18n.ts';
 import Base from '../layouts/Base.astro';
 import TravelBody from '../components/TravelBody.astro';
 import RouteMap from '../components/RouteMap.astro';
@@ -25,7 +26,7 @@ const initial = allowed.includes(short(d.reading.default)) ? short(d.reading.def
 
 <Base title={d.title} description={d.excerpt} type="article">
   <main data-page="travel">
-    <article class="travel" data-mode={initial} data-dir={d.reading.direction}>
+    <article class="travel" data-mode={initial} data-dir={vertical ? d.reading.direction : 'ltr'}>
       <header class="wrap g t-hero">
         <div class="info">
           <div class="kicker mono">{entry.category.zh} · {dotDate(d.date)}</div>
@@ -34,7 +35,7 @@ const initial = allowed.includes(short(d.reading.default)) ? short(d.reading.def
           {d.facts.length > 0 && (
             <dl class="facts">
               {d.facts.map((f) => <><dt>{f.label}</dt><dd>{f.value}</dd></>)}
-              <dt>站点</dt><dd>{d.stops.length}</dd>
+              <dt>{t('travel.stops')}</dt><dd>{d.stops.length}</dd>
             </dl>
           )}
         </div>

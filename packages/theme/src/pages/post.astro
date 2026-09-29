@@ -1,4 +1,5 @@
 ---
+import { t, lang } from '../lib/i18n.ts';
 import Base from '../layouts/Base.astro';
 import PostBody from '../components/PostBody.astro';
 import Comments from '../components/Comments.astro';
@@ -25,7 +26,7 @@ const approx = chars >= 1000 ? chars.toLocaleString('en-US').replace(/\d{2}$/, '
     <header class="wrap g post-h">
       <div class="kicker mono">{entry.category.zh} · {dotDate(d.date)}</div>
       <h1>{d.title}</h1>
-      <div class="meta mono">约 {approx} 字 · {Math.max(1, Math.round(chars / 450))} 分钟</div>
+      <div class="meta mono">{t('post.meta', { chars: approx, min: Math.max(1, Math.round(chars / 450)) })}</div>
     </header>
     <PostBody blocks={d.blocks} notes={d.notes} />
     <Comments entry={`posts/${entry.id}`} />

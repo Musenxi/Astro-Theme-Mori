@@ -1,5 +1,8 @@
 /** mori.config.ts 的形状（spec §9）。只放可序列化的值——它会通过虚拟模块 `virtual:mori/config` 送到页面里 */
 
+import { makeT, verticalOk, type Lang } from './i18n/index.ts';
+export type { Lang } from './i18n/index.ts';
+
 export interface MoriCategory {
   /** 栏目 id，文章的 `category` 字段引用它 */
   id: string;
@@ -40,6 +43,8 @@ export interface MoriUserConfig {
   site?: string;
   /** 刊名，页头左上角的纯文字。默认 MORI */
   title?: string;
+  /** 界面语言：zh-CN（默认）/ zh-TW / en / ja。英文站自动关闭竖排和手卷方向 */
+  lang?: Lang;
   description?: string;
   /** 主题色（唯一的强调色），默认克莱因蓝 #002fa7；亮暗两个版本由 OKLCH 自动推出 */
   accent?: string;
@@ -63,6 +68,7 @@ export interface MoriUserConfig {
 
 export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'accent' | 'categories' | 'nav'>> {
   site?: string;
+  lang: Lang;
   accentDark?: string;
   comments?: MoriComments;
   description: string;
@@ -73,8 +79,13 @@ export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'acc
 export const defineMoriConfig = (c: MoriUserConfig) => c;
 
 export function resolveConfig(c: MoriUserConfig): MoriConfig {
+  const lang = c.lang ?? 'zh-CN';
+  const { t } = makeT(lang);
+  // 竖排只对中日文有意义：英文站里首页 / 归档一律横排
+  const dir = (d?: 'h' | 'v') => (verticalOk(lang) ? d ?? 'h' : 'h');
   return {
     site: c.site,
+    lang,
     title: c.title ?? 'MORI',
     description: c.description ?? '',
     accent: c.accent ?? '#002fa7',
@@ -82,11 +93,11 @@ export function resolveConfig(c: MoriUserConfig): MoriConfig {
     comments: c.comments,
     categories: c.categories,
     nav: c.nav ?? [
-      { label: '文章', href: '/posts/' },
-      { label: '游记', href: '/travels/' },
-      { label: '归档', href: '/archive/' },
+      { label: t('nav.posts'), href: '/posts/' },
+      { label: t('nav.travels'), href: '/travels/' },
+      { label: t('nav.archive'), href: '/archive/' },
     ],
-    home: { direction: c.home?.direction ?? 'h', editorNote: c.home?.editorNote ?? '' },
-    archive: { direction: c.archive?.direction ?? c.home?.direction ?? 'h' },
+    home: { direction: dir(c.home?.direction), editorNote: c.home?.editorNote ?? '' },
+    archive: { direction: dir(c.archive?.direction ?? c.home?.direction) },
   };
 }

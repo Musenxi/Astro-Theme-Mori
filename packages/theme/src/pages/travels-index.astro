@@ -1,4 +1,5 @@
 ---
+import { t, lang } from '../lib/i18n.ts';
 import config from 'virtual:mori/config';
 import Base from '../layouts/Base.astro';
 import Scale from '../components/Scale.astro';
@@ -8,8 +9,8 @@ const all = await getEntries();
 const entries = all.filter((e) => e.kind === 'travel');
 ---
 
-<Base title="游记" direction={config.archive.direction}>
+<Base title={t('nav.travels')} direction={config.archive.direction}>
   <main data-page="travels">
-    <Scale title="游记" en="Journeys" entries={entries} all={all} empty="没写游记" />
+    <Scale title={t('nav.travels')} en={lang === 'en' ? undefined : t('travels.sub')} entries={entries} all={all} empty={t('empty.travels')} />
   </main>
 </Base>

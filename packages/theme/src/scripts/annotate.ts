@@ -6,6 +6,7 @@
  *  - 位置 = 块 id + 起止字符位置（跳过 data-skip 的旁注编号、标题序号等），另存原文和前后文，文章改了以后重新定位（anchor-text.ts）。
  *  - 只有使用 MORI 自建评论时才有；图片不能划词。
  */
+import { t } from './i18n.ts';
 import { locate, contextOf, type Anchor } from '../lib/anchor-text.ts';
 import { moriConfig, sendComment, mountTurnstile, remember, type MoriComment } from './cmt-api.ts';
 
@@ -141,17 +142,17 @@ function init() {
   off.forEach((f) => f()); off = [];
 
   const btn = document.createElement('button');
-  btn.type = 'button'; btn.className = 'anno-btn glass'; btn.textContent = '批注'; btn.hidden = true;
+  btn.type = 'button'; btn.className = 'anno-btn glass'; btn.textContent = t('js.anno.btn'); btn.hidden = true;
 
   const pop = document.createElement('form');
   pop.className = 'anno-pop glass'; pop.hidden = true;
   pop.innerHTML = `
     <blockquote class="anno-q"></blockquote>
-    <div class="anno-row"><input name="name" placeholder="名字" required maxlength="40" autocomplete="nickname"><input name="email" type="email" placeholder="邮箱（可不填）" maxlength="120" autocomplete="email"></div>
-    <textarea name="body" placeholder="写下你的想法" required rows="3" maxlength="4000"></textarea>
+    <div class="anno-row"><input name="name" placeholder="${t('js.cmt.name')}" required maxlength="40" autocomplete="nickname"><input name="email" type="email" placeholder="${t('js.anno.email')}" maxlength="120" autocomplete="email"></div>
+    <textarea name="body" placeholder="${t('js.anno.write')}" required rows="3" maxlength="4000"></textarea>
     <input name="website" class="cmt-trap" tabindex="-1" autocomplete="off" aria-hidden="true">
     <div class="anno-ts"></div>
-    <div class="anno-foot"><span class="anno-msg mono" role="status"></span><button type="button" class="anno-cancel linkbtn">取消</button><button type="submit" class="anno-send">发表 <span>→</span></button></div>`;
+    <div class="anno-foot"><span class="anno-msg mono" role="status"></span><button type="button" class="anno-cancel linkbtn">${t('js.anno.cancel')}</button><button type="submit" class="anno-send">${t('js.cmt.send')} <span>→</span></button></div>`;
   document.body.append(btn, pop);
 
   const $ = <T extends HTMLElement>(s: string) => pop.querySelector<T>(s)!;
@@ -177,10 +178,10 @@ function init() {
   }
   const show = () => { btn.hidden = false; requestAnimationFrame(place); };
 
-  let t = 0;
+  let selTimer = 0;
   on(document, 'selectionchange', () => {
-    clearTimeout(t);
-    t = window.setTimeout(() => {
+    clearTimeout(selTimer);
+    selTimer = window.setTimeout(() => {
       if (popOpen) return;
       const s = currentSelection();
       if (s && !elementOf(getSelection()!.anchorNode!)?.closest('.anno-pop, #comments, form')) { cur = s; show(); } else { cur = null; btn.hidden = true; }
@@ -215,7 +216,7 @@ function init() {
   pop.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!cur) return;
-    send.disabled = true; msg.textContent = '发送中……'; msg.classList.remove('bad');
+    send.disabled = true; msg.textContent = t('js.cmt.sending'); msg.classList.remove('bad');
     try {
       const a = cur.anchor;
       const r = await sendComment(cfg, {
@@ -226,7 +227,7 @@ function init() {
       widget?.reset();
       getSelection()?.removeAllRanges();
       if (r.status === 'approved' && r.comment) document.dispatchEvent(new CustomEvent('mori:comment-added', { detail: r.comment }));
-      toast(r.status === 'approved' ? '批注已发表，在文末评论区' : '已收到，通过审核后会显示在文末评论区');
+      toast(r.status === 'approved' ? t('js.anno.posted') : t('js.anno.pending'));
       close();
     } catch (err: any) { msg.textContent = err.message; msg.classList.add('bad'); }
     send.disabled = false;

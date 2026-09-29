@@ -5,6 +5,7 @@
  */
 import type { TravelData } from '../content/schema.ts';
 import RouteMap from './RouteMap.astro';
+import { t } from '../lib/i18n.ts';
 
 interface Props {
   allowed: Array<'v' | 'h' | 'm'>;
@@ -12,16 +13,16 @@ interface Props {
   track?: TravelData['track'];
 }
 const { allowed, stops, track } = Astro.props;
-const LABEL = { v: ['竖', '竖向阅读'], h: ['横', '横向阅读'], m: ['混', '混合阅读'] } as const;
+const LABEL = { v: [t('travel.mode.v'), t('travel.modeLabel.v')], h: [t('travel.mode.h'), t('travel.modeLabel.h')], m: [t('travel.mode.m'), t('travel.modeLabel.m')] } as const;
 const stopData = stops.map((s) => ({ id: s.id, name: s.name, date: s.date ?? '' }));
 ---
 
 {
   allowed.length > 1 && (
-    <div class="corner mc glass" id="mc" role="group" aria-label="阅读方式" data-modes={allowed.join(',')}>
+    <div class="corner mc glass" id="mc" role="group" aria-label={t('travel.readingGroup')} data-modes={allowed.join(',')}>
       <i />
       {allowed.map((m) => <button type="button" data-m={m} aria-label={LABEL[m][1]}>{LABEL[m][0]}</button>)}
-      <span class="tip" id="mc-tip">读法</span>
+      <span class="tip" id="mc-tip">{t('travel.readingGroup')}</span>
     </div>
   )
 }

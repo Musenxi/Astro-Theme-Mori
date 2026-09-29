@@ -2,7 +2,8 @@
 /** 目次（spec §2，作者认可）：左边大字“目次 / Contents”和编者按，右边按栏目分组 */
 import config from 'virtual:mori/config';
 import type { Entry } from '../lib/entries.ts';
-import { cnNumber, dotDate, pad3 } from '../lib/zh.ts';
+import { dotDate, pad3 } from '../lib/zh.ts';
+import { t, tn, fmt } from '../lib/i18n.ts';
 
 interface Props {
   entries: Entry[];
@@ -18,13 +19,13 @@ const sections = config.categories
 
 <section class="wrap fcon">
   <header class="f-run mono">
-    <span>{config.title} — 第{cnNumber(latest.n)}期</span>
-    <span>目次 · CONTENTS</span>
+    <span>{config.title} — {fmt.issue(latest.n)}</span>
+    <span>{t('toc.run')}</span>
   </header>
   <div class="g fcon-body">
     <aside class="f-ed">
-      <h2 class="f-toc">目次<em>Contents</em></h2>
-      {config.home.editorNote && <p class="f-note"><span class="mono">编者按</span>{config.home.editorNote}</p>}
+      <h2 class="f-toc">{t('toc.title')}{t('toc.sub') && <em>{t('toc.sub')}</em>}</h2>
+      {config.home.editorNote && <p class="f-note"><span class="mono">{t('toc.editor')}</span>{config.home.editorNote}</p>}
     </aside>
     <div class="f-secs">
       {
@@ -34,7 +35,7 @@ const sections = config.categories
               <span class="rn">{roman}</span>
               <h3>{c.zh}</h3>
               <em>{c.en}</em>
-              <span class="ct mono">{cnNumber(list.length)}篇 · 按时间看 →</span>
+              <span class="ct mono">{tn('count', list.length, { n: fmt.num(list.length) })} · {t('toc.byTime')} →</span>
             </a>
             <ol class="f-en">
               {list.map((e) => (

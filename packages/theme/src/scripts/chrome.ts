@@ -3,6 +3,7 @@
  * 页头跨页保留（transition:persist），所以事件只绑一次；每次换页后（astro:page-load）再同步“当前栏目”。
  * 折射的做法见 spec §4（参考 kube.io/blog/liquid-glass-css-svg）。
  */
+import { t } from './i18n.ts';
 const root = document.documentElement;
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector<T>(s)!;
 
@@ -13,7 +14,7 @@ const store = {
 
 /* ───────────── 昼夜 ───────────── */
 const isDark = () => (root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches);
-const syncTheme = () => { $('#theme').textContent = isDark() ? '昼' : '夜'; };
+const syncTheme = () => { $('#theme').textContent = isDark() ? t('js.theme.toLight') : t('js.theme.toDark'); };
 $('#theme').addEventListener('click', () => {
   root.dataset.theme = isDark() ? 'light' : 'dark';
   store.set('mori-theme', root.dataset.theme);

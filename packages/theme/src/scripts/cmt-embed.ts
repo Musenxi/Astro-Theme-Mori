@@ -3,6 +3,7 @@
  * 都是进入视口才加载脚本；每次换页都用新的页面标识重新加载；昼夜切换时同步给评论框。
  * 脚本和样式来自各家的 CDN（jsdelivr / unpkg / giscus.app）。
  */
+import { t } from './i18n.ts';
 type Cfg = Record<string, any> & { provider: string };
 
 const isDark = () => {
@@ -14,7 +15,7 @@ const loaded = new Map<string, Promise<void>>();
 function loadScript(src: string) {
   if (!loaded.has(src)) loaded.set(src, new Promise<void>((ok, fail) => {
     const s = document.createElement('script');
-    s.src = src; s.async = true; s.onload = () => ok(); s.onerror = () => { loaded.delete(src); fail(new Error(`脚本加载失败：${src}`)); };
+    s.src = src; s.async = true; s.onload = () => ok(); s.onerror = () => { loaded.delete(src); fail(new Error(t('js.cmt.scriptFail', { src }))); };
     document.head.appendChild(s);
   }));
   return loaded.get(src)!;
@@ -79,7 +80,7 @@ export async function mountEmbed(cfg: Cfg, host: HTMLElement, page: { entry: str
       break;
     }
     default:
-      throw new Error(`不认识的评论服务：${cfg.provider}`);
+      throw new Error(t('js.cmt.unknown', { provider: cfg.provider }));
   }
 }
 

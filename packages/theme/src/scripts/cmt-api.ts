@@ -1,4 +1,6 @@
 /** 评论服务的接口封装：文末评论区和划词批注共用 */
+import { t } from './i18n.ts';
+
 export interface MoriComment {
   id: number;
   block: string | null;
@@ -27,14 +29,14 @@ const base = (c: MoriCommentsConfig) => (c.endpoint ?? '').replace(/\/$/, '');
 
 export async function listComments(c: MoriCommentsConfig, entry: string): Promise<MoriComment[]> {
   const r = await fetch(`${base(c)}/comments?entry=${encodeURIComponent(entry)}`);
-  if (!r.ok) throw new Error(`评论加载失败（${r.status}）`);
+  if (!r.ok) throw new Error(t('js.cmt.loadFail', { status: r.status }));
   return ((await r.json()) as { comments: MoriComment[] }).comments;
 }
 
 export async function sendComment(c: MoriCommentsConfig, payload: Record<string, unknown>): Promise<SendResult> {
   const r = await fetch(`${base(c)}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
   const j = (await r.json().catch(() => ({}))) as any;
-  if (!r.ok) throw new Error(j.error ?? `提交失败（${r.status}）`);
+  if (!r.ok) throw new Error(j.error ?? t('js.cmt.postFail', { status: r.status }));
   return j as SendResult;
 }
 
@@ -43,7 +45,7 @@ let tsLoad: Promise<void> | null = null;
 const loadTurnstile = () => (tsLoad ??= new Promise<void>((ok, fail) => {
   const s = document.createElement('script');
   s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-  s.async = true; s.onload = () => ok(); s.onerror = () => fail(new Error('人机验证脚本加载失败'));
+  s.async = true; s.onload = () => ok(); s.onerror = () => fail(new Error(t('js.cmt.tsFail')));
   document.head.appendChild(s);
 }));
 

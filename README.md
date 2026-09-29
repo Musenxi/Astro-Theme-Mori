@@ -2,7 +2,7 @@
 
 一个安静的、编辑排版式的 Astro 博客主题：竖排文字、游记（竖向 / 混合 / 横向三种读法）、剪影地图、克莱因蓝的单一强调色。
 
-> 状态：开发中（v0.0.x）。已经有：首页、文章、游记（三种读法、剪影地图）、刻度页（归档 / 栏目）、看大图、自建评论（含划词批注）、第三方评论接入、Studio 编辑器（文章 / 游记表单、预览、评论管理、构建发布）。还没有：搜索、多语言界面、桌面版打包。
+> 状态：开发中（v0.0.x）。已经有：首页、文章、游记（三种读法、剪影地图）、刻度页（归档 / 栏目）、看大图、自建评论（含划词批注）、第三方评论接入、Studio 编辑器（文章 / 游记表单、预览、评论管理、构建发布）。还没有：桌面版打包、专题地图（MapLibre）、GPX 导入。已有站内搜索和四种界面语言（zh-CN / zh-TW / en / ja）。
 > 需求与设计决定见 [docs/需求草案.md](docs/需求草案.md)，视觉的实物参照是 [design/style-probe](design/style-probe/index.html)。
 
 ## 目录
@@ -54,6 +54,7 @@ import { defineMoriConfig } from 'astro-mori';
 
 export default defineMoriConfig({
   title: 'MORI',                       // 刊名，页头左上角
+  lang: 'zh-CN',                       // 界面语言：zh-CN / zh-TW / en / ja（英文站自动关闭竖排和手卷方向）
   accent: '#002fa7',                   // 唯一的强调色；亮暗两个版本由 OKLCH 自动推出
   categories: [                        // 栏目；文章的 category 引用这里的 id
     { id: 'journeys', zh: '游记', en: 'Journeys', empty: '没写游记' },

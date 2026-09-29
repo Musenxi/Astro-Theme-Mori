@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import type { Inline, PostData } from '../content/schema.ts';
 import { numberNotes, renderInline, sideRefs } from '../lib/inline.ts';
 import { pad2 } from '../lib/zh.ts';
+import { t, vertical } from '../lib/i18n.ts';
 
 interface Props {
   blocks: PostData['blocks'];
@@ -50,7 +51,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         }
         case 'quote':
           return (
-            <blockquote class:list={[b.writing === 'v' && 'vq']} data-b={b.id}>
+            <blockquote class:list={[b.writing === 'v' && vertical && 'vq']} data-b={b.id}>
               <Fragment set:html={html(b.text)} />
               {b.cite && <cite data-skip>{b.cite}</cite>}
             </blockquote>
@@ -62,7 +63,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
               <Image src={b.src} alt={b.alt} widths={[640, 960, 1280, 1600]} sizes="(max-width: 760px) 100vw, 83vw" />
               {b.caption && (
                 <figcaption>
-                  <span class="mono">图 {fig}</span>
+                  <span class="mono">{t('fig', { n: fig })}</span>
                   {b.caption}
                 </figcaption>
               )}
@@ -86,7 +87,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
   }
   {
     footnotes.length > 0 && (
-      <section class="fns" aria-label="脚注">
+      <section class="fns" aria-label={t('notes.foot')}>
         <ol>
           {footnotes.map((f) => (
             <li id={`fn-${f.ref}`}>

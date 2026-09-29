@@ -1,13 +1,14 @@
 ---
+import { t, lang } from '../lib/i18n.ts';
 import config from 'virtual:mori/config';
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="找不到这一页" direction={config.home.direction}>
+<Base title={t('notfound.title')} direction={config.home.direction}>
   <main data-page="404" class="wrap nf">
     <p class="mono lbl">404</p>
-    <h1>这一页不在目次里。</h1>
-    <a class="ul" href="/">回到目次 →</a>
+    <h1>{t('notfound.h')}</h1>
+    <a class="ul" href="/">{t('notfound.back')}</a>
   </main>
 </Base>
 <style>

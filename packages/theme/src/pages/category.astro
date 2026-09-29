@@ -1,4 +1,5 @@
 ---
+import { t, lang } from '../lib/i18n.ts';
 import config from 'virtual:mori/config';
 import Base from '../layouts/Base.astro';
 import Scale from '../components/Scale.astro';
@@ -15,6 +16,6 @@ const roman = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ', 'Ⅶ', 'Ⅷ', 'Ⅸ', '�
 
 <Base title={category.zh} direction={config.archive.direction}>
   <main data-page="category">
-    <Scale title={category.zh} en={category.en} roman={roman} entries={entries} all={all} empty={category.empty ?? `没写${category.zh}`} />
+    <Scale title={category.zh} en={category.en} roman={roman} entries={entries} all={all} empty={category.empty ?? t('empty.default', { name: category.zh })} />
   </main>
 </Base>
