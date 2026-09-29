@@ -1,1 +1,123 @@
-export default function Page() { return <div className="p-8 text-ink-3">publish</div>; }
+import { useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Hammer, Send } from 'lucide-react';
+import { toast } from 'sonner';
+import { api } from '@/lib/api';
+import { cn } from '@/lib/cn';
+import { useProject, useRefresh } from '@/lib/hooks';
+import type { PublishConfig } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/dialog';
+import { Field, Input } from '@/components/ui/input';
+import { Body, PageHeader, Section } from '@/components/ui/page';
+import { Segmented } from '@/components/ui/segmented';
+
+const TARGETS = { git: 'GitHub 仓库', 'cloudflare-pages': 'Cloudflare Pages', rsync: '自己的服务器', local: '本地文件夹' } as const;
+const describe = (p: PublishConfig | null) => {
+  if (!p) return '';
+  if (p.target === 'git') return `Git 仓库 · ${p.branch ? `${p.branch} 分支` : '当前分支'}`;
+  if (p.target === 'cloudflare-pages') return `Cloudflare Pages · ${p.project}${p.branch ? `（${p.branch} 分支）` : ''}`;
+  if (p.target === 'local') return `本地文件夹 → ${p.dest}`;
+  return `服务器 → ${p.dest}`;
+};
+
+export default function Publish() {
+  const { data: project } = useProject();
+  const refresh = useRefresh();
+  const confirm = useConfirm();
+  const pub = project?.publish ?? null;
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState<PublishConfig>({ target: 'git' });
+  const [log, setLog] = useState('');
+  const [busy, setBusy] = useState<'build' | 'publish' | null>(null);
+  const [code, setCode] = useState<number | null>(null);
+  const logRef = useRef<HTMLPreElement>(null);
+  useEffect(() => { setEditing(!pub); if (pub) setForm(pub); }, [pub === null]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { logRef.current?.scrollTo({ top: logRef.current.scrollHeight }); }, [log]);
+
+  const savePublish = async (value: PublishConfig | null) => {
+    try { await api.setPublish(value); await refresh(); if (value) { setEditing(false); toast.success('已保存'); } } catch (e) { toast.error((e as Error).message); }
+  };
+  const run = async (kind: 'build' | 'publish') => {
+    if (kind === 'publish' && !(await confirm({ title: '发布到线上？', description: `会把当前内容发布到：${describe(pub)}。线上的站点会随之更新。`, confirmLabel: '构建并发布' }))) return;
+    setBusy(kind); setCode(null); setLog('');
+    const c = await (kind === 'publish' ? api.publish : api.build)(setLog);
+    setCode(c); setBusy(null);
+    if (c === 0) toast.success(kind === 'publish' ? '已发布' : '构建完成'); else toast.error('没有成功，看下面的输出');
+  };
+  const set = (p: Partial<PublishConfig>) => setForm({ ...form, ...p });
+  const targets = (Object.keys(TARGETS) as Array<keyof typeof TARGETS>).filter((k) => k !== 'local' || project?.dev || pub?.target === 'local');
+
+  return (
+    <>
+      <PageHeader title="构建与发布" actions={code !== null && <span className={cn('mono text-[11.5px]', code ? 'text-danger' : 'text-ok')}>{code ? `失败（退出码 ${code}）` : '完成'}</span>} />
+      <Body>
+        <Section title="发布到哪里">
+          {!editing && pub ? (
+            <div className="flex items-center gap-4 py-2"><span className="flex-1">{describe(pub)}</span>
+              <Button variant="link" onClick={() => { setForm(pub); setEditing(true); }}>修改</Button>
+              <Button variant="link" onClick={async () => { if (await confirm({ title: '清除发布设置？', description: '不会影响已经发布的站点。', confirmLabel: '清除', danger: true })) void savePublish(null); }}>清除</Button>
+            </div>
+          ) : (
+            <div className="pt-1">
+              <Segmented value={form.target} onValueChange={(t) => setForm({ target: t })} options={targets.map((k) => ({ value: k, label: TARGETS[k] }))} />
+              <div className="mt-3">
+                {form.target === 'git' && <GitForm form={form} set={set} />}
+                {form.target === 'local' && (<>
+                  <Field label="文件夹"><Input value={form.dest ?? ''} onChange={(e) => set({ dest: e.target.value })} placeholder="~/Sites/blog" /></Field>
+                  <p className="pl-[7.5rem] text-[12px] leading-relaxed text-ink-3">生成站点后复制到这个文件夹，用来在本机试一下发布。文件夹需要是空的，或之前由 Studio 发布过；里面别的文件不会被动。</p>
+                </>)}
+                {form.target === 'cloudflare-pages' && (<>
+                  <Field label="项目名"><Input value={form.project ?? ''} onChange={(e) => set({ project: e.target.value })} placeholder="Cloudflare 里的项目名称" /></Field>
+                  <Field label="分支"><Input value={form.branch ?? ''} onChange={(e) => set({ branch: e.target.value })} placeholder="选填，填 main 表示发布到正式站" /></Field>
+                  <p className="pl-[7.5rem] text-[12px] leading-relaxed text-ink-3">第一次使用前，需要在这台电脑上登录一次 Cloudflare：在终端运行 <span className="mono select-all">npx wrangler login</span>。</p>
+                </>)}
+                {form.target === 'rsync' && (<>
+                  <Field label="服务器路径"><Input value={form.dest ?? ''} onChange={(e) => set({ dest: e.target.value })} placeholder="用户名@服务器地址:/网站目录/" /></Field>
+                  <p className="pl-[7.5rem] text-[12px] leading-relaxed text-ink-3">需要先配置好免密登录。发布时，服务器上的网站目录会和新站点完全一致，多余的旧文件会被删除。</p>
+                </>)}
+              </div>
+              <div className="mt-4 flex gap-2 pl-[7.5rem]"><Button variant="primary" onClick={() => savePublish(form)}>保存</Button>{pub && <Button onClick={() => setEditing(false)}>取消</Button>}</div>
+            </div>
+          )}
+        </Section>
+
+        <Section title="更新站点">
+          <p className="mb-3 text-[12.5px] leading-relaxed text-ink-3">构建：生成站点文件，检查内容有没有错误。构建并发布：先生成，成功后再发布到上面选的位置。</p>
+          <div className="flex gap-2">
+            <Button variant="primary" disabled={!!busy || !pub} title={pub ? undefined : '先在上面设置发布到哪里'} onClick={() => run('publish')}><Send size={14} />{busy === 'publish' ? '发布中……' : '构建并发布'}</Button>
+            <Button disabled={!!busy} onClick={() => run('build')}><Hammer size={14} />{busy === 'build' ? '构建中……' : '只构建'}</Button>
+          </div>
+          {log && <pre ref={logRef} className="mono mt-4 max-h-[50vh] overflow-auto whitespace-pre-wrap border border-rule bg-sunk/50 p-3 text-[11.5px] leading-relaxed">{log}</pre>}
+        </Section>
+      </Body>
+    </>
+  );
+}
+
+/** Git 目标：显示仓库状态；还没连就填地址连上；连上了选分支、写提交说明 */
+function GitForm({ form, set }: { form: PublishConfig; set: (p: Partial<PublishConfig>) => void }) {
+  const [url, setUrl] = useState('');
+  const [busy, setBusy] = useState(false);
+  const { data: info, refetch } = useQuery({ queryKey: ['git'], queryFn: api.git, staleTime: 0 });
+  if (!info) return <p className="text-ink-3">读取仓库状态……</p>;
+  const connect = async () => { setBusy(true); try { await api.gitInit(url.trim(), form.branch || 'main'); await refetch(); } catch (e) { toast.error((e as Error).message); } setBusy(false); };
+  const origin = info.remotes?.find((r) => r.name === (form.remote || 'origin')) ?? info.remotes?.[0];
+  if (!info.isRepo || !info.remotes?.length) {
+    return (<>
+      <p className="mb-2 text-[12.5px] leading-relaxed text-ink-3">把文章和设置推送到你在 GitHub 上的仓库，推送后由 GitHub 或 Cloudflare Pages 自动构建上线。先填仓库的地址：</p>
+      <Field label="仓库地址"><Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://github.com/你的用户名/仓库名.git" /></Field>
+      <div className="pl-[7.5rem]"><Button disabled={busy || !url.trim()} onClick={connect}>{busy ? '连接中……' : '连接仓库'}</Button></div>
+    </>);
+  }
+  return (<>
+    <p className="mb-2 text-[12.5px] leading-relaxed text-ink-3">
+      已连接 {origin?.url.replace(/^https?:\/\/|\.git$/g, '')}（{info.branch} 分支）<br />
+      {info.changed ? `有 ${info.changed} 处改动还没发布` : '没有未发布的改动'}{info.last ? `　最近一次提交：${info.last}` : ''}
+      {info.nested && <><br />这个项目放在另一个仓库的文件夹里，发布会推送到那个仓库。</>}
+    </p>
+    <Field label="分支"><Input value={form.branch ?? ''} onChange={(e) => set({ branch: e.target.value })} placeholder={`默认 ${info.branch}`} /></Field>
+    <Field label="提交说明"><Input value={form.message ?? ''} onChange={(e) => set({ message: e.target.value })} placeholder="默认：更新内容 加日期时间" /></Field>
+    <p className="pl-[7.5rem] text-[12px] leading-relaxed text-ink-3">发布前会先检查站点能否正常生成，通过了才会推送。用的是这台电脑上已经登录的 Git 账号；推送失败时，先在终端运行 <span className="mono">gh auth login</span> 登录。管理令牌不会被上传。</p>
+  </>);
+}

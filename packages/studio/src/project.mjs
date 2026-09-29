@@ -2,7 +2,7 @@
  * 项目文件的读写：Studio 直接读写站点项目里的内容文件（src/content/posts（普通文章和游记）、src/assets）。
  * 不需要 git；“删除”是移进 .mori-trash/，不会真的删掉。
  */
-import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, statSync } from 'node:fs';
 import { join, basename, extname } from 'node:path';
 import { loadConfigFromFile } from 'vite';
 
@@ -375,4 +375,36 @@ export function setNav(configPath, nav) {
   const top = src.match(/(defineMoriConfig\(\{|export default \{)[ \t]*\n/);
   if (!top) throw new Error('没在 mori.config.ts 里找到配置对象的开头，请手动添加 nav。');
   writeFileSync(configPath, src.replace(top[0], `${top[0]}  nav: [\n${rows.map((r) => `    ${r},`).join('\n')}\n  ],\n`));
+}
+
+/* ───────────── 文件（src/assets 里的图片）：谁在用它、删除 ───────────── */
+
+/** 每张图片的大小、修改时间，以及被哪些内容引用（文章、页面、友人帐） */
+export function assetUsage(root) {
+  const names = listAssets(root);
+  const texts = [];
+  for (const [kind, dir] of [['post', 'posts'], ['page', 'pages']]) {
+    const d = join(root, 'src/content', dir);
+    if (!existsSync(d)) continue;
+    for (const f of readdirSync(d).filter((f) => f.endsWith('.json'))) {
+      const id = basename(f, '.json');
+      try { const raw = readFileSync(join(d, f), 'utf8'); const doc = JSON.parse(raw); texts.push({ raw, ref: { kind: kind === 'post' ? kindOf(doc) : 'page', id, title: doc.title ?? id } }); } catch { /* 有语法错误的文件跳过 */ }
+    }
+  }
+  const fr = friendsFile(root);
+  if (existsSync(fr)) texts.push({ raw: readFileSync(fr, 'utf8'), ref: { kind: 'friends', id: 'friends', title: '友人帐' } });
+  return names.map((name) => {
+    const st = statSync(join(root, 'src/assets', name));
+    return { name, size: st.size, mtime: Math.round(st.mtimeMs), usedBy: texts.filter((t) => t.raw.includes(`assets/${name}`)).map((t) => t.ref) };
+  });
+}
+
+/** 删除一张图片：移进 .mori-trash/assets/，不真的删 */
+export function trashAsset(root, name) {
+  if (basename(name) !== name || !IMAGE_EXT.has(extname(name).toLowerCase())) throw new Error('文件名不合法');
+  const from = join(root, 'src/assets', name);
+  if (!existsSync(from)) throw new Error('没有这张图片');
+  const trash = join(root, '.mori-trash/assets');
+  mkdirSync(trash, { recursive: true });
+  renameSync(from, join(trash, `${Date.now()}-${name}`));
 }

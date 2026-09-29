@@ -19,6 +19,7 @@ export interface SaveResult {
   errors: Array<{ path: string; message: string }>;
   annotationWarnings?: Array<{ id: number; block: string; quote?: string }>;
 }
+export interface AssetInfo { name: string; size: number; mtime: number; width?: number; height?: number; usedBy: Array<{ kind: 'post' | 'travel' | 'page' | 'friends'; id: string; title: string }> }
 export interface GitInfo { isRepo: boolean; top?: string; nested?: boolean; branch?: string; remotes?: Array<{ name: string; url: string }>; changed?: number; last?: string }
 export interface CommentRow { id: number; entry: string; name: string; body: string; createdAt: number; status: 'pending' | 'approved' | 'hidden'; block?: string | null; quote?: string | null; parentId?: number | null }
 
@@ -69,6 +70,9 @@ export const api = {
     return j as { track: Array<[number, number]>; points: number; simplified: number };
   },
   exif: () => req<{ photos: number; withGps: number; stops: Array<{ lnglat: [number, number]; date?: string; count: number }> }>('GET', '/api/exif'),
+
+  assets: () => req<{ assets: AssetInfo[] }>('GET', '/api/assets'),
+  removeAsset: (name: string) => req<{ ok: true }>('DELETE', `/api/asset/${encodeURIComponent(name)}`),
 
   comments: (status?: string) => req<{ comments: CommentRow[] }>('GET', `/api/comments${status ? `?status=${status}` : ''}`),
   commentStats: () => req<{ pending: number; approved: number; hidden: number }>('GET', '/api/comments/stats'),

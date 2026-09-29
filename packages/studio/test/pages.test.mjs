@@ -74,3 +74,24 @@ test('内网地址判断', () => {
   for (const ip of ['127.0.0.1', '10.1.2.3', '192.168.0.9', '172.16.5.5', '169.254.1.1', '::1', 'fd00::1']) assert.ok(isPrivateAddress(ip), ip);
   for (const ip of ['8.8.8.8', '93.184.216.34', '172.32.0.1']) assert.ok(!isPrivateAddress(ip), ip);
 });
+
+import { assetUsage, trashAsset } from '../src/project.mjs';
+import { existsSync } from 'node:fs';
+
+test('文件：谁在引用一张图片；删除是移进回收站', () => {
+  const root = mkdtempSync(join(tmpdir(), 'mori-'));
+  for (const d of ['src/assets', 'src/content/posts', 'src/content/pages']) mkdirSync(join(root, d), { recursive: true });
+  for (const n of ['a.jpg', 'b.jpg', 'c.png']) writeFileSync(join(root, 'src/assets', n), 'x');
+  writeFileSync(join(root, 'src/content/posts/p1.json'), JSON.stringify({ title: 'P1', cover: '../../assets/a.jpg', blocks: [] }));
+  writeFileSync(join(root, 'src/content/posts/t1.json'), JSON.stringify({ title: 'T1', stops: [], blocks: [{ src: '../../assets/a.jpg' }] }));
+  writeFileSync(join(root, 'src/content/pages/about.json'), JSON.stringify({ title: '关于', blocks: [{ src: '../../assets/b.jpg' }] }));
+  writeFileSync(join(root, 'src/content/friends.json'), JSON.stringify([{ id: 'x', name: 'X', url: 'https://x.io', avatar: '../assets/c.png' }]));
+  const u = Object.fromEntries(assetUsage(root).map((a) => [a.name, a.usedBy.map((r) => `${r.kind}:${r.id}`)]));
+  assert.deepEqual(u['a.jpg'].sort(), ['post:p1', 'travel:t1']);
+  assert.deepEqual(u['b.jpg'], ['page:about']);
+  assert.deepEqual(u['c.png'], ['friends:friends']);
+  trashAsset(root, 'c.png');
+  assert.ok(!existsSync(join(root, 'src/assets/c.png')));
+  assert.throws(() => trashAsset(root, '../evil.jpg'), /不合法/);
+  assert.throws(() => trashAsset(root, 'nope.jpg'), /没有这张/);
+});

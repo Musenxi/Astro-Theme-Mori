@@ -9,7 +9,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import sharp from 'sharp';
-import { RESERVED_SLUGS, loadConfig, setConfigValue, setCategories, setPublish, setNav, listPages, readFriends, writeFriends, renameCategoryInEntries, renameTag, countPages, listEntries, readEntry, writeEntry, entryExists, skeleton, trashEntry, listAssets, saveAsset, isId, KINDS, IMAGE_EXT } from './project.mjs';
+import { RESERVED_SLUGS, assetUsage, trashAsset, loadConfig, setConfigValue, setCategories, setPublish, setNav, listPages, readFriends, writeFriends, renameCategoryInEntries, renameTag, countPages, listEntries, readEntry, writeEntry, entryExists, skeleton, trashEntry, listAssets, saveAsset, isId, KINDS, IMAGE_EXT } from './project.mjs';
 import { validateEntry } from 'astro-mori/validate';
 import { locate } from 'astro-mori/anchor';
 import { probeSite } from './probe.mjs';
@@ -17,18 +17,8 @@ import { gitInfo, gitInit, publishGit, publishLocal } from './publish.mjs';
 import { parseGpx, simplify, readExif, clusterStops } from './geo.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const ui = join(here, '../ui');
+const dist = join(here, '../dist'); // 界面：app/ 用 Vite 构建出来的静态文件
 const require = createRequire(import.meta.url);
-// 各包的 package.json 不一定对外导出，所以从入口文件的位置推出目录
-const dirOfMain = (spec) => dirname(require.resolve(spec));
-const VENDOR = {
-  '/vendor/preact.js': join(dirOfMain('preact'), 'preact.module.js'),
-  '/vendor/preact-hooks.js': join(dirOfMain('preact/hooks'), 'hooks.module.js'),
-  '/vendor/htm.js': join(dirOfMain('htm'), 'htm.module.js'),
-  '/vendor/htm-preact.js': join(dirOfMain('htm/preact'), 'index.module.js'),
-  // 写作页用的 Markdown ⇄ 块转换：和 mori-md 命令行是同一份代码
-  '/vendor/markdown.js': require.resolve('astro-mori/markdown'),
-};
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.avif': 'image/avif', '.gif': 'image/gif' };
 
 const send = (res, code, body, type = 'application/json; charset=utf-8') => {
@@ -164,11 +154,18 @@ export async function startStudio({ root, port = 4400, dev = false }) {
 
       /* ── 静态：界面、第三方模块、项目里的图片 ── */
       if (req.method === 'GET' && !p.startsWith('/api/')) {
-        if (p === '/') return serveFile(res, join(ui, 'index.html'));
-        if (VENDOR[p]) return serveFile(res, VENDOR[p]);
-        if (p.startsWith('/ui/')) {
-          const f = normalize(join(ui, p.slice(4)));
-          return f.startsWith(ui) ? serveFile(res, f) : send(res, 403, { error: 'no' });
+        // 界面：先找构建产物里的同名文件；没有就当作界面里的页面地址（/posts/xxx 这类），交给前端路由
+        if (!p.startsWith('/asset/')) {
+          const f = normalize(join(dist, p));
+          if (!f.startsWith(dist)) return send(res, 403, { error: 'no' });
+          if (p !== '/' && existsSync(f) && statSync(f).isFile()) {
+            // 文件名带哈希的可以永久缓存
+            if (p.startsWith('/assets/')) { res.writeHead(200, { 'Content-Type': MIME[extname(f).toLowerCase()] ?? 'application/octet-stream', 'Cache-Control': 'public, max-age=31536000, immutable' }); return createReadStream(f).pipe(res); }
+            return serveFile(res, f);
+          }
+          if (extname(p)) return send(res, 404, { error: 'not found' });
+          const index = join(dist, 'index.html');
+          return existsSync(index) ? serveFile(res, index) : send(res, 503, '界面还没有构建：在 packages/studio 里运行 pnpm build:ui', 'text/plain; charset=utf-8');
         }
         if (p.startsWith('/asset/')) {
           const name = p.slice(7);
@@ -336,6 +333,19 @@ export async function startStudio({ root, port = 4400, dev = false }) {
         }
         const gps = photos.filter((x) => x.lnglat).length;
         return send(res, 200, { photos: photos.length, withGps: gps, stops: clusterStops(photos) });
+      }
+
+      /* ── 文件：图片列表（含尺寸、被谁引用）、删除 ── */
+      if (req.method === 'GET' && p === '/api/assets') {
+        const list = assetUsage(root);
+        for (const a of list) {
+          if (a.name.toLowerCase().endsWith('.svg')) continue;
+          try { const m = await sharp(join(root, 'src/assets', a.name)).metadata(); a.width = m.width; a.height = m.height; } catch { /* 读不出尺寸就不显示 */ }
+        }
+        return send(res, 200, { assets: list.sort((a, b) => b.mtime - a.mtime) });
+      }
+      if (req.method === 'DELETE' && (mm = m(/^\/api\/asset\/(.+)$/))) {
+        try { trashAsset(root, decodeURIComponent(mm[1])); return send(res, 200, { ok: true }); } catch (e) { return send(res, 400, { error: e.message }); }
       }
 
       /* ── 图片 ── */
