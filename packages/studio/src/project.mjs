@@ -31,13 +31,39 @@ export function listEntries(root) {
       const id = basename(f, '.json');
       try {
         const d = JSON.parse(readFileSync(join(dir, f), 'utf8'));
-        out.push({ kind, id, title: d.title ?? id, date: String(d.date ?? '').slice(0, 10), category: d.category, draft: !!d.draft, pinned: !!d.pin });
+        out.push({ kind, id, title: d.title ?? id, date: String(d.date ?? '').slice(0, 10), category: d.category, tags: Array.isArray(d.tags) ? d.tags : [], words: wordCount(d), draft: !!d.draft, pinned: !!d.pin });
       } catch (e) {
         out.push({ kind, id, title: `${id}（JSON 有语法错误）`, date: '', broken: true });
       }
     }
   }
   return out.sort((a, b) => b.date.localeCompare(a.date));
+}
+
+/** 正文字数：中日文按字算，西文按词算；代码块不计。只数 blocks 和 notes，标题、摘要不算 */
+export function wordCount(doc) {
+  const texts = [];
+  const collect = (v) => {
+    if (Array.isArray(v)) {
+      if (v.length && v.every((x) => x && typeof x === 'object' && 't' in x)) texts.push(v.map((s) => s.t).join(''));
+      else v.forEach((x) => (typeof x === 'string' ? texts.push(x) : collect(x)));
+    } else if (v && typeof v === 'object') {
+      if (v.type === 'code') return;
+      for (const [k, x] of Object.entries(v)) {
+        if (k === 'text' && typeof x === 'string') texts.push(x);
+        else collect(x);
+      }
+    }
+  };
+  collect(doc.blocks); collect(doc.notes);
+  const all = texts.join('\n');
+  return (all.match(/[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]/g)?.length ?? 0) + (all.match(/[A-Za-z0-9]+(?:['’-][A-Za-z0-9]+)*/g)?.length ?? 0);
+}
+
+/** src/content/pages 里的页面数（页面管理做好之前，这里只是数文件） */
+export function countPages(root) {
+  const dir = join(root, 'src/content/pages');
+  return existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.json')).length : 0;
 }
 
 export const readEntry = (root, kind, id) => JSON.parse(readFileSync(fileOf(root, kind, id), 'utf8'));
@@ -143,4 +169,121 @@ function setBlockValue(configPath, dotted, value) {
   else if (body.includes('\n')) next = `\n${open[1]}  ${key}: '${value}',${body}`;   // 多行：加在块的开头
   else next = ` ${key}: '${value}',${body.replace(/^\s*/, ' ')}`;                       // 单行：加在 { 后面
   writeFileSync(configPath, src.slice(0, from) + next + src.slice(end));
+}
+
+/* ───────────── 分类：mori.config.ts 里的 categories 数组 ───────────── */
+
+const q = (v) => `'${String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n')}'`;
+
+/** 从 from（开括号之后）往后找配对的闭括号的位置的下一位；跳过字符串和 // 注释里的括号 */
+function closeOf(src, from, open, close) {
+  let depth = 1, i = from, quote = '';
+  for (; i < src.length && depth > 0; i++) {
+    const ch = src[i];
+    if (quote) { if (ch === '\\') i++; else if (ch === quote) quote = ''; }
+    else if (ch === "'" || ch === '"' || ch === '`') quote = ch;
+    else if (ch === '/' && src[i + 1] === '/') { while (i < src.length && src[i] !== '\n') i++; }
+    else if (ch === open) depth++;
+    else if (ch === close) depth--;
+  }
+  return i;
+}
+
+/** 整个 categories 数组重写一遍（数组外的内容和注释不动）。分类是有序的，顺序就是栏目在页面上的先后 */
+export function setCategories(configPath, cats) {
+  if (!Array.isArray(cats) || !cats.length) throw new Error('至少要有一个分类');
+  const seen = new Set();
+  for (const c of cats) {
+    if (!isId(c.id)) throw new Error(`分类 id “${c.id}” 只能用字母、数字、下划线和连字符`);
+    if (seen.has(c.id)) throw new Error(`分类 id “${c.id}” 重复`);
+    seen.add(c.id);
+    if (!String(c.zh ?? '').trim()) throw new Error(`分类 “${c.id}” 还没有中文名`);
+  }
+  const src = readFileSync(configPath, 'utf8');
+  const open = src.match(/^([ \t]*)categories[ \t]*:[ \t]*\[/m);
+  if (!open) throw new Error('mori.config.ts 里没找到 categories: [ … ]，请手动添加。');
+  const from = open.index + open[0].length;
+  const i = closeOf(src, from, '[', ']');
+  const ind = open[1];
+  const rows = cats.map((c) => `${ind}  { id: ${q(c.id)}, zh: ${q(c.zh)}, en: ${q(c.en ?? '')}${c.empty ? `, empty: ${q(c.empty)}` : ''} },`);
+  writeFileSync(configPath, src.slice(0, from) + '\n' + rows.join('\n') + `\n${ind}]` + src.slice(i));
+}
+
+/** 改分类 id 时，用到它的文章一起改；返回改了几篇 */
+export function renameCategoryInEntries(root, from, to) {
+  let n = 0;
+  for (const e of listEntries(root)) {
+    if (e.category !== from) continue;
+    const d = readEntry(root, e.kind, e.id);
+    d.category = to; writeEntry(root, e.kind, e.id, d); n++;
+  }
+  return n;
+}
+
+/* ───────────── 标签：每篇文章的 tags 数组 ───────────── */
+
+/** 改名 / 合并 / 删除标签。to 为 null 是删除；to 已经存在就是合并（同一篇里去重）。返回改了几篇 */
+export function renameTag(root, from, to) {
+  let n = 0;
+  for (const e of listEntries(root)) {
+    if (!e.tags.includes(from)) continue;
+    const d = readEntry(root, e.kind, e.id);
+    const next = d.tags.flatMap((t) => (t === from ? (to ? [to] : []) : [t]));
+    d.tags = [...new Set(next)];
+    if (!d.tags.length) delete d.tags;
+    writeEntry(root, e.kind, e.id, d); n++;
+  }
+  return n;
+}
+
+/* ───────────── 发布目标：mori.config.ts 里的 publish ───────────── */
+
+/** 校验发布设置。返回整理后的对象；不合法就抛错（说明哪里不对） */
+export function checkPublish(p) {
+  if (p?.target === 'cloudflare-pages') {
+    const project = String(p.project ?? '').trim(), branch = String(p.branch ?? '').trim();
+    if (!/^[a-z0-9][a-z0-9-]*$/i.test(project)) throw new Error('Cloudflare Pages 项目名只能用字母、数字和连字符（在 Cloudflare 后台的 Pages 项目名）');
+    if (branch && !/^[\w./-]+$/.test(branch)) throw new Error('分支名里有不合法的字符');
+    return { target: 'cloudflare-pages', project, ...(branch ? { branch } : {}) };
+  }
+  if (p?.target === 'rsync') {
+    const dest = String(p.dest ?? '').trim();
+    if (!dest || dest.startsWith('-') || /\s/.test(dest)) throw new Error('服务器路径要写成 用户@主机:/目录/，不能有空格，也不能以 - 开头');
+    return { target: 'rsync', dest };
+  }
+  if (p?.target === 'git') {
+    const remote = String(p.remote ?? '').trim(), branch = String(p.branch ?? '').trim(), message = String(p.message ?? '').trim();
+    if (remote && !/^[\w.-]+$/.test(remote)) throw new Error('远端名只能用字母、数字、点、下划线和连字符');
+    if (branch && (!/^[\w./-]+$/.test(branch) || branch.startsWith('-'))) throw new Error('分支名里有不合法的字符');
+    if (message.length > 200 || /\n/.test(message)) throw new Error('提交说明写成一行，不超过 200 字');
+    return { target: 'git', ...(remote && remote !== 'origin' ? { remote } : {}), ...(branch ? { branch } : {}), ...(message ? { message } : {}) };
+  }
+  if (p?.target === 'local') {
+    const dest = String(p.dest ?? '').trim();
+    if (!/^(\/|~\/|[A-Za-z]:[\\/])/.test(dest)) throw new Error('本地目录要写绝对路径，如 /Users/你/Sites/blog 或 ~/Sites/blog');
+    return { target: 'local', dest };
+  }
+  throw new Error('发布方式只能是 git、cloudflare-pages、rsync 或 local');
+}
+
+/** 写入 / 更新 / 删除（null）publish 设置；配置文件里其余内容不动 */
+export function setPublish(configPath, p) {
+  const src = readFileSync(configPath, 'utf8');
+  const open = src.match(/^([ \t]*)publish[ \t]*:[ \t]*\{/m);
+  if (p === null) {
+    if (!open) return;
+    const end = closeOf(src, open.index + open[0].length, '{', '}');
+    writeFileSync(configPath, src.slice(0, open.index) + src.slice(end).replace(/^[ \t]*,?[ \t]*\n?/, ''));
+    return;
+  }
+  const v = checkPublish(p);
+  const line = `publish: { ${Object.entries(v).map(([k, x]) => `${k}: ${q(x)}`).join(', ')} },`;
+  if (open) {
+    const end = closeOf(src, open.index + open[0].length, '{', '}');
+    writeFileSync(configPath, src.slice(0, open.index) + open[1] + line + src.slice(end).replace(/^[ \t]*,?/, ''));
+    return;
+  }
+  const top = src.match(/(defineMoriConfig\(\{|export default \{)[ \t]*\n/);
+  if (!top) throw new Error('没在 mori.config.ts 里找到配置对象的开头，请手动添加 publish。');
+  writeFileSync(configPath, src.replace(top[0], `${top[0]}  ${line}\n`));
 }

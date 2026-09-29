@@ -44,7 +44,7 @@ export function Library({ assets, onPick, onClose, onUploaded }) {
   };
   return html`<div class="lib" onClick=${(e) => e.target === e.currentTarget && onClose()}>
     <div class="panel">
-      <div class="row"><b style="flex:1">图库</b><span class="mono lbl">${assets.length} 张 · src/assets</span><button class="linkbtn" onClick=${onClose}>关闭</button></div>
+      <div class="row"><b style="flex:1">图库</b><span class="mono lbl">${assets.length} 张</span><button class="linkbtn" onClick=${onClose}>关闭</button></div>
       <div class=${'drop' + (over ? ' over' : '')} style="margin-top:10px"
         onDragOver=${(e) => { e.preventDefault(); setOver(true); }} onDragLeave=${() => setOver(false)}
         onDrop=${(e) => { e.preventDefault(); setOver(false); upload([...e.dataTransfer.files]); }}>

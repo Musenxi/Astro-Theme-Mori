@@ -2,13 +2,13 @@ import { html, useState } from '../h.js';
 import { Field, Text, ImagePicker } from '../components.js';
 
 /** 普通文章与游记共用的元信息 + 置顶设置 */
-export function MetaEditor({ doc, set, project, refresh }) {
+export function MetaEditor({ doc, set, project, refresh, hideTitle }) {
   const pin = doc.pin;
   const setPin = (patch) => set({ pin: { ...pin, ...patch } });
   const cats = project.config.categories;
   return html`
-    <input class="title-in" value=${doc.title} placeholder="标题" onInput=${(e) => set({ title: e.target.value })} />
-    <div style="margin-top:14px">
+    ${!hideTitle && html`<input class="title-in" value=${doc.title} placeholder="标题" onInput=${(e) => set({ title: e.target.value })} />`}
+    <div style=${hideTitle ? '' : 'margin-top:14px'}>
       <${Field} label="英文副题"><${Text} value=${doc.subtitle} onChange=${(v) => set({ subtitle: v })} placeholder="Iceland, counter-clockwise" /><//>
       <${Field} label="日期"><input type="date" value=${String(doc.date ?? '').slice(0, 10)} onInput=${(e) => set({ date: e.target.value })} /><//>
       <${Field} label="栏目">
@@ -17,6 +17,7 @@ export function MetaEditor({ doc, set, project, refresh }) {
           ${cats.map((c) => html`<option value=${c.id}>${c.zh} · ${c.en}</option>`)}
         </select>
       <//>
+      <${Field} label="标签"><${TagsInput} value=${doc.tags} onChange=${(v) => set({ tags: v })} known=${[...new Set(project.entries.flatMap((e) => e.tags ?? []))]} /><//>
       <${Field} label="摘要"><${Text} optional=${false} value=${doc.excerpt} onChange=${(v) => set({ excerpt: v ?? '' })} placeholder="目次里标题下面那一行" /><//>
       <${Field} label="封面"><${ImagePicker} value=${doc.cover} onChange=${(v) => set({ cover: v })} project=${project} refresh=${refresh} /><//>
       ${doc.cover && html`<${Field} label="封面说明"><${Text} value=${doc.coverAlt} onChange=${(v) => set({ coverAlt: v })} /><//>`}
@@ -35,6 +36,16 @@ export function MetaEditor({ doc, set, project, refresh }) {
         <${Field} label="淡出强度"><div class="row"><input type="range" min="0" max="1" step="0.05" value=${pin.fade ?? 0.5} onInput=${(e) => setPin({ fade: +e.target.value })} /><span class="mono lbl">${(pin.fade ?? 0.5).toFixed(2)}</span></div><//>
       `}
     </section>`;
+}
+
+/** 标签：逗号分隔地输入；输入框里保留原样，存回去是去重后的数组（空就不写进 JSON） */
+function TagsInput({ value, onChange, known }) {
+  const [text, setText] = useState((value ?? []).join('，'));
+  const parse = (s) => [...new Set(s.split(/[,，、]/).map((t) => t.trim()).filter(Boolean))];
+  return html`<input list="known-tags" value=${text} placeholder="用逗号分隔，如 旅行，摄影"
+    onInput=${(e) => { setText(e.target.value); const t = parse(e.target.value); onChange(t.length ? t : undefined); }}
+    onBlur=${() => setText(parse(text).join('，'))} />
+    <datalist id="known-tags">${known.map((t) => html`<option key=${t} value=${t} />`)}</datalist>`;
 }
 
 /** 引文：一行一句，已按句读断好；首尾的「」由主题补 */

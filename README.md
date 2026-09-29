@@ -23,10 +23,10 @@ docs               需求草案、写作指南
 
 ```bash
 pnpm install
-pnpm dev        # 示例站 http://localhost:4321 + 本地评论服务 http://127.0.0.1:8787（一起启动）
+pnpm dev        # 开发模式：示例站 http://localhost:4321 + 本地评论服务 http://127.0.0.1:8787 + Studio http://127.0.0.1:4400（一起启动）
 pnpm site       # 只跑示例站
 pnpm build      # 静态构建到 examples/demo/dist
-pnpm studio     # Studio 编辑器，http://127.0.0.1:4400
+pnpm studio     # 只跑 Studio（正常模式），http://127.0.0.1:4400
 pnpm comments   # 只跑评论服务（开发用管理令牌是 dev-token，数据库在 packages/comments/.data/）
 pnpm check      # 主题包的 TypeScript 检查
 pnpm test       # 各包的测试（Studio、评论服务、批注定位）
@@ -67,13 +67,16 @@ export default defineMoriConfig({
 ```
 
 内容放在 `src/content/posts/*.json`（普通文章）和 `src/content/travels/*.json`（游记）。格式见 [写作指南](docs/写作指南.md)。
-站点会生成：`/`、`/posts/`、`/posts/<id>/`、`/travels/`、`/travels/<id>/`、`/archive/`、`/category/<id>/`、`/rss.xml`、`/sitemap.xml`、`/robots.txt`、`/favicon.svg`。
+站点会生成：`/`、`/posts/`、`/posts/<id>/`、`/travels/`、`/travels/<id>/`、`/archive/`、`/category/<id>/`、`/feed`（RSS 订阅，`/rss.xml` 是它的别名）、`/sitemap.xml`、`/robots.txt`、`/favicon.svg`。
 
 ## Studio
 
 ```bash
-pnpm studio          # 在站点项目里运行；默认 http://127.0.0.1:4400
+pnpm studio          # 在站点项目里运行（正常模式）；默认 http://127.0.0.1:4400
+pnpm studio:dev      # 开发模式，等于 mori-studio --dev（在 monorepo 里是 pnpm dev 的一部分）
 ```
+
+开发模式和正常模式的区别：开发模式下，构建（或构建并发布）完成后会自动重启预览用的 `astro dev`，发布目标里多一个“本地文件夹”，用来在本机试发布流程；正常模式没有这两项。
 
 - 读写项目里的内容 JSON，自动保存；保存时用主题同一份 schema 校验，问题会列出来（不阻止保存）。删除是移进 `.mori-trash/`。
 - 普通文章：块编辑（拖动排序）、行内标记（`**粗**`、`{文字|note:n1}` 旁注……）、旁注脚注、置顶设置。

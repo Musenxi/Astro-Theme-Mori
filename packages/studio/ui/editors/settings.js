@@ -21,7 +21,7 @@ export function Settings({ project, refresh }) {
   const [title, setTitle] = useState(cfg.title);
   const [description, setDescription] = useState(cfg.description ?? '');
   const save = async (key, value) => {
-    try { await put(key, value); await refresh(); setMsg(`已写入 mori.config.ts：${key}`); } catch (e) { setMsg(e.message); }
+    try { await put(key, value); await refresh(); setMsg('已保存'); } catch (e) { setMsg(e.message); }
   };
   const sw = (bg, paper, ink, label) => html`<div style=${`background:${paper};color:${ink};padding:14px;border:1px solid var(--rule);flex:1`}>
     <div style=${`width:100%;height:28px;background:${bg}`}></div>
@@ -34,7 +34,7 @@ export function Settings({ project, refresh }) {
         <${Field} label="刊名"><input value=${title} onInput=${(e) => setTitle(e.target.value)} onBlur=${() => title !== cfg.title && title && save('title', title)} /><//>
         <${Field} label="简介"><input value=${description} onInput=${(e) => setDescription(e.target.value)} onBlur=${() => description !== (cfg.description ?? '') && save('description', description)} /><//>
       </section>
-      <section class="box"><h2>首页 <span class="lbl mono">改动写进 mori.config.ts，预览会随之刷新</span></h2>
+      <section class="box"><h2>首页 <span class="lbl mono">保存后预览会随之刷新</span></h2>
         <${Choice} label="版式" value=${cfg.home?.style ?? 'quote'} onPick=${(v) => save('home.style', v)}
           options=${[['quote', '引文版', '封面大图，引文压在图上，点左侧目录切换'], ['cover', '封面版', '墨色封面 + 满版刊名，往下滚时刊名缩进页头']]} />
         <${Choice} label="首页排法" value=${cfg.home?.direction ?? 'h'} onPick=${(v) => save('home.direction', v)} disabled=${cfg.lang === 'en'}
@@ -62,7 +62,7 @@ export function Settings({ project, refresh }) {
           ${override && html`<input type="color" value=${accentDark || '#7f9bff'} style="width:36px;height:28px;padding:0;border:1px solid var(--rule)" onInput=${(e) => setAccentDark(e.target.value)} onChange=${(e) => save('accentDark', e.target.value)} />`}
         </label>
       </section>
-      <p class="lbl mono" style="margin-top:28px">改动写回 ${project.configPath}，只替换对应那一行，注释和排版不动；预览打开时会随之刷新。栏目、导航等复杂设置直接在这个文件里改。</p>
+      <p class="lbl" style="margin-top:28px">分类在「文章 → 分类 / 标签」里管理。导航、评论服务等更多设置，需要直接编辑站点的配置文件（${project.configPath}）。</p>
     </div>`;
 }
 
