@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+/*
+ * MORI Studio 的视觉：纸、墨、细线、一个强调色（用站点自己的主题色）。
+ * 不用渐变、大圆角、阴影卡片；用间距和细线分层，动效只解释位置和状态。
+ */
+:root {
+  --paper: #f3f0e8;
+  --surface: #faf8f2;
+  --sunk: #ebe7dc;
+  --ink: #1b1915;
+  --ink-2: #524d44;
+  --ink-3: #8a8377;
+  --rule: #d9d2c4;
+  --rule-2: #c4bcab;
+  --accent-base: #002fa7;
+  --accent: oklch(from var(--accent-base) min(l, .52) c h);
+  --danger: #a8402a;
+  --ok: #3f6b4f;
+  --warn: #93650f;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --paper: #131210;
+  --surface: #1b1916;
+  --sunk: #23201c;
+  --ink: #ebe6db;
+  --ink-2: #b4ad9f;
+  --ink-3: #7c766a;
+  --rule: #2e2a25;
+  --rule-2: #3f3a32;
+  --accent: oklch(from var(--accent-base) max(l, .7) min(c, .18) h);
+  --danger: #e08a70;
+  --ok: #8fbf9f;
+  --warn: #d8a94a;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #131210;
+    --surface: #1b1916;
+    --sunk: #23201c;
+    --ink: #ebe6db;
+    --ink-2: #b4ad9f;
+    --ink-3: #7c766a;
+    --rule: #2e2a25;
+    --rule-2: #3f3a32;
+    --accent: oklch(from var(--accent-base) max(l, .7) min(c, .18) h);
+    --danger: #e08a70;
+    --ok: #8fbf9f;
+    --warn: #d8a94a;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-sunk: var(--sunk);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-rule: var(--rule);
+  --color-rule-2: var(--rule-2);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --font-sans: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-serif: "Songti SC", "Noto Serif SC", "Source Han Serif SC", "STSong", serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
+  --ease-out: cubic-bezier(.2, .75, .15, 1);
+  --animate-fade-in: fade-in .18s var(--ease-out) both;
+  --animate-rise: rise .32s var(--ease-out) both;
+  --animate-pop: pop .16s var(--ease-out) both;
+  --animate-slide-in: slide-in .28s var(--ease-out) both;
+}
+
+@keyframes fade-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes rise { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+@keyframes pop { from { opacity: 0; transform: scale(.97) } to { opacity: 1; transform: none } }
+@keyframes slide-in { from { transform: translateX(16px); opacity: 0 } to { transform: none; opacity: 1 } }
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font: 13.5px/1.6 var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  ::selection { background: color-mix(in srgb, var(--accent) 24%, transparent); }
+  :focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+
+  /* 细滚动条 */
+  * { scrollbar-width: thin; scrollbar-color: var(--rule-2) transparent; }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+
+@layer components {
+  .mono { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .04em; font-feature-settings: "tnum"; }
+  .serif { font-family: var(--font-serif); }
+  .label { font-size: 12px; color: var(--ink-3); letter-spacing: .04em; }
+}
