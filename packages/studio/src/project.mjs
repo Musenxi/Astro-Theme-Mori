@@ -1,12 +1,14 @@
 /**
- * 项目文件的读写：Studio 直接读写站点项目里的内容文件（src/content/posts、src/content/travels、src/assets）。
+ * 项目文件的读写：Studio 直接读写站点项目里的内容文件（src/content/posts（普通文章和游记）、src/assets）。
  * 不需要 git；“删除”是移进 .mori-trash/，不会真的删掉。
  */
 import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync } from 'node:fs';
 import { join, basename, extname } from 'node:path';
 import { loadConfigFromFile } from 'vite';
 
-export const KINDS = { post: 'posts', travel: 'travels' };
+/** 普通文章和游记都在 src/content/posts/ 下，靠内容里的 kind 区分 */
+export const KINDS = { post: 'posts', travel: 'posts' };
+export const kindOf = (d) => (d?.kind === 'travel' || (d?.kind === undefined && Array.isArray(d?.stops)) ? 'travel' : 'post');
 const ID = /^[a-z0-9][a-z0-9_-]*$/i;
 export const IMAGE_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif', '.gif', '.svg']);
 
@@ -24,16 +26,16 @@ export async function loadConfig(root) {
 
 export function listEntries(root) {
   const out = [];
-  for (const kind of Object.keys(KINDS)) {
-    const dir = dirOf(root, kind);
-    if (!existsSync(dir)) continue;
-    for (const f of readdirSync(dir).filter((f) => f.endsWith('.json'))) {
+  {
+    const dir = dirOf(root, 'post');
+    if (existsSync(dir)) for (const f of readdirSync(dir).filter((f) => f.endsWith('.json'))) {
       const id = basename(f, '.json');
       try {
         const d = JSON.parse(readFileSync(join(dir, f), 'utf8'));
+        const kind = kindOf(d);
         out.push({ kind, id, title: d.title ?? id, date: String(d.date ?? '').slice(0, 10), category: d.category, tags: Array.isArray(d.tags) ? d.tags : [], words: wordCount(d), draft: !!d.draft, pinned: !!d.pin });
       } catch (e) {
-        out.push({ kind, id, title: `${id}（JSON 有语法错误）`, date: '', broken: true });
+        out.push({ kind: 'post', id, title: `${id}（JSON 有语法错误）`, date: '', broken: true });
       }
     }
   }
@@ -78,8 +80,9 @@ export const entryExists = (root, kind, id) => existsSync(fileOf(root, kind, id)
 /** 新建：给一个能通过校验的最小骨架 */
 export function skeleton(kind, { title, category }) {
   const base = { title, date: new Date().toISOString().slice(0, 10), category, excerpt: '' };
-  if (kind === 'post') return { ...base, blocks: [{ id: 'b01', type: 'p', text: '' }] };
+  if (kind === 'post') return { kind: 'article', ...base, blocks: [{ id: 'b01', type: 'p', text: '' }] };
   return {
+    kind: 'travel',
     ...base,
     facts: [],
     stops: [{ id: 's1', name: '起点', lnglat: [0, 0] }],

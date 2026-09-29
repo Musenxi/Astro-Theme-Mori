@@ -6,7 +6,7 @@ import Scale from '../components/Scale.astro';
 import { getEntries } from '../lib/entries.ts';
 
 const all = await getEntries();
-const entries = all.filter((e) => e.kind === 'post');
+const entries = all; // 普通文章和游记都是文章
 ---
 
 <Base title={t('nav.posts')} direction={config.archive.direction}>

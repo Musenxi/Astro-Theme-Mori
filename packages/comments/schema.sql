@@ -1,7 +1,7 @@
 -- MORI 评论：文末评论和划词批注是同一种评论，区别只是有没有“钉”在文字上（block 不为空的就是批注）
 CREATE TABLE IF NOT EXISTS comments (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
-  entry       TEXT    NOT NULL,              -- posts/<id> 或 travels/<id>
+  entry       TEXT    NOT NULL,              -- posts/<id>（普通文章和游记都在 posts 下）
   block       TEXT,                          -- 批注：钉在哪个块（段落）上；文末评论为空
   start       INTEGER,                       -- 批注：选区在这个块文字里的起止字符位置
   "end"       INTEGER,
@@ -19,3 +19,6 @@ CREATE TABLE IF NOT EXISTS comments (
 CREATE INDEX IF NOT EXISTS idx_comments_entry ON comments (entry, status, created_at);
 CREATE INDEX IF NOT EXISTS idx_comments_ip ON comments (ip_hash, created_at);
 CREATE INDEX IF NOT EXISTS idx_comments_status ON comments (status, created_at);
+
+-- 游记并入文章之前评论记的是 travels/<id>，改成 posts/<id>（可重复执行）
+UPDATE comments SET entry = 'posts/' || substr(entry, 9) WHERE entry LIKE 'travels/%';

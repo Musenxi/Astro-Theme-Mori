@@ -6,7 +6,7 @@ import { siteUrl } from '../lib/site.ts';
 export const GET: APIRoute = async ({ site }) => {
   const base = siteUrl(site);
   const entries = await getEntries();
-  const fixed = ['/', '/posts/', '/travels/', '/archive/', ...config.categories.map((c) => `/category/${c.id}/`)];
+  const fixed = ['/', '/posts/', '/archive/', ...config.categories.map((c) => `/category/${c.id}/`)];
   const urls = [
     ...fixed.map((u) => `  <url><loc>${base}${u}</loc></url>`),
     ...entries.map((e) => `  <url><loc>${base}${e.href}</loc><lastmod>${(e.data.updated ?? e.data.date).toISOString().slice(0, 10)}</lastmod></url>`),

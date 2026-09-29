@@ -52,9 +52,10 @@ export default function mori(userConfig: MoriUserConfig): AstroIntegration {
         injectRoute({ pattern: '/favicon.svg', entrypoint: 'astro-mori/pages/favicon.svg.ts' });
         injectRoute({ pattern: '/404', entrypoint: 'astro-mori/pages/404.astro' });
         injectRoute({ pattern: '/posts/[slug]', entrypoint: 'astro-mori/pages/post.astro' });
-        injectRoute({ pattern: '/travels/[slug]', entrypoint: 'astro-mori/pages/travel.astro' });
         injectRoute({ pattern: '/posts', entrypoint: 'astro-mori/pages/posts-index.astro' });
-        injectRoute({ pattern: '/travels', entrypoint: 'astro-mori/pages/travels-index.astro' });
+        // 游记并入文章以后网址是 /posts/<id>/；旧的 /travels/… 跳转过去，收藏和外链不失效
+        injectRoute({ pattern: '/travels', entrypoint: 'astro-mori/pages/legacy-travels.astro' });
+        injectRoute({ pattern: '/travels/[slug]', entrypoint: 'astro-mori/pages/legacy-travel.astro' });
         injectRoute({ pattern: '/archive', entrypoint: 'astro-mori/pages/archive.astro' });
         injectRoute({ pattern: '/category/[id]', entrypoint: 'astro-mori/pages/category.astro' });
       },

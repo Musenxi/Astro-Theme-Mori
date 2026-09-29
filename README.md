@@ -69,8 +69,8 @@ export default defineMoriConfig({
 });
 ```
 
-内容放在 `src/content/posts/*.json`（普通文章）和 `src/content/travels/*.json`（游记）。格式见 [写作指南](docs/写作指南.md)。
-站点会生成：`/`、`/posts/`、`/posts/<id>/`、`/travels/`、`/travels/<id>/`、`/archive/`、`/category/<id>/`、`/feed`（RSS 订阅，`/rss.xml` 是它的别名）、`/sitemap.xml`、`/robots.txt`、`/favicon.svg`。
+文章都放在 `src/content/posts/*.json`：普通文章和游记同属“文章”，游记只是多了 `"kind": "travel"`（不写的话，有 `stops` 的就是游记）。格式见 [写作指南](docs/写作指南.md)。
+站点会生成：`/`、`/posts/`、`/posts/<id>/`（普通文章和游记同一个网址结构；旧的 `/travels/…` 会跳转过来）、`/archive/`、`/category/<id>/`、`/feed`（RSS 订阅，`/rss.xml` 是它的别名）、`/sitemap.xml`、`/robots.txt`、`/favicon.svg`。
 
 ## Studio
 

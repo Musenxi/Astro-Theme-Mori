@@ -4,7 +4,6 @@ import config from 'virtual:mori/config';
 import type { MoriCategory } from '../config.ts';
 
 export type PostEntry = CollectionEntry<'posts'>;
-export type TravelEntry = CollectionEntry<'travels'>;
 
 /** 文章和游记放进同一个列表：首页、目次、归档都是不分类型地看它们 */
 export interface Entry {
@@ -15,19 +14,17 @@ export interface Entry {
   /** 期号式编号：最早一篇是 1，越新越大（目次里显示成 001、002……） */
   n: number;
   category: MoriCategory;
-  data: PostEntry['data'] | TravelEntry['data'];
-  raw: PostEntry | TravelEntry;
+  data: PostEntry['data'];
+  raw: PostEntry;
 }
 
 const categories = new Map(config.categories.map((c) => [c.id, c]));
 
 /** 最新的排最前 */
 export async function getEntries(): Promise<Entry[]> {
-  const [posts, travels] = await Promise.all([getCollection('posts'), getCollection('travels')]);
-  const list = [
-    ...posts.map((raw) => ({ kind: 'post' as const, raw })),
-    ...travels.map((raw) => ({ kind: 'travel' as const, raw })),
-  ]
+  // 普通文章和游记同在 posts 里，靠 data.kind 区分
+  const list = (await getCollection('posts'))
+    .map((raw) => ({ kind: (raw.data.kind === 'travel' ? 'travel' : 'post') as 'post' | 'travel', raw }))
     .filter(({ raw }) => import.meta.env.DEV || !raw.data.draft)
     .sort((a, b) => a.raw.data.date.getTime() - b.raw.data.date.getTime() || a.raw.id.localeCompare(b.raw.id));
 
@@ -39,7 +36,7 @@ export async function getEntries(): Promise<Entry[]> {
           `《${raw.data.title}》的栏目 “${raw.data.category}” 没有在 mori.config.ts 的 categories 里定义（已有：${[...categories.keys()].join('、')}）`,
         );
       }
-      return { kind, id: raw.id, href: `/${kind === 'post' ? 'posts' : 'travels'}/${raw.id}/`, n: i + 1, category, data: raw.data, raw };
+      return { kind, id: raw.id, href: `/posts/${raw.id}/`, n: i + 1, category, data: raw.data, raw };
     })
     .reverse();
 }

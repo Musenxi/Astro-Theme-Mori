@@ -7,7 +7,7 @@ import { t } from '../lib/i18n.ts';
 import config from 'virtual:mori/config';
 
 interface Props {
-  /** 评论按文章归档：posts/<id> 或 travels/<id> */
+  /** 评论按文章归档：posts/<id>（普通文章和游记都在 posts 下） */
   entry: string;
 }
 const { entry } = Astro.props;

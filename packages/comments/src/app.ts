@@ -30,7 +30,7 @@ export interface AppOptions {
 }
 
 export const LIMITS = { name: 40, email: 120, body: 4000, quote: 600, context: 200, perMinute: 3, perDay: 20 };
-const ENTRY = /^(posts|travels)\/[A-Za-z0-9][A-Za-z0-9_-]*$/;
+const ENTRY = /^posts\/[A-Za-z0-9][A-Za-z0-9_-]*$/;
 const BLOCK = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
 
 /** 对外的字段：不含邮箱哈希、IP 哈希、状态之外的内部信息 */

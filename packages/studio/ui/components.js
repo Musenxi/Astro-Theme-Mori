@@ -2,7 +2,7 @@ import { html, useState, useEffect, useRef } from './h.js';
 import { api } from './api.js';
 import { spansToText, textToSpans, asSpans, compact } from './inline.js';
 
-/** 内容 JSON 到图片的相对路径：src/content/{posts,travels}/x.json → ../../assets/name */
+/** 内容 JSON 到图片的相对路径：src/content/posts/x.json → ../../assets/name */
 export const assetPath = (name) => `../../assets/${name}`;
 export const assetName = (p) => (p ? p.split('/').pop() : '');
 export const assetUrl = (p, w = 240) => (p ? `/asset/${encodeURIComponent(assetName(p))}?w=${w}` : '');

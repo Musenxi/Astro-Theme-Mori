@@ -135,6 +135,8 @@ export const postSchema = ({ image }: SchemaContext) => {
 
   return z
     .object({
+      /** 普通文章。文件里可以不写 kind（见 entrySchema） */
+      kind: z.literal('article'),
       ...metaBase(image),
       notes: z.record(id, noteSchema).default({}),
       blocks: z.array(block),
@@ -210,6 +212,8 @@ export const travelSchema = ({ image }: SchemaContext) => {
 
   return z
     .object({
+      /** 游记 */
+      kind: z.literal('travel'),
       ...metaBase(image),
       /** 一行行的事实，游记封面的“路线 / 日期 / 里程” */
       facts: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
@@ -236,7 +240,18 @@ export const travelSchema = ({ image }: SchemaContext) => {
     });
 };
 
+/**
+ * 一篇“文章”：普通文章或游记，都放在 src/content/posts/ 下。
+ * 文件里可以不写 kind：有 stops 的是游记，其余是普通文章（手写 JSON 时省事，也兼容旧文件）。
+ */
+export const entrySchema = (ctx: SchemaContext) =>
+  z.preprocess(
+    (v) => (v && typeof v === 'object' && !('kind' in v) ? { ...(v as object), kind: 'stops' in v ? 'travel' : 'article' } : v),
+    z.discriminatedUnion('kind', [postSchema(ctx), travelSchema(ctx)]),
+  );
+
 export type PostData = z.infer<ReturnType<typeof postSchema>>;
 export type TravelData = z.infer<ReturnType<typeof travelSchema>>;
+export type EntryData = PostData | TravelData;
 export type PostBlock = PostData['blocks'][number];
 export type TravelBlock = TravelData['blocks'][number];

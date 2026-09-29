@@ -1,0 +1,10 @@
+---
+// 旧地址 /travels/<id>/ → /posts/<id>/（游记并入文章之后）
+import { getEntries } from '../lib/entries.ts';
+
+export async function getStaticPaths() {
+  return (await getEntries()).filter((e) => e.kind === 'travel').map((e) => ({ params: { slug: e.id } }));
+}
+const { slug } = Astro.params;
+return Astro.redirect(`/posts/${slug}/`, 301);
+---

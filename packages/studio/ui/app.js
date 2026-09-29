@@ -27,7 +27,7 @@ function App() {
   if (error) return html`<div class="empty-state">${error}</div>`;
   if (!project) return html`<div class="empty-state">读取项目……</div>`;
 
-  const path = route.kind === 'post' ? `/posts/${route.id}/` : route.kind === 'travel' ? `/travels/${route.id}/` : '/';
+  const path = route.kind === 'post' ? `/posts/${route.id}/` : route.kind === 'travel' ? `/posts/${route.id}/` : '/';
   const togglePreview = async () => {
     if (!previewOn) { const r = await api.previewStart(); if (!r.up) return alert(`预览没能启动（等了 30 秒仍没有响应）。请确认项目已经安装好依赖（在项目里运行 pnpm install），然后再试。`); setPreviewUrl(r.url); }
     setPreviewOn(!previewOn);

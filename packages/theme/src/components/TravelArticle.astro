@@ -1,0 +1,35 @@
+---
+/** 游记的正文部分：封面（标题、事实、地图）+ 各块。由统一的文章页（pages/post.astro）在 kind 为 travel 时使用 */
+import { t, vertical } from '../lib/i18n.ts';
+import TravelBody from './TravelBody.astro';
+import RouteMap from './RouteMap.astro';
+import type { Entry } from '../lib/entries.ts';
+import type { TravelData } from '../content/schema.ts';
+import { dotDate } from '../lib/zh.ts';
+
+interface Props { entry: Entry }
+const { entry } = Astro.props;
+const d = entry.data as TravelData;
+// 内容里叫 v / h / mix，样式和脚本里混合读法叫 m
+const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | 'm';
+const allowed = d.reading.allowed.map(short);
+const initial = allowed.includes(short(d.reading.default)) ? short(d.reading.default) : allowed[0];
+---
+
+<article class="travel" data-mode={initial} data-dir={vertical ? d.reading.direction : 'ltr'}>
+  <header class="wrap g t-hero">
+    <div class="info">
+      <div class="kicker mono">{entry.category.zh} · {dotDate(d.date)}</div>
+      <h1>{d.title}</h1>
+      <p class="ex">{d.excerpt}</p>
+      {d.facts.length > 0 && (
+        <dl class="facts">
+          {d.facts.map((f) => <><dt>{f.label}</dt><dd>{f.value}</dd></>)}
+          <dt>{t('travel.stops')}</dt><dd>{d.stops.length}</dd>
+        </dl>
+      )}
+    </div>
+    <div class="mapbox"><RouteMap variant="hero" stops={d.stops} track={d.track} /></div>
+  </header>
+  <TravelBody travel={d} />
+</article>

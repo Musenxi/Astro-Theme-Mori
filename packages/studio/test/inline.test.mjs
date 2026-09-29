@@ -36,6 +36,6 @@ test('示例站里所有真实的行内文字都能无损往返', () => {
       else v.forEach(walk);
     } else if (v && typeof v === 'object') Object.values(v).forEach(walk);
   };
-  for (const kind of ['posts', 'travels']) for (const f of readdirSync(dir + kind)) walk(JSON.parse(readFileSync(dir + kind + '/' + f, 'utf8')));
+  for (const kind of ['posts']) for (const f of readdirSync(dir + kind)) walk(JSON.parse(readFileSync(dir + kind + '/' + f, 'utf8')));
   assert.ok(n > 0);
 });

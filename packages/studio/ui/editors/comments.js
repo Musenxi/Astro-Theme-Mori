@@ -13,7 +13,7 @@ const when = (t) => { const d = new Date(t); return `${d.getFullYear()}.${String
 export function Comments({ project, refresh }) {
   const c = project.comments;
   const [tab, setTab] = useState('pending'), [list, setList] = useState(null), [stats, setStats] = useState(null), [err, setErr] = useState(''), [token, setToken] = useState('');
-  const title = (entry) => { const [kind, id] = entry.split('/'); return project.entries.find((e) => e.id === id && (kind === 'posts' ? 'post' : 'travel') === e.kind)?.title ?? entry; };
+  const title = (entry) => project.entries.find((e) => e.id === entry.split('/')[1])?.title ?? entry;
 
   const load = async () => {
     setErr('');

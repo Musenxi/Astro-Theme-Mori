@@ -102,7 +102,6 @@ export function resolveConfig(c: MoriUserConfig): MoriConfig {
     categories: c.categories,
     nav: c.nav ?? [
       { label: t('nav.posts'), href: '/posts/' },
-      { label: t('nav.travels'), href: '/travels/' },
       { label: t('nav.archive'), href: '/archive/' },
     ],
     home: { style: c.home?.style ?? 'quote', direction: dir(c.home?.direction), editorNote: c.home?.editorNote ?? '' },
