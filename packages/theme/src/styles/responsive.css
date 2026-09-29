@@ -1,0 +1,37 @@
+/* 窄屏与减少动态效果 —— 由 design/style-probe/index.html 还原（首页、文章部分；游记、归档随各自页面加入） */
+@media (max-width:760px){
+  body{font-size:16px}
+  .g > *,.prose > *,.post-h > *{grid-column:1/-1!important}
+  .fo-side{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin-bottom:28px;padding:0}
+  .fo-side .k{margin:0}
+  .fo-side b{font-size:24px;margin:0}
+  .fo-more{flex-basis:100%;margin-top:22px}
+  /* 手机上的封面：整幅图铺满屏宽、顶到屏幕最上（玻璃页头浮在图上），引文压在图里，刊期信息和目录放在图下面 */
+  .fo{padding-top:0}
+  .fo-stage{margin:-53px calc(-1*var(--gut)) 0}
+  .fo-side{grid-row:2;position:static;margin:26px 0 0}
+  .fo-cover .ph{height:clamp(320px,calc(100svh - 200px),660px)}
+  .fo-cite{padding-left:var(--gut);padding-right:var(--gut);background-position:var(--gut) 0;background-size:calc(100% - 2*var(--gut)) 1px}
+  .fo-cite > div:not(.ttl){display:none}
+  .fo-cover .ph{--dir:to left}
+  .fo-cover figcaption{padding:0 var(--gut)}
+  :root:not([data-hdir="v"]) .fo-cover .ph{-webkit-mask-image:linear-gradient(to bottom,#000 32%,rgba(0,0,0,.8) 48%,rgba(0,0,0,.5) 62%,rgba(0,0,0,.24) 78%,rgba(0,0,0,.08) 100%);mask-image:linear-gradient(to bottom,#000 32%,rgba(0,0,0,.8) 48%,rgba(0,0,0,.5) 62%,rgba(0,0,0,.24) 78%,rgba(0,0,0,.08) 100%)}
+  :root[data-hdir="v"] .fo-cover .ph{-webkit-mask-image:linear-gradient(to left,rgba(0,0,0,.05) 0,rgba(0,0,0,.12) 12%,rgba(0,0,0,.24) 26%,rgba(0,0,0,.5) 40%,rgba(0,0,0,.8) 52%,#000 64%),linear-gradient(to bottom,#000 74%,rgba(0,0,0,.5) 90%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to left,rgba(0,0,0,.05) 0,rgba(0,0,0,.12) 12%,rgba(0,0,0,.24) 26%,rgba(0,0,0,.5) 40%,rgba(0,0,0,.8) 52%,#000 64%),linear-gradient(to bottom,#000 74%,rgba(0,0,0,.5) 90%,transparent 100%);mask-composite:intersect}
+  .fo-qa{align-self:end;padding:0 0 46px 1em!important}
+  :root:not([data-hdir="v"]) .fo-q{text-indent:-1em;font-size:clamp(25px,7.6vw,32px)}
+  :root[data-hdir="v"] .fo-qa{align-self:center;padding:0 4px 0 0!important}
+  :root[data-hdir="v"] .fo-q{text-indent:0}
+  .fo-cite{grid-template-columns:1fr auto;row-gap:16px}
+  .fo-cite dd{font-size:14px}
+  .f-ed{position:static;margin-bottom:56px}
+  .f-en a{grid-template-columns:3.2em 1fr}
+  .f-en .dt{grid-column:2}
+  .f-en .pn{font-size:28px}
+  .prose .n{display:block}
+  .prose .n > aside{margin:-.4em 0 1.4em;padding-top:.5em}
+  .post-end a{grid-column:1/-1!important;text-align:left!important;align-items:flex-start!important;margin-bottom:18px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important;transition:none!important}
+  .rv img{clip-path:none;transform:none;opacity:1}
+}

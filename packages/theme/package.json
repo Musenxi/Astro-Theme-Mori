@@ -1,0 +1,33 @@
+{
+  "name": "astro-mori",
+  "version": "0.0.1",
+  "description": "MORI — a quiet, editorial Astro blog theme with vertical text and travel journals.",
+  "license": "GPL-3.0-only",
+  "type": "module",
+  "keywords": [
+    "astro-integration",
+    "astro-theme",
+    "blog",
+    "vertical-text",
+    "withastro"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./content": "./src/content/index.ts",
+    "./components/*": "./src/components/*",
+    "./layouts/*": "./src/layouts/*",
+    "./styles/*": "./src/styles/*",
+    "./pages/*": "./src/pages/*",
+    "./fonts/*": "./fonts/*"
+  },
+  "files": [
+    "src",
+    "fonts"
+  ],
+  "peerDependencies": {
+    "astro": "^7.0.0"
+  },
+  "dependencies": {
+    "@fontsource/cormorant-garamond": "^5.3.0"
+  }
+}

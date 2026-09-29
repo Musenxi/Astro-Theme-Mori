@@ -1,0 +1,14 @@
+---
+import config from 'virtual:mori/config';
+---
+
+<!-- 页头跨页保留：透镜可以在栏目之间滑动，折射用的滤镜也不必重画 -->
+<header class="site" id="site" transition:persist="mori-site">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="lg-defs"></defs></svg>
+  <a class="mark" href="/">{config.title}</a>
+  <nav class="lg lg-nav" id="lg-nav" aria-label="主导航">
+    <span class="lg-lens" id="lg-lens" aria-hidden="true"></span>
+    {config.nav.map((n) => <a href={n.href}>{n.label}</a>)}
+  </nav>
+  <button class="lg lg-btn theme" id="theme" type="button" title="切换昼夜" aria-label="切换昼夜">夜</button>
+</header>

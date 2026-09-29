@@ -1,0 +1,101 @@
+/* 首页：引文开篇 + 目次 —— 由 design/style-probe/index.html 还原 */
+/* ---------- 首页 F：期刊 ---------- */
+/* 开篇：不用横幅，用本期特稿里的一句话开场 */
+.fo{padding-top:clamp(36px,8vh,110px);padding-bottom:clamp(64px,13vh,160px)}
+.fo-side{grid-column:1/3;display:flex;flex-direction:column;gap:5px;color:var(--ink-3);padding-top:.5em}
+.fo-side .k{color:var(--accent);margin-bottom:12px}
+.fo-side b{font-family:var(--display);font-weight:300;font-size:34px;line-height:1;letter-spacing:0;color:var(--ink);font-variant-numeric:oldstyle-nums;margin-bottom:10px}
+/* 本期收录：置顶可以有好几篇，点左边目录里的某一篇就换成那一篇（交叉溶解）。页面照常滚动，不钉住、不跟滚动联动。
+   只有一篇（或没设置置顶）时没有目录，就是一张静止的封面 */
+.fo-pin{grid-column:3/13;grid-row:1;display:grid}
+.fo-stage{grid-area:1/1}
+.fo-side{grid-row:1}
+/* 目录：紧跟在刊期信息下面；当前一篇高亮，上沿画一条主题色细线 */
+.fo-more{margin-top:clamp(28px,5vh,48px)}
+.fo-more ol{display:flex;flex-direction:column}
+.fo-more li{position:relative;border-top:1px solid var(--rule)}
+.fo-more li::after{content:"";position:absolute;left:0;top:-1px;height:1px;width:0;background:var(--accent);transition:width .65s cubic-bezier(.22,1,.36,1)}
+.fo-more li[aria-current]::after{width:100%}
+.fo-more button{width:100%;text-align:left;display:flex;gap:12px;align-items:baseline;padding:13px 0 14px;font-family:var(--serif);cursor:pointer}
+.fo-more button b{font-family:var(--display);font-weight:300;font-style:italic;font-size:20px;line-height:1;color:var(--ink-3);flex:none;min-width:1.7em;transition:color .4s}
+.fo-more button span{font-size:17px;line-height:1.45;letter-spacing:.03em;color:var(--ink-3);transition:color .4s}
+.fo-more button:hover span,.fo-more li[aria-current] span{color:var(--ink)}
+.fo-more button:hover b,.fo-more li[aria-current] b{color:var(--accent)}
+/* 舞台：几篇叠在同一格里，同时只显示当前一篇（换篇时上一篇留着做底）。封面图铺满，引文直接压在图上；
+   图朝着引文的一侧淡出（纸色），字落在淡出的那一段：横排时引文在左、图淡左缘；竖排时引文在右、图淡右缘。淡出用多停点近似缓动，避免色带 */
+.fo-stage{display:flex;flex-direction:column;min-width:0}
+.fo-track{display:grid}
+.fo-slide{grid-area:1/1;display:flex;flex-direction:column;min-width:0;visibility:hidden}
+.fo-slide.on,.fo-slide.out{visibility:visible}
+.fo-slide.on{z-index:2}.fo-slide.out{z-index:1}
+.fo-art{display:grid}
+.fo-art > *{grid-area:1/1}
+.fo-cover{display:flex;flex-direction:column;gap:10px}
+.fo-cover .ph{--dir:to right;position:relative;height:clamp(300px,calc(100svh - 330px),620px);overflow:hidden;
+  -webkit-mask-image:linear-gradient(var(--dir),rgba(0,0,0,.05) 0,rgba(0,0,0,.12) 12%,rgba(0,0,0,.24) 26%,rgba(0,0,0,.5) 40%,rgba(0,0,0,.8) 52%,#000 64%);
+  mask-image:linear-gradient(var(--dir),rgba(0,0,0,.05) 0,rgba(0,0,0,.12) 12%,rgba(0,0,0,.24) 26%,rgba(0,0,0,.5) 40%,rgba(0,0,0,.8) 52%,#000 64%)}
+:root[data-hdir="v"] .fo-cover .ph{--dir:to left}
+.fo-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.9);transform-origin:50% 50%}
+.fo-cover figcaption{display:flex;justify-content:space-between;gap:16px;color:var(--ink-3);letter-spacing:.06em}
+.fo-qa{display:block;position:relative;z-index:2;align-self:center;justify-self:start;max-width:min(100%,800px);padding-left:clamp(16px,3vw,48px)}
+.fo-q{font-size:clamp(32px,4vw,66px);font-weight:300;line-height:1.6;letter-spacing:.05em;text-indent:-1em;transition:color .5s}
+.fo-qa:hover .fo-q{color:var(--ink-2)}
+.fo-cite{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.4fr auto;column-gap:var(--gap);align-items:end;margin-top:clamp(22px,4vh,44px);padding-top:16px;background:linear-gradient(var(--ink),var(--ink)) 0 0/100% 1px no-repeat}
+.fo-cite dt{font:10.5px/1.6 var(--mono);letter-spacing:.1em;color:var(--ink-3);margin-bottom:4px}
+.fo-cite dd{font-size:15px;line-height:1.6}
+.fo-cite .ttl dd{font-size:23px;letter-spacing:.06em;line-height:1.3;width:fit-content}
+.fo-go{white-space:nowrap;font-size:15px;padding-bottom:2px}
+.fo-go span{display:inline-block;color:var(--accent);transition:transform .5s var(--ease)}
+.fo-go:hover span{transform:translateX(5px)}
+/* 进场（第一次打开）：图从上往下展开，引文一个字一个字像墨一样洇开，细线画开，最后出现篇名等信息 */
+.fo.play .fo-slide.on:not(.enter) .ph{animation:cover-in 1.4s var(--ease) .5s both}
+.fo.play .fo-slide.on .fo-q .ch{animation:ink 1s ease calc(.2s + var(--i)*40ms) both}
+@keyframes ink{from{opacity:0;filter:blur(7px)}}
+.fo.play .fo-slide.on:not(.enter) .fo-cite{animation:cite-rule 1.3s var(--ease) 1.2s both}
+@keyframes cite-rule{from{background-size:0 1px}}
+.fo.play .fo-slide.on:not(.enter) .fo-cite > *,.fo.play .fo-side,.fo.play .fo-slide.on:not(.enter) figcaption{animation:fade .9s ease 1.6s both}
+@keyframes cover-in{from{clip-path:inset(0 0 100% 0)}}
+@keyframes fade{from{opacity:0}}
+/* 换篇：交叉溶解（参考 velasx.com 精选区）。新旧两篇叠在一起，旧的淡出、新的淡入，同时进行；
+   图、引文、图注、篇名信息是一整块，一起溶过去；没有位移、缩放、裁切，引文也不再逐字洇开。
+   0.65 秒，quint-out（先快后慢）：前五分之一已经换过去大半，后面慢慢收尾 */
+.fo-slide.on.enter{animation:dissolve-in .65s cubic-bezier(.22,1,.36,1) both}
+.fo-slide.out{animation:dissolve-out .65s cubic-bezier(.22,1,.36,1) both}
+@keyframes dissolve-in{from{opacity:0}}
+@keyframes dissolve-out{to{opacity:0}}
+.fo.play .fo-slide.on.enter .fo-q .ch{animation:none}
+/* 竖排：引文竖排成一首诗的样子 */
+:root[data-hdir="v"] .fo-qa{justify-self:end;padding:0 clamp(8px,1.4vw,24px) 0 0}
+:root[data-hdir="v"] .fo-q{writing-mode:vertical-rl;font-size:clamp(30px,3.2vw,52px);line-height:2}
+/* 目次 */
+.fcon{padding-top:clamp(56px,11vh,128px);padding-bottom:clamp(40px,8vh,96px)}
+.f-run{display:flex;justify-content:space-between;gap:20px;color:var(--ink-3);padding-bottom:10px;border-bottom:1px solid var(--ink)}
+.fcon-body{padding-top:clamp(32px,6vh,72px)}
+.f-ed{grid-column:1/5;position:sticky;top:110px;align-self:start}
+.f-toc{font-size:clamp(56px,6.6vw,108px);font-weight:400;letter-spacing:.12em;line-height:1}
+.f-toc em{display:block;font-family:var(--display);font-style:italic;font-weight:300;font-size:.3em;letter-spacing:.01em;color:var(--ink-3);margin-top:.35em}
+.f-note{margin-top:44px;max-width:14.5em;font-size:15px;line-height:1.95;color:var(--ink-2)}
+.f-note .mono{display:block;color:var(--accent);margin-bottom:8px}
+.f-secs{grid-column:6/13}
+.f-sec{margin-bottom:clamp(44px,8vh,88px)}
+.f-sh{display:flex;align-items:baseline;gap:16px;padding-bottom:12px;background:linear-gradient(var(--ink),var(--ink)) 0 100%/0 1px no-repeat;transition:background-size 1.3s var(--ease)}
+.f-sec.in .f-sh{background-size:100% 1px}
+.f-sh .rn{font-family:var(--display);font-weight:300;font-size:46px;line-height:.9;min-width:1.4em}
+.f-sh h3{font-size:22px;font-weight:400;letter-spacing:.14em}
+.f-sh em{font-family:var(--display);font-style:italic;font-weight:300;font-size:20px;color:var(--ink-3)}
+.f-sh .ct{margin-left:auto;color:var(--ink-3);transition:color .3s}
+.f-sh h3{transition:color .3s}
+.f-sh:hover h3,.f-sh:hover .ct{color:var(--accent)}
+.f-en a{display:grid;grid-template-columns:4.4em 1fr auto;column-gap:18px;align-items:baseline;padding:17px 0 19px;border-bottom:1px solid var(--rule)}
+.f-en .pn{font-family:var(--display);font-weight:300;font-size:36px;line-height:1;font-variant-numeric:oldstyle-nums;transition:color .3s}
+.f-en .tt{font-size:clamp(20px,1.75vw,26px);line-height:1.4;letter-spacing:.04em;width:fit-content;background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .6s var(--ease)}
+.f-en .ex{grid-column:2;font-size:14px;line-height:1.8;color:var(--ink-3);margin-top:6px}
+.f-en .dt{color:var(--ink-3)}
+.f-en a:hover .pn{color:var(--accent)}
+.f-en a:hover .tt{background-size:100% 1px}
+/* 竖排：目次、编者按改为竖排 */
+:root[data-hdir="v"] .f-toc{writing-mode:vertical-rl}
+:root[data-hdir="v"] .f-toc em{margin:0;margin-block-start:.4em}
+:root[data-hdir="v"] .f-note{writing-mode:vertical-rl;height:15em;max-width:none;margin-top:0}
+:root[data-hdir="v"] .f-ed{display:flex;flex-direction:row-reverse;gap:40px;justify-content:flex-end}
+

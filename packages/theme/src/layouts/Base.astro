@@ -1,0 +1,71 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import config from 'virtual:mori/config';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+import '../../fonts/STD/light/font.css';
+import '../../fonts/STD/regular/font.css';
+import '../../fonts/STD/bold/font.css';
+import '@fontsource/cormorant-garamond/300.css';
+import '@fontsource/cormorant-garamond/300-italic.css';
+import '@fontsource/cormorant-garamond/400.css';
+import '@fontsource/cormorant-garamond/500.css';
+import '../styles/base.css';
+import '../styles/glass.css';
+import '../styles/home.css';
+import '../styles/post.css';
+import '../styles/footer.css';
+import '../styles/transitions.css';
+import '../styles/responsive.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** 首页 / 归档页的排法（h 横排 / v 竖排）；文章页不设 */
+  direction?: 'h' | 'v';
+  /** 文章页的 og:type 等 */
+  type?: 'website' | 'article';
+}
+const { title, description = config.description, direction, type = 'website' } = Astro.props;
+const fullTitle = title ? `${title} · ${config.title}` : config.title;
+const canonical = config.site ? new URL(Astro.url.pathname, config.site).href : undefined;
+---
+
+<!doctype html>
+<html lang="zh-CN" data-hdir={direction}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    {description && <meta name="description" content={description} />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:type" content={type} />
+    {description && <meta property="og:description" content={description} />}
+    <meta name="color-scheme" content="light dark" />
+    <style is:inline set:html={`:root{--accent-base:${config.accent}}`} />
+    <!-- 昼夜：先于首次绘制，避免闪一下；换页时 <html> 的属性会被换掉，所以每次换页后再补上 -->
+    <script is:inline>
+      (() => {
+        const apply = () => {
+          try {
+            const t = localStorage.getItem('mori-theme');
+            if (t) document.documentElement.dataset.theme = t;
+          } catch {}
+        };
+        apply();
+        document.addEventListener('astro:after-swap', apply);
+      })();
+    </script>
+    <ClientRouter />
+  </head>
+  <body>
+    <Header />
+    <slot />
+    <Footer />
+    <script>
+      import '../scripts/chrome.ts';
+    </script>
+  </body>
+</html>
