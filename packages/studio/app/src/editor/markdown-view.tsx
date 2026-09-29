@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Bold, Code, Heading2, Heading3, ImageIcon, Italic, Link2, List, MessageSquareQuote, Quote } from 'lucide-react';
 import { api } from '@/lib/api';
+import { countWords, wan } from '@/lib/format';
 import { useRefresh } from '@/lib/hooks';
 import { fromMarkdown, toMarkdown } from '@/lib/mdsync.js';
 import type { Doc } from '@/lib/types';
@@ -28,6 +29,7 @@ export function MarkdownView({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) 
   const initial = useRef(doc);
   const refresh = useRefresh();
   const [lib, setLib] = useState(false);
+  const words = useMemo(() => countWords(doc), [doc]);
 
   useEffect(() => {
     let pending: string | null = null;
@@ -64,7 +66,7 @@ export function MarkdownView({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) 
             </Tip>
           </span>
         ))}
-        <span className="mono ml-auto text-[11px] text-ink-3">{doc.blocks?.length ?? 0} 块</span>
+        <span className="mono ml-auto text-[11px] text-ink-3">{wan(words)} 字 · {doc.blocks?.length ?? 0} 块</span>
       </div>
       <div ref={host} className="min-h-0 flex-1" />
       <AssetDialog open={lib} onOpenChange={setLib} onPick={(n) => { ed.current?.insertBlock(`![](${n})`); setLib(false); }} />

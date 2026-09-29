@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation, useMatch, useResolvedPath } from 'react-router';
-import { ChevronRight, Files, FileText, Gauge, MessageSquare, Moon, PanelTop, Paperclip, PenLine, Send, SlidersHorizontal, Sun, Tag, Users, Eye, FilePen, BookOpenText } from 'lucide-react';
+import { ChevronRight, Search, Files, FileText, Gauge, MessageSquare, Moon, PanelTop, Paperclip, PenLine, Send, SlidersHorizontal, Sun, Tag, Users, Eye, FilePen, BookOpenText } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { useProject } from '@/lib/hooks';
 import { Tip } from './ui/tooltip';
@@ -55,7 +55,7 @@ export function useTheme() {
   return [theme, () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))] as const;
 }
 
-export function Sidebar({ onCompose }: { onCompose: () => void }) {
+export function Sidebar({ onCompose, onSearch }: { onCompose: () => void; onSearch: () => void }) {
   const { data: project } = useProject();
   const { pathname } = useLocation();
   const [theme, toggleTheme] = useTheme();
@@ -70,6 +70,13 @@ export function Sidebar({ onCompose }: { onCompose: () => void }) {
         <span className="serif truncate text-[17px] tracking-[.22em] max-lg:hidden" title={project?.root}>{project?.config.title ?? 'MORI'}</span>
         <span className="mono text-[10.5px] text-ink-3 max-lg:hidden">STUDIO{project?.dev ? ' · DEV' : ''}</span>
         <span className="serif hidden text-[15px] max-lg:block">{[...(project?.config.title ?? 'M')][0]}</span>
+      </div>
+      <div className="px-2.5 pb-2">
+        <Tip label="搜索文章、页面和功能" side="right">
+          <button type="button" onClick={onSearch} className="flex h-8 w-full items-center gap-2.5 rounded-md border border-rule px-3 text-left text-[12.5px] text-ink-3 transition-colors hover:border-rule-2 hover:text-ink max-lg:justify-center max-lg:px-0">
+            <Search size={14} /><span className="flex-1 max-lg:hidden">搜索</span><kbd className="mono text-[10.5px] max-lg:hidden">⌘K</kbd>
+          </button>
+        </Tip>
       </div>
       <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-2.5 pb-3">
         <Row to="/" end icon={<Gauge size={ICON} />} label="仪表盘" />

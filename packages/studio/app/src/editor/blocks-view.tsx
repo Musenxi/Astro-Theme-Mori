@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import { countWords, wan } from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -45,7 +46,7 @@ export function BlocksView({ kind, doc, patch, setDoc }: { kind: Kind; doc: Doc;
         {travel && <TravelHead doc={doc} patch={patch} />}
 
         <section className="mt-8">
-          <h2 className="mb-3 flex items-baseline gap-3 text-[12px] tracking-[.22em] text-ink-3">正文<span className="mono tracking-normal">{blocks.length} 个块</span></h2>
+          <h2 className="mb-3 flex items-baseline gap-3 text-[12px] tracking-[.22em] text-ink-3">正文<span className="mono tracking-normal">{wan(countWords(doc))} 字 · {blocks.length} 个块</span></h2>
           <SortableList items={blocks} getId={(b) => b.id} onReorder={setBlocks}>
             <div className="space-y-2.5">
               {blocks.map((b) => (
