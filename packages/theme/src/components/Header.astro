@@ -1,6 +1,10 @@
 ---
 import { t } from '../lib/i18n.ts';
 import config from 'virtual:mori/config';
+import { getPages } from '../lib/pages.ts';
+
+// 没有手动设定入口时：内置的几项 + 所有页面；设定过就完全按设定来
+const items = config.navCustom ? config.nav : [...config.nav, ...(await getPages()).map((p) => ({ label: p.data.title, href: `/${p.id}/` }))];
 ---
 
 <!-- 页头跨页保留：透镜可以在栏目之间滑动，折射用的滤镜也不必重画 -->
@@ -9,7 +13,7 @@ import config from 'virtual:mori/config';
   <a class="mark" href="/">{config.title}</a>
   <nav class="lg lg-nav" id="lg-nav" aria-label={t('a11y.mainNav')}>
     <span class="lg-lens" id="lg-lens" aria-hidden="true"></span>
-    {config.nav.map((n) => <a href={n.href}>{n.label}</a>)}
+    {items.map((n) => <a href={n.href}>{n.label}</a>)}
   </nav>
   <button class="lg lg-btn theme" id="theme" type="button" title={t('theme.toggle')} aria-label={t('theme.toggle')}>{t('theme.toDark')}</button>
 </header>

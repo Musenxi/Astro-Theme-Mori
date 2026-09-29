@@ -116,8 +116,9 @@ const picture = (image: ImageFn) => ({
 
 const noteSchema = z.object({ text: inlineSchema });
 
-export const postSchema = ({ image }: SchemaContext) => {
-  const block = z.discriminatedUnion('type', [
+/** 普通文章（和页面）正文里的块 */
+export const articleBlocks = (image: ImageFn) => {
+  return z.discriminatedUnion('type', [
     z.object({ id, type: z.literal('p'), text: inlineSchema }),
     z.object({ id, type: z.literal('h'), level: z.union([z.literal(2), z.literal(3)]).default(2), text: inlineSchema }),
     /** 引用；`writing: 'v'` 竖排（spec §3.1） */
@@ -132,6 +133,10 @@ export const postSchema = ({ image }: SchemaContext) => {
     z.object({ id, type: z.literal('list'), ordered: z.boolean().default(false), items: z.array(inlineSchema) }),
     z.object({ id, type: z.literal('code'), lang: z.string().optional(), code: z.string() }),
   ]);
+};
+
+export const postSchema = ({ image }: SchemaContext) => {
+  const block = articleBlocks(image);
 
   return z
     .object({
@@ -240,6 +245,38 @@ export const travelSchema = ({ image }: SchemaContext) => {
     });
 };
 
+/* ───────────── 页面（关于、留言……）与友人帐 ───────────── */
+
+/** 页面的网址就是文件名：/about/。这些名字已经被站点自己用了，页面不能取 */
+export const RESERVED_SLUGS = ['posts', 'archive', 'category', 'search', 'travels', 'feed', 'rss', '404', 'sitemap', 'robots', 'favicon', '_astro', 'api'];
+
+/** 独立页面：正文和文章用同一套块。template 为 friends 的页面，正文后面接友人帐 */
+export const pageSchema = ({ image }: SchemaContext) =>
+  z
+    .object({
+      title: z.string(),
+      subtitle: z.string().optional(),
+      excerpt: z.string().default(''),
+      draft: z.boolean().default(false),
+      template: z.enum(['default', 'friends']).default('default'),
+      /** 页面底部是否开放评论 */
+      comments: z.boolean().default(false),
+      notes: z.record(id, noteSchema).default({}),
+      blocks: z.array(articleBlocks(image)).default([]),
+    })
+    .superRefine(checkIntegrity);
+
+/** 友人帐里的一位：网址必填，头像可以是图片网址，也可以是项目里的图 */
+export const friendSchema = ({ image }: SchemaContext) =>
+  z.object({
+    name: z.string(),
+    url: z.string().url(),
+    desc: z.string().default(''),
+    avatar: z.union([z.string().url(), image()]).optional(),
+    /** 排序，小的在前；缺省按文件里的先后 */
+    order: z.number().default(0),
+  });
+
 /**
  * 一篇“文章”：普通文章或游记，都放在 src/content/posts/ 下。
  * 文件里可以不写 kind：有 stops 的是游记，其余是普通文章（手写 JSON 时省事，也兼容旧文件）。
@@ -253,5 +290,7 @@ export const entrySchema = (ctx: SchemaContext) =>
 export type PostData = z.infer<ReturnType<typeof postSchema>>;
 export type TravelData = z.infer<ReturnType<typeof travelSchema>>;
 export type EntryData = PostData | TravelData;
+export type PageData = z.infer<ReturnType<typeof pageSchema>>;
+export type FriendData = z.infer<ReturnType<typeof friendSchema>>;
 export type PostBlock = PostData['blocks'][number];
 export type TravelBlock = TravelData['blocks'][number];

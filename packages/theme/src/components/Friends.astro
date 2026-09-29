@@ -1,0 +1,37 @@
+---
+/** 友人帐：一位一行，头像、名字、一句话；点整行去对方的站点 */
+import { Image } from 'astro:assets';
+import { getFriends } from '../lib/pages.ts';
+
+const friends = await getFriends();
+const host = (u: string) => new URL(u).host.replace(/^www\./, '');
+---
+
+{
+  friends.length > 0 && (
+    <div class="wrap g friends-wrap">
+    <ul class="friends">
+      {friends.map((f) => (
+        <li>
+          <a href={f.data.url} target="_blank" rel="noopener">
+            <span class="av" aria-hidden="true">
+              {typeof f.data.avatar === 'string' ? (
+                <img src={f.data.avatar} alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+              ) : f.data.avatar ? (
+                <Image src={f.data.avatar} alt="" width={96} height={96} />
+              ) : (
+                <b>{[...f.data.name][0]}</b>
+              )}
+            </span>
+            <span class="tx">
+              <span class="nm">{f.data.name}</span>
+              {f.data.desc && <span class="ds">{f.data.desc}</span>}
+              <span class="hs mono">{host(f.data.url)}</span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+    </div>
+  )
+}

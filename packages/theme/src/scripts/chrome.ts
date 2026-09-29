@@ -43,7 +43,7 @@ function markCurrent() {
   const path = location.pathname;
   for (const a of links()) {
     const base = new URL(a.href).pathname;
-    if (path === base || path.startsWith(base)) a.setAttribute('aria-current', 'page');
+    if (path === base || (base !== '/' && path.startsWith(base))) a.setAttribute('aria-current', 'page');
     else a.removeAttribute('aria-current');
   }
 }

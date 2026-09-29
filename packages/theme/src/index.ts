@@ -57,6 +57,8 @@ export default function mori(userConfig: MoriUserConfig): AstroIntegration {
         injectRoute({ pattern: '/travels', entrypoint: 'astro-mori/pages/legacy-travels.astro' });
         injectRoute({ pattern: '/travels/[slug]', entrypoint: 'astro-mori/pages/legacy-travel.astro' });
         injectRoute({ pattern: '/archive', entrypoint: 'astro-mori/pages/archive.astro' });
+        // 独立页面：/<文件名>/（静态路由优先，所以不会盖住上面这些）
+        injectRoute({ pattern: '/[page]', entrypoint: 'astro-mori/pages/page.astro' });
         injectRoute({ pattern: '/category/[id]', entrypoint: 'astro-mori/pages/category.astro' });
       },
     },

@@ -81,6 +81,8 @@ export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'acc
   description: string;
   home: { style: 'quote' | 'cover'; direction: 'h' | 'v'; editorNote: string };
   archive: { direction: 'h' | 'v' };
+  /** nav 是用户在配置里设定的（false 时页头在内置入口后面自动接上所有页面） */
+  navCustom: boolean;
   feed: { content: 'excerpt' | 'full' };
 }
 
@@ -106,6 +108,7 @@ export function resolveConfig(c: MoriUserConfig): MoriConfig {
     ],
     home: { style: c.home?.style ?? 'quote', direction: dir(c.home?.direction), editorNote: c.home?.editorNote ?? '' },
     archive: { direction: dir(c.archive?.direction ?? c.home?.direction) },
+    navCustom: !!c.nav,
     feed: { content: c.feed?.content === 'full' ? 'full' : 'excerpt' },
   };
 }
