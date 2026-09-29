@@ -55,13 +55,13 @@ export interface MoriUserConfig {
   home?: {
     /** 首页版式：quote 引文开篇（默认）/ cover 封面版（墨色封面 + 满版刊名，往下滚时刊名缩进页头） */
     style?: 'quote' | 'cover';
-    /** 首页排法：h 横排 / v 竖排 */
+    /** 首页排法：h 横排 / v 竖排（手机上一律横排） */
     direction?: 'h' | 'v';
     /** 目次左边的“编者按” */
     editorNote?: string;
   };
   archive?: {
-    /** 归档 / 栏目刻度页的排法 */
+    /** 归档 / 栏目刻度页的排法（手机上一律横排） */
     direction?: 'h' | 'v';
   };
   /** RSS 订阅（/feed） */

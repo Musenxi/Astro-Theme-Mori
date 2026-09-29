@@ -41,7 +41,7 @@ const canonical = config.site ? new URL(Astro.url.pathname, config.site).href : 
 ---
 
 <!doctype html>
-<html lang={lang} data-hdir={direction}>
+<html lang={lang} data-hdir={direction} data-hdir-cfg={direction}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -66,6 +66,24 @@ const canonical = config.site ? new URL(Astro.url.pathname, config.site).href : 
         };
         apply();
         document.addEventListener('astro:after-swap', apply);
+      })();
+    </script>
+    <!-- 首页 / 归档的排法：设置里可选横排或竖排，但手机（窄屏）上一律横排。
+         data-hdir-cfg 是设置的值，data-hdir 是当前生效的；先于首次绘制，跨过断点（旋转屏幕）和换页后都重新判断 -->
+    <script is:inline>
+      (() => {
+        const mq = matchMedia('(max-width: 760px)');
+        const apply = () => {
+          const el = document.documentElement, cfg = el.dataset.hdirCfg;
+          if (!cfg) return; // 文章页等没有排法设置
+          const want = mq.matches ? 'h' : cfg;
+          if (el.dataset.hdir !== want) el.dataset.hdir = want;
+        };
+        apply();
+        document.addEventListener('astro:after-swap', apply);
+        // 两个都听：媒体查询的 change 事件在有的环境里不可靠，resize 兜底。这段脚本先于页面上其他 resize 处理注册，所以它们看到的已经是新值
+        mq.addEventListener('change', () => { apply(); dispatchEvent(new Event('resize')); });
+        addEventListener('resize', apply);
       })();
     </script>
     <script type="application/json" id="mori-i18n" is:inline set:html={clientJson} />

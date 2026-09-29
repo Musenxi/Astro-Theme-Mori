@@ -41,7 +41,7 @@ export function Settings({ project, refresh }) {
           options=${[['h', '横排', ''], ['v', '竖排', '引文、目次、编者按竖着排']]} />
         <${Choice} label="归档排法" value=${cfg.archive?.direction ?? cfg.home?.direction ?? 'h'} onPick=${(v) => save('archive.direction', v)} disabled=${cfg.lang === 'en'}
           options=${[['h', '横排', '时间轴往下走'], ['v', '竖排', '像手卷一样从右往左展开']]} />
-        ${cfg.lang === 'en' && html`<p class="lbl mono">英文站没有竖排（竖排只对中日文有意义）。</p>`}
+        ${cfg.lang === 'en' ? html`<p class="lbl mono">英文站没有竖排（竖排只对中日文有意义）。</p>` : html`<p class="lbl mono">在手机等窄屏上，首页和归档一律横排，不受这里的设置影响。</p>`}
       </section>
       <section class="box"><h2>订阅 <span class="lbl mono">读者用阅读器订阅：/feed</span></h2>
         <${Choice} label="订阅内容" value=${cfg.feed?.content ?? 'excerpt'} onPick=${(v) => save('feed.content', v)}
