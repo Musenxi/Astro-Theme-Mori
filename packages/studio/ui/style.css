@@ -109,3 +109,4 @@ section.box > h2{font-size:12px;font-weight:400;letter-spacing:.2em;color:var(--
   .shell.with-preview .side{display:none}
   .pad{padding-left:20px;padding-right:20px}
 }
+.row .mono.lbl,.row > .lbl{white-space:nowrap}

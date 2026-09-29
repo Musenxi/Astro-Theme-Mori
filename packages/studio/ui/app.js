@@ -1,6 +1,7 @@
 import { html, render, useState, useEffect, useRef, useCallback } from './h.js';
 import { api } from './api.js';
 import { PostEditor } from './editors/post.js';
+import { TravelEditor } from './editors/travel.js';
 import { RawEditor } from './editors/raw.js';
 
 const KIND_NAME = { post: '文章', travel: '游记' };
@@ -59,12 +60,16 @@ function Side({ project, route }) {
 }
 
 function EntryRoute({ kind, id, project, refresh, preview }) {
-  const [doc, setDoc] = useState(null), [err, setErr] = useState(''), [raw, setRaw] = useState(kind === 'travel');
-  useEffect(() => { api.entry(kind, id).then(setDoc).catch((e) => setErr(e.message)); }, []);
+  const [doc, setDoc] = useState(null), [err, setErr] = useState(''), [raw, setRaw] = useState(false);
+  const load = () => api.entry(kind, id).then(setDoc).catch((e) => setErr(e.message));
+  useEffect(() => { load(); }, []);
   if (err) return html`<div class="empty-state">${err}</div>`;
   if (!doc) return html`<div class="empty-state">读取中……</div>`;
-  const Editor = raw ? RawEditor : PostEditor;
-  return html`<${Editor} kind=${kind} id=${id} initial=${doc} project=${project} refresh=${refresh} preview=${preview} />`;
+  // 表单和源码是同一份文件的两种编辑方式：切换时重新读一遍磁盘上的内容
+  const toggle = async () => { await new Promise((r) => setTimeout(r, 900)); await load(); setRaw(!raw); };
+  const p2 = { ...preview, button: html`${preview.button}<button class="btn" onClick=${toggle}>${raw ? '表单' : '源码'}</button>` };
+  const Editor = raw ? RawEditor : kind === 'travel' ? TravelEditor : PostEditor;
+  return html`<${Editor} key=${String(raw)} kind=${kind} id=${id} initial=${doc} project=${project} refresh=${refresh} preview=${p2} />`;
 }
 
 function NewEntry({ kind, project, refresh }) {
