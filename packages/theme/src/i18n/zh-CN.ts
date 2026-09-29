@@ -9,7 +9,7 @@ export default {
   'count.one': '{n}篇', 'count.other': '{n}篇',
   'post.prev': '← 上一篇', 'post.next': '下一篇 →', 'post.nav': '上一篇 / 下一篇', 'post.meta': '约 {chars} 字 · {min} 分钟',
   'fig': '图 {n}', 'notes.foot': '脚注', 'notes.all': '注',
-  'travel.stop': '第{n}站', 'travel.stops': '站点', 'travel.itinerary': '行程', 'travel.total': '全程', 'travel.fallbackStat': '{n} 站',
+  'kind.travel': '游记', 'travel.stop': '第{n}站', 'travel.stops': '站点', 'travel.itinerary': '行程', 'travel.total': '全程', 'travel.fallbackStat': '{n} 站',
   'travel.endNote': '回到起点。继续向下滚动，是整段行程。', 'travel.left': '向左', 'travel.right': '向右', 'travel.readingGroup': '阅读方式',
   'travel.mode.v': '竖', 'travel.mode.h': '横', 'travel.mode.m': '混',
   'travel.modeLabel.v': '竖向阅读', 'travel.modeLabel.h': '横向阅读', 'travel.modeLabel.m': '混合阅读',

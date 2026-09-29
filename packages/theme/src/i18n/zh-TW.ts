@@ -10,7 +10,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'count.one': '{n}篇', 'count.other': '{n}篇',
   'post.prev': '← 上一篇', 'post.next': '下一篇 →', 'post.nav': '上一篇 / 下一篇', 'post.meta': '約 {chars} 字 · {min} 分鐘',
   'fig': '圖 {n}', 'notes.foot': '腳註', 'notes.all': '註',
-  'travel.stop': '第{n}站', 'travel.stops': '站點', 'travel.itinerary': '行程', 'travel.total': '全程', 'travel.fallbackStat': '{n} 站',
+  'kind.travel': '遊記', 'travel.stop': '第{n}站', 'travel.stops': '站點', 'travel.itinerary': '行程', 'travel.total': '全程', 'travel.fallbackStat': '{n} 站',
   'travel.endNote': '回到起點。繼續向下捲動，是整段行程。', 'travel.left': '向左', 'travel.right': '向右', 'travel.readingGroup': '閱讀方式',
   'travel.mode.v': '直', 'travel.mode.h': '橫', 'travel.mode.m': '混',
   'travel.modeLabel.v': '直向閱讀', 'travel.modeLabel.h': '橫向閱讀', 'travel.modeLabel.m': '混合閱讀',

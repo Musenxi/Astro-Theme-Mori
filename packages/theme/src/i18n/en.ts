@@ -10,7 +10,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'count.one': '{n} piece', 'count.other': '{n} pieces',
   'post.prev': '← Previous', 'post.next': 'Next →', 'post.nav': 'Previous / next', 'post.meta': '~{chars} characters · {min} min',
   'fig': 'Fig. {n}', 'notes.foot': 'Footnotes', 'notes.all': 'Notes',
-  'travel.stop': 'Stop {n}', 'travel.stops': 'Stops', 'travel.itinerary': 'Itinerary', 'travel.total': 'Total', 'travel.fallbackStat': '{n} stops',
+  'kind.travel': 'Journey', 'travel.stop': 'Stop {n}', 'travel.stops': 'Stops', 'travel.itinerary': 'Itinerary', 'travel.total': 'Total', 'travel.fallbackStat': '{n} stops',
   'travel.endNote': 'Back where we started. Keep scrolling for the whole itinerary.', 'travel.left': 'Left', 'travel.right': 'Right', 'travel.readingGroup': 'Reading mode',
   'travel.mode.v': 'V', 'travel.mode.h': 'H', 'travel.mode.m': 'M',
   'travel.modeLabel.v': 'Vertical reading', 'travel.modeLabel.h': 'Horizontal reading', 'travel.modeLabel.m': 'Mixed reading',

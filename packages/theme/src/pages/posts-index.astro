@@ -1,16 +1,49 @@
 ---
+/**
+ * 文章目录：所有文章（普通文章和游记），最新的在前，按年份分组。
+ * 和“归档”不同：归档是按月份铺开的时间刻度，这里是一页可以直接读下去的目录。
+ */
 import { t, lang } from '../lib/i18n.ts';
-import config from 'virtual:mori/config';
 import Base from '../layouts/Base.astro';
-import Scale from '../components/Scale.astro';
 import { getEntries } from '../lib/entries.ts';
+import { cnNumber, cnYear, pad2 } from '../lib/zh.ts';
 
-const all = await getEntries();
-const entries = all; // 普通文章和游记都是文章
+const entries = await getEntries();
+const years = [...new Set(entries.map((e) => e.data.date.getFullYear()))].sort((a, b) => b - a);
+const byYear = years.map((y) => ({ y, list: entries.filter((e) => e.data.date.getFullYear() === y) }));
+const zh = lang !== 'en';
 ---
 
-<Base title={t('nav.posts')} direction={config.archive.direction}>
+<Base title={t('nav.posts')}>
   <main data-page="posts">
-    <Scale title={t('nav.posts')} en={lang === 'en' ? undefined : t('posts.sub')} entries={entries} all={all} empty={t('empty.posts')} />
+    <header class="wrap g post-h">
+      <div class="kicker mono">{zh ? `共 ${cnNumber(entries.length)} 篇` : `${entries.length} pieces`}</div>
+      <h1>{t('nav.posts')}</h1>
+      {zh && <div class="sub">Posts</div>}
+    </header>
+    <div class="wrap g toc">
+      {
+        byYear.map(({ y, list }) => (
+          <section class="toc-y">
+            <h2 class="y" aria-label={String(y)}>{zh ? cnYear(y) : y}</h2>
+            <ol>
+              {list.map((e) => (
+                <li>
+                  <a href={e.href}>
+                    <time class="mono" datetime={e.data.date.toISOString().slice(0, 10)}>{pad2(e.data.date.getMonth() + 1)}.{pad2(e.data.date.getDate())}</time>
+                    <span class="tt">
+                      <span class="ti">{e.data.title}</span>
+                      {e.data.excerpt && <span class="ex">{e.data.excerpt}</span>}
+                    </span>
+                    <span class="kk mono">{e.category.zh}{e.kind === 'travel' ? ` · ${t('kind.travel')}` : ''}</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))
+      }
+      {entries.length === 0 && <p class="empty">{t('empty.all')}</p>}
+    </div>
   </main>
 </Base>
