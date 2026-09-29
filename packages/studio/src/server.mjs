@@ -9,9 +9,10 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import sharp from 'sharp';
-import { loadConfig, setConfigValue, setCategories, setPublish, renameCategoryInEntries, renameTag, countPages, listEntries, readEntry, writeEntry, entryExists, skeleton, trashEntry, listAssets, saveAsset, isId, KINDS, IMAGE_EXT } from './project.mjs';
+import { RESERVED_SLUGS, loadConfig, setConfigValue, setCategories, setPublish, setNav, listPages, readFriends, writeFriends, renameCategoryInEntries, renameTag, countPages, listEntries, readEntry, writeEntry, entryExists, skeleton, trashEntry, listAssets, saveAsset, isId, KINDS, IMAGE_EXT } from './project.mjs';
 import { validateEntry } from 'astro-mori/validate';
 import { locate } from 'astro-mori/anchor';
+import { probeSite } from './probe.mjs';
 import { gitInfo, gitInit, publishGit, publishLocal } from './publish.mjs';
 import { parseGpx, simplify, readExif, clusterStops } from './geo.mjs';
 
@@ -189,8 +190,8 @@ export async function startStudio({ root, port = 4400, dev = false }) {
         const cn = await commentNumbers(); // 侧栏上的未读数量；评论服务连不上就当 0
         const pending = cn?.unread ?? 0;
         return send(res, 200, {
-          root, configPath, config: { title: config.title ?? 'MORI', description: config.description ?? '', accent: config.accent ?? '#002fa7', accentDark: config.accentDark, categories: config.categories ?? [], home: config.home, archive: config.archive, feed: config.feed, lang: config.lang ?? 'zh-CN' },
-          entries: listEntries(root), assets: listAssets(root), dev, preview: { port: preview.port, url: await previewUrl(preview.port) }, publish: config.publish ?? null, comments: { provider: config.comments?.provider ?? null, endpoint: commentsEndpoint(), hasToken: !!adminToken(), pending },
+          root, configPath, config: { title: config.title ?? 'MORI', description: config.description ?? '', accent: config.accent ?? '#002fa7', accentDark: config.accentDark, categories: config.categories ?? [], home: config.home, archive: config.archive, feed: config.feed, nav: config.nav ?? null, lang: config.lang ?? 'zh-CN' },
+          entries: listEntries(root), pages: listPages(root), assets: listAssets(root), dev, preview: { port: preview.port, url: await previewUrl(preview.port) }, publish: config.publish ?? null, comments: { provider: config.comments?.provider ?? null, endpoint: commentsEndpoint(), hasToken: !!adminToken(), pending },
         });
       }
 
@@ -231,6 +232,24 @@ export async function startStudio({ root, port = 4400, dev = false }) {
         return send(res, 200, { ok: true, publish: config.publish ?? null });
       }
 
+      /* ── 友人帐 ── */
+      if (p === '/api/friends' && req.method === 'GET') return send(res, 200, { friends: readFriends(root) });
+      if (p === '/api/friends' && req.method === 'PUT') {
+        try { return send(res, 200, { ok: true, friends: writeFriends(root, (await readJson(req)).friends) }); } catch (e) { return send(res, 400, { error: e.message }); }
+      }
+      if (p === '/api/friends/probe' && req.method === 'POST') {
+        try { return send(res, 200, await probeSite((await readJson(req)).url)); } catch (e) { return send(res, 400, { error: e.message }); }
+      }
+
+      /* ── 页头入口：nav 为 null 是恢复默认（内置入口 + 所有页面） ── */
+      if (p === '/api/nav' && req.method === 'PUT') {
+        const wasUp = await isUp(preview.port);
+        try { setNav(configPath, (await readJson(req)).nav ?? null); } catch (e) { return send(res, 400, { error: e.message }); }
+        config = (await loadConfig(root)).config;
+        await restartPreview(wasUp, true);
+        return send(res, 200, { ok: true, nav: config.nav ?? null });
+      }
+
       /* ── 标签：改名 / 合并 / 删除 ── */
       if (req.method === 'POST' && p === '/api/tags/rename') {
         const { from, to } = await readJson(req);
@@ -267,7 +286,7 @@ export async function startStudio({ root, port = 4400, dev = false }) {
       }
 
       /* ── 文章 ── */
-      if ((mm = m(/^\/api\/entry\/(post|travel)\/([^/]+)$/))) {
+      if ((mm = m(/^\/api\/entry\/(post|travel|page)\/([^/]+)$/))) {
         const [, kind, id] = mm;
         if (!isId(id)) return send(res, 400, { error: 'id 只能用字母、数字、下划线和连字符' });
         if (req.method === 'GET') return entryExists(root, kind, id) ? send(res, 200, readEntry(root, kind, id)) : send(res, 404, { error: '没有这篇' });
@@ -279,7 +298,7 @@ export async function startStudio({ root, port = 4400, dev = false }) {
           writeEntry(root, kind, id, data);
           // 使用自建评论时：这次修改会不会让已有的批注找不到原文？只提醒，不阻止保存
           let annotationWarnings;
-          if (commentsEndpoint() && adminToken()) {
+          if (kind !== 'page' && commentsEndpoint() && adminToken()) {
             try {
               const list = await admin('GET', `/comments?status=approved&limit=500&entry=${encodeURIComponent(`${KINDS[kind]}/${id}`)}`);
               annotationWarnings = brokenAnnotations(kind, data, list.comments);
@@ -289,10 +308,11 @@ export async function startStudio({ root, port = 4400, dev = false }) {
         }
         if (req.method === 'DELETE') { trashEntry(root, kind, id); return send(res, 200, { ok: true }); }
       }
-      if (req.method === 'POST' && (mm = m(/^\/api\/entry\/(post|travel)$/))) {
+      if (req.method === 'POST' && (mm = m(/^\/api\/entry\/(post|travel|page)$/))) {
         const kind = mm[1];
         const { id, title, category } = await readJson(req);
         if (!isId(id)) return send(res, 400, { error: 'id 只能用字母、数字、下划线和连字符' });
+        if (kind === 'page' && RESERVED_SLUGS.includes(id.toLowerCase())) return send(res, 400, { error: `“${id}” 已经是站点自带的地址，页面不能叫这个名字` });
         if (entryExists(root, kind, id)) return send(res, 409, { error: `已经有一篇叫 ${id} 的了` });
         writeEntry(root, kind, id, skeleton(kind, { title: title || id, category: category ?? config.categories?.[0]?.id ?? '' }));
         return send(res, 200, { ok: true, id });

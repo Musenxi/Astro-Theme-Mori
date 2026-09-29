@@ -7,7 +7,7 @@ import { join, basename, extname } from 'node:path';
 import { loadConfigFromFile } from 'vite';
 
 /** 普通文章和游记都在 src/content/posts/ 下，靠内容里的 kind 区分 */
-export const KINDS = { post: 'posts', travel: 'posts' };
+export const KINDS = { post: 'posts', travel: 'posts', page: 'pages' };
 export const kindOf = (d) => (d?.kind === 'travel' || (d?.kind === undefined && Array.isArray(d?.stops)) ? 'travel' : 'post');
 const ID = /^[a-z0-9][a-z0-9_-]*$/i;
 export const IMAGE_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif', '.gif', '.svg']);
@@ -79,6 +79,7 @@ export const entryExists = (root, kind, id) => existsSync(fileOf(root, kind, id)
 
 /** 新建：给一个能通过校验的最小骨架 */
 export function skeleton(kind, { title, category }) {
+  if (kind === 'page') return { title, excerpt: '', template: 'default', blocks: [{ id: 'b01', type: 'p', text: '' }] };
   const base = { title, date: new Date().toISOString().slice(0, 10), category, excerpt: '' };
   if (kind === 'post') return { kind: 'article', ...base, blocks: [{ id: 'b01', type: 'p', text: '' }] };
   return {
@@ -289,4 +290,89 @@ export function setPublish(configPath, p) {
   const top = src.match(/(defineMoriConfig\(\{|export default \{)[ \t]*\n/);
   if (!top) throw new Error('没在 mori.config.ts 里找到配置对象的开头，请手动添加 publish。');
   writeFileSync(configPath, src.replace(top[0], `${top[0]}  ${line}\n`));
+}
+
+/* ───────────── 页面 ───────────── */
+
+export function listPages(root) {
+  const dir = dirOf(root, 'page');
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir).filter((f) => f.endsWith('.json')).map((f) => {
+    const id = basename(f, '.json');
+    try {
+      const d = JSON.parse(readFileSync(join(dir, f), 'utf8'));
+      return { id, title: d.title ?? id, template: d.template ?? 'default', draft: !!d.draft, comments: !!d.comments, words: wordCount(d) };
+    } catch { return { id, title: `${id}（JSON 有语法错误）`, template: 'default', draft: false, comments: false, words: 0, broken: true }; }
+  }).sort((a, b) => a.id.localeCompare(b.id));
+}
+
+/** 页面的网址就是文件名，这些名字站点自己用了 */
+export const RESERVED_SLUGS = ['posts', 'archive', 'category', 'search', 'travels', 'feed', 'rss', '404', 'sitemap', 'robots', 'favicon', '_astro', 'api'];
+
+/* ───────────── 友人帐：src/content/friends.json ───────────── */
+
+const friendsFile = (root) => join(root, 'src/content/friends.json');
+
+export function readFriends(root) {
+  const f = friendsFile(root);
+  if (!existsSync(f)) return [];
+  const list = JSON.parse(readFileSync(f, 'utf8'));
+  return Array.isArray(list) ? list : [];
+}
+
+const slug = (s) => String(s).toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '').slice(0, 24);
+
+/** 整理并校验友人帐：id 缺了就补、重复就加序号；网址必须是 http(s)；名字必填 */
+export function checkFriends(list) {
+  if (!Array.isArray(list)) throw new Error('友人帐要是一个列表');
+  const used = new Set();
+  return list.map((raw, i) => {
+    const name = String(raw?.name ?? '').trim(), url = String(raw?.url ?? '').trim();
+    if (!name) throw new Error(`第 ${i + 1} 位还没有名字`);
+    let u;
+    try { u = new URL(url); } catch { throw new Error(`「${name}」的网址不对：${url || '（空）'}`); }
+    if (!/^https?:$/.test(u.protocol)) throw new Error(`「${name}」的网址要以 http:// 或 https:// 开头`);
+    let id = String(raw?.id ?? '').trim() || slug(name) || `f${i + 1}`, k = 2;
+    const base = id;
+    while (used.has(id)) id = `${base}-${k++}`;
+    used.add(id);
+    const avatar = String(raw?.avatar ?? '').trim();
+    return { id, name, url: u.href, desc: String(raw?.desc ?? '').trim(), ...(avatar ? { avatar } : {}), order: i };
+  });
+}
+
+export function writeFriends(root, list) {
+  const clean = checkFriends(list);
+  mkdirSync(join(root, 'src/content'), { recursive: true });
+  writeFileSync(friendsFile(root), JSON.stringify(clean, null, 2) + '\n');
+  return clean;
+}
+
+/* ───────────── 页头入口：mori.config.ts 里的 nav ───────────── */
+
+/** nav 为 null 是恢复默认（内置入口 + 所有页面）；否则整个数组重写 */
+export function setNav(configPath, nav) {
+  const src = readFileSync(configPath, 'utf8');
+  const open = src.match(/^([ \t]*)nav[ \t]*:[ \t]*\[/m);
+  if (nav === null) {
+    if (!open) return;
+    const end = closeOf(src, open.index + open[0].length, '[', ']');
+    writeFileSync(configPath, src.slice(0, open.index) + src.slice(end).replace(/^[ \t]*,?[ \t]*\n?/, ''));
+    return;
+  }
+  if (!Array.isArray(nav) || nav.length > 10) throw new Error('页头入口最多 10 个');
+  for (const n of nav) {
+    if (!String(n?.label ?? '').trim()) throw new Error('每个入口都要有名字');
+    if (!/^(\/|https?:\/\/)/.test(String(n?.href ?? ''))) throw new Error(`「${n.label}」的地址要以 / 或 http(s):// 开头`);
+  }
+  const rows = nav.map((n) => `{ label: ${q(String(n.label).trim())}, href: ${q(n.href)} }`);
+  if (open) {
+    const end = closeOf(src, open.index + open[0].length, '[', ']');
+    const ind = open[1];
+    writeFileSync(configPath, src.slice(0, open.index) + `${ind}nav: [\n${rows.map((r) => `${ind}  ${r},`).join('\n')}\n${ind}]` + src.slice(end));
+    return;
+  }
+  const top = src.match(/(defineMoriConfig\(\{|export default \{)[ \t]*\n/);
+  if (!top) throw new Error('没在 mori.config.ts 里找到配置对象的开头，请手动添加 nav。');
+  writeFileSync(configPath, src.replace(top[0], `${top[0]}  nav: [\n${rows.map((r) => `    ${r},`).join('\n')}\n  ],\n`));
 }
