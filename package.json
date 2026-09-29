@@ -7,8 +7,9 @@
     "dev": "pnpm --filter demo dev",
     "build": "pnpm --filter demo build",
     "preview": "pnpm --filter demo preview",
-    "check": "pnpm --filter astro-mori check",
+    "check": "pnpm -r --if-present check",
     "studio": "pnpm --filter demo studio",
-    "test": "pnpm --filter mori-studio test"
+    "test": "pnpm -r --if-present test",
+    "comments": "pnpm --filter mori-comments start"
   }
 }
