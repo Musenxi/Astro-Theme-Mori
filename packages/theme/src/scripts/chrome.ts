@@ -147,3 +147,5 @@ addEventListener('resize', refresh);
 document.fonts?.ready.then(refresh);
 document.addEventListener('astro:page-load', () => { markCurrent(); syncTheme(); refresh(); });
 markCurrent(); syncTheme(); refresh();
+
+export {}; // 这是一个模块（让顶层的 const / function 不进全局作用域）

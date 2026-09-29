@@ -78,3 +78,5 @@ addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
 addEventListener('wheel', (e) => { if (!$lb().hidden) { e.preventDefault(); close(); } }, { passive: false });
 // 换页时直接收起，不留半开的遮罩
 document.addEventListener('astro:before-swap', () => { source && (source.style.visibility = ''); });
+
+export {}; // 这是一个模块（让顶层的 const / function 不进全局作用域）

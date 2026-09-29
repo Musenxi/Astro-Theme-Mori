@@ -79,3 +79,5 @@ function init() {
 
 document.addEventListener('astro:page-load', init);
 init();
+
+export {}; // 这是一个模块（让顶层的 const / function 不进全局作用域）

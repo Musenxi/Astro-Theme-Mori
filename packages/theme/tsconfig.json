@@ -1,0 +1,22 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "noEmit": true,
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [
+      "astro/client"
+    ]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/virtual.d.ts",
+    "../../examples/demo/.astro/types.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
