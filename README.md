@@ -37,11 +37,14 @@ pnpm test       # 各包的测试（Studio、评论服务、批注定位）
 ```js
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
-import mori from 'astro-mori';
-import moriConfig from './mori.config.ts';
+import mori, { loadMoriConfig } from 'astro-mori';
 
-export default defineConfig({ integrations: [mori(moriConfig)] });
+export default defineConfig({
+  integrations: [mori(await loadMoriConfig(new URL('./mori.config.ts', import.meta.url)))],
+});
 ```
+
+用 `loadMoriConfig` 读配置，而不是直接 `import`：`astro dev` 在配置变了以后是原地重启的，直接 import 的 `mori.config.ts` 会被缓存，在 Studio 里改了设置，预览读到的还是旧的。
 
 ```ts
 // src/content.config.ts

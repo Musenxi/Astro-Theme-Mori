@@ -107,10 +107,11 @@ export async function startStudio({ root, port = 4400, dev = false }) {
   /**
    * 构建会动到 astro dev 也在用的缓存，预览可能因此出错。构建完如果预览服务开着，就让它重启。
    * 办法：更新 astro.config 的修改时间——Astro 发现配置变了会自己原地重启（不管是谁启动的，不用杀进程）。
-   * 只在开发模式（--dev）下做；返回一句给界面看的话，不需要重启就返回空。
+   * 构建后只在开发模式（--dev）下做；改了站点配置（设定、分类）后不分模式都要做，因为 Astro 只监听 astro.config，
+   * 不会发现它引用的 mori.config.ts 变了。返回一句给界面看的话，不需要重启就返回空。
    */
-  async function restartPreview(wasUp) {
-    if (!dev || !wasUp) return ''; // 只在开发模式下
+  async function restartPreview(wasUp, always = false) {
+    if ((!dev && !always) || !wasUp) return ''; // 构建后的重启只在开发模式下；改了站点配置必须重启（always），否则预览读的还是旧配置
     const cfg = ['astro.config.mjs', 'astro.config.ts', 'astro.config.js', 'astro.config.mts'].map((f) => join(root, f)).find(existsSync);
     if (!cfg) return '\n预览服务开着，但没找到 astro.config，请手动重启它。\n';
     const now = new Date();
@@ -206,10 +207,12 @@ export async function startStudio({ root, port = 4400, dev = false }) {
       /* ── 分类：整个数组重写；改 id 时用到它的文章一起改 ── */
       if (req.method === 'PUT' && p === '/api/categories') {
         const { categories, renames = {} } = await readJson(req);
+        const wasUp = await isUp(preview.port);
         setCategories(configPath, categories);
         let moved = 0;
         for (const [from, to] of Object.entries(renames)) if (from !== to) moved += renameCategoryInEntries(root, from, to);
         config = (await loadConfig(root)).config;
+        await restartPreview(wasUp, true);
         return send(res, 200, { ok: true, moved, categories: config.categories });
       }
 
@@ -238,8 +241,10 @@ export async function startStudio({ root, port = 4400, dev = false }) {
       /* ── 站点设置：改 mori.config.ts 里的单行字符串 ── */
       if (req.method === 'PUT' && p === '/api/config') {
         const { key, value } = await readJson(req);
+        const wasUp = await isUp(preview.port);
         setConfigValue(configPath, key, value);
         config = (await loadConfig(root)).config;
+        await restartPreview(wasUp, true); // 预览开着就让它读新配置
         return send(res, 200, { ok: true, config });
       }
 
