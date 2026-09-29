@@ -1,0 +1,19 @@
+---
+import config from 'virtual:mori/config';
+import Base from '../layouts/Base.astro';
+import Listing from '../components/Listing.astro';
+import { getEntries } from '../lib/entries.ts';
+
+export function getStaticPaths() {
+  return config.categories.map((c) => ({ params: { id: c.id }, props: { category: c } }));
+}
+const { category } = Astro.props;
+const entries = (await getEntries()).filter((e) => e.category.id === category.id);
+const roman = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ', 'Ⅶ', 'Ⅷ', 'Ⅸ', 'Ⅹ'][config.categories.findIndex((c) => c.id === category.id)];
+---
+
+<Base title={category.zh} direction={config.archive.direction}>
+  <main data-page="category">
+    <Listing title={category.zh} en={category.en} roman={roman} entries={entries} />
+  </main>
+</Base>

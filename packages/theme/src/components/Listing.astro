@@ -1,0 +1,57 @@
+---
+/**
+ * 列表类页面（归档 / 栏目 / 文章 / 游记）的框架版：标题条 + 按年分组的列表，沿用目次的列表样式。
+ * 之后会换成 E 刻度（位置就是时间，spec §2），这里先保证每条路由都有页面。
+ */
+import type { Entry } from '../lib/entries.ts';
+import { cnNumber, dotDate, pad3 } from '../lib/zh.ts';
+
+interface Props {
+  title: string;
+  en?: string;
+  roman?: string;
+  entries: Entry[];
+}
+const { title, en, roman, entries } = Astro.props;
+
+const years = [...new Set(entries.map((e) => e.data.date.getFullYear()))].sort((a, b) => b - a);
+const groups = years.map((y) => ({ y, list: entries.filter((e) => e.data.date.getFullYear() === y) }));
+---
+
+<header class="wrap he-head">
+  <a class="he-back mono" href="/">← 目次</a>
+  <div class="he-ttl">
+    {roman && <span class="rn">{roman}</span>}
+    <h1>{title}</h1>
+    {en && <em>{en}</em>}
+    <span class="mono ct">{cnNumber(entries.length)}篇</span>
+  </div>
+</header>
+
+<section class="wrap list">
+  {
+    entries.length === 0 && <p class="mono lbl">这里还没有文章。</p>
+  }
+  {
+    groups.map(({ y, list }) => (
+      <section class="f-sec in">
+        <div class="f-sh">
+          <span class="rn">{y}</span>
+          <span class="ct mono">{cnNumber(list.length)}篇</span>
+        </div>
+        <ol class="f-en">
+          {list.map((e) => (
+            <li>
+              <a href={e.href}>
+                <span class="pn">{pad3(e.n)}</span>
+                <span class="tt">{e.data.title}</span>
+                <span class="dt mono">{e.category.zh} · {dotDate(e.data.date)}</span>
+                <span class="ex">{e.data.excerpt}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))
+  }
+</section>

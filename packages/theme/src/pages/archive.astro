@@ -1,0 +1,14 @@
+---
+import config from 'virtual:mori/config';
+import Base from '../layouts/Base.astro';
+import Listing from '../components/Listing.astro';
+import { getEntries } from '../lib/entries.ts';
+
+const entries = await getEntries();
+---
+
+<Base title="归档" direction={config.archive.direction}>
+  <main data-page="archive">
+    <Listing title="全部文章" en="Archive" entries={entries} />
+  </main>
+</Base>
