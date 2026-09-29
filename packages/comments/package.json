@@ -21,7 +21,8 @@
   "scripts": {
     "start": "node bin/mori-comments.mjs",
     "test": "node --test test/*.test.ts",
-    "check": "tsc -p ."
+    "check": "tsc -p .",
+    "dev": "ADMIN_TOKEN=${ADMIN_TOKEN:-dev-token} DB_PATH=.data/comments.db NODE_NO_WARNINGS=1 node bin/mori-comments.mjs"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.3",

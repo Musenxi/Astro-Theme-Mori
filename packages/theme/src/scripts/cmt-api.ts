@@ -27,14 +27,17 @@ export function moriConfig(): (MoriCommentsConfig & { entry: string }) | null {
 
 const base = (c: MoriCommentsConfig) => (c.endpoint ?? '').replace(/\/$/, '');
 
+/** 网络层面连不上（服务没启动、地址写错、被跨域拦下）：给一句人话，带上地址方便排查 */
+const offline = (c: MoriCommentsConfig) => () => { throw new Error(`${t('js.cmt.offline')} (${base(c) || 'endpoint'})`); };
+
 export async function listComments(c: MoriCommentsConfig, entry: string): Promise<MoriComment[]> {
-  const r = await fetch(`${base(c)}/comments?entry=${encodeURIComponent(entry)}`);
+  const r = await fetch(`${base(c)}/comments?entry=${encodeURIComponent(entry)}`).catch(offline(c));
   if (!r.ok) throw new Error(t('js.cmt.loadFail', { status: r.status }));
   return ((await r.json()) as { comments: MoriComment[] }).comments;
 }
 
 export async function sendComment(c: MoriCommentsConfig, payload: Record<string, unknown>): Promise<SendResult> {
-  const r = await fetch(`${base(c)}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+  const r = await fetch(`${base(c)}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(offline(c));
   const j = (await r.json().catch(() => ({}))) as any;
   if (!r.ok) throw new Error(j.error ?? t('js.cmt.postFail', { status: r.status }));
   return j as SendResult;

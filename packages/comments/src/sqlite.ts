@@ -1,9 +1,11 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { SQL, fromDb, insertArgs, statusCounts, type Store, type Status } from './store.ts';
 
 /** Node + SQLite（Node 内置的 node:sqlite，不需要编译原生模块） */
 export function sqliteStore(path: string): Store {
+  if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
   const db = new DatabaseSync(path);
   db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
   const all = (sql: string, ...args: any[]) => db.prepare(sql).all(...args) as any[];

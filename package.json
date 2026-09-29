@@ -4,12 +4,13 @@
   "version": "0.0.0",
   "packageManager": "pnpm@10.30.1",
   "scripts": {
-    "dev": "pnpm --filter demo dev",
+    "dev": "pnpm --parallel --filter demo --filter mori-comments dev",
     "build": "pnpm --filter demo build",
     "preview": "pnpm --filter demo preview",
     "check": "pnpm -r --if-present check",
     "studio": "pnpm --filter demo studio",
     "test": "pnpm -r --if-present test",
-    "comments": "pnpm --filter mori-comments start"
+    "comments": "pnpm --filter mori-comments dev",
+    "site": "pnpm --filter demo dev"
   }
 }

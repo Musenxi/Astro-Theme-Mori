@@ -23,10 +23,11 @@ docs               需求草案、写作指南
 
 ```bash
 pnpm install
-pnpm dev        # 示例站，http://localhost:4321
+pnpm dev        # 示例站 http://localhost:4321 + 本地评论服务 http://127.0.0.1:8787（一起启动）
+pnpm site       # 只跑示例站
 pnpm build      # 静态构建到 examples/demo/dist
 pnpm studio     # Studio 编辑器，http://127.0.0.1:4400
-pnpm comments   # 本地跑自建评论服务，http://127.0.0.1:8787（示例站已指向它）
+pnpm comments   # 只跑评论服务（开发用管理令牌是 dev-token，数据库在 packages/comments/.data/）
 pnpm check      # 主题包的 TypeScript 检查
 pnpm test       # 各包的测试（Studio、评论服务、批注定位）
 ```
@@ -98,7 +99,7 @@ comments: { provider: 'giscus', repo: '…', repoId: '…', category: '…', cat
 
 - **自建评论**（`packages/comments`）：读者选中正文里的一段文字就能针对这段发表评论；批注和普通评论一起显示在文末评论区，带着引用的原文，点一下回到正文并临时高亮，正文里不留记号。文章改动后按“块 id + 位置 → 原文 + 前后文”重新定位，找不到的引用旁标“原文已修改”。
 - 第一次留言的人先审后发；蜜罐、按 IP 限流、可选 Turnstile。邮箱和 IP 只存加盐哈希。
-- 本地跑：`pnpm comments`（管理令牌 `ADMIN_TOKEN` 用环境变量设）。部署：VPS 见 [deploy/](deploy/README.md)，Cloudflare 见 `packages/comments/wrangler.example.toml`。
+- 本地开发：`pnpm dev` 会一起启动评论服务（管理令牌 `dev-token`，Studio 的“评论”页里填这个）。正式部署用环境变量 `ADMIN_TOKEN`。部署：VPS 见 [deploy/](deploy/README.md)，Cloudflare 见 `packages/comments/wrangler.example.toml`。
 - 管理在 Studio 的“评论”页：待审列表、通过 / 隐藏 / 删除；保存文章时，如果改动会让已有批注找不到原文，会先提醒。
 
 ## 从 Markdown 迁移
