@@ -1,0 +1,9 @@
+/* 看大图：背景是磨砂玻璃 —— 由 design/style-probe/index.html 还原 */
+.blk img,.prose figure img{cursor:zoom-in}
+.lb{position:fixed;inset:0;z-index:50;display:grid;place-items:center;cursor:zoom-out}
+.lb::before{content:"";position:absolute;inset:0;background:var(--grain),color-mix(in srgb,var(--paper) 52%,transparent);-webkit-backdrop-filter:blur(28px) saturate(1.3);backdrop-filter:blur(28px) saturate(1.3);opacity:0;transition:opacity .45s ease}
+.lb.on::before{opacity:1}
+.lb-img{position:relative;max-width:min(88vw,1600px);max-height:78vh;width:auto;height:auto;object-fit:contain;will-change:transform,clip-path}
+.lb-cap{position:absolute;left:50%;bottom:22px;display:flex;gap:14px;align-items:baseline;padding:7px 16px;border-radius:4px;font-size:14px;color:var(--ink-2);white-space:nowrap;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis;opacity:0;transform:translate(-50%,10px);transition:opacity .4s ease .12s,transform .55s var(--ease) .12s}
+.lb.on .lb-cap{opacity:1;transform:translate(-50%,0)}
+.lb-cap .lbl{margin-left:6px}
