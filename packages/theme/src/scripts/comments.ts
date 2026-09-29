@@ -15,6 +15,8 @@ function h<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, 
   return e;
 }
 
+let offAdded: (() => void) | null = null;
+
 function init() {
   const section = document.querySelector<HTMLElement>('#comments');
   const cfg = moriConfig();
@@ -24,7 +26,7 @@ function init() {
   const count = section.querySelector<HTMLElement>('[data-count]')!;
   let comments: MoriComment[] = [];
 
-  const io = new IntersectionObserver((es) => { if (es[0].isIntersecting) { io.disconnect(); load(); } }, { rootMargin: '500px' });
+  const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); load(); } }, { rootMargin: '500px' }); // 快速滚动时一次会收到多条记录，不能只看第一条
   io.observe(section);
 
   async function load() {
@@ -38,6 +40,7 @@ function init() {
     const top = comments.filter((c) => !c.parentId);
     const replies = (id: number) => comments.filter((c) => c.parentId === id);
     count.textContent = comments.length ? `${comments.length} 条` : '';
+    queueMicrotask(() => document.dispatchEvent(new CustomEvent('mori:comments-rendered', { detail: comments })));
     const list = h('ol', { class: 'cmt-list' }, ...top.map((c) => item(c, replies(c.id))));
     body.replaceChildren(...(comments.length ? [list] : [h('p', { class: 'cmt-none' }, '还没有评论。')]), form(cfg!, null));
   }
@@ -69,10 +72,13 @@ function init() {
     li.insertBefore(form(cfg!, c), li.querySelector(':scope > .cmt-replies'));
   }
 
-  document.addEventListener('mori:comment-added', (e) => {
+  offAdded?.(); // 换页前的监听先拆掉
+  const added = (e: Event) => {
     const c = (e as CustomEvent<MoriComment>).detail;
     if (c && !comments.some((x) => x.id === c.id)) { comments.push(c); render(); }
-  });
+  };
+  document.addEventListener('mori:comment-added', added);
+  offAdded = () => document.removeEventListener('mori:comment-added', added);
 }
 
 /** 发表 / 回复的表单。parent 有值就是回复 */

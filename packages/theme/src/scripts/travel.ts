@@ -78,6 +78,20 @@ function init() {
     } else scrollTo(0, b.getBoundingClientRect().top + scrollY - innerHeight * 0.2);
   }
 
+  // 划词批注的“回到正文”：把这一块带到屏幕中间。横向读法下换算成竖向滚动距离（左→右和右→左的手卷都适用），不切换读法
+  const onReveal = (e: Event) => {
+    if (!travel!.isConnected) { document.removeEventListener('mori:reveal', onReveal); return; }
+    const el = (e as CustomEvent<{ el: Element; handled: boolean }>).detail.el;
+    const b = el.closest<HTMLElement>('.t-track .blk');
+    if (!b || mode() !== 'h') return; // 竖向 / 混合读法：交给原生滚动
+    const top = tbody.getBoundingClientRect().top + scrollY;
+    const max = Math.max(0, track.offsetWidth - vw());
+    const x = rtl() ? track.offsetWidth - b.offsetLeft - b.offsetWidth / 2 - vw() / 2 : b.offsetLeft + b.offsetWidth / 2 - vw() / 2;
+    scrollTo({ top: top + clamp(x, 0, max), behavior: reduce ? 'auto' : 'smooth' });
+    (e as CustomEvent).detail.handled = true;
+  };
+  document.addEventListener('mori:reveal', onReveal);
+
   function withTransition(fn: () => void) {
     if (document.startViewTransition && !reduce) {
       root.classList.add('vt-mode');

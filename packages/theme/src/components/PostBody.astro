@@ -23,8 +23,8 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         case 'p': {
           const refs = sideRefs(b.text);
           return refs.length ? (
-            <div class="n" data-b={b.id}>
-              <p set:html={html(b.text)} />
+            <div class="n">
+              <p data-b={b.id} set:html={html(b.text)} />
               <div class="ns">
                 {refs.map((ref) => (
                   <aside id={`note-${ref}`}>
@@ -52,7 +52,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
           return (
             <blockquote class:list={[b.writing === 'v' && 'vq']} data-b={b.id}>
               <Fragment set:html={html(b.text)} />
-              {b.cite && <cite>{b.cite}</cite>}
+              {b.cite && <cite data-skip>{b.cite}</cite>}
             </blockquote>
           );
         case 'image': {
