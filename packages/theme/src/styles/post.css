@@ -12,7 +12,13 @@
 .prose h2 .mono{color:var(--accent);font-weight:400}
 .prose .n{grid-column:3/12;display:grid;grid-template-columns:subgrid}
 .prose .n > p{grid-column:1/7}
-.prose .n > aside{grid-column:7/10;font-size:13.5px;line-height:1.75;color:var(--ink-3);padding-top:.35em;border-top:1px solid var(--rule)}
+.prose .n > .ns{grid-column:7/10;display:flex;flex-direction:column;gap:.9em}
+.prose .n aside{font-size:13.5px;line-height:1.75;color:var(--ink-3);padding-top:.35em;border-top:1px solid var(--rule)}
+.prose .nref a{color:inherit}
+.prose .fns{grid-column:3/9;margin-top:3em;padding-top:1.2em;border-top:1px solid var(--rule);font-size:14px;line-height:1.8;color:var(--ink-3)}
+.prose .fns ol{list-style:none}
+.prose .fns li{display:flex;gap:.8em}
+.prose .fns li > sup{margin-right:0}
 .prose sup{font-family:var(--mono);font-size:10px;color:var(--accent);margin-right:4px}
 .prose blockquote.vq{writing-mode:vertical-rl;justify-self:center;height:12.5em;margin:1.4em 0 2.2em;padding-right:1.1em;border-right:1px solid var(--accent);font-size:21px;line-height:2.1;letter-spacing:.2em;color:var(--ink-2)}
 .prose blockquote.vq cite{display:block;font-style:normal;font-size:13px;color:var(--ink-3);text-align:end;margin-block-start:.4em}
@@ -25,6 +31,8 @@
 .prose pre .k{color:var(--ink)}
 .prose pre .s{color:var(--accent)}
 .prose figure{grid-column:2/12;margin:2em 0 2.4em}
+.prose figure.inline{grid-column:3/9}
+.prose ol{margin:0 0 1.2em}
 .prose figure img{width:100%;aspect-ratio:16/9;object-fit:cover}
 figcaption{font-size:13px;color:var(--ink-3);margin-top:10px;display:flex;gap:12px;align-items:baseline}
 figcaption .mono{flex:none}

@@ -1,0 +1,26 @@
+---
+import config from 'virtual:mori/config';
+import Base from '../layouts/Base.astro';
+import Opening from '../components/Opening.astro';
+import Contents from '../components/Contents.astro';
+import { getEntries, pinnedOf } from '../lib/entries.ts';
+
+const entries = await getEntries();
+const latest = entries[0];
+---
+
+<Base direction={config.home.direction}>
+  <main data-page="home" data-home>
+    {latest ? (
+      <>
+        <Opening pinned={pinnedOf(entries)} latest={latest} />
+        <Contents entries={entries} latest={latest} />
+      </>
+    ) : (
+      <section class="wrap fo"><p class="mono lbl">还没有文章。把 JSON 放进 src/content/posts 或 src/content/travels。</p></section>
+    )}
+  </main>
+  <script>
+    import '../scripts/home.ts';
+  </script>
+</Base>

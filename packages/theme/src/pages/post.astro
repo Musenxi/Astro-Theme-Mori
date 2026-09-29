@@ -1,0 +1,34 @@
+---
+import Base from '../layouts/Base.astro';
+import PostBody from '../components/PostBody.astro';
+import { getEntries } from '../lib/entries.ts';
+import type { Entry } from '../lib/entries.ts';
+import { countChars } from '../lib/inline.ts';
+import { dotDate } from '../lib/zh.ts';
+
+export async function getStaticPaths() {
+  const entries = await getEntries();
+  // entries 是新→旧：上一篇是更早的一篇，下一篇是更新的一篇
+  return entries.flatMap((e, i) => (e.kind === 'post' ? [{ params: { slug: e.id }, props: { entry: e, older: entries[i + 1], newer: entries[i - 1] } }] : []));
+}
+
+const { entry, older, newer } = Astro.props as { entry: Entry; older?: Entry; newer?: Entry };
+const d = entry.data as import('../content/schema.ts').PostData;
+const chars = countChars(d.blocks);
+const approx = chars >= 1000 ? chars.toLocaleString('en-US').replace(/\d{2}$/, '00') : String(Math.round(chars / 10) * 10);
+---
+
+<Base title={d.title} description={d.excerpt} type="article">
+  <main>
+    <header class="wrap g post-h">
+      <div class="kicker mono">{entry.category.zh} · {dotDate(d.date)}</div>
+      <h1>{d.title}</h1>
+      <div class="meta mono">约 {approx} 字 · {Math.max(1, Math.round(chars / 450))} 分钟</div>
+    </header>
+    <PostBody blocks={d.blocks} notes={d.notes} />
+    <nav class="wrap g post-end" aria-label="上一篇 / 下一篇">
+      {older ? <a href={older.href}><span class="mono lbl">← 上一篇</span><span class="ul">{older.data.title}</span></a> : <span />}
+      {newer ? <a href={newer.href}><span class="mono lbl">下一篇 →</span><span class="ul">{newer.data.title}</span></a> : <span />}
+    </nav>
+  </main>
+</Base>

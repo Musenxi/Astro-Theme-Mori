@@ -58,3 +58,13 @@ export function sideRefs(spans: Inline): string[] {
 
 /** 纯文字（摘要、alt、字数统计用） */
 export const plainText = (spans: Inline) => spans.map((s) => s.t).join('');
+
+/** 正文字数：数所有 span 的文字（代码块不算） */
+export function countChars(node: unknown): number {
+  if (Array.isArray(node)) return node.reduce((n: number, v) => n + countChars(v), 0);
+  if (node && typeof node === 'object') {
+    const o = node as Record<string, unknown>;
+    return (typeof o.t === 'string' ? o.t.length : 0) + Object.values(o).reduce((n: number, v) => n + (typeof v === 'object' ? countChars(v) : 0), 0);
+  }
+  return 0;
+}

@@ -1,0 +1,102 @@
+---
+/**
+ * 首页“引文开篇”（spec §2 · F 期刊·引文版）：左侧窄栏（本期特稿 + 目录）+ 舞台（封面图，引文压在图上）+ 篇名信息。
+ * 置顶可以有好几篇，由读者点左边目录切换；只有一篇时没有目录，就是一张静止的封面。
+ */
+import { Image } from 'astro:assets';
+import type { Entry } from '../lib/entries.ts';
+import { cnNumber, cnYear, dotDate, pad2, pad3, season } from '../lib/zh.ts';
+
+interface Props {
+  pinned: Entry[];
+  /** 最新一篇，决定“第几期 / 哪年哪季” */
+  latest: Entry;
+}
+const { pinned, latest } = Astro.props;
+const many = pinned.length > 1;
+const ld = latest.data.date;
+
+/** 每篇置顶要有：封面、引文、图注、三条信息；缺哪样就用文章自己的字段顶上 */
+const slides = pinned.map((e) => {
+  const d = e.data, pin = d.pin;
+  const lines = pin?.quote ?? [d.excerpt];
+  let i = 0;
+  const quote = lines.map((l, n) => [...((n === 0 ? '「' : '') + l + (n === lines.length - 1 ? '」' : ''))].map((ch) => ({ ch, i: i++ })));
+  return {
+    e,
+    image: pin?.image ?? d.cover,
+    alt: pin?.alt ?? d.coverAlt ?? '',
+    quote,
+    caption: pin?.caption ?? `${e.category.zh} · ${dotDate(d.date)}`,
+    meta: pin?.meta ?? [{ label: '日期', value: dotDate(d.date) }],
+    fade: pin?.fade,
+  };
+});
+const first = slides[0];
+---
+
+<section class="wrap fo" id="fo">
+  <div class="g">
+    <div class="fo-side mono">
+      <span class="k">本期特稿</span>
+      <b id="fo-no">{pad3(first.e.n)}</b>
+      <span id="fo-cat">{first.e.category.zh} · {first.e.category.en}</span>
+      <span>第{cnNumber(latest.n)}期</span>
+      <span>{cnYear(ld.getFullYear())}年 · {season(ld.getMonth() + 1)}</span>
+      {
+        many && (
+          <div class="fo-more" id="fo-more">
+            <ol>
+              {slides.map((s, k) => (
+                <li aria-current={k === 0 ? 'true' : undefined}>
+                  <button type="button" data-i={k}>
+                    <b>{pad3(s.e.n)}</b>
+                    <span>{s.e.data.title}</span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )
+      }
+    </div>
+    <div class="fo-pin">
+      <div class="fo-stage" id="fo-stage" role="region" aria-label="本期收录">
+        <div class="fo-track" id="fo-track">
+          {
+            slides.map((s, k) => (
+              <article class:list={['fo-slide', k === 0 && 'on']} data-no={pad3(s.e.n)} data-cat={`${s.e.category.zh} · ${s.e.category.en}`} inert={k !== 0}>
+                <div class="fo-art">
+                  <figure class="fo-cover" style={s.fade !== undefined ? `--fade:${s.fade}` : undefined}>
+                    <div class="ph">
+                      {s.image && <Image src={s.image} alt={s.alt} widths={[800, 1200, 1600, 2000]} sizes="(max-width: 760px) 100vw, 83vw" loading={k === 0 ? 'eager' : 'lazy'} fetchpriority={k === 0 ? 'high' : 'auto'} />}
+                    </div>
+                    <figcaption class="mono">
+                      <span>{s.caption}</span>
+                      {many && <span>{pad2(k + 1)} / {pad2(slides.length)}</span>}
+                    </figcaption>
+                  </figure>
+                  <a class="fo-qa" href={s.e.href}>
+                    <p class="fo-q">
+                      {s.quote.map((line, n) => (
+                        <Fragment>
+                          {n > 0 && <br />}
+                          {line.map(({ ch, i }) => <span class="ch" style={`--i:${i}`}>{ch}</span>)}
+                        </Fragment>
+                      ))}
+                    </p>
+                  </a>
+                </div>
+                <dl class="fo-cite">
+                  <div class="ttl"><dt>篇名</dt><dd class="t">{s.e.data.title}</dd></div>
+                  {s.meta.map((m) => <div><dt>{m.label}</dt><dd>{m.value}</dd></div>)}
+                  <a class="fo-go" href={s.e.href}>阅读全文 <span>→</span></a>
+                </dl>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

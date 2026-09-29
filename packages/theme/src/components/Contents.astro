@@ -1,0 +1,56 @@
+---
+/** 目次（spec §2，作者认可）：左边大字“目次 / Contents”和编者按，右边按栏目分组 */
+import config from 'virtual:mori/config';
+import type { Entry } from '../lib/entries.ts';
+import { cnNumber, dotDate, pad3 } from '../lib/zh.ts';
+
+interface Props {
+  entries: Entry[];
+  latest: Entry;
+}
+const { entries, latest } = Astro.props;
+const ROMAN = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ', 'Ⅶ', 'Ⅷ', 'Ⅸ', 'Ⅹ'];
+const sections = config.categories
+  .map((c) => ({ c, list: entries.filter((e) => e.category.id === c.id) }))
+  .filter((s) => s.list.length)
+  .map((s, i) => ({ ...s, roman: ROMAN[i] ?? String(i + 1) }));
+---
+
+<section class="wrap fcon">
+  <header class="f-run mono">
+    <span>{config.title} — 第{cnNumber(latest.n)}期</span>
+    <span>目次 · CONTENTS</span>
+  </header>
+  <div class="g fcon-body">
+    <aside class="f-ed">
+      <h2 class="f-toc">目次<em>Contents</em></h2>
+      {config.home.editorNote && <p class="f-note"><span class="mono">编者按</span>{config.home.editorNote}</p>}
+    </aside>
+    <div class="f-secs">
+      {
+        sections.map(({ c, list, roman }) => (
+          <section class="f-sec">
+            <a class="f-sh" href={`/category/${c.id}/`}>
+              <span class="rn">{roman}</span>
+              <h3>{c.zh}</h3>
+              <em>{c.en}</em>
+              <span class="ct mono">{cnNumber(list.length)}篇 · 按时间看 →</span>
+            </a>
+            <ol class="f-en">
+              {list.map((e) => (
+                <li>
+                  <a href={e.href}>
+                    <span class="pn">{pad3(e.n)}</span>
+                    <span class="tt">{e.data.title}</span>
+                    <span class="dt mono">{dotDate(e.data.date)}</span>
+                    <span class="ex">{e.data.excerpt}</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))
+      }
+    </div>
+  </div>
+</section>

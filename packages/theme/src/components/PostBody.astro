@@ -1,0 +1,101 @@
+---
+import { Image } from 'astro:assets';
+import type { Inline, PostData } from '../content/schema.ts';
+import { numberNotes, renderInline, sideRefs } from '../lib/inline.ts';
+import { pad2 } from '../lib/zh.ts';
+
+interface Props {
+  blocks: PostData['blocks'];
+  notes: PostData['notes'];
+}
+const { blocks, notes } = Astro.props;
+const numbers = numberNotes(blocks);
+const html = (spans: Inline) => renderInline(spans, numbers);
+
+let h2 = 0, fig = 0;
+const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref]?.text ?? [] }));
+---
+
+<article class="wrap g prose">
+  {
+    blocks.map((b) => {
+      switch (b.type) {
+        case 'p': {
+          const refs = sideRefs(b.text);
+          return refs.length ? (
+            <div class="n" data-b={b.id}>
+              <p set:html={html(b.text)} />
+              <div class="ns">
+                {refs.map((ref) => (
+                  <aside id={`note-${ref}`}>
+                    <sup class="nref" data-skip>{numbers.side.get(ref)}</sup>
+                    <Fragment set:html={html(notes[ref]?.text ?? [])} />
+                  </aside>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p data-b={b.id} set:html={html(b.text)} />
+          );
+        }
+        case 'h': {
+          if (b.level === 3) return <h3 data-b={b.id} set:html={html(b.text)} />;
+          h2 += 1;
+          return (
+            <h2 data-b={b.id}>
+              <span class="mono" data-skip>{pad2(h2)}</span>
+              <Fragment set:html={html(b.text)} />
+            </h2>
+          );
+        }
+        case 'quote':
+          return (
+            <blockquote class:list={[b.writing === 'v' && 'vq']} data-b={b.id}>
+              <Fragment set:html={html(b.text)} />
+              {b.cite && <cite>{b.cite}</cite>}
+            </blockquote>
+          );
+        case 'image': {
+          fig += 1;
+          return (
+            <figure class:list={[b.layout === 'inline' && 'inline']} data-b={b.id}>
+              <Image src={b.src} alt={b.alt} widths={[640, 960, 1280, 1600]} sizes="(max-width: 760px) 100vw, 83vw" />
+              {b.caption && (
+                <figcaption>
+                  <span class="mono">图 {fig}</span>
+                  {b.caption}
+                </figcaption>
+              )}
+            </figure>
+          );
+        }
+        case 'list': {
+          const Tag = b.ordered ? 'ol' : 'ul';
+          return (
+            <Tag data-b={b.id}>
+              {b.items.map((item) => <li set:html={html(item)} />)}
+            </Tag>
+          );
+        }
+        case 'code':
+          return (
+            <pre data-b={b.id} data-lang={b.lang}><code>{b.code}</code></pre>
+          );
+      }
+    })
+  }
+  {
+    footnotes.length > 0 && (
+      <section class="fns" aria-label="脚注">
+        <ol>
+          {footnotes.map((f) => (
+            <li id={`fn-${f.ref}`}>
+              <sup class="nref">{f.n}</sup>
+              <span set:html={html(f.text)} />
+            </li>
+          ))}
+        </ol>
+      </section>
+    )
+  }
+</article>
