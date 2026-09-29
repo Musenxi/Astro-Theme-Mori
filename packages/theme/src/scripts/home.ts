@@ -60,6 +60,12 @@ function init() {
   if (!reduce && !played) fo.classList.add('play');
   played = true;
 
+  // 点目次里的栏目标题：这一个标题带上过渡名（同一页只能有一个），进栏目页后从原位移到页顶
+  document.querySelectorAll<HTMLElement>('.f-sh').forEach((a) => a.addEventListener('click', () => {
+    document.querySelectorAll<HTMLElement>('.f-sh h3').forEach((h) => (h.style.viewTransitionName = ''));
+    a.querySelector<HTMLElement>('h3')!.style.viewTransitionName = 'cat-title';
+  }));
+
   // 目次：栏目标题的细线在进入视口时画开
   const io = new IntersectionObserver((es) => es.forEach((e) => {
     if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }

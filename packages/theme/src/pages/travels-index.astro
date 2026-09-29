@@ -1,14 +1,15 @@
 ---
 import config from 'virtual:mori/config';
 import Base from '../layouts/Base.astro';
-import Listing from '../components/Listing.astro';
+import Scale from '../components/Scale.astro';
 import { getEntries } from '../lib/entries.ts';
 
-const entries = (await getEntries()).filter((e) => e.kind === 'travel');
+const all = await getEntries();
+const entries = all.filter((e) => e.kind === 'travel');
 ---
 
 <Base title="游记" direction={config.archive.direction}>
   <main data-page="travels">
-    <Listing title="游记" en="Journeys" entries={entries} />
+    <Scale title="游记" en="Journeys" entries={entries} all={all} empty="没写游记" />
   </main>
 </Base>

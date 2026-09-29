@@ -1,0 +1,92 @@
+---
+/**
+ * E 刻度（spec §2）：位置就是时间，一格一个月，空着的地方就是没写东西（或这个栏目没更新）的月份。
+ * 旁边的大号年月随滚动逐位翻动。横排时时间轴往下走；竖排时像手卷一样从右往左展开，标题竖着挂在轴线下。
+ * 归档、栏目页、文章列表、游记列表都用它；时间范围总是整站的（这样栏目页的空档才有意义）。
+ */
+import type { Entry } from '../lib/entries.ts';
+import { cnNumber, pad2 } from '../lib/zh.ts';
+
+interface Props {
+  title: string;
+  en?: string;
+  roman?: string;
+  /** 要画在轴上的文章 */
+  entries: Entry[];
+  /** 整站的文章，用来定时间范围 */
+  all: Entry[];
+  /** 空月份的提示：“没写游记” */
+  empty: string;
+}
+const { title, en, roman, entries, all, empty } = Astro.props;
+
+const ym = (d: Date) => d.getFullYear() * 12 + d.getMonth(); // 月序数，0 起
+const newest = Math.max(...all.map((e) => ym(e.data.date)));
+const oldest = Math.min(...all.map((e) => ym(e.data.date)));
+const months = Math.max(6, newest - oldest + 1);
+const ny = Math.floor(newest / 12), nm = (newest % 12) + 1;
+
+const ticks = Array.from({ length: months }, (_, k) => {
+  const tm = newest - k, y = Math.floor(tm / 12), m = (tm % 12) + 1;
+  return { k, y, m, yearTop: m === 12 || k === 0 };
+});
+/** 离最新一格往下几格（带小数：同一个月里按日期分布） */
+const posOf = (e: Entry) => {
+  const d = e.data.date;
+  return newest - ym(d) + 1 - (d.getDate() - 1) / 31;
+};
+---
+
+<header class="wrap he-head">
+  <a class="he-back mono" href="/">← 目次</a>
+  <div class="he-ttl">
+    {roman && <span class="rn">{roman}</span>}
+    <h1>{title}</h1>
+    {en && <em>{en}</em>}
+    <span class="mono ct">{cnNumber(entries.length)}篇</span>
+  </div>
+</header>
+
+<section class="he" data-ny={ny} data-nm={nm} data-months={months}>
+  <div class="he-body" id="he-body">
+    <div class="he-vp">
+      <div class="wrap he-wrap">
+        <p class="he-note">一格是一个月。<b>空着的地方，是{empty}的月份。</b></p>
+      </div>
+      <div class="he-axis" id="he-axis" style={`--months:${months}`}>
+        {
+          ticks.map((t) => (
+            <>
+              <span class:list={['tick', t.yearTop && 'y']} style={`--p:${t.k}`}>{t.yearTop && <i>{t.y}</i>}</span>
+              <span class="tick m" style={`--p:${t.k}`}><i>{pad2(t.m)}</i></span>
+            </>
+          ))
+        }
+        {
+          entries.map((e) => (
+            <a class="he-item" href={e.href} style={`--p:${posOf(e).toFixed(3)}`}>
+              <span class="t">{e.data.title}</span>
+              <span class:list={['k', e.kind === 'travel' && 'tr']}>{e.category.zh}</span>
+              <span class="d">{pad2(e.data.date.getMonth() + 1)}.{pad2(e.data.date.getDate())}</span>
+            </a>
+          ))
+        }
+      </div>
+      <div class="he-counter" id="he-counter" aria-hidden="true">
+        {
+          [0, 0, 0, 0, '.', 0, 0].map((d) =>
+            d === '.' ? (
+              <span class="dot">.</span>
+            ) : (
+              <span class="dg"><i>{[...'0123456789'].map((x) => <b>{x}</b>)}</i></span>
+            ),
+          )
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import '../scripts/scale.ts';
+</script>

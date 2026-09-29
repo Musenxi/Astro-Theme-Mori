@@ -1,7 +1,7 @@
 ---
 import config from 'virtual:mori/config';
 import Base from '../layouts/Base.astro';
-import Listing from '../components/Listing.astro';
+import Scale from '../components/Scale.astro';
 import { getEntries } from '../lib/entries.ts';
 
 const entries = await getEntries();
@@ -9,6 +9,6 @@ const entries = await getEntries();
 
 <Base title="归档" direction={config.archive.direction}>
   <main data-page="archive">
-    <Listing title="全部文章" en="Archive" entries={entries} />
+    <Scale title="全部文章" en="Archive" entries={entries} all={entries} empty="没写东西" />
   </main>
 </Base>
