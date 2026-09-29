@@ -25,3 +25,8 @@ export function Field({ label, hint, children, className }: { label: string; hin
     </div>
   );
 }
+
+/** 数字输入：清空就是“没有值”（undefined），不是 0 */
+export function NumInput({ value, onChange, className, ...p }: { value?: number; onChange: (v: number | undefined) => void; className?: string } & Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'>) {
+  return <Input type="number" step="any" className={className} value={value ?? ''} onChange={(e) => onChange(e.target.value === '' ? undefined : +e.target.value)} {...p} />;
+}

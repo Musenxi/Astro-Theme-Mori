@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { spansToText, textToSpans, compact } from '../ui/inline.js';
+import { spansToText, textToSpans, compact } from '../app/src/lib/inline.js';
 
 const roundTrip = (spans) => textToSpans(spansToText(spans));
 

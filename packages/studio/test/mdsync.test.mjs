@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { toMarkdown, fromMarkdown, similarity } from '../ui/mdsync.js';
+import { toMarkdown, fromMarkdown, similarity } from '../app/src/lib/mdsync.js';
 
 const doc = () => ({
   title: '标题', date: '2025-01-01', category: 'essays', excerpt: 'x',

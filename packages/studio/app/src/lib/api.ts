@@ -62,6 +62,14 @@ export const api = {
     return j as { ok: true; name: string };
   },
 
+  importGpx: async (file: File) => {
+    const r = await fetch('/api/gpx', { method: 'POST', body: file });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new ApiError(j.error ?? '读取 GPX 失败', r.status);
+    return j as { track: Array<[number, number]>; points: number; simplified: number };
+  },
+  exif: () => req<{ photos: number; withGps: number; stops: Array<{ lnglat: [number, number]; date?: string; count: number }> }>('GET', '/api/exif'),
+
   comments: (status?: string) => req<{ comments: CommentRow[] }>('GET', `/api/comments${status ? `?status=${status}` : ''}`),
   commentStats: () => req<{ pending: number; approved: number; hidden: number }>('GET', '/api/comments/stats'),
   setCommentStatus: (id: number, status: string) => req('PATCH', `/api/comments/${id}`, { status }),
