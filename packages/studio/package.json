@@ -1,0 +1,26 @@
+{
+  "name": "mori-studio",
+  "version": "0.0.1",
+  "description": "MORI Studio — 本地写作与排版编辑器（读写项目里的内容文件，不需要 git）。",
+  "license": "GPL-3.0-only",
+  "type": "module",
+  "bin": {
+    "mori-studio": "./bin/mori-studio.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "ui"
+  ],
+  "scripts": {
+    "start": "node bin/mori-studio.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "astro-mori": "workspace:*",
+    "htm": "^3.1.1",
+    "preact": "^10.29.8",
+    "sharp": "^0.35.5",
+    "vite": "^8.3.1"
+  }
+}

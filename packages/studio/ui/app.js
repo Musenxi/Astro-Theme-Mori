@@ -1,0 +1,96 @@
+import { html, render, useState, useEffect, useRef, useCallback } from './h.js';
+import { api } from './api.js';
+import { PostEditor } from './editors/post.js';
+import { RawEditor } from './editors/raw.js';
+
+const KIND_NAME = { post: '文章', travel: '游记' };
+const parseHash = () => { const [, kind, id] = location.hash.match(/^#\/([a-z]+)(?:\/(.+))?$/) ?? []; return { kind: kind ?? '', id: id ? decodeURIComponent(id) : '' }; };
+
+function App() {
+  const [project, setProject] = useState(null);
+  const [route, setRoute] = useState(parseHash());
+  const [previewOn, setPreviewOn] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0);
+  const [error, setError] = useState('');
+  const refresh = useCallback(() => api.project().then(setProject).catch((e) => setError(e.message)), []);
+  useEffect(() => { refresh(); const on = () => setRoute(parseHash()); addEventListener('hashchange', on); return () => removeEventListener('hashchange', on); }, []);
+  if (error) return html`<div class="empty-state">${error}</div>`;
+  if (!project) return html`<div class="empty-state">读取项目……</div>`;
+
+  const path = route.kind === 'post' ? `/posts/${route.id}/` : route.kind === 'travel' ? `/travels/${route.id}/` : '/';
+  const togglePreview = async () => {
+    if (!previewOn) { const r = await api.previewStart(); if (!r.up) return alert('预览服务没能启动。请在项目里先跑一次 pnpm install。'); }
+    setPreviewOn(!previewOn);
+  };
+  const preview = {
+    reload: () => setTimeout(() => setPreviewKey((k) => k + 1), 500),
+    button: html`<button class="btn" onClick=${togglePreview}>${previewOn ? '关闭预览' : '预览'}</button>`,
+  };
+
+  let main;
+  if (route.kind === 'new') main = html`<${NewEntry} kind=${route.id || 'post'} project=${project} refresh=${refresh} />`;
+  else if (route.kind === 'build') main = html`<${Build} />`;
+  else if (route.kind === 'post' || route.kind === 'travel') main = html`<${EntryRoute} key=${route.kind + route.id} kind=${route.kind} id=${route.id} project=${project} refresh=${refresh} preview=${preview} />`;
+  else main = html`<div class="empty-state">从左边选一篇，或新建一篇。</div>`;
+
+  return html`<div class=${'shell' + (previewOn ? ' with-preview' : '')}>
+    <${Side} project=${project} route=${route} />
+    <div class="main">${main}</div>
+    ${previewOn && html`<div class="preview">
+      <div class="bar"><span class="mono lbl grow">预览 · ${path}</span><button class="linkbtn" onClick=${() => setPreviewKey((k) => k + 1)}>刷新</button><button class="linkbtn" onClick=${() => { api.previewStop(); setPreviewOn(false); }}>停止服务</button></div>
+      <iframe key=${previewKey} src=${`http://127.0.0.1:${project.preview.port}${path}`}></iframe>
+    </div>`}
+  </div>`;
+}
+
+function Side({ project, route }) {
+  const groups = ['travel', 'post'].map((kind) => ({ kind, list: project.entries.filter((e) => e.kind === kind) }));
+  return html`<aside class="side">
+    <header><h1>${project.config.title} · STUDIO</h1><div class="root mono">${project.root}</div></header>
+    <nav>
+      ${groups.map(({ kind, list }) => html`<div key=${kind}>
+        <div class="group mono">${KIND_NAME[kind]} · ${list.length} <a class="linkbtn" href=${`#/new/${kind}`} style="margin-left:8px">新建</a></div>
+        <ul>${list.map((e) => html`<li key=${e.id} class=${e.draft ? 'draft' : ''}><a href=${`#/${kind}/${e.id}`} aria-current=${route.kind === kind && route.id === e.id ? 'page' : undefined}>
+          <span class="t">${e.title}</span><span class="m mono">${e.date.slice(2)}</span></a></li>`)}</ul>
+      </div>`)}
+    </nav>
+    <footer class="mono"><a class="linkbtn" href="#/build">构建</a></footer>
+  </aside>`;
+}
+
+function EntryRoute({ kind, id, project, refresh, preview }) {
+  const [doc, setDoc] = useState(null), [err, setErr] = useState(''), [raw, setRaw] = useState(kind === 'travel');
+  useEffect(() => { api.entry(kind, id).then(setDoc).catch((e) => setErr(e.message)); }, []);
+  if (err) return html`<div class="empty-state">${err}</div>`;
+  if (!doc) return html`<div class="empty-state">读取中……</div>`;
+  const Editor = raw ? RawEditor : PostEditor;
+  return html`<${Editor} kind=${kind} id=${id} initial=${doc} project=${project} refresh=${refresh} preview=${preview} />`;
+}
+
+function NewEntry({ kind, project, refresh }) {
+  const [id, setId] = useState(''), [title, setTitle] = useState(''), [category, setCategory] = useState(project.config.categories[0]?.id ?? ''), [err, setErr] = useState('');
+  const submit = async (e) => {
+    e.preventDefault();
+    try { await api.create(kind, { id, title, category }); await refresh(); location.hash = `#/${kind}/${id}`; } catch (x) { setErr(x.message); }
+  };
+  return html`<div class="pad"><h2 style="font-weight:400;font-size:20px;letter-spacing:.1em">新建${KIND_NAME[kind]}</h2>
+    <form onSubmit=${submit} style="margin-top:16px">
+      <div class="field"><label>标题</label><input value=${title} onInput=${(e) => setTitle(e.target.value)} required /></div>
+      <div class="field"><label>地址名</label><div><input value=${id} onInput=${(e) => setId(e.target.value)} placeholder="英文、数字、连字符，如 my-first-post" pattern="[A-Za-z0-9][A-Za-z0-9_\\-]*" required /><div class="mono lbl">网址会是 /${kind === 'post' ? 'posts' : 'travels'}/${id || '……'}/</div></div></div>
+      <div class="field"><label>栏目</label><select value=${category} onChange=${(e) => setCategory(e.target.value)}>${project.config.categories.map((c) => html`<option value=${c.id}>${c.zh}</option>`)}</select></div>
+      ${err && html`<p class="issues">${err}</p>`}
+      <button class="btn primary" type="submit" style="margin-top:12px">创建</button>
+    </form></div>`;
+}
+
+function Build() {
+  const [log, setLog] = useState(''), [busy, setBusy] = useState(false), [code, setCode] = useState(null);
+  const run = async () => { setBusy(true); setCode(null); setLog(''); const c = await api.build(setLog); setCode(c); setBusy(false); };
+  return html`<div class="pad"><h2 style="font-weight:400;font-size:20px;letter-spacing:.1em">构建</h2>
+    <p class="lbl" style="margin:10px 0">运行 astro build，输出静态文件到项目的 dist/。发布（Cloudflare Pages / VPS）稍后接进来。</p>
+    <button class="btn primary" disabled=${busy} onClick=${run}>${busy ? '构建中……' : '开始构建'}</button>
+    ${code !== null && html`<span class=${'status mono' + (code ? ' bad' : '')} style="margin-left:12px">${code ? `失败（退出码 ${code}）` : '完成'}</span>`}
+    ${log && html`<pre class="log">${log}</pre>`}</div>`;
+}
+
+render(html`<${App} />`, document.getElementById('app'));

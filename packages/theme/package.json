@@ -18,7 +18,10 @@
     "./layouts/*": "./src/layouts/*",
     "./styles/*": "./src/styles/*",
     "./pages/*": "./src/pages/*",
-    "./fonts/*": "./fonts/*"
+    "./fonts/*": "./fonts/*",
+    "./schema": "./src/content/schema.ts",
+    "./validate": "./src/content/validate.ts",
+    "./config": "./src/config.ts"
   },
   "files": [
     "src",
