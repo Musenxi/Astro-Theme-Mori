@@ -8,7 +8,7 @@ import type { Inline, TravelData } from '../content/schema.ts';
 import { numberNotes, renderInline } from '../lib/inline.ts';
 import { coord } from '../lib/geo.ts';
 import { cnNumber, pad2 } from '../lib/zh.ts';
-import MapPlaceholder from './MapPlaceholder.astro';
+import RouteMap from './RouteMap.astro';
 
 interface Props {
   travel: TravelData;
@@ -138,7 +138,7 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
             case 'map':
               return (
                 <div id={anchor} class="blk b-map" data-b={b.id} data-stop={b.stop} style={place(b)}>
-                  <MapPlaceholder stops={b.scope === 'stop' ? [stop] : stops} />
+                  <RouteMap variant="block" stops={stops} track={travel.track} scope={b.scope} stopId={b.stop} />
                 </div>
               );
           }

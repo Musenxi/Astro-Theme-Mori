@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import TravelBody from '../components/TravelBody.astro';
-import MapPlaceholder from '../components/MapPlaceholder.astro';
+import RouteMap from '../components/RouteMap.astro';
 import TravelCorners from '../components/TravelCorners.astro';
 import EntryNav from '../components/EntryNav.astro';
 import { getEntries } from '../lib/entries.ts';
@@ -37,15 +37,16 @@ const initial = allowed.includes(short(d.reading.default)) ? short(d.reading.def
             </dl>
           )}
         </div>
-        <div class="mapbox"><MapPlaceholder stops={d.stops} /></div>
+        <div class="mapbox"><RouteMap variant="hero" stops={d.stops} track={d.track} /></div>
       </header>
       <TravelBody travel={d} />
     </article>
     <EntryNav older={older} newer={newer} />
-    <TravelCorners allowed={allowed} stops={d.stops} />
+    <TravelCorners allowed={allowed} stops={d.stops} track={d.track} />
   </main>
   <script>
     import '../scripts/reveal.ts';
     import '../scripts/travel.ts';
+    import '../scripts/map.ts';
   </script>
 </Base>

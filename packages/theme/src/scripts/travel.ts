@@ -142,6 +142,27 @@ function init() {
 
   const hero = travel.querySelector('.t-hero')!, end = travel.querySelector('.t-end')!;
   const rbN = loc.querySelector<HTMLElement>('#rb-n')!, rbName = loc.querySelector<HTMLElement>('#rb-name')!;
+
+  // 左下角小地图：路线随阅读往前画，当前位置的标记移到当前站点（站点在路线上走了多远，按最近的采样点量）
+  const mini = loc.querySelector<SVGSVGElement>('svg.map');
+  const miniRoute = mini?.querySelector<SVGPathElement>('path.route-p');
+  const miniHere = mini?.querySelector<SVGGElement>('.here');
+  const miniStops: Array<{ x: number; y: number }> = JSON.parse(mini?.dataset.stops ?? '[]');
+  let routeLen = 0, stopLen: number[] = [];
+  if (miniRoute) {
+    routeLen = miniRoute.getTotalLength();
+    const pts = Array.from({ length: 601 }, (_, i) => { const l = (routeLen * i) / 600, p = miniRoute.getPointAtLength(l); return [l, p.x, p.y] as const; });
+    let from = 0;
+    stopLen = miniStops.map((s, k) => {
+      if (k === 0) return 0;
+      let best = Infinity, bl = 0, bi = from;
+      for (let i = from; i < pts.length; i++) { const d = (pts[i][1] - s.x) ** 2 + (pts[i][2] - s.y) ** 2; if (d < best) { best = d; bl = pts[i][0]; bi = i; } }
+      from = bi;
+      return bl;
+    });
+    miniRoute.style.strokeDasharray = String(routeLen);
+    miniRoute.style.strokeDashoffset = String(routeLen);
+  }
   let lastStop = -1;
   function updateLoc() {
     const hr = hero.getBoundingClientRect(), er = end.getBoundingClientRect();
@@ -151,6 +172,10 @@ function init() {
     lastStop = i;
     rbN.textContent = `${pad(i + 1)} / ${pad(stops.length)}${stops[i].date ? ` · ${stops[i].date}` : ''}`;
     rbName.textContent = stops[i].name;
+    if (miniRoute && miniStops[i]) {
+      miniRoute.style.strokeDashoffset = String(routeLen - stopLen[i]);
+      miniHere!.style.transform = `translate(${miniStops[i].x}px,${miniStops[i].y}px)`;
+    }
   }
 
   function tick() {

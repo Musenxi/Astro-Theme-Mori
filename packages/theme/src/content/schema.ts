@@ -212,6 +212,8 @@ export const travelSchema = ({ image }: SchemaContext) => {
       /** 一行行的事实，游记封面的“路线 / 日期 / 里程” */
       facts: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
       stops: z.array(stopSchema).min(1),
+      /** 路线的细节：[经度, 纬度] 点列（GPX 导入、照片 EXIF 生成的轨迹）。不写就按站点顺序连线 */
+      track: z.array(z.tuple([z.number(), z.number()])).optional(),
       reading: z
         .object({
           /** 默认读法：v 竖向 / h 横向 / mix 混合 */

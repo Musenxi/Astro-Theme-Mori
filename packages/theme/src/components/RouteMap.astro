@@ -1,0 +1,67 @@
+---
+/**
+ * 剪影地图：构建时算好几何，输出纯 SVG（spec §3.2）。
+ *  - hero：游记封面里的大图，同时把陆地轮廓放进 <symbol id="map-land">，同页的其他地图直接引用
+ *  - block：正文里的地图块（route 全程 / stop 只看这一站附近）
+ *  - mini：左下角“当前位置”里的小地图，只有轮廓、路线和一个当前位置标记
+ */
+import type { TravelData } from '../content/schema.ts';
+import { buildMap, W, H } from '../lib/map.ts';
+
+interface Props {
+  variant: 'hero' | 'block' | 'mini';
+  stops: TravelData['stops'];
+  track?: TravelData['track'];
+  /** block 用：route 全程，stop 只看某一站 */
+  scope?: 'route' | 'stop';
+  stopId?: string;
+}
+const { variant, stops, track, scope = 'route', stopId } = Astro.props;
+
+const own = variant === 'block' && scope === 'stop'; // 只看一站：取景不同，陆地单独画
+const list = own ? stops.filter((s) => s.id === stopId) : stops;
+const m = await buildMap(list, own ? undefined : track, own ? { minSpan: 4 } : {});
+const full = variant !== 'mini';
+const label = `路线：${stops.map((s) => s.name).join('、')}`;
+---
+
+{
+  variant === 'hero' && (
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+      <symbol id="map-land" viewBox={`0 0 ${W} ${H}`}><path class="land" d={m.land} /></symbol>
+    </svg>
+  )
+}
+<svg class="map" viewBox={`0 0 ${W} ${H}`} data-map={variant} data-stops={variant === 'mini' ? JSON.stringify(m.stops.map((s) => ({ x: s.x, y: s.y }))) : undefined} role="img" aria-label={label}>
+  {own ? <path class="land" d={m.land} /> : <use href="#map-land" width={W} height={H} />}
+  {full && m.parallels.map((p) => (
+    <>
+      <path d={p.d} class="arctic" />
+      <text x={W - 15} y={p.y - 8} class="t-meta" text-anchor="end">{p.label}</text>
+    </>
+  ))}
+  {full && (
+    <g transform={`translate(40 ${H - 30})`}>
+      <path d={`M0,-6V0H${m.scale.px}V-6M${m.scale.px / 2},0V-4`} class="scale" fill="none" />
+      <text x={m.scale.px + 10} y="0" class="t-meta">{m.scale.label}</text>
+    </g>
+  )}
+  {m.route && <path d={m.route} class="route-bg" />}
+  {m.route && <path d={m.route} class:list={['route', variant === 'mini' && 'route-p']} data-route />}
+  {variant === 'mini' ? (
+    <g class="here" style={`transform:translate(${m.stops[0].x}px,${m.stops[0].y}px)`}>
+      <circle cx="0" cy="0" r="120" fill="var(--accent)" opacity=".12" />
+      <circle cx="0" cy="0" r="52" class="dot first" />
+    </g>
+  ) : (
+    <>
+      {m.stops.map((s, i) => <circle cx={s.x} cy={s.y} r="7" class:list={['dot', i === 0 && 'first']} data-t={s.t} />)}
+      {m.stops.map((s) => (
+        <g class="lab" data-t={s.t}>
+          <text x={s.label.x} y={s.label.y} text-anchor={s.label.anchor} class="t-zh">{s.name}</text>
+          {s.en && <text x={s.label.x} y={s.label.y + 18} text-anchor={s.label.anchor} class="t-en">{s.en}</text>}
+        </g>
+      ))}
+    </>
+  )}
+</svg>
