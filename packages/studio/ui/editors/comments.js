@@ -23,11 +23,17 @@ export function Comments({ project, refresh }) {
 
   if (c.provider !== 'mori') return html`<div class="pad"><h2 style="font-weight:400;font-size:20px;letter-spacing:.1em">评论</h2><p class="lbl" style="margin-top:10px">还没有启用自建评论。在 mori.config.ts 里加 <span class="mono">comments: { provider: 'mori', endpoint: '评论服务的地址' }</span>；用第三方评论（Giscus / Waline / Twikoo / Artalk）时，评论在各自的后台里管理。</p></div>`;
 
+  const local = /^https?:\/\/(127\.0\.0\.1|localhost)(:|\/|$)/.test(c.endpoint);
+  const saveToken = async (v) => { await call('PUT', '/api/comments/token', { token: v }); await refresh(); setErr(''); setToken(''); };
   if (!c.hasToken || err === 'token') return html`<div class="pad"><h2 style="font-weight:400;font-size:20px;letter-spacing:.1em">评论 · 管理令牌</h2>
-    <p class="lbl" style="margin:10px 0">管理评论要用评论服务的管理令牌（部署时设置的 ADMIN_TOKEN）。它只保存在本机项目根目录的 <span class="mono">.mori-studio.json</span> 里（已加进 .gitignore），也可以用环境变量 <span class="mono">MORI_ADMIN_TOKEN</span>。服务地址：<span class="mono">${c.endpoint}</span></p>
-    ${err === 'token' && html`<p class="issues">令牌不对，评论服务拒绝了。</p>`}
+    ${local
+      ? html`<p style="margin:10px 0">评论服务在本机（<span class="mono">${c.endpoint}</span>）。用 <span class="mono">pnpm dev</span> 启动的那个，管理令牌就是 <b class="mono">dev-token</b>。</p>
+        <div class="row" style="margin-bottom:14px"><button class="btn primary" onClick=${() => saveToken('dev-token')}>使用 dev-token</button><span class="lbl">（也可以在下面填别的）</span></div>`
+      : html`<p style="margin:10px 0">评论服务：<span class="mono">${c.endpoint}</span>。管理令牌是部署评论服务时设置的 <span class="mono">ADMIN_TOKEN</span>。</p>`}
+    ${err === 'token' && html`<p class="issues">令牌不对，评论服务拒绝了。${local ? '如果你是自己用别的令牌启动的服务，请填那个。' : ''}</p>`}
     <div class="row"><input class="cell" type="password" value=${token} onInput=${(e) => setToken(e.target.value)} placeholder="管理令牌" style="max-width:26em" />
-      <button class="btn primary" onClick=${async () => { await call('PUT', '/api/comments/token', { token }); await refresh(); setErr(''); setToken(''); }}>保存</button></div></div>`;
+      <button class="btn" disabled=${!token} onClick=${() => saveToken(token)}>保存</button></div>
+    <p class="lbl mono" style="margin-top:14px">令牌只保存在本机项目根目录的 .mori-studio.json 里（已加进 .gitignore），也可以用环境变量 MORI_ADMIN_TOKEN。</p></div>`;
 
   const act = async (id, fn) => { try { await fn(); await load(); await refresh(); } catch (e) { setErr(e.message); } };
   return html`<div class="bar"><b class="grow" style="font-weight:400">评论</b><span class="status mono">${stats ? `待审 ${stats.pending} · 已通过 ${stats.approved} · 已隐藏 ${stats.hidden}` : ''}</span><button class="linkbtn" onClick=${load}>刷新</button></div>
