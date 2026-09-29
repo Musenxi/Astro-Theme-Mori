@@ -1,0 +1,67 @@
+---
+/**
+ * 首页 F·封面版（spec §2，保留备选）：墨色封面，满版刊名（Cormorant 细体），期号条，本期特稿（大标题 + 英文斜体副题 + 导语），
+ * 右侧几篇封面标题，底部“刊期”刻度（一格一个月，每篇一个点）。暗色模式下封面反成浅底深字。
+ * 往下滚时刊名缩小并移到左上角，变成页头里的 MORI；页头压在封面上时自动反色。
+ */
+import config from 'virtual:mori/config';
+import type { Entry } from '../lib/entries.ts';
+import { pad3 } from '../lib/zh.ts';
+import { t, fmt, lang } from '../lib/i18n.ts';
+
+interface Props {
+  /** 头条：置顶的第一篇，没有置顶就是最新一篇 */
+  feature: Entry;
+  entries: Entry[];
+  latest: Entry;
+}
+const { feature, entries, latest } = Astro.props;
+
+const ym = (d: Date) => d.getFullYear() * 12 + d.getMonth();
+const oldest = Math.min(...entries.map((e) => ym(e.data.date))), newest = ym(latest.data.date);
+const span = Math.max(6, newest - oldest + 1);
+const first = oldest - Math.max(0, span - (newest - oldest + 1)); // 不足 6 格时往前补空格
+const ticks = Array.from({ length: span }, (_, k) => {
+  const tm = first + k, y = Math.floor(tm / 12), m = (tm % 12) + 1;
+  return { left: ((k / span) * 100).toFixed(3), label: m === 1 ? String(y) : String(m).padStart(2, '0'), year: m === 1 };
+});
+const points = [...entries].reverse().map((e, i) => {
+  const d = e.data.date, x = ((ym(d) - first + (d.getDate() - 1) / 31) / span) * 100;
+  return { e, i, left: x.toFixed(3) };
+});
+const rest = entries.filter((e) => e !== feature).slice(0, 4);
+const mast = [...config.title];
+const ld = latest.data.date, firstYear = new Date(Math.min(...entries.map((e) => e.data.date.getTime()))).getFullYear();
+const fd: any = feature.data;
+---
+
+<section class="fc" id="fc">
+  <div class="wrap fc-in">
+    <h1 class="f-mast" id="f-mast" aria-label={config.title}>{mast.map((ch, i) => <span style={`--i:${i}`}>{ch}</span>)}</h1>
+    <div class="f-rule"></div>
+    <div class="g f-strap mono">
+      <span>{t('cover.vol', { v: String(ld.getFullYear() - firstYear + 1).padStart(2, '0'), n: String(latest.n).padStart(2, '0') })}</span>
+      <span>{t('cover.seasonIssue', { year: fmt.year(ld.getFullYear()), season: fmt.season(ld.getMonth() + 1) })}</span>
+      <span>{config.categories.map((c) => c.zh).join(' · ')}</span>
+      <span>{t('cover.since', { year: firstYear })}</span>
+    </div>
+    <div class="g f-cover">
+      <a class="f-lead" href={feature.href}>
+        <span class="f-kick mono">{t('cover.kick')} · <em>p.</em> {pad3(feature.n)}</span>
+        <h2 class="f-ttl t">{fd.title}</h2>
+        {fd.subtitle && <p class="f-deck">{fd.subtitle}</p>}
+        <p class="f-ex">{fd.excerpt}</p>
+      </a>
+      <ol class="f-lines">
+        {rest.map((e) => (
+          <li><a href={e.href}><span class="no">{pad3(e.n)}</span><span class="tt">{e.data.title}</span><span class="kk">{e.category.zh} · {String(e.data.date.getMonth() + 1).padStart(2, '0')}.{String(e.data.date.getDate()).padStart(2, '0')}</span></a></li>
+        ))}
+      </ol>
+    </div>
+    <div class="f-ruler">
+      {ticks.map((k) => <span class:list={['tk', k.year && 'y']} style={`left:${k.left}%`}><i>{k.label}</i></span>)}
+      {points.map((p) => <a class:list={['pt', p.e.kind === 'travel' && 'tr']} href={p.e.href} data-t={p.e.data.title} style={`left:${p.left}%;--i:${p.i}`} aria-label={p.e.data.title}></a>)}
+      <span class="cap">{t('cover.ruler')}</span>
+    </div>
+  </div>
+</section>

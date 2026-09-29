@@ -20,6 +20,11 @@ export default {
   'notfound.title': '找不到这一页', 'notfound.h': '这一页不在目次里。', 'notfound.back': '回到目次 →',
   'search.title': '搜索', 'search.placeholder': '标题、摘要、正文',
   'comments.title': '评论',
+  'cover.vol': 'VOL.{v} — NO.{n}',
+  'cover.seasonIssue': '{year}年 · {season}季号',
+  'cover.since': '始于 {year} · 不定期',
+  'cover.kick': '本期特稿 · FEATURE',
+  'cover.ruler': '刊期 · 一格一个月',
   // ↓ 浏览器里的脚本用
   'js.theme.toLight': '昼', 'js.theme.toDark': '夜',
   'js.cmt.loading': '评论加载中……', 'js.cmt.retry': '重试', 'js.cmt.count': '{n} 条', 'js.cmt.none': '还没有评论。', 'js.cmt.annotation': '批注', 'js.cmt.reply': '回复', 'js.cmt.cancelReply': '取消回复',

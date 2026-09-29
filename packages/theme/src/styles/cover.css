@@ -1,0 +1,69 @@
+/* 首页 F·封面版 —— 由 design/style-probe/index.html 还原 */
+/* ---------- 首页 F·封面版：墨色封面 + 满版刊名（往下滚时缩进页头） ---------- */
+/* 封面用墨色底，暗色模式下自动反过来；封面上的主题色提亮一点 */
+.fc{--on:var(--paper);--on-2:color-mix(in srgb,var(--paper) 66%,transparent);--on-3:color-mix(in srgb,var(--paper) 42%,transparent);--on-line:color-mix(in srgb,var(--paper) 22%,transparent);--acc:color-mix(in srgb,var(--accent) 80%,var(--paper));
+  background:var(--ink);color:var(--on);margin-top:calc(-1*var(--hh,82px));padding-top:var(--hh,82px);min-height:100svh;display:flex;flex-direction:column;transition:background-color .4s}
+.fc-in{flex:1;display:flex;flex-direction:column;width:100%;padding-bottom:clamp(20px,4vh,40px)}
+.f-mast{font-family:var(--display);font-weight:300;line-height:.8;letter-spacing:-.01em;white-space:nowrap;display:flex;justify-content:space-between;margin-top:clamp(4px,1.6vh,20px);position:relative;z-index:30;transform-origin:0 0;will-change:transform,opacity}
+.f-mast span{display:inline-block}
+.f-rule{height:1px;background:var(--on-line);transform-origin:0 50%;margin-top:clamp(10px,2vh,20px)}
+.f-strap{padding-top:10px;color:var(--on-2);row-gap:6px}
+.f-strap span{grid-column:span 3}
+.f-strap span:last-child{text-align:right}
+.f-cover{margin-top:auto;padding-top:clamp(36px,7vh,96px);align-items:end;row-gap:40px}
+.f-lead{grid-column:1/7;display:block}
+.f-kick{color:var(--acc)}
+.f-kick em{font-family:var(--display);font-style:italic;font-size:14px;letter-spacing:0}
+.f-ttl{font-size:clamp(44px,6vw,100px);line-height:1.08;letter-spacing:.04em;font-weight:400;margin:16px 0 12px;width:fit-content;background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .8s var(--ease)}
+.f-lead:hover .f-ttl{background-size:100% 1px}
+.f-deck{font-family:var(--display);font-style:italic;font-weight:300;font-size:clamp(20px,1.8vw,28px);line-height:1.3;color:var(--on-2);letter-spacing:.01em}
+.f-ex{max-width:25em;margin-top:14px;font-size:15px;line-height:1.85;color:var(--on-2)}
+.f-lines{grid-column:8/13;border-top:1px solid var(--on-line)}
+.f-lines a{display:grid;grid-template-columns:3em 1fr;column-gap:14px;padding:13px 0 14px;border-bottom:1px solid var(--on-line)}
+.f-lines .no{font-family:var(--display);font-style:italic;font-weight:300;font-size:26px;line-height:1.1;color:var(--on-3);transition:color .3s}
+.f-lines .tt{font-size:19px;line-height:1.45;letter-spacing:.04em}
+.f-lines .kk{grid-column:2;font:10.5px/1.6 var(--mono);letter-spacing:.08em;color:var(--on-3)}
+.f-lines a:hover .no{color:var(--acc)}
+/* 刊期：一格一个月，每篇是一个点 */
+.f-ruler{position:relative;margin-top:clamp(36px,7vh,80px);height:46px;border-top:1px solid var(--on-line)}
+.f-ruler .tk{position:absolute;top:0;height:5px;border-left:1px solid var(--on-line)}
+.f-ruler .tk.y{height:12px;border-left-color:var(--on-2)}
+.f-ruler .tk i{position:absolute;top:16px;left:5px;font:10px var(--mono);letter-spacing:.08em;color:var(--on-3);font-style:normal;white-space:nowrap}
+.f-ruler .pt{position:absolute;top:-4px;width:7px;height:7px;margin-left:-3.5px;border-radius:50%;background:var(--on)}
+.f-ruler .pt.tr{background:var(--acc)}
+.f-ruler .pt::after{content:attr(data-t);position:absolute;bottom:16px;left:50%;transform:translate(-50%,4px);white-space:nowrap;font:14px/1.4 var(--serif);letter-spacing:.04em;color:var(--on);opacity:0;pointer-events:none;transition:opacity .3s,transform .4s var(--ease)}
+.f-ruler .pt:hover::after{opacity:1;transform:translate(-50%,0)}
+.f-ruler .cap{position:absolute;right:0;top:-22px;font:10px var(--mono);letter-spacing:.08em;color:var(--on-3)}
+/* 进场：刊名自下而上露出，细线从左画开，小点依次落下 */
+.fc.play .f-mast span{animation:mast-in 1.2s var(--ease) calc(var(--i)*80ms) both}
+@keyframes mast-in{from{clip-path:inset(100% 0 0 0);transform:translateY(.1em)}to{clip-path:inset(-10% 0 -10% 0)}}
+.fc.play .f-rule{animation:rule-in 1.3s var(--ease) .3s both}
+@keyframes rule-in{from{transform:scaleX(0)}}
+.fc.play .f-strap,.fc.play .f-cover{animation:rise .9s var(--ease) .55s both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}}
+.fc.play .f-ruler{animation:rule-in 1.2s var(--ease) .8s both}
+.fc.play .f-ruler .pt{animation:pt-in .5s var(--ease) calc(1.2s + var(--i)*55ms) both}
+@keyframes pt-in{from{transform:scale(0)}}
+/* 页头压在封面上时换成反色 */
+.site .mark{transition:color .4s,opacity .3s}
+.site.on-cover .mark{color:var(--paper)}
+/* 封面底色和页面相反，玻璃直接借用另一套主题的参数 */
+.site.on-cover{--lg-fg:color-mix(in srgb,var(--paper) 72%,transparent);--lg-fg-on:var(--paper);--lg-tint:rgba(24,22,20,.3);--lg-spec-o:.7;--lg-rim:rgba(255,255,255,.34);--lg-rim-2:rgba(255,255,255,.12);--lg-glow:rgba(255,255,255,.05);--lg-drop:rgba(0,0,0,.55);--lg-lens:rgba(255,255,255,.12);--lg-lens-rim:rgba(255,255,255,.3)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .site.on-cover{--lg-tint:rgba(255,255,255,.3);--lg-rim:rgba(255,255,255,.95);--lg-rim-2:rgba(255,255,255,.4);--lg-glow:rgba(255,255,255,.35);--lg-drop:rgba(60,45,30,.2);--lg-lens:rgba(255,255,255,.62);--lg-lens-rim:rgba(255,255,255,1)}}
+:root[data-theme="dark"] .site.on-cover{--lg-tint:rgba(255,255,255,.3);--lg-rim:rgba(255,255,255,.95);--lg-rim-2:rgba(255,255,255,.4);--lg-glow:rgba(255,255,255,.35);--lg-drop:rgba(60,45,30,.2);--lg-lens:rgba(255,255,255,.62);--lg-lens-rim:rgba(255,255,255,1)}
+/* 竖排：特稿标题、封面标题改为竖排 */
+:root[data-hdir="v"] .f-lead{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:clamp(24px,3vw,48px);align-items:end}
+:root[data-hdir="v"] .f-lead > *{grid-column:1}
+:root[data-hdir="v"] .f-lead .f-ttl{grid-column:2;grid-row:1/5;writing-mode:vertical-rl;font-size:clamp(34px,3.6vw,60px);margin:0;background-position:100% 0;background-size:1px 0}
+:root[data-hdir="v"] .f-lead:hover .f-ttl{background-size:1px 100%}
+:root[data-hdir="v"] .f-lines{writing-mode:vertical-rl;border-top:0;border-right:1px solid var(--on-line);height:min(46vh,24em);justify-self:end;max-width:100%;overflow-x:auto;scrollbar-width:none}
+:root[data-hdir="v"] .f-lines a{display:flex;gap:12px;padding:0 14px;border-bottom:0;border-left:1px solid var(--on-line);height:100%}
+:root[data-hdir="v"] .f-lines .no{font-size:22px}
+:root[data-hdir="v"] .f-lines .kk{margin-block-start:auto}
+.f-ruler .tk i{display:block}
+@media (max-width:760px){
+  .f-strap span{grid-column:span 6!important}
+  .f-strap span:nth-child(even){text-align:right}
+  .f-strap span:nth-child(3){display:none}
+  .f-ruler .tk:not(.y) i{display:none}
+}

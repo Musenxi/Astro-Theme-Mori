@@ -6,7 +6,25 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 let played = false;
 
+/** 目次的行为（引文版和封面版都有目次） */
+function initContents() {
+  const fcon = document.querySelector<HTMLElement>('.fcon');
+  if (!fcon || fcon.dataset.ready) return;
+  fcon.dataset.ready = '1';
+  // 点目次里的栏目标题：这一个标题带上过渡名（同一页只能有一个），进栏目页后从原位移到页顶
+  document.querySelectorAll<HTMLElement>('.f-sh').forEach((a) => a.addEventListener('click', () => {
+    document.querySelectorAll<HTMLElement>('.f-sh h3').forEach((h) => (h.style.viewTransitionName = ''));
+    a.querySelector<HTMLElement>('h3')!.style.viewTransitionName = 'cat-title';
+  }));
+  // 栏目标题的细线在进入视口时画开
+  const io = new IntersectionObserver((es) => es.forEach((e) => {
+    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }), { threshold: 0.2 });
+  document.querySelectorAll('.f-sec').forEach((s) => io.observe(s));
+}
+
 function init() {
+  initContents();
   const fo = document.querySelector<HTMLElement>('#fo');
   if (!fo || fo.dataset.ready) return;
   fo.dataset.ready = '1';
@@ -59,18 +77,6 @@ function init() {
   // 进场（第一次打开）：图从上往下展开，引文逐字洇开，细线画开，最后出现篇名等信息
   if (!reduce && !played) fo.classList.add('play');
   played = true;
-
-  // 点目次里的栏目标题：这一个标题带上过渡名（同一页只能有一个），进栏目页后从原位移到页顶
-  document.querySelectorAll<HTMLElement>('.f-sh').forEach((a) => a.addEventListener('click', () => {
-    document.querySelectorAll<HTMLElement>('.f-sh h3').forEach((h) => (h.style.viewTransitionName = ''));
-    a.querySelector<HTMLElement>('h3')!.style.viewTransitionName = 'cat-title';
-  }));
-
-  // 目次：栏目标题的细线在进入视口时画开
-  const io = new IntersectionObserver((es) => es.forEach((e) => {
-    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-  }), { threshold: 0.2 });
-  document.querySelectorAll('.f-sec').forEach((s) => io.observe(s));
 }
 
 document.addEventListener('astro:page-load', init);

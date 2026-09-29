@@ -3,6 +3,7 @@ import { t, lang } from '../lib/i18n.ts';
 import config from 'virtual:mori/config';
 import Base from '../layouts/Base.astro';
 import Opening from '../components/Opening.astro';
+import Cover from '../components/Cover.astro';
 import Contents from '../components/Contents.astro';
 import { getEntries, pinnedOf } from '../lib/entries.ts';
 
@@ -14,7 +15,7 @@ const latest = entries[0];
   <main data-page="home" data-home>
     {latest ? (
       <>
-        <Opening pinned={pinnedOf(entries)} latest={latest} />
+        {config.home.style === 'cover' ? <Cover feature={pinnedOf(entries)[0]} entries={entries} latest={latest} /> : <Opening pinned={pinnedOf(entries)} latest={latest} />}
         <Contents entries={entries} latest={latest} />
       </>
     ) : (
@@ -23,5 +24,6 @@ const latest = entries[0];
   </main>
   <script>
     import '../scripts/home.ts';
+    import '../scripts/cover.ts';
   </script>
 </Base>

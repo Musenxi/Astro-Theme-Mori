@@ -60,7 +60,7 @@ export default defineMoriConfig({
     { id: 'journeys', zh: '游记', en: 'Journeys', empty: '没写游记' },
     { id: 'essays', zh: '随笔', en: 'Essays' },
   ],
-  home: { direction: 'h', editorNote: '……' },   // 首页排法：h 横排 / v 竖排；目次旁的编者按
+  home: { style: 'quote', direction: 'h', editorNote: '……' },   // 首页版式：quote 引文开篇 / cover 封面版；排法：h 横排 / v 竖排；目次旁的编者按
   archive: { direction: 'h' },                   // 归档 / 栏目刻度页的排法
 });
 ```

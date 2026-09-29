@@ -53,6 +53,8 @@ export interface MoriUserConfig {
   categories: MoriCategory[];
   nav?: MoriNavItem[];
   home?: {
+    /** 首页版式：quote 引文开篇（默认）/ cover 封面版（墨色封面 + 满版刊名，往下滚时刊名缩进页头） */
+    style?: 'quote' | 'cover';
     /** 首页排法：h 横排 / v 竖排 */
     direction?: 'h' | 'v';
     /** 目次左边的“编者按” */
@@ -72,7 +74,7 @@ export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'acc
   accentDark?: string;
   comments?: MoriComments;
   description: string;
-  home: { direction: 'h' | 'v'; editorNote: string };
+  home: { style: 'quote' | 'cover'; direction: 'h' | 'v'; editorNote: string };
   archive: { direction: 'h' | 'v' };
 }
 
@@ -97,7 +99,7 @@ export function resolveConfig(c: MoriUserConfig): MoriConfig {
       { label: t('nav.travels'), href: '/travels/' },
       { label: t('nav.archive'), href: '/archive/' },
     ],
-    home: { direction: dir(c.home?.direction), editorNote: c.home?.editorNote ?? '' },
+    home: { style: c.home?.style ?? 'quote', direction: dir(c.home?.direction), editorNote: c.home?.editorNote ?? '' },
     archive: { direction: dir(c.archive?.direction ?? c.home?.direction) },
   };
 }
