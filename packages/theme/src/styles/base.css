@@ -1,60 +1,114 @@
-/* 令牌 / 重置 / 网格 —— 由 design/style-probe/index.html 还原 */
-:root{
-  --paper:#f3f0e9; --paper-2:#e9e5db; --ink:#1d1b18; --ink-2:#55504a; --ink-3:#8f887d; --rule:#d7d0c3;
+/* 令牌 / 重置 —— 令牌用 shadcn 的语义命名，值是站点原来的纸、墨、细线。@layer base 里的规则在工具类之下 */
+:root {
+  --background: #f3f0e9;
+  --muted: #e9e5db;
+  --foreground: #1d1b18;
+  --soft-foreground: #55504a;
+  --muted-foreground: #8f887d;
+  --border: #d7d0c3;
+  --destructive: #b0442b;
   /* 主题色：作者在编辑器里改，默认克莱因蓝。亮色下压暗、暗色下提亮到可读的亮度，色相和饱和度不变 */
-  --accent-base:#002fa7; --accent:oklch(from var(--accent-base) min(l,.52) c h); --land:#e0d9cb; --land-edge:#c8bfae;
-  --serif:"STDongGuanTi","ZhuqueFS","Songti SC","Noto Serif SC",serif;
-  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,monospace;
-  --display:"Cormorant Garamond","Cormorant",Georgia,serif;
-  --ease:cubic-bezier(.2,.75,.15,1);
-  --gut:clamp(16px,4vw,56px);
-  --maxw:1360px;
-  --gap:clamp(12px,2vw,28px);
-  --edge:max(var(--gut),calc((100vw - var(--maxw))/2 + var(--gut)));
+  --accent-base: #002fa7;
+  --primary: oklch(from var(--accent-base) min(l, 0.52) c h);
+  --primary-foreground: var(--background);
+  --ring: var(--primary);
+  --land: #e0d9cb;
+  --land-edge: #c8bfae;
+  --gut: clamp(16px, 4vw, 56px);
+  --maxw: 1360px;
+  --gap: clamp(12px, 2vw, 28px);
+  --edge: max(var(--gut), calc((100vw - var(--maxw)) / 2 + var(--gut)));
   /* 磨砂玻璃：半透明纸色 + 模糊 + 细颗粒 */
-  --glass:color-mix(in srgb,var(--paper) 64%,transparent);
-  --glass-line:color-mix(in srgb,var(--ink) 11%,transparent);
-  --glass-hi:rgba(255,255,255,.5);
-  --grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .14 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  color-scheme:light;
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --paper:#151412; --paper-2:#1f1d1a; --ink:#e8e3d9; --ink-2:#b2ab9f; --ink-3:#7b756b; --rule:#34302b;
-    --accent:var(--accent-dark,oklch(from var(--accent-base) max(l,.7) min(c,.18) h)); --land:#2a2723; --land-edge:#3d3832; color-scheme:dark;
-    --glass:color-mix(in srgb,var(--paper) 56%,transparent); --glass-hi:rgba(255,255,255,.07);
+  --glass: color-mix(in srgb, var(--background) 64%, transparent);
+  --glass-line: color-mix(in srgb, var(--foreground) 11%, transparent);
+  --glass-hi: rgba(255, 255, 255, 0.5);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .14 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  color-scheme: light;
+
+  @variant dark {
+    --background: #151412;
+    --muted: #1f1d1a;
+    --foreground: #e8e3d9;
+    --soft-foreground: #b2ab9f;
+    --muted-foreground: #7b756b;
+    --border: #34302b;
+    --primary: var(--accent-dark, oklch(from var(--accent-base) max(l, 0.7) min(c, 0.18) h));
+    --land: #2a2723;
+    --land-edge: #3d3832;
+    --glass: color-mix(in srgb, var(--background) 56%, transparent);
+    --glass-hi: rgba(255, 255, 255, 0.07);
+    color-scheme: dark;
   }
 }
-:root[data-theme="dark"]{
-  --paper:#151412; --paper-2:#1f1d1a; --ink:#e8e3d9; --ink-2:#b2ab9f; --ink-3:#7b756b; --rule:#34302b;
-  --accent:var(--accent-dark,oklch(from var(--accent-base) max(l,.7) min(c,.18) h)); --land:#2a2723; --land-edge:#3d3832; color-scheme:dark;
-  --glass:color-mix(in srgb,var(--paper) 56%,transparent); --glass-hi:rgba(255,255,255,.07);
+
+:root[data-font="fs"] {
+  --font-serif: "ZhuqueFS", "Songti SC", serif;
+}
+/* 朱雀仿宋只有常规体，不让浏览器伪造粗体 */
+:root[data-font="fs"] body {
+  font-synthesis-weight: none;
 }
 
-:root[data-font="fs"]{--serif:"ZhuqueFS","Songti SC",serif}
-/* 朱雀仿宋只有常规体，不让浏览器伪造粗体 */
-:root[data-font="fs"] body{font-synthesis-weight:none}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{overflow-x:clip}
-html{background:var(--paper)}
-body{background:var(--paper);color:var(--ink);font:400 17px/1.9 var(--serif);letter-spacing:.02em;
-  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;transition:background-color .4s,color .4s}
-img{display:block;max-width:100%;height:auto}
-a{color:inherit;text-decoration:none}
-button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;letter-spacing:inherit}
-ol,ul{list-style:none}
-[hidden]{display:none!important}
-::selection{background:var(--accent);color:var(--paper)}
-:focus-visible{outline:1px solid var(--accent);outline-offset:3px}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html,
+body {
+  overflow-x: clip;
+}
+html {
+  background: var(--background);
+}
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font: 400 17px/1.9 var(--font-serif);
+  letter-spacing: 0.02em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 0.4s, color 0.4s;
+}
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  letter-spacing: inherit;
+}
+ol,
+ul {
+  list-style: none;
+}
+[hidden] {
+  display: none !important;
+}
+::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+:focus-visible {
+  outline: 1px solid var(--ring);
+  outline-offset: 3px;
+}
 
-.wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gut)}
-.g{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gap)}
-.mono{font-family:var(--mono);font-size:11.5px;line-height:1.6;letter-spacing:.06em;font-feature-settings:"tnum"}
-.lbl{color:var(--ink-3)}
-/* 箭头：一个画出来的 >，两臂夹角约 100°，比字体里的 > 开得大；颜色跟着文字。.l 是镜像的 < */
-.chev{width:.6em;height:.75em;margin-left:.55em;vertical-align:-.06em;overflow:visible;fill:none;stroke:currentColor;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}
-.chev.l{margin-left:0;margin-right:.55em;transform:scaleX(-1)}
-.ul{background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .5s var(--ease)}
-a:hover .ul,a.ul:hover{background-size:100% 1px}
-.tcy{text-combine-upright:all}
-
+/* 标题、引文、图注的断行更均匀 */
+h1,
+h2,
+h3,
+blockquote,
+figcaption,
+.ex {
+  text-wrap: balance;
+}

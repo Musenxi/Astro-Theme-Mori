@@ -1,29 +1,29 @@
 /* E 刻度：归档 / 分类 / 文章 / 游记列表页 —— 由 design/style-probe/index.html 还原 */
 .he-head{padding-top:clamp(28px,6vh,72px)}
-.he-back{color:var(--ink-3);transition:color .3s}
-.he-back:hover{color:var(--accent)}
-.he-ttl{display:flex;align-items:baseline;gap:18px;margin-top:18px;padding-bottom:14px;border-bottom:1px solid var(--ink)}
-.he-ttl .rn{font-family:var(--display);font-weight:300;font-size:60px;line-height:.9}
+.he-back{color:var(--muted-foreground);transition:color .3s}
+.he-back:hover{color:var(--primary)}
+.he-ttl{display:flex;align-items:baseline;gap:18px;margin-top:18px;padding-bottom:14px;border-bottom:1px solid var(--foreground)}
+.he-ttl .rn{font-family:var(--font-display);font-weight:300;font-size:60px;line-height:.9}
 .he-ttl h1{font-size:clamp(32px,3.4vw,50px);font-weight:400;letter-spacing:.14em;line-height:1.2;width:fit-content;view-transition-name:cat-title}
-.he-ttl em{font-family:var(--display);font-style:italic;font-weight:300;font-size:26px;color:var(--ink-3)}
-.he-ttl .ct{margin-left:auto;color:var(--ink-3)}
+.he-ttl em{font-family:var(--font-display);font-style:italic;font-weight:300;font-size:26px;color:var(--muted-foreground)}
+.he-ttl .ct{margin-left:auto;color:var(--muted-foreground)}
 .he{padding-top:clamp(20px,4vh,48px);padding-bottom:40px;--mh:112px;--mw:150px}
-.he-note{font-size:14px;color:var(--ink-3);letter-spacing:.08em;margin-bottom:28px}
-.he-note b{font-weight:400;color:var(--ink)}
+.he-note{font-size:14px;color:var(--muted-foreground);letter-spacing:.08em;margin-bottom:28px}
+.he-note b{font-weight:400;color:var(--foreground)}
 .he-axis{position:relative}
 .tick{position:absolute;pointer-events:none}
-.tick i{position:absolute;font:11px/1 var(--mono);color:var(--ink-3);white-space:nowrap;font-style:normal}
-.tick.y i{color:var(--ink);font-size:12px;letter-spacing:.1em}
+.tick i{position:absolute;font:11px/1 var(--font-mono);color:var(--muted-foreground);white-space:nowrap;font-style:normal}
+.tick.y i{color:var(--foreground);font-size:12px;letter-spacing:.1em}
 .he-item{position:absolute;display:flex;align-items:baseline;gap:14px;white-space:nowrap}
 .he-item .t{font-size:clamp(19px,1.9vw,27px);letter-spacing:.06em;transition:color .3s}
-.he-item .k{font-size:13px;color:var(--ink-3)}
-.he-item .k.tr{color:var(--accent)}
-.he-item .d{font:11px var(--mono);color:var(--ink-3)}
-.he-item:hover .t{color:var(--accent)}
-.he-counter{font:300 clamp(56px,9.5vw,164px)/1 var(--mono);letter-spacing:-.02em;color:var(--ink);white-space:nowrap;pointer-events:none}
-.he-counter .dot{color:var(--accent)}
+.he-item .k{font-size:13px;color:var(--muted-foreground)}
+.he-item .k.tr{color:var(--primary)}
+.he-item .d{font:11px var(--font-mono);color:var(--muted-foreground)}
+.he-item:hover .t{color:var(--primary)}
+.he-counter{font:300 clamp(56px,9.5vw,164px)/1 var(--font-mono);letter-spacing:-.02em;color:var(--foreground);white-space:nowrap;pointer-events:none}
+.he-counter .dot{color:var(--primary)}
 .dg{display:inline-block;height:1em;overflow:hidden;vertical-align:top}
-.dg i{display:block;font-style:normal;transition:transform .8s var(--ease)}
+.dg i{display:block;font-style:normal;transition:transform .8s var(--ease-mori)}
 .dg i b{display:block;height:1em;font-weight:inherit}
 /* 横排：时间轴竖着往下走 */
 :root:not([data-hdir="v"]) .he-body{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:var(--gap);max-width:var(--maxw);margin:0 auto;padding:0 var(--gut)}
@@ -31,9 +31,9 @@
 :root:not([data-hdir="v"]) .he-wrap{grid-column:1/-1;padding:0;max-width:none;margin:0}
 :root:not([data-hdir="v"]) .he-axis{grid-column:1;grid-row:2}
 .tick.m{border:0!important}
-:root:not([data-hdir="v"]) .he-axis{height:calc(var(--months)*var(--mh));border-left:1px solid var(--ink)}
-:root:not([data-hdir="v"]) .tick{left:0;top:calc(var(--p)*var(--mh));width:12px;border-top:1px solid var(--ink-3)}
-:root:not([data-hdir="v"]) .tick.y{width:40px;border-top-color:var(--ink)}
+:root:not([data-hdir="v"]) .he-axis{height:calc(var(--months)*var(--mh));border-left:1px solid var(--foreground)}
+:root:not([data-hdir="v"]) .tick{left:0;top:calc(var(--p)*var(--mh));width:12px;border-top:1px solid var(--muted-foreground)}
+:root:not([data-hdir="v"]) .tick.y{width:40px;border-top-color:var(--foreground)}
 :root:not([data-hdir="v"]) .tick i{left:52px;top:-.5em}
 :root:not([data-hdir="v"]) .tick.m i{left:20px;top:calc(var(--mh)/2 - .5em)}
 :root:not([data-hdir="v"]) .he-item{left:clamp(96px,12vw,180px);top:var(--q,calc(var(--p)*var(--mh)));transform:translateY(-50%)}
@@ -42,9 +42,9 @@
 :root[data-hdir="v"] .he-vp{position:sticky;top:0;height:100vh;overflow:hidden;direction:rtl}
 :root[data-hdir="v"] .he-wrap{display:contents}
 :root[data-hdir="v"] .he-axis{direction:ltr;height:100%;width:calc(var(--months)*var(--mw) + 2*var(--edge));will-change:transform}
-:root[data-hdir="v"] .he-axis::before{content:"";position:absolute;left:var(--edge);right:var(--edge);top:30vh;border-top:1px solid var(--ink)}
-:root[data-hdir="v"] .tick{right:calc(var(--edge) + var(--p)*var(--mw));top:calc(30vh - 12px);height:12px;border-left:1px solid var(--ink-3)}
-:root[data-hdir="v"] .tick.y{top:calc(30vh - 40px);height:40px;border-left-color:var(--ink)}
+:root[data-hdir="v"] .he-axis::before{content:"";position:absolute;left:var(--edge);right:var(--edge);top:30vh;border-top:1px solid var(--foreground)}
+:root[data-hdir="v"] .tick{right:calc(var(--edge) + var(--p)*var(--mw));top:calc(30vh - 12px);height:12px;border-left:1px solid var(--muted-foreground)}
+:root[data-hdir="v"] .tick.y{top:calc(30vh - 40px);height:40px;border-left-color:var(--foreground)}
 :root[data-hdir="v"] .tick i{left:6px;top:0}
 :root[data-hdir="v"] .tick.m i{left:auto;right:calc(var(--mw)/2 - 1em);top:-4px}
 :root[data-hdir="v"] .he-item{right:calc(var(--edge) + var(--q,calc(var(--p)*var(--mw))));top:calc(30vh + 22px);writing-mode:vertical-rl;transform:translateX(50%);max-height:56vh}

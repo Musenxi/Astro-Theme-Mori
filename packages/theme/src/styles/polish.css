@@ -1,19 +1,18 @@
 /* 细节的打磨：链接、断行、阅读进度。只用渐进增强——不支持的浏览器照常显示，只是少一点点讲究 */
 
 /* 标题、引文、图注的断行更均匀；正文避免最后一行只剩一个字 */
-h1, h2, h3, blockquote, figcaption, .ex { text-wrap: balance; }
 .prose p, .prose li { text-wrap: pretty; }
 
 /* 正文里的链接：主题色 + 一根细下划线，悬停时下划线加深（原来完全看不出哪里是链接） */
 .prose a:not(.nref a):not([data-skip]) {
-  color: var(--accent);
+  color: var(--primary);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: .24em;
-  text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
-  transition: text-decoration-color .3s var(--ease), color .3s;
+  text-decoration-color: color-mix(in srgb, var(--primary) 40%, transparent);
+  transition: text-decoration-color .3s var(--ease-mori), color .3s;
 }
-.prose a:not(.nref a):not([data-skip]):hover { text-decoration-color: var(--accent); }
+.prose a:not(.nref a):not([data-skip]):hover { text-decoration-color: var(--primary); }
 
 /* 旁注编号跳转时，别被玻璃页头盖住 */
 .prose [id], .fns [id] { scroll-margin-top: 96px; }
@@ -23,7 +22,7 @@ h1, h2, h3, blockquote, figcaption, .ex { text-wrap: balance; }
   :root:has(main[data-page="post"]) body::before {
     content: "";
     position: fixed; inset: 0 0 auto 0; height: 1px; z-index: 60;
-    background: var(--accent);
+    background: var(--primary);
     transform-origin: 0 50%;
     transform: scaleX(0);
     animation: read-progress linear both;

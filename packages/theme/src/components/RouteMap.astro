@@ -51,7 +51,7 @@ const label = t('map.route', { list: stops.map((s) => s.name).join(lang === 'en'
   {m.route && <path d={m.route} class:list={['route', variant === 'mini' && 'route-p']} data-route />}
   {variant === 'mini' ? (
     <g class="here" style={`transform:translate(${m.stops[0].x}px,${m.stops[0].y}px)`}>
-      <circle cx="0" cy="0" r="120" fill="var(--accent)" opacity=".12" />
+      <circle cx="0" cy="0" r="120" fill="var(--primary)" opacity=".12" />
       <circle cx="0" cy="0" r="52" class="dot first" />
     </g>
   ) : (

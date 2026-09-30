@@ -1,5 +1,6 @@
 import type { AstroIntegration } from 'astro';
 import { statSync } from 'node:fs';
+import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
 import { resolveConfig, type MoriUserConfig } from './config.ts';
 
@@ -33,6 +34,7 @@ export default function mori(userConfig: MoriUserConfig): AstroIntegration {
         updateConfig({
           vite: {
             plugins: [
+              tailwindcss(),
               {
                 name: 'mori-config',
                 resolveId: (id) => (id === VIRTUAL ? `\0${VIRTUAL}` : undefined),
