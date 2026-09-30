@@ -56,7 +56,8 @@ const canonical = config.site ? new URL(Astro.url.pathname, config.site).href : 
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="alternate" type="application/rss+xml" title={config.title} href="/feed" />
-    <style is:inline set:html={`:root{--accent-base:${config.accent}${config.accentDark ? `;--accent-dark:${config.accentDark}` : ''}}`} />
+    <!-- 主题色：base.css 里有一份默认值（同样是 :root），这里用 :root:root 抬高优先级，不靠谁排在后面 -->
+    <style is:inline set:html={`:root:root{--accent-base:${config.accent}${config.accentDark ? `;--accent-dark:${config.accentDark}` : ''}}`} />
     <!-- 昼夜：先于首次绘制，避免闪一下；换页时 <html> 的属性会被换掉，所以每次换页后再补上 -->
     <script is:inline>
       (() => {
