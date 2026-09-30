@@ -35,7 +35,7 @@ const zh = lang !== 'en';
                       <span class="ti">{e.data.title}</span>
                       {e.data.excerpt && <span class="ex">{e.data.excerpt}</span>}
                     </span>
-                    <span class="kk mono">{e.category.zh}{e.kind === 'travel' ? ` · ${t('kind.travel')}` : ''}</span>
+                    <span class="kk mono">{e.category.zh}{e.kind === 'travel' && e.category.zh !== t('kind.travel') ? ` · ${t('kind.travel')}` : ''}</span>
                   </a>
                 </li>
               ))}
