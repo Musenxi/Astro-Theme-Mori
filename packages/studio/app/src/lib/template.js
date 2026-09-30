@@ -37,24 +37,25 @@ export function toTravel(doc) {
     if (!id) { let n = stops.length + 1; while (used.has('s' + n) || kept.some((s) => s.id === 's' + n && s.name !== name)) n++; id = 's' + n; }
     return { ...(k ?? { lnglat: [0, 0] }), id, name };
   }
-  const para = (id, spans, writing = 'h') => {
+  /** extra：段落的类型和内容（缺省是普通段落）。id 不冲突就沿用 */
+  const para = (id, extra, writing = 'h') => {
     const s = stop();
     if (!text || text.stop !== s || (text.writing ?? 'h') !== writing) {
       text = { id: ids.next('t'), type: 'text', stop: s, ...(writing === 'v' ? { writing: 'v' } : {}), paras: [] };
       blocks.push(text);
     }
-    text.paras.push({ id: id && !text.paras.some((p) => p.id === id) ? id : ids.next(`${text.id}p`), text: spans });
+    text.paras.push({ id: id && !text.paras.some((p) => p.id === id) ? id : ids.next(`${text.id}p`), ...extra });
   };
   for (const b of doc.blocks ?? []) {
     switch (b.type) {
       case 'h':
         if (b.level === 2) { stops.push(fromKept(plain(b.text), stops.length)); text = null; }
-        else para(b.id, b.text);
+        else para(b.id, { type: 'h', text: b.text });
         break;
-      case 'p': para(b.id, b.text); break;
-      case 'quote': para(b.id, b.text, b.writing === 'v' ? 'v' : 'h'); break;
-      case 'list': b.items.forEach((it, k) => para(k === 0 ? b.id : null, it)); break;
-      case 'code': para(b.id, [{ t: b.code }]); break;
+      case 'p': para(b.id, { text: b.text }); break;
+      case 'quote': para(b.id, { type: 'quote', text: b.text, ...(b.cite ? { cite: b.cite } : {}) }, b.writing === 'v' ? 'v' : 'h'); break;
+      case 'list': para(b.id, { type: 'list', ordered: !!b.ordered, items: b.items }); break;
+      case 'code': para(b.id, { type: 'code', ...(b.lang ? { lang: b.lang } : {}), code: b.code }); break;
       case 'image':
         text = null;
         blocks.push({ id: ids.next('s'), type: 'single', stop: stop(), src: b.src, alt: b.alt ?? '', ...(b.caption ? { caption: b.caption } : {}), layout: b.layout === 'inline' ? 'inset' : 'full' });
@@ -85,7 +86,11 @@ export function toArticle(doc) {
     for (const b of own) {
       switch (b.type) {
         case 'text':
-          for (const p of b.paras ?? []) out.push(b.writing === 'v' ? { id: p.id, type: 'quote', writing: 'v', text: p.text } : { id: p.id, type: 'p', text: p.text });
+          for (const p of b.paras ?? []) {
+            const { type = 'p', ...rest } = p;
+            // 竖排的文字块，普通段落变成竖排引用；其余类型原样
+            out.push(type === 'p' && b.writing === 'v' ? { id: p.id, type: 'quote', writing: 'v', text: p.text } : type === 'h' ? { id: p.id, type: 'h', level: 3, text: p.text } : type === 'quote' && b.writing === 'v' ? { id: p.id, type: 'quote', writing: 'v', ...rest } : { id: p.id, type, ...rest });
+          }
           break;
         case 'single': img(b, b.layout === 'inset' ? 'inline' : 'wide'); break;
         case 'pair': case 'strip': case 'grid': b.images.forEach((im) => img(im, 'inline')); break;

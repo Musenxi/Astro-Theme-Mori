@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Bold, Code, Heading2, Heading3, ImageIcon, Italic, Link2, List, MessageSquareQuote, Quote } from 'lucide-react';
 import { api } from '@/lib/api';
-import { cn } from '@/lib/cn';
 import { countWords, wan } from '@/lib/format';
 import { useRefresh } from '@/lib/hooks';
 import { fromMarkdown, toMarkdown } from '@/lib/mdsync.js';
@@ -23,9 +22,8 @@ const TOOLS: Array<{ cmd: MdCommand | 'image' | 'note'; label: string; icon: typ
   { cmd: 'note', label: '旁注', icon: MessageSquareQuote },
 ];
 
-/** 游记只有段落、图片和站点，没有小标题、引用、列表这些块——按钮留在原位（两边的工具栏一样），置灰 */
-const TRAVEL_OFF = new Set(['h3', 'quote', 'list']);
-const travelLabel = (t: (typeof TOOLS)[number]) => (t.cmd === 'h2' ? '新的一站' : TRAVEL_OFF.has(t.cmd) ? `${t.label}　游记里没有对应的块` : t.label);
+/** 游记里 `##` 是“新的一站”，其余工具和文章一样；悬停时提示改成游记的叫法 */
+const travelLabel = (t: (typeof TOOLS)[number]) => (t.cmd === 'h2' ? '新的一站' : t.label);
 
 /** 用 Markdown 写：一个大文本框，标题是第一行 `# 标题`；停笔 250ms 后解析成块，并保住没改动的块（和它们的划词批注） */
 export function MarkdownView({ doc, setDoc, travel }: { doc: Doc; setDoc: (fn: (d: Doc) => Doc) => void; travel?: boolean }) {
@@ -63,13 +61,11 @@ export function MarkdownView({ doc, setDoc, travel }: { doc: Doc; setDoc: (fn: (
     <div className="flex h-full min-h-0 flex-col">
       <div className="mx-5 flex shrink-0 items-center gap-0.5 rounded-full bg-sunk/70 px-2 py-1">
         {TOOLS.map((t) => {
-          const off = !!travel && TRAVEL_OFF.has(t.cmd);
           const label = travel ? travelLabel(t) : t.label;
           return (
             <span key={t.cmd} className={t.gap ? 'ml-3' : ''}>
               <Tip label={t.key ? `${label}　${t.key}` : label}>
-                <button type="button" aria-label={label} aria-disabled={off || undefined} onMouseDown={(e) => e.preventDefault()} onClick={() => { if (!off) run(t.cmd); }}
-                  className={cn('grid h-7 w-7 place-items-center rounded-full transition-[background-color,color,transform]', off ? 'cursor-default text-ink-3/50' : 'text-ink-2 hover:bg-lift hover:text-ink hover:shadow-soft active:scale-90')}>
+                <button type="button" aria-label={label} onMouseDown={(e) => e.preventDefault()} onClick={() => run(t.cmd)} className="grid h-7 w-7 place-items-center rounded-full text-ink-2 transition-[background-color,color,transform] hover:bg-lift hover:text-ink hover:shadow-soft active:scale-90">
                   <t.icon size={15} />
                 </button>
               </Tip>

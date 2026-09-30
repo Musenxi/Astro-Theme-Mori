@@ -141,19 +141,22 @@ export const inlineMd = (spans) =>
     }, s.t))
     .join('');
 
+/** 一个块 → Markdown。游记文字块里的段落（h / quote / list / code）也走这里 */
+export function blockMd(b) {
+  switch (b.type) {
+    case 'p': return inlineMd(b.text);
+    case 'h': return `${'#'.repeat(b.level ?? 2)} ${inlineMd(b.text)}`;
+    case 'quote': return `> ${inlineMd(b.text)}${b.cite ? `\n> —— ${b.cite}` : ''}`;
+    case 'image': return `![${b.alt ?? ''}](${b.src}${b.caption ? ` "${b.caption}"` : ''})`;
+    case 'list': return b.items.map((it, k) => `${b.ordered ? `${k + 1}.` : '-'} ${inlineMd(it)}`).join('\n');
+    case 'code': return `\`\`\`${b.lang ?? ''}\n${b.code}\n\`\`\``;
+    default: return '';
+  }
+}
+
 /** 块 + 注释表 → 正文 Markdown（不含 front matter） */
 export function blocksToMarkdown(post) {
-  const out = post.blocks.map((b) => {
-    switch (b.type) {
-      case 'p': return inlineMd(b.text);
-      case 'h': return `${'#'.repeat(b.level ?? 2)} ${inlineMd(b.text)}`;
-      case 'quote': return `> ${inlineMd(b.text)}${b.cite ? `\n> —— ${b.cite}` : ''}`;
-      case 'image': return `![${b.alt ?? ''}](${b.src}${b.caption ? ` "${b.caption}"` : ''})`;
-      case 'list': return b.items.map((it, k) => `${b.ordered ? `${k + 1}.` : '-'} ${inlineMd(it)}`).join('\n');
-      case 'code': return `\`\`\`${b.lang ?? ''}\n${b.code}\n\`\`\``;
-      default: return '';
-    }
-  });
+  const out = post.blocks.map(blockMd);
   const notes = Object.entries(post.notes ?? {}).map(([k, v]) => `[^${k}]: ${inlineMd(v.text)}`);
   return out.filter(Boolean).join('\n\n') + (notes.length ? `\n\n${notes.join('\n')}` : '') + '\n';
 }
@@ -177,7 +180,7 @@ export function travelItems({ stops = [], blocks = [] }) {
   for (const s of stops) {
     for (const b of blocks.filter((x) => x.stop === s.id)) {
       const at = (o) => ({ stop: s.id, block: b.id, ...o });
-      if (b.type === 'text') (b.paras ?? []).forEach((p, k) => items.push(at({ kind: 'p', k, text: p.text })));
+      if (b.type === 'text') (b.paras ?? []).forEach((p, k) => { const { id: _id, type, ...rest } = p; items.push(at({ ...rest, kind: type ?? 'p', k })); });
       else if (b.type === 'single') items.push(at({ kind: 'img', k: 0, src: b.src, alt: b.alt, caption: b.caption }));
       else if (['pair', 'strip', 'grid'].includes(b.type)) (b.images ?? []).forEach((im, k) => items.push(at({ kind: 'img', k, src: im.src, alt: im.alt, caption: im.caption })));
       else if (b.type === 'free') (b.items ?? []).forEach((it, k) => { if (it.kind === 'image') items.push(at({ kind: 'img', k, src: it.src, alt: it.alt, caption: it.caption })); });
@@ -185,6 +188,9 @@ export function travelItems({ stops = [], blocks = [] }) {
   }
   return items;
 }
+
+/** 游记里的一项（段落 / 小标题 / 引用 / 列表 / 代码）→ Markdown。小标题固定写三个 #：两个 # 是“新的一站” */
+export const travelParaMd = (it) => blockMd(it.kind === 'h' ? { type: 'h', level: 3, text: it.text } : { ...it, type: it.kind });
 
 const imgLine = (it) => `![${it.alt ?? ''}](${it.src ?? ''}${it.caption ? ` "${it.caption}"` : ''})`;
 
@@ -194,33 +200,67 @@ export function travelToMarkdown({ stops = [], blocks = [], notes = {} }) {
   const parts = [];
   for (const s of stops) {
     parts.push(`## ${s.name ?? ''}`.trimEnd());
-    for (const it of items.filter((x) => x.stop === s.id)) parts.push(it.kind === 'p' ? inlineMd(it.text) : imgLine(it));
+    for (const it of items.filter((x) => x.stop === s.id)) parts.push(it.kind === 'img' ? imgLine(it) : travelParaMd(it));
   }
   const defs = Object.entries(notes).map(([k, v]) => `[^${k}]: ${inlineMd(v.text)}`);
   return parts.join('\n\n') + (defs.length ? `\n\n${defs.join('\n')}` : '') + '\n';
 }
 
-/** Markdown → { title, stops: [{ name }], items, notes }。item 的 stop 是 stops 里的序号；第一个站点之前的内容归到第一站 */
+/** Markdown → { title, stops: [{ name }], items, notes }。item 的 stop 是 stops 里的序号；第一个站点之前的内容归到第一站。
+ * 文字项的 kind 和文章里的块一致：p 段落 / h 小标题（###）/ quote 引用 / list 列表 / code 代码；图片是 img */
 export function parseTravel(body) {
   const lines = body.split(/\r?\n/);
   const stops = [], items = [], notes = {};
   let title, cur = 0;
   const join = (ls) => ls.map((s) => s.trim()).reduce((a, s) => (a && /[A-Za-z0-9]$/.test(a) && /^[A-Za-z0-9]/.test(s) ? `${a} ${s}` : a + s), '');
-  const isStart = (l) => /^(#{1,3}(\s|$)|!\[|\[\^[^\]]+\]:)/.test(l);
+  const LI = /^(\s*)([-*+]|\d+[.)])\s+/;
+  const isStart = (l) => /^(#{1,4}(\s|$)|!\[|\[\^[^\]]+\]:|```|>)/.test(l) || LI.test(l);
 
   for (let i = 0; i < lines.length; ) {
     const line = lines[i];
     if (!line.trim()) { i++; continue; }
     const fn = line.match(/^\[\^([^\]]+)\]:\s*(.*)$/);
     if (fn) { notes[fn[1]] = { text: parseInline(fn[2]) }; i++; continue; }
-    const h = line.match(/^(#{1,3})(?:\s+(.*?))?\s*$/);
+
+    const fence = line.match(/^```(\w*)/);
+    if (fence) {
+      const code = [];
+      for (i++; i < lines.length && !lines[i].startsWith('```'); i++) code.push(lines[i]);
+      i++;
+      items.push({ kind: 'code', stop: cur, ...(fence[1] ? { lang: fence[1] } : {}), code: code.join('\n') });
+      continue;
+    }
+
+    const h = line.match(/^(#{1,4})(?:\s+(.*?))?\s*$/);
     if (h) {
-      if (h[1] === '#') title ??= (h[2] ?? '').trim();
-      else { stops.push({ name: (h[2] ?? '').trim() }); cur = stops.length - 1; }
+      const text = (h[2] ?? '').trim();
+      if (h[1] === '#') title ??= text;
+      else if (h[1] === '##') { stops.push({ name: text }); cur = stops.length - 1; }
+      else items.push({ kind: 'h', stop: cur, text: parseInline(text) });
       i++; continue;
     }
+
     const im = line.match(IMG);
     if (im) { items.push({ kind: 'img', stop: cur, src: im[2], alt: im[1], ...(im[3] ? { caption: im[3] } : {}) }); i++; continue; }
+
+    if (line.startsWith('>')) {
+      const q = [];
+      for (; i < lines.length && lines[i].startsWith('>'); i++) q.push(lines[i].replace(/^>\s?/, ''));
+      const last = q[q.length - 1]?.match(/^(?:——|—|--)\s*(.+)$/);
+      if (last) q.pop();
+      items.push({ kind: 'quote', stop: cur, text: parseInline(join(q.filter(Boolean))), ...(last ? { cite: last[1] } : {}) });
+      continue;
+    }
+
+    const li = line.match(LI);
+    if (li) {
+      const ordered = /\d/.test(li[2]);
+      const list = [];
+      for (; i < lines.length && LI.test(lines[i]); i++) list.push(parseInline(lines[i].replace(LI, '')));
+      items.push({ kind: 'list', stop: cur, ordered, items: list });
+      continue;
+    }
+
     const para = [];
     for (; i < lines.length && lines[i].trim() && !isStart(lines[i]); i++) para.push(lines[i]);
     if (!para.length) para.push(lines[i++]);

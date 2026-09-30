@@ -185,3 +185,55 @@ test('游记：原 JSON 里块不是按站点排的，改一个字也不该让�
   const back = fromMarkdown(toMarkdown(d).replace('落地是晚上。', '落地是深夜。'), d);
   assert.deepEqual(back.blocks.map((b) => b.id).sort(), d.blocks.map((b) => b.id).sort());
 });
+
+/* ───────────── 游记的文字也能有小标题、引用、列表、代码（游记是文章的超集） ───────────── */
+
+const rich = () => ({
+  kind: 'travel', title: '环岛', date: '2025-01-01', category: 'journeys', excerpt: '', notes: {},
+  stops: [{ id: 'rey', name: '雷克雅未克', lnglat: [0, 0] }],
+  blocks: [{ id: 't01', type: 'text', stop: 'rey', paras: [
+    { id: 't01p1', text: [{ t: '落地是晚上。' }] },
+    { id: 't01p2', type: 'h', text: [{ t: '港口' }] },
+    { id: 't01p3', type: 'quote', text: [{ t: '一句话' }], cite: '某人' },
+    { id: 't01p4', type: 'list', ordered: false, items: [[{ t: '面包' }], [{ t: '咖啡' }]] },
+    { id: 't01p5', type: 'code', lang: 'ts', code: 'a();\n\nb();' },
+  ] }],
+});
+
+test('游记：小标题、引用、列表、代码写成和文章一样的 Markdown，不动就不变', () => {
+  const d = rich();
+  const t = toMarkdown(d);
+  assert.match(t, /^### 港口$/m);
+  assert.match(t, /^> 一句话\n> —— 某人$/m);
+  assert.match(t, /^- 面包\n- 咖啡$/m);
+  assert.match(t, /^```ts\na\(\);\n\nb\(\);\n```$/m);
+  const back = fromMarkdown(t, d);
+  assert.deepEqual(back.blocks, d.blocks);
+  assert.deepEqual(back.stops, d.stops);
+});
+
+test('游记：新写的引用、列表、小标题接进前一个文字块，代码里的空行不会把它截断', () => {
+  const d = rich();
+  d.blocks[0].paras = [d.blocks[0].paras[0]];
+  const text = toMarkdown(d) + '\n### 新小标题\n\n> 引一句\n> —— 谁\n\n1. 甲\n2. 乙\n\n```\nx\n\ny\n```\n';
+  const back = fromMarkdown(text, d);
+  assert.equal(back.blocks.length, 1);
+  const ps = back.blocks[0].paras;
+  assert.deepEqual(ps.map((p) => p.type ?? 'p'), ['p', 'h', 'quote', 'list', 'code']);
+  assert.equal(ps[0].id, 't01p1');
+  assert.equal(ps[2].cite, '谁');
+  assert.equal(ps[3].ordered, true);
+  assert.equal(ps[4].code, 'x\n\ny');
+  assert.equal(new Set(ps.map((p) => p.id)).size, 5);
+});
+
+test('游记：把一段普通文字改成引用，还是原来那一段（沿用 id）；改成小标题也一样', () => {
+  const d = rich();
+  const t = toMarkdown(d).replace('落地是晚上。', '> 落地是晚上。').replace('### 港口', '港口');
+  const back = fromMarkdown(t, d);
+  const ps = back.blocks[0].paras;
+  assert.equal(ps[0].id, 't01p1');
+  assert.equal(ps[0].type, 'quote');
+  assert.equal(ps[1].id, 't01p2');
+  assert.equal(ps[1].type ?? 'p', 'p');
+});

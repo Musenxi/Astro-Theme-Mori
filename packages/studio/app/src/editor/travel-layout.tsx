@@ -474,6 +474,35 @@ function FreeFace({ b, h, fs, active, onPatch }: { b: Doc; h: number; fs: number
   );
 }
 
+const spansPlain = (t: unknown) => (typeof t === 'string' ? t : ((t as Doc[]) ?? []).map((s) => s.t).join(''));
+const paraPlain = (p: Doc) => (p.type === 'list' ? (p.items as unknown[]).map(spansPlain).join('') : p.type === 'code' ? p.code ?? '' : spansPlain(p.text));
+
+/** 文字块里的一段：段落、小标题、引用、列表、代码（版式和站点上的读法大致一样，不求逐像素） */
+function Para({ p, v, first }: { p: Doc; v: boolean; first: boolean }) {
+  const gap: React.CSSProperties | undefined = first ? undefined : v ? { marginBlockStart: '.9em' } : { marginTop: '.9em' };
+  switch (p.type) {
+    case 'h': return <h3 className="font-bold" style={{ ...gap, letterSpacing: '.08em', fontSize: '1.12em', ...(first ? undefined : v ? { marginBlockStart: '1.1em' } : { marginTop: '1.3em' }) }}><Spans text={p.text} /></h3>;
+    case 'quote':
+      return (
+        <blockquote className="text-ink-2" style={{ ...gap, ...(v ? { paddingInlineEnd: '1em', borderRight: '1px solid var(--ink-3)' } : { paddingLeft: '1em', borderLeft: '1px solid var(--ink-3)' }) }}>
+          <Spans text={p.text} />
+          {p.cite && <cite className="block not-italic text-ink-3" style={{ fontSize: '.85em', ...(v ? { marginBlockStart: '.4em' } : { marginTop: '.3em' }) }}>{p.cite}</cite>}
+        </blockquote>
+      );
+    case 'list':
+      return (
+        <ul style={gap}>
+          {(p.items as unknown[]).map((it, k) => (
+            <li key={k} className="flex" style={{ gap: '.5em' }}><span className="mono text-ink-3">{p.ordered ? k + 1 : '・'}</span><span><Spans text={it} /></span></li>
+          ))}
+        </ul>
+      );
+    case 'code':
+      return <pre className="mono overflow-hidden whitespace-pre-wrap bg-ink/[.05] text-ink-2" style={{ ...gap, fontSize: '.8em', lineHeight: 1.7, padding: '.6em .8em', writingMode: 'horizontal-tb', letterSpacing: 0, ...(v ? { width: '16em' } : undefined) }}>{p.code}</pre>;
+    default: return <p className="text-justify" style={gap}><Spans text={p.text} /></p>;
+  }
+}
+
 function Face({ b, g, scale, stop, stopIndex, stops, head, active, onPatch }: { b: Doc; g: Geo; scale: number; stop?: Doc; stopIndex: number; stops: Doc[]; head: boolean; active: boolean; onPatch: (p: Doc) => void }) {
   const H = g.ph * scale, fs = g.fs;
   const cap = (text: string) => text && <p className="mt-2 truncate text-ink-3" style={{ fontSize: fs * 0.72, maxWidth: '100%' }}>{text}</p>;
@@ -490,8 +519,8 @@ function Face({ b, g, scale, stop, stopIndex, stops, head, active, onPatch }: { 
               {stop?.en && <span className="text-ink-3" style={{ fontSize: fs * 0.85, marginLeft: v ? 0 : fs * 0.6 }}>{stop.en}</span>}
             </header>
           )}
-          {(b.paras ?? []).map((p: Doc, i: number) => <p key={p.id ?? i} className="text-justify" style={i ? (v ? { marginBlockStart: '.9em' } : { marginTop: '.9em' }) : undefined}><Spans text={p.text} /></p>)}
-          {!(b.paras ?? []).some((p: Doc) => (typeof p.text === 'string' ? p.text : (p.text ?? []).map((s: Doc) => s.t).join('')).trim()) && <p className="text-ink-3">（空的文字块，在 Markdown 里写）</p>}
+          {(b.paras ?? []).map((p: Doc, i: number) => <Para key={p.id ?? i} p={p} v={v} first={!i} />)}
+          {!(b.paras ?? []).some((p: Doc) => paraPlain(p).trim()) && <p className="text-ink-3">（空的文字块，在 Markdown 里写）</p>}
         </div>
       );
     }

@@ -57,7 +57,7 @@ export function blockTexts(kind, data) {
   const out = new Map();
   for (const b of data.blocks ?? []) {
     if (kind === 'post' && ['p', 'h', 'quote'].includes(b.type)) out.set(b.id, spanText(b.text));
-    if (kind === 'travel' && b.type === 'text') for (const p of b.paras ?? []) out.set(p.id, spanText(p.text));
+    if (kind === 'travel' && b.type === 'text') for (const p of b.paras ?? []) if (!p.type || ['p', 'h', 'quote'].includes(p.type)) out.set(p.id, spanText(p.text));
   }
   return out;
 }

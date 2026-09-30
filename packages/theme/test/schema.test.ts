@@ -37,3 +37,17 @@ test('页面：只要标题，其余有默认值；template 只能是 default / 
   assert.equal(validateEntry('page', { title: '?', template: 'weird' }).ok, false);
   assert.equal(validateEntry('page', { subtitle: 'no title' }).ok, false);
 });
+
+test('游记的文字块里可以有小标题、引用、列表、代码；老写法（不带 type 的段落）照旧有效', () => {
+  const paras = [
+    { id: 'p1', text: 'hi' },
+    { id: 'p2', type: 'h', text: '小标题' },
+    { id: 'p3', type: 'quote', text: '引文', cite: '某人' },
+    { id: 'p4', type: 'list', items: ['一', '二'] },
+    { id: 'p5', type: 'code', lang: 'ts', code: 'a()' },
+  ];
+  const r = validateEntry('travel', { ...travel, blocks: [{ ...travel.blocks[0], paras }] });
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  const bad = validateEntry('travel', { ...travel, blocks: [{ ...travel.blocks[0], paras: [{ id: 'p1', type: 'list', text: 'x' }] }] });
+  assert.equal(bad.ok, false);
+});

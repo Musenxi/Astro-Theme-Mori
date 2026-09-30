@@ -10,7 +10,9 @@ import { Input, NumInput } from '@/components/ui/input';
 import { onCard, Section } from '@/components/ui/page';
 import { Select } from '@/components/ui/select';
 import type { Doc } from '@/lib/types';
+import { asSpans } from '@/lib/inline.js';
 import { InlineField } from './inline-field';
+import { PostBlockBody } from './post-blocks';
 import { SortableItem, SortableList } from './sortable';
 
 export const TRAVEL_BLOCKS: Array<{ type: string; label: string; prefix: string; make: () => Doc }> = [
@@ -22,6 +24,22 @@ export const TRAVEL_BLOCKS: Array<{ type: string; label: string; prefix: string;
   { type: 'free', label: '自由排布', prefix: 'f', make: () => ({ type: 'free', ar: 1.6, items: [] }) },
   { type: 'map', label: '地图', prefix: 'm', make: () => ({ type: 'map', scope: 'route' }) },
 ];
+
+/** 文字块里一段可以是的类型（和文章里的块一致；游记里小标题只有一级） */
+const PARA_TYPES = [{ value: 'p', label: '段落' }, { value: 'h', label: '小标题' }, { value: 'quote', label: '引用' }, { value: 'list', label: '列表' }, { value: 'code', label: '代码' }];
+
+/** 换一段的类型：文字尽量带过去，带不过去的（列表的分项、代码的换行）就拼成一段 */
+function convertPara(p: Doc, to: string): Doc {
+  const spans = p.text ?? (p.type === 'list' ? (p.items as unknown[]).flatMap((it, k) => [...(k ? [{ t: '　' }] : []), ...asSpans(it)]) : [{ t: p.code ?? '' }]);
+  const plain = (spans as Array<{ t: string }>).map((s) => s.t).join('');
+  switch (to) {
+    case 'h': return { id: p.id, type: 'h', text: spans };
+    case 'quote': return { id: p.id, type: 'quote', text: spans };
+    case 'list': return { id: p.id, type: 'list', ordered: false, items: p.type === 'list' ? p.items : [spans] };
+    case 'code': return { id: p.id, type: 'code', code: p.type === 'code' ? p.code : plain };
+    default: return { id: p.id, text: spans };
+  }
+}
 
 const Row = ({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) => (
   <label className="flex items-center gap-2 text-[12px] text-ink-3" title={hint}><span className="shrink-0">{label}</span><span className="min-w-0 flex-1">{children}</span></label>
@@ -70,13 +88,20 @@ export function TravelBlockBody({ b, patch, doc, ids, noPlace }: { b: Doc; patch
             <Select value={b.head === undefined ? 'auto' : String(b.head)} onValueChange={(v) => patch({ head: v === 'auto' ? undefined : v === 'true' })}
               options={[{ value: 'auto', label: '站点标题：自动（这一站第一个文字块）' }, { value: 'true', label: '站点标题：显示' }, { value: 'false', label: '站点标题：不显示' }]} />
           </div>
-          {(b.paras as Doc[]).map((p, i) => (
-            <div key={p.id} className="mb-1 flex items-start gap-2">
-              <span className="mono w-16 shrink-0 pt-2 text-[10.5px] text-ink-3">{p.id}</span>
-              <div className="min-w-0 flex-1"><InlineField rows={2} value={p.text} placeholder="这一段" onChange={(v) => patch({ paras: b.paras.map((x: Doc, k: number) => (k === i ? { ...x, text: v } : x)) })} /></div>
-              {b.paras.length > 1 && <Button variant="ghost" size="icon-sm" aria-label="删除这段" onClick={() => patch({ paras: b.paras.filter((_: unknown, k: number) => k !== i) })}><Trash2 size={14} /></Button>}
-            </div>
-          ))}
+          {(b.paras as Doc[]).map((p, i) => {
+            const type = p.type ?? 'p';
+            const set = (q: Doc) => patch({ paras: b.paras.map((x: Doc, k: number) => (k === i ? q : x)) });
+            return (
+              <div key={`${p.id}:${type}`} className="mb-2 flex items-start gap-2">
+                <span className="mono w-16 shrink-0 pt-2 text-[10.5px] text-ink-3">{p.id}</span>
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <Select className="w-28" value={type} onValueChange={(t) => set(convertPara(p, t))} options={PARA_TYPES} />
+                  <PostBlockBody travel b={{ ...p, type }} patch={(q) => set({ ...p, ...q })} />
+                </div>
+                {b.paras.length > 1 && <Button variant="ghost" size="icon-sm" aria-label="删除这段" onClick={() => patch({ paras: b.paras.filter((_: unknown, k: number) => k !== i) })}><Trash2 size={14} /></Button>}
+              </div>
+            );
+          })}
           <Button variant="link" className="mt-1" onClick={() => { let n = b.paras.length + 1; const used = new Set(ids); while (used.has(`${b.id}p${n}`)) n++; patch({ paras: [...b.paras, { id: `${b.id}p${n}`, text: '' }] }); }}><Plus size={14} />添加一段</Button>
         </>
       );

@@ -89,7 +89,17 @@ export async function travelHtml(d: TravelData, ctx: FeedCtx): Promise<string> {
       if (s) out.push(`<h2>${esc(s.name)}${s.en ? ` <small>${esc(s.en)}</small>` : ''}</h2>`);
     }
     switch (b.type) {
-      case 'text': for (const p of b.paras) out.push(`<p>${inline(p.text, ctx.base, nums)}</p>`); break;
+      case 'text':
+        for (const p of b.paras) {
+          switch (p.type) {
+            case 'h': out.push(`<h3>${inline(p.text, ctx.base, nums)}</h3>`); break;
+            case 'quote': out.push(`<blockquote><p>${inline(p.text, ctx.base, nums)}</p>${p.cite ? `<p>—— ${esc(p.cite)}</p>` : ''}</blockquote>`); break;
+            case 'list': out.push(`<${p.ordered ? 'ol' : 'ul'}>${p.items.map((it) => `<li>${inline(it, ctx.base, nums)}</li>`).join('')}</${p.ordered ? 'ol' : 'ul'}>`); break;
+            case 'code': out.push(`<pre><code>${esc(p.code)}</code></pre>`); break;
+            default: out.push(`<p>${inline(p.text, ctx.base, nums)}</p>`);
+          }
+        }
+        break;
       case 'single': out.push(await figure(ctx, b.src, b.alt, b.caption)); break;
       case 'pair': case 'strip': case 'grid': for (const im of b.images) out.push(await figure(ctx, im.src, im.alt, im.caption)); break;
       case 'free':

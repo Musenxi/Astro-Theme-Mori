@@ -3,7 +3,7 @@
  * JSON 是存储，Markdown 只是它的一种“视图”：每次编辑把文本解析成块，再对齐回旧块，
  * 让没动过的块原样保留（包括 tcy 之类 Markdown 表达不了的标注），改动不大的块沿用 id（划词批注靠 id 定位）。
  */
-import { parseBlocks, blocksToMarkdown, parseTravel, travelToMarkdown, travelItems } from 'astro-mori/markdown';
+import { parseBlocks, blocksToMarkdown, parseTravel, travelToMarkdown, travelItems, travelParaMd } from 'astro-mori/markdown';
 
 const ASSET = '../../assets/';
 /** 图片路径在文本里只写文件名，存进 JSON 时补上相对路径 */
@@ -116,12 +116,26 @@ export function fromMarkdown(text, doc) {
  * 文本里只有站名、文字段和图片。保存时把每段文字、每张图对回原来的块：
  * 没动的原样保留，改过的沿用块和段落 id，版式（图组、自由排布、竖排）、位置、缩放、地图都跟着块走。 */
 
-const inlineKey = (text) => blocksToMarkdown({ blocks: [{ type: 'p', text }], notes: {} }).trim();
-const itemKey = (it) => (it.kind === 'p' ? `p:${inlineKey(it.text)}` : `i:${stripAsset(it.src ?? '')}`);
+/** 一项的 Markdown 写法（文字项：段落 / 小标题 / 引用 / 列表 / 代码） */
+const itemMd = (it) => travelParaMd(it).trim();
+const itemKey = (it) => (it.kind === 'img' ? `i:${stripAsset(it.src ?? '')}` : `${it.kind}:${itemMd(it)}`);
+/** 新写出来的一项 → 文字块里的段落（不含 id）。普通段落不写 type */
+const paraFrom = (n) => {
+  switch (n.kind) {
+    case 'h': return { type: 'h', text: n.text };
+    case 'quote': return { type: 'quote', text: n.text, ...(n.cite ? { cite: n.cite } : {}) };
+    case 'list': return { type: 'list', ordered: !!n.ordered, items: n.items };
+    case 'code': return { type: 'code', ...(n.lang ? { lang: n.lang } : {}), code: n.code };
+    default: return { text: n.text };
+  }
+};
 
 /** 新旧内容项一一对应：先找没动过的（最长公共子序列），再在空档里按顺序找改动不大的文字 */
 function matchItems(oldItems, newItems) {
   const ok = oldItems.map(itemKey), nk = newItems.map(itemKey), n = ok.length, m = nk.length;
+  // 改得不多的文字按 Markdown 写法比像不像，不看类型：把段落改成引用、加个小标题符号，还是原来那一段
+  const bare = (it) => (it.kind === 'img' ? '' : itemMd(it).replace(/^(#{1,4} |> ?|[-*+] |\d+[.)] )/gm, ''));
+  const ot = oldItems.map(bare), nt = newItems.map(bare);
   const L = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
   for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) L[i][j] = ok[i] === nk[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
   const match = new Array(m).fill(-1), pairs = [];
@@ -133,11 +147,11 @@ function matchItems(oldItems, newItems) {
   for (let k = 0; k < bounds.length - 1; k++) {
     let p = bounds[k][0] + 1;
     for (let j = bounds[k][1] + 1; j < bounds[k + 1][1]; j++) {
-      if (newItems[j].kind !== 'p') continue;
+      if (newItems[j].kind === 'img') continue;
       let best = -1, bestSim = 0.4;
       for (let q = p; q < bounds[k + 1][0]; q++) {
-        if (oldItems[q].kind !== 'p') continue;
-        const sim = similarity(ok[q], nk[j]);
+        if (oldItems[q].kind === 'img') continue;
+        const sim = similarity(ot[q], nt[j]);
         if (sim >= bestSim) { best = q; bestSim = sim; }
       }
       if (best >= 0) { match[j] = best; p = best + 1; }
@@ -177,7 +191,7 @@ export function fromTravelMarkdown(text, doc) {
   const oldItems = travelItems(doc);
   const newItems = parsed.items.map((it) => ({
     ...it, stopId: list[it.stop]?.id ?? list[0].id,
-    ...(it.kind === 'img' ? { src: addAsset(it.src) } : { text: restoreNoteKinds(it.text, doc.blocks) }),
+    ...(it.kind === 'img' ? { src: addAsset(it.src) } : restoreNoteKinds(it, doc.blocks)),
   }));
   const match = matchItems(oldItems, newItems);
   const oldBlock = new Map(doc.blocks.map((b) => [b.id, b]));
@@ -194,8 +208,8 @@ export function fromTravelMarkdown(text, doc) {
       e.slots.push({ o: oldItems[o], n });
     } else {
       const prev = i > 0 && newItems[i - 1].stopId === n.stopId ? entryOf[i - 1] : null;
-      if (n.kind === 'p' && prev?.type === 'text') { e = prev; e.slots.push({ n }); }
-      else { e = { old: null, type: n.kind === 'p' ? 'text' : 'single', stop: n.stopId, slots: [{ n }] }; entries.push(e); }
+      if (n.kind !== 'img' && prev?.type === 'text') { e = prev; e.slots.push({ n }); }
+      else { e = { old: null, type: n.kind !== 'img' ? 'text' : 'single', stop: n.stopId, slots: [{ n }] }; entries.push(e); }
     }
     entryOf[i] = e;
   });
@@ -230,14 +244,15 @@ export function fromTravelMarkdown(text, doc) {
     if (!old) {
       if (e.type === 'single') { const n = slots[0].n; return { id: newId('s'), type: 'single', stop, src: n.src, alt: n.alt ?? '', ...(n.caption ? { caption: n.caption } : {}), layout: 'full' }; }
       const id = newId('t');
-      return { id, type: 'text', stop, paras: slots.map((s) => ({ id: newParaId(id), text: s.n.text })) };
+      return { id, type: 'text', stop, paras: slots.map((s) => ({ id: newParaId(id), ...paraFrom(s.n) })) };
     }
     if (!slots.length) return old.type === 'free' && hasItems.has(old.id) ? { ...old, stop, items: old.items.filter((it) => it.kind === 'text') } : { ...old, stop };
     switch (old.type) {
       case 'text': return { ...old, stop, paras: slots.map((s) => {
-        if (!s.o) return { id: newParaId(old.id), text: s.n.text };
+        if (!s.o) return { id: newParaId(old.id), ...paraFrom(s.n) };
         const op = old.paras[s.o.k];
-        return itemKey(s.o) === itemKey(s.n) ? op : { ...op, text: s.n.text };
+        // 没动的段落原样保留（tcy 这类 Markdown 写不出的标注）；改过的沿用 id，内容和类型以新写的为准
+        return itemKey(s.o) === itemKey(s.n) ? op : { id: op.id, ...paraFrom(s.n) };
       }) };
       case 'single': return { ...old, ...patchImage(old, slots[0].n), stop };
       case 'free': {

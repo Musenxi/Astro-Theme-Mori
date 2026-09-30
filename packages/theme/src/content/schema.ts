@@ -173,7 +173,18 @@ const place = {
 
 export const travelSchema = ({ image }: SchemaContext) => {
   const stop = id;
-  const paragraph = z.object({ id, text: inlineSchema });
+  /**
+   * 文字块里的一段。缺省 type 就是普通段落（老文件不用改）；
+   * 也可以是小标题、引用、列表、代码——和普通文章里的同名块一样，游记的文字能写的东西不比文章少。
+   * `##` 在游记里是“新的一站”，所以小标题只有一级（###）。
+   */
+  const paragraph = z.union([
+    z.object({ id, type: z.literal('h'), text: inlineSchema }),
+    z.object({ id, type: z.literal('quote'), text: inlineSchema, cite: z.string().optional() }),
+    z.object({ id, type: z.literal('list'), ordered: z.boolean().default(false), items: z.array(inlineSchema) }),
+    z.object({ id, type: z.literal('code'), lang: z.string().optional(), code: z.string() }),
+    z.object({ id, type: z.literal('p').optional(), text: inlineSchema }),
+  ]);
 
   const block = z.discriminatedUnion('type', [
     /** 文字块；`head` 缺省时，站点的第一个文字块显示站点标题 */

@@ -73,7 +73,23 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
                       )}
                     </header>
                   )}
-                  {b.paras.map((p) => <p data-b={p.id} set:html={html(p.text)} />)}
+                  {b.paras.map((p) => {
+                    switch (p.type) {
+                      case 'h': return <h3 data-b={p.id} set:html={html(p.text)} />;
+                      case 'quote': return (
+                        <blockquote data-b={p.id}>
+                          <Fragment set:html={html(p.text)} />
+                          {p.cite && <cite data-skip>{p.cite}</cite>}
+                        </blockquote>
+                      );
+                      case 'list': {
+                        const Tag = p.ordered ? 'ol' : 'ul';
+                        return <Tag data-b={p.id}>{p.items.map((item) => <li set:html={html(item)} />)}</Tag>;
+                      }
+                      case 'code': return <pre data-b={p.id} data-lang={p.lang}><code>{p.code}</code></pre>;
+                      default: return <p data-b={p.id} set:html={html(p.text)} />;
+                    }
+                  })}
                 </section>
               );
             }
