@@ -78,7 +78,7 @@ function List() {
 
   return (
     <>
-      <PageHeader title="评论" sub={stats.data ? `待审 ${stats.data.pending} · 已通过 ${stats.data.approved} · 已隐藏 ${stats.data.hidden}` : undefined} actions={<Button variant="ghost" size="sm" onClick={() => void reload()}><RefreshCw size={14} className={cn(list.isFetching && 'animate-spin')} />刷新</Button>} />
+      <PageHeader title="评论" actions={<Button variant="ghost" size="sm" onClick={() => void reload()}><RefreshCw size={14} className={cn(list.isFetching && 'animate-spin')} />刷新</Button>} />
       <Body>
         <Segmented className="mb-4" value={tab} onValueChange={setTab} options={TABS.map(([k, n]) => ({ value: k, label: stats.data && stats.data[k] ? `${n} ${stats.data[k]}` : n }))} />
         {list.error && !(list.error instanceof ApiError && list.error.status === 401) && <p className="my-4 rounded-lg bg-sunk px-3.5 py-2.5 text-danger">{(list.error as Error).message}</p>}

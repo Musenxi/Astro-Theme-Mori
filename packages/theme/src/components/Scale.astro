@@ -18,8 +18,10 @@ interface Props {
   all: Entry[];
   /** 空月份的提示：“没写游记” */
   empty: string;
+  /** 栏目页：每一项都在这个栏目里，不必在每一行后面再写一遍栏目名 */
+  hideCategory?: boolean;
 }
-const { title, en, roman, entries, all, empty } = Astro.props;
+const { title, en, roman, entries, all, empty, hideCategory = false } = Astro.props;
 
 const ym = (d: Date) => d.getFullYear() * 12 + d.getMonth(); // 月序数，0 起
 const newest = Math.max(...all.map((e) => ym(e.data.date)));
@@ -67,7 +69,7 @@ const posOf = (e: Entry) => {
           entries.map((e) => (
             <a class="he-item" href={e.href} style={`--p:${posOf(e).toFixed(3)}`}>
               <span class="t">{e.data.title}</span>
-              <span class:list={['k', e.kind === 'travel' && 'tr']}>{e.category.zh}</span>
+              {!hideCategory && <span class:list={['k', e.kind === 'travel' && 'tr']}>{e.category.zh}</span>}
               <span class="d">{pad2(e.data.date.getMonth() + 1)}.{pad2(e.data.date.getDate())}</span>
             </a>
           ))

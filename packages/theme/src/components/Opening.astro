@@ -15,6 +15,8 @@ interface Props {
 }
 const { pinned, latest } = Astro.props;
 const many = pinned.length > 1;
+/** 栏目的中英名：两个一样、或英文名留空时只写一个，不拼出“游记 · 游记”“游记 · ” */
+const catName = (c: { zh: string; en?: string }) => [...new Set([c.zh, c.en].filter(Boolean))].join(' · ');
 const ld = latest.data.date;
 
 /** 每篇置顶要有：封面、引文、图注、三条信息；缺哪样就用文章自己的字段顶上 */
@@ -42,7 +44,7 @@ const first = slides[0];
     <div class="fo-side mono">
       <span class="k">{t('home.feature')}</span>
       <b id="fo-no">{pad3(first.e.n)}</b>
-      <span id="fo-cat">{first.e.category.zh} · {first.e.category.en}</span>
+      <span id="fo-cat">{catName(first.e.category)}</span>
       <span>{fmt.issue(latest.n)}</span>
       <span>{fmt.yearSeason(ld)}</span>
       {
@@ -67,7 +69,7 @@ const first = slides[0];
         <div class="fo-track" id="fo-track">
           {
             slides.map((s, k) => (
-              <article class:list={['fo-slide', k === 0 && 'on']} data-no={pad3(s.e.n)} data-cat={`${s.e.category.zh} · ${s.e.category.en}`} inert={k !== 0}>
+              <article class:list={['fo-slide', k === 0 && 'on']} data-no={pad3(s.e.n)} data-cat={catName(s.e.category)} inert={k !== 0}>
                 <div class="fo-art">
                   <figure class="fo-cover" style={s.fade !== undefined ? `--k:${s.fade * 2}` : undefined}>
                     <div class="ph">

@@ -16,6 +16,6 @@ const roman = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ', 'Ⅶ', 'Ⅷ', 'Ⅸ', '�
 
 <Base title={category.zh} direction={config.archive.direction}>
   <main data-page="category">
-    <Scale title={category.zh} en={category.en} roman={roman} entries={entries} all={all} empty={category.empty ?? t('empty.default', { name: category.zh })} />
+    <Scale title={category.zh} en={category.en} roman={roman} hideCategory entries={entries} all={all} empty={category.empty ?? t('empty.default', { name: category.zh })} />
   </main>
 </Base>
