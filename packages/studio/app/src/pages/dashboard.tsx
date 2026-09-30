@@ -96,7 +96,6 @@ export default function Dashboard() {
                     <Link to="/comments" className="block rounded-xl px-3 py-2.5 transition-colors hover:bg-lift">
                       <div className="flex items-baseline gap-2 text-[12.5px] text-ink-3">
                         <b className="font-medium text-ink">{m.name}</b>
-                        {m.block && <span className="rounded-full bg-ink/[.07] px-2 py-px text-[11px] text-ink-2">批注</span>}
                         {STATUS[m.status] && <span className="rounded-full bg-ink/[.07] px-2 py-px text-[11px] text-ink-2">{STATUS[m.status]}</span>}
                         <span className="min-w-0 flex-1 truncate">{titleOf(m.entry)}</span>
                         <span className="mono shrink-0 text-[11.5px]">{when(m.createdAt)}</span>

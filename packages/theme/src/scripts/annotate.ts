@@ -2,13 +2,13 @@
  * 划词批注（spec §3.4）：读者选中正文里的一段文字，针对这段发表评论。
  *  - 选中后浮出一颗小玻璃按钮“批注”；点开是选区旁边的小输入框（手机上从底部弹出）；发完就收起，读者留在原处。
  *  - 批注就是评论：显示在文末评论区，带着引用的原文；点引用，回到正文里那一段并临时高亮（CSS Custom Highlight API，不改正文 DOM）。
- *  - 正文里被批注过的文字不留任何记号。
+ *  - 正文里被批注过的文字不留任何记号；读者划词时，如果选区和某条批注的原文重叠，选区下面浮出一张小卡，列出引用这段文字的评论。
  *  - 位置 = 块 id + 起止字符位置（跳过 data-skip 的旁注编号、标题序号等），另存原文和前后文，文章改了以后重新定位（anchor-text.ts）。
  *  - 只有使用 MORI 自建评论时才有；图片不能划词。
  */
 import { t } from './i18n.ts';
 import { locate, contextOf, type Anchor } from '../lib/anchor-text.ts';
-import { moriConfig, sendComment, mountTurnstile, remember, type MoriComment } from './cmt-api.ts';
+import { moriConfig, listComments, sendComment, mountTurnstile, remember, type MoriComment } from './cmt-api.ts';
 
 /** 能划词的块：普通文章的段落 / 标题 / 引用，游记的文字块里的段落 */
 const SELECTABLE = '.prose p[data-b], .prose h2[data-b], .prose h3[data-b], .prose blockquote[data-b], .b-text p[data-b]';
@@ -153,7 +153,34 @@ function init() {
     <input name="website" class="cmt-trap" tabindex="-1" autocomplete="off" aria-hidden="true">
     <div class="anno-ts"></div>
     <div class="anno-foot"><span class="anno-msg mono" role="status"></span><button type="button" class="anno-cancel linkbtn">${t('js.anno.cancel')}</button><button type="submit" class="anno-send">${t('js.cmt.send')} <span>→</span></button></div>`;
-  document.body.append(btn, pop);
+  // 选区和已有批注的原文重叠时，列出引用它的评论
+  const seen = document.createElement('div');
+  seen.className = 'anno-seen glass'; seen.hidden = true;
+  seen.addEventListener('pointerdown', (e) => e.preventDefault()); // 点卡片不能让选区丢掉
+  document.body.append(btn, seen, pop);
+
+  /** 已知的评论：评论区画好时给一份，读者刚发的补进来；文章一打开就先自己取一次，划词时不必等读者翻到文末 */
+  let known: MoriComment[] = [];
+  listComments(cfg, cfg.entry).then((l) => { if (!known.length) known = l; }).catch(() => {});
+  on(document, 'mori:comment-added', (e) => { const c = (e as CustomEvent<MoriComment>).detail; if (c && !known.some((x) => x.id === c.id)) known.push(c); });
+
+  /** 引用了选区文字的批注（原文位置和选区有重叠），按时间 */
+  function citing(s: NonNullable<ReturnType<typeof currentSelection>>): MoriComment[] {
+    const id = s.block.dataset.b, text = textOf(parts(s.block));
+    return known.filter((c) => !c.parentId && c.block === id).filter((c) => {
+      const at = locate(text, { start: c.start ?? 0, end: c.end ?? 0, quote: c.quote ?? '', prefix: c.prefix ?? '', suffix: c.suffix ?? '' });
+      return !!at && at.start < s.anchor.end && at.end > s.anchor.start;
+    }).sort((a, b) => a.createdAt - b.createdAt);
+  }
+  function fillSeen(list: MoriComment[]) {
+    const el = (tag: string, cls: string, text: string) => { const n = document.createElement(tag); n.className = cls; n.textContent = text; return n; };
+    seen.replaceChildren(...list.map((c) => {
+      const d = el('div', 'anno-seen-i', '');
+      d.append(el('b', '', c.name), el('p', 'anno-seen-t', c.body));
+      for (const r of known.filter((x) => x.parentId === c.id)) { const p = el('p', 'anno-seen-r', ''); p.append(el('b', '', r.name), document.createTextNode(`  ${r.body}`)); d.append(p); }
+      return d;
+    }));
+  }
 
   const $ = <T extends HTMLElement>(s: string) => pop.querySelector<T>(s)!;
   const name = $<HTMLInputElement>('[name=name]'), email = $<HTMLInputElement>('[name=email]'), text = $<HTMLTextAreaElement>('[name=body]');
@@ -161,6 +188,7 @@ function init() {
 
   let cur: ReturnType<typeof currentSelection> = null;
   let popOpen = false;
+  let hasSeen = false;
   let widget: { token(): string; reset(): void } | null = null;
 
   /* 按钮 / 输入框跟着选区走：横向读法下文字会随滚动横移；输入框打开时暂停跟随，不让它在读者打字时滑出屏幕 */
@@ -169,9 +197,17 @@ function init() {
       const rects = cur.range.getClientRects(), r = rects[rects.length - 1] ?? cur.range.getBoundingClientRect();
       const off = !r || (r.width === 0 && r.height === 0) || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth;
       btn.hidden = off;
+      seen.hidden = off || !hasSeen;
       if (!off) {
         btn.style.left = Math.min(innerWidth - btn.offsetWidth - 8, Math.max(8, r.right - btn.offsetWidth / 2)) + 'px';
-        btn.style.top = Math.min(innerHeight - btn.offsetHeight - 8, r.bottom + 8) + 'px';
+        let top = r.bottom + 8;
+        if (hasSeen) {
+          seen.style.left = Math.min(innerWidth - seen.offsetWidth - 8, Math.max(8, r.left)) + 'px';
+          top = Math.min(top, innerHeight - seen.offsetHeight - btn.offsetHeight - 20);
+          seen.style.top = top + 'px';
+          top += seen.offsetHeight + 6;
+        }
+        btn.style.top = Math.min(innerHeight - btn.offsetHeight - 8, top) + 'px';
       }
     }
     if (!btn.hidden || popOpen) requestAnimationFrame(place);
@@ -184,7 +220,12 @@ function init() {
     selTimer = window.setTimeout(() => {
       if (popOpen) return;
       const s = currentSelection();
-      if (s && !elementOf(getSelection()!.anchorNode!)?.closest('.anno-pop, #comments, form')) { cur = s; show(); } else { cur = null; btn.hidden = true; }
+      if (s && !elementOf(getSelection()!.anchorNode!)?.closest('.anno-pop, #comments, form')) {
+        cur = s;
+        const list = citing(s);
+        fillSeen(list); hasSeen = list.length > 0;
+        show();
+      } else { cur = null; hasSeen = false; btn.hidden = true; seen.hidden = true; }
     }, 140);
   });
 
@@ -192,7 +233,7 @@ function init() {
   btn.addEventListener('pointerdown', (e) => e.preventDefault());
   btn.addEventListener('click', async () => {
     if (!cur) return;
-    popOpen = true; btn.hidden = true;
+    popOpen = true; btn.hidden = true; seen.hidden = true;
     $('.anno-q').textContent = cur.anchor.quote;
     name.value = remember.get('mori-cmt-name'); email.value = remember.get('mori-cmt-email'); msg.textContent = '';
     const r = cur.range.getBoundingClientRect(), rects = cur.range.getClientRects(), last = rects[rects.length - 1] ?? r;
@@ -206,7 +247,7 @@ function init() {
   });
 
   function close() {
-    popOpen = false; pop.hidden = true; btn.hidden = true; cur = null;
+    popOpen = false; pop.hidden = true; btn.hidden = true; seen.hidden = true; hasSeen = false; cur = null;
     text.value = '';
   }
   $('.anno-cancel').addEventListener('click', close);
@@ -253,7 +294,7 @@ function init() {
   });
 
   // 评论区画好以后，检查每条批注在现在的正文里还找不找得到
-  on(document, 'mori:comments-rendered', (e) => markGone((e as CustomEvent<MoriComment[]>).detail));
+  on(document, 'mori:comments-rendered', (e) => { known = (e as CustomEvent<MoriComment[]>).detail; markGone(known); });
 }
 
 // 换页后这些浮层是新的一份：init 靠 body 上的标记避免重复，换页时 body 被替换所以标记自然消失

@@ -64,7 +64,7 @@ function init() {
 
   function item(c: MoriComment, kids: MoriComment[]): HTMLLIElement {
     const li: HTMLLIElement = h('li', { id: `c${c.id}`, class: 'cmt-item' },
-      h('div', { class: 'cmt-meta mono' }, h('b', {}, c.name), dotDate(c.createdAt), c.block ? h('span', { class: 'cmt-tag' }, t('js.cmt.annotation')) : null),
+      h('div', { class: 'cmt-meta mono' }, h('b', {}, c.name), dotDate(c.createdAt)),
       c.block && c.quote ? quote(c) : null,
       h('div', { class: 'cmt-text' }, c.body),
       !c.parentId ? h('button', { class: 'linkbtn cmt-reply', type: 'button', onclick: (ev: Event) => toggleReply(li, c, ev.currentTarget as HTMLElement) }, t('js.cmt.reply')) : null,

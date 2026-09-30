@@ -91,7 +91,6 @@ function List() {
                   <b className="font-medium text-ink">{m.name}</b>
                   <span className="mono text-[11.5px]">{when(m.createdAt)}</span>
                   <span className="text-[12.5px]">{title(m.entry)}</span>
-                  {m.block && <span className="rounded-full bg-ink/[.07] px-2 py-px text-[11px] text-ink-2">批注</span>}
                   {m.parentId && <span className="mono rounded-full bg-ink/[.06] px-2 py-px text-[11px]">回复 #{m.parentId}</span>}
                 </div>
                 {m.quote && <blockquote className="my-2.5 rounded-lg bg-ink/[.05] px-3.5 py-2 text-[13px] text-ink-2">{m.quote}</blockquote>}
