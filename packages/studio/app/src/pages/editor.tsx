@@ -21,7 +21,6 @@ const BlocksView = lazy(() => import('@/editor/blocks-view').then((m) => ({ defa
 const TravelLayout = lazy(() => import('@/editor/travel-layout').then((m) => ({ default: m.TravelLayout })));
 
 type Mode = 'md' | 'blocks' | 'raw';
-const MODE_KEY = 'mori-studio-mode';
 
 export default function Editor({ kind }: { kind: 'post' | 'page' }) {
   const { id = '' } = useParams();
@@ -35,8 +34,7 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
   const { data: project } = useProject();
   const refresh = useRefresh();
   const modes = useMemo<Array<{ value: Mode; label: string }>>(() => [{ value: 'md', label: 'Markdown' }, { value: 'blocks', label: '排版' }, { value: 'raw', label: '源码' }], []);
-  const [mode, setModeState] = useState<Mode>(() => { try { const m = localStorage.getItem(MODE_KEY) as Mode | null; if (m && modes.some((x) => x.value === m)) return m; } catch { /* 存不了就用默认 */ } return modes[0].value; });
-  const setMode = (m: Mode) => { setModeState(m); if (m !== 'raw') try { localStorage.setItem(MODE_KEY, m); } catch { /* 无所谓 */ } };
+  const [mode, setMode] = useState<Mode>('md');
   const [panel, setPanel] = useState<'info' | 'preview' | null>(null);
   const [previewKey, setPreviewKey] = useState(0);
 
