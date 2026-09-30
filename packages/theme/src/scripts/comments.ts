@@ -5,7 +5,6 @@
 import { t } from './i18n.ts';
 import { mountEmbed } from './cmt-embed.ts';
 import { avatarUrl } from '../lib/avatar.mjs';
-import { chevronEl } from '../lib/chevron.ts';
 import { moriConfig, listComments, sendComment, mountTurnstile, remember, dotDate, type MoriComment, type MoriCommentsConfig } from './cmt-api.ts';
 
 type Child = Node | string | null | false | undefined;
@@ -32,8 +31,8 @@ function init() {
     const io = new IntersectionObserver((es) => {
       if (!es.some((e) => e.isIntersecting)) return;
       io.disconnect();
-      host.replaceChildren(h('p', { class: 'mono lbl' }, t('js.cmt.loading')));
-      mountEmbed(c, host, { entry: section.dataset.entry!, title: document.title }).catch((e) => host.replaceChildren(h('p', { class: 'mono lbl' }, e.message)));
+      host.replaceChildren(h('p', { class: 'meta' }, t('js.cmt.loading')));
+      mountEmbed(c, host, { entry: section.dataset.entry!, title: document.title }).catch((e) => host.replaceChildren(h('p', { class: 'meta' }, e.message)));
     }, { rootMargin: '500px' });
     io.observe(section);
     return;
@@ -49,9 +48,9 @@ function init() {
   io.observe(section);
 
   async function load() {
-    body.replaceChildren(h('p', { class: 'mono lbl' }, t('js.cmt.loading')));
+    body.replaceChildren(h('p', { class: 'meta' }, t('js.cmt.loading')));
     try { comments = await listComments(cfg!, cfg!.entry); render(); } catch (e: any) {
-      body.replaceChildren(h('p', { class: 'mono lbl' }, `${e.message} `, h('button', { class: 'linkbtn', onclick: load }, t('js.cmt.retry'))));
+      body.replaceChildren(h('p', { class: 'meta' }, `${e.message} `, h('button', { class: 'linkbtn', onclick: load }, t('js.cmt.retry'))));
     }
   }
 
@@ -61,25 +60,30 @@ function init() {
     count.textContent = comments.length ? t('js.cmt.count', { n: comments.length }) : '';
     queueMicrotask(() => document.dispatchEvent(new CustomEvent('mori:comments-rendered', { detail: comments })));
     const list = h('ol', { class: 'cmt-list' }, ...top.map((c) => item(c, replies(c.id))));
-    body.replaceChildren(...(comments.length ? [list] : [h('p', { class: 'cmt-none' }, t('js.cmt.none'))]), form(cfg!, null));
+    body.replaceChildren(form(cfg!, null), comments.length ? list : h('p', { class: 'cmt-none' }, t('js.cmt.none')));
   }
 
   function item(c: MoriComment, kids: MoriComment[]): HTMLLIElement {
+    // 头像一栏，右边是名字、日期、回复一行，下面是引用的原文和正文；回复缩进到正文那一栏
     const li: HTMLLIElement = h('li', { id: `c${c.id}`, class: 'cmt-item' },
-      h('div', { class: 'cmt-meta mono' }, avatar(c), byline(c), dotDate(c.createdAt)),
-      c.block && c.quote ? quote(c) : null,
-      h('div', { class: 'cmt-text' }, c.body),
-      !c.parentId ? h('button', { class: 'linkbtn cmt-reply', type: 'button', onclick: (ev: Event) => toggleReply(li, c, ev.currentTarget as HTMLElement) }, t('js.cmt.reply')) : null,
-      kids.length ? h('ol', { class: 'cmt-replies' }, ...kids.map((k) => item(k, []))) : null);
+      avatar(c),
+      h('div', { class: 'cmt-main' },
+        h('div', { class: 'cmt-meta' }, byline(c), h('time', { class: 'cmt-date' }, dotDate(c.createdAt)),
+          !c.parentId ? h('button', { class: 'cmt-reply', type: 'button', onclick: (ev: Event) => toggleReply(li, c, ev.currentTarget as HTMLElement) }, t('js.cmt.reply')) : null),
+        c.block && c.quote ? quote(c) : null,
+        h('div', { class: 'cmt-text' }, c.body),
+        kids.length ? h('ol', { class: 'cmt-replies' }, ...kids.map((k) => item(k, []))) : null));
     return li;
   }
 
-  /** 头像：评论服务给的哈希 + 站点配置的头像服务；没有哈希（老评论）或关掉头像就不画。图片加载失败就悄悄去掉，不留破图 */
+  /** 头像：评论服务给的哈希 + 站点配置的头像服务。关掉头像就不画；没有哈希（老评论）或图片加载失败时用名字的第一个字 */
   function avatar(c: MoriComment) {
+    if (!cfg!.avatar) return null;
+    const initial = () => h('span', { class: 'cmt-av', 'aria-hidden': 'true' }, [...c.name.trim()][0] ?? '');
     const src = avatarUrl(cfg!.avatar, c.avatar);
-    if (!src) return null;
-    const img = h('img', { class: 'cmt-av', src, alt: '', width: '28', height: '28', loading: 'lazy', decoding: 'async', referrerpolicy: 'no-referrer' });
-    img.addEventListener('error', () => img.remove(), { once: true });
+    if (!src) return initial();
+    const img = h('img', { class: 'cmt-av', src, alt: '', width: '36', height: '36', loading: 'lazy', decoding: 'async', referrerpolicy: 'no-referrer' });
+    img.addEventListener('error', () => img.replaceWith(initial()), { once: true });
     return img;
   }
 
@@ -100,10 +104,13 @@ function init() {
   }
 
   function toggleReply(li: HTMLElement, c: MoriComment, btn: HTMLElement) {
-    const open = li.querySelector(':scope > form.cmt-form');
+    const main = li.querySelector<HTMLElement>(':scope > .cmt-main')!;
+    const open = main.querySelector(':scope > form.cmt-form');
     if (open) { open.remove(); btn.textContent = t('js.cmt.reply'); return; }
     btn.textContent = t('js.cmt.cancelReply');
-    li.insertBefore(form(cfg!, c), li.querySelector(':scope > .cmt-replies'));
+    const f = form(cfg!, c);
+    main.insertBefore(f, main.querySelector(':scope > .cmt-replies'));
+    f.querySelector('textarea')!.focus();
   }
 
   offAdded?.(); // 换页前的监听先拆掉
@@ -124,9 +131,10 @@ function form(cfg: MoriCommentsConfig & { entry: string }, parent: MoriComment |
   // 蜜罐：真人看不到，机器人会填
   const trap = h('input', { name: 'website', class: 'cmt-trap', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' });
   const ts = h('div', { class: 'cmt-ts' });
-  const msg = h('p', { class: 'cmt-msg mono', role: 'status' });
-  const btn = h('button', { class: 'cmt-send', type: 'submit' }, (parent ? t('js.cmt.sendReply') : t('js.cmt.send')), chevronEl());
-  const f = h('form', { class: 'cmt-form' }, h('div', { class: 'cmt-row' }, name, email, url), text, trap, ts, h('div', { class: 'cmt-foot' }, msg, btn));
+  const msg = h('p', { class: 'cmt-msg', role: 'status' });
+  const btn = h('button', { class: 'cmt-send', type: 'submit' }, (parent ? t('js.cmt.sendReply') : t('js.cmt.send')));
+  // 一个细线框：上面写字，下面一栏是署名和发表
+  const f = h('form', { class: 'cmt-form' }, h('div', { class: 'cmt-box' }, text, h('div', { class: 'cmt-row' }, name, email, url, btn)), trap, ts, msg);
   let widget: { token(): string; reset(): void } | null = null;
   // 人机验证控件在第一次聚焦时才加载
   f.addEventListener('focusin', async () => { if (!widget && cfg.turnstileSiteKey) widget = await mountTurnstile(cfg, ts); }, { once: true });

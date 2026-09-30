@@ -154,7 +154,7 @@ function init() {
     <textarea name="body" placeholder="${t('js.anno.write')}" required rows="3" maxlength="4000"></textarea>
     <input name="website" class="cmt-trap" tabindex="-1" autocomplete="off" aria-hidden="true">
     <div class="anno-ts"></div>
-    <div class="anno-foot"><span class="anno-msg mono" role="status"></span><button type="button" class="anno-cancel linkbtn">${t('js.anno.cancel')}</button><button type="submit" class="anno-send">${t('js.cmt.send')}${chevronHtml()}</button></div>`;
+    <div class="anno-foot"><span class="anno-msg" role="status"></span><button type="button" class="anno-cancel linkbtn">${t('js.anno.cancel')}</button><button type="submit" class="anno-send">${t('js.cmt.send')}${chevronHtml()}</button></div>`;
   // 选区和已有引用评论的原文重叠时，列出引用它的评论
   const seen = document.createElement('div');
   seen.className = 'anno-seen glass'; seen.hidden = true;
@@ -278,7 +278,7 @@ function init() {
 
   function toast(s: string) {
     const el = document.createElement('div');
-    el.className = 'anno-toast glass mono'; el.textContent = s;
+    el.className = 'anno-toast glass meta'; el.textContent = s;
     document.body.append(el);
     setTimeout(() => el.classList.add('out'), 2600);
     setTimeout(() => el.remove(), 3200);

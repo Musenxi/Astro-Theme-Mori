@@ -1,41 +1,58 @@
-/* 评论区：细线分隔，名字和日期用等宽小字，不用卡片和头像 */
-.cmt-none{color:var(--muted-foreground);padding:18px 0}
+/* 评论区：上面一个细线框写评论，下面是列表。头像一栏，名字、日期、回复在一行，回复缩进到正文那一栏。没有卡片和阴影 */
+.cmt-none{color:var(--muted-foreground);font-size:15px;padding:26px 0 8px}
 .cmt-list,.cmt-replies{list-style:none}
-.cmt-item{padding:18px 0 4px;border-bottom:1px solid var(--border)}
-.cmt-replies{margin:14px 0 6px 1.2em;padding-left:1.2em;border-left:1px solid var(--border)}
-.cmt-replies .cmt-item{border-bottom:0;padding:10px 0 6px}
-.cmt-meta{display:flex;gap:12px;align-items:center;color:var(--muted-foreground)}
-.cmt-av{width:28px;height:28px;border-radius:50%;flex:none;background:var(--muted);object-fit:cover}
+.cmt-list{margin-top:12px}
+.cmt-item{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;padding:24px 0 22px}
+.cmt-list > .cmt-item + .cmt-item{border-top:1px solid color-mix(in srgb,var(--border) 70%,transparent)}
+.cmt-main{grid-column:2;min-width:0}
+.cmt-item > .cmt-main:first-child{grid-column:1/-1}
+.cmt-av{width:36px;height:36px;border-radius:50%;flex:none;background:var(--muted);object-fit:cover;display:grid;place-items:center;font-size:15px;line-height:1;color:var(--soft-foreground)}
+.cmt-replies .cmt-av{width:28px;height:28px;font-size:13px}
+.cmt-meta{display:flex;flex-wrap:wrap;align-items:center;column-gap:12px;line-height:1.5;min-height:36px}
+.cmt-replies .cmt-meta{min-height:28px}
+.cmt-meta b{color:var(--foreground);font-weight:400;font-size:15.5px;letter-spacing:.04em}
 .cmt-by{color:inherit;text-decoration:none;background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .5s var(--ease-mori)}
 .cmt-by:hover{background-size:100% 1px}
-.cmt-meta b{color:var(--foreground);font-weight:400;font-family:var(--font-serif);font-size:15px;letter-spacing:.04em}
-.cmt-text{white-space:pre-line;overflow-wrap:anywhere;margin:6px 0 4px}
+.cmt-date{font-size:13px;letter-spacing:.06em;color:var(--muted-foreground);font-feature-settings:"tnum","lnum"}
+.cmt-reply{margin-left:auto;font-size:13px;letter-spacing:.08em;color:var(--muted-foreground);transition:color .3s}
+.cmt-reply:hover{color:var(--primary)}
+.cmt-text{white-space:pre-line;overflow-wrap:anywhere;margin-top:2px;font-size:16px;line-height:1.85}
+.cmt-replies{margin-top:14px}
+.cmt-replies .cmt-item{padding:12px 0 4px;column-gap:12px}
+.cmt-replies .cmt-text{font-size:15px}
 /* 引用评论引用的原文：细线引用样式，过长截断 */
-.cmt-quote{margin:8px 0;padding-left:12px;border-left:1px solid var(--primary);color:var(--soft-foreground);font-size:14px;line-height:1.7;cursor:pointer;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;transition:color .3s}
-.cmt-quote:hover{color:var(--foreground)}
+.cmt-quote{margin:10px 0 4px;padding:2px 0 2px 12px;border-left:2px solid color-mix(in srgb,var(--primary) 55%,transparent);color:var(--soft-foreground);font-size:14.5px;line-height:1.75;cursor:pointer;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;transition:color .3s,border-color .3s}
+.cmt-quote:hover{color:var(--foreground);border-left-color:var(--primary)}
 .cmt-quote.gone{cursor:default}
-.cmt-quote.gone::after{content:"　（原文已修改）";color:var(--muted-foreground);font-size:12px}
-.cmt-reply{display:inline-block;margin:0 0 12px;color:var(--muted-foreground);font-size:13px}
+.cmt-quote.gone::after{content:"　（原文已修改）";color:var(--muted-foreground);font-size:12.5px}
 .linkbtn{color:inherit;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--border);transition:color .3s}
 .linkbtn:hover{color:var(--primary)}
 
-.cmt-form{margin:22px 0 6px}
-li > .cmt-form{margin:8px 0 18px}
-.cmt-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--gap)}
-.cmt-form input:not(.cmt-trap),.cmt-form textarea{width:100%;font:inherit;font-size:15px;color:inherit;background:none;border:0;border-bottom:1px solid var(--border);padding:8px 0;outline:0;transition:border-color .3s}
-.cmt-form textarea{resize:vertical;line-height:1.8;margin-top:6px}
-.cmt-form input:focus,.cmt-form textarea:focus{border-bottom-color:var(--foreground)}
+/* 写评论的框：细线、微微压暗的底，聚焦时线加深 */
+.cmt-form{margin:8px 0 4px}
+.cmt-main > .cmt-form{margin:14px 0 6px}
+.cmt-box{border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--muted) 45%,transparent);transition:border-color .3s,background-color .3s}
+.cmt-box:focus-within{border-color:color-mix(in srgb,var(--foreground) 32%,transparent);background:color-mix(in srgb,var(--muted) 25%,transparent)}
+.cmt-form textarea{display:block;width:100%;min-height:7.2em;font:inherit;font-size:16px;line-height:1.85;color:inherit;background:none;border:0;outline:0;resize:none;field-sizing:content;max-height:60vh;padding:14px 18px 10px}
+.cmt-main > .cmt-form textarea{min-height:4.6em}
+.cmt-row{display:flex;align-items:center;border-top:1px solid var(--border)}
+.cmt-row input{flex:1 1 0;min-width:0;font:inherit;font-size:14px;letter-spacing:.04em;color:inherit;background:none;border:0;outline:0;padding:11px 18px}
+.cmt-row input + input{border-left:1px solid var(--border)}
 .cmt-form ::placeholder{color:var(--muted-foreground)}
 .cmt-trap{position:absolute!important;left:-9999px;width:1px;height:1px;opacity:0}
-.cmt-ts{margin-top:10px}
-.cmt-foot{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:12px}
-.cmt-msg{color:var(--muted-foreground)}
+.cmt-ts:not(:empty){margin-top:10px}
+.cmt-msg{margin-top:8px;font-size:13.5px;color:var(--muted-foreground)}
+.cmt-msg:empty{display:none}
 .cmt-msg.bad{color:var(--destructive)}
-.cmt-send{font-size:15px;letter-spacing:.06em;padding-bottom:2px}
-.cmt-send .chev{color:var(--primary);transition:transform .5s var(--ease-mori)}
-.cmt-send:hover .chev{transform:translateX(5px)}
+.cmt-send{flex:none;align-self:stretch;padding:0 20px;border-left:1px solid var(--border);font-size:14.5px;letter-spacing:.12em;color:var(--foreground);border-radius:0 0 10px 0;transition:color .3s,background-color .3s}
+.cmt-send:hover{color:var(--primary);background:color-mix(in srgb,var(--muted) 70%,transparent)}
 .cmt-send[disabled]{opacity:.5;cursor:default}
-@media (max-width:760px){.cmt-row{grid-template-columns:1fr}.cmt-replies{margin-left:.4em}}
+@media (max-width:760px){
+  .cmt-row{flex-wrap:wrap}
+  .cmt-row input{flex:1 1 50%}
+  .cmt-row input[name=url]{flex-basis:100%;border-left:0;border-top:1px solid var(--border);order:3}
+  .cmt-send{order:4;flex:1 1 100%;border-left:0;border-top:1px solid var(--border);padding:11px 0;border-radius:0 0 10px 10px}
+}
 
 /* ───────── 划词引用评论：小玻璃按钮、输入框、回到正文时的临时高亮 ───────── */
 .anno-btn{position:fixed;z-index:40;padding:5px 14px;border-radius:999px;font-size:13px;letter-spacing:.14em;color:var(--foreground);cursor:pointer;animation:anno-in .35s var(--ease-mori) both}
@@ -54,7 +71,7 @@ li > .cmt-form{margin:8px 0 18px}
 .anno-pop textarea{resize:none;line-height:1.7;margin-top:4px}
 .anno-pop input:focus,.anno-pop textarea:focus{border-bottom-color:var(--foreground)}
 .anno-foot{display:flex;align-items:center;gap:12px;margin-top:8px}
-.anno-msg{flex:1;color:var(--muted-foreground)}
+.anno-msg{flex:1;font-size:13px;color:var(--muted-foreground)}
 .anno-msg.bad{color:var(--destructive)}
 .anno-cancel{font-size:13px;color:var(--muted-foreground)}
 .anno-send{font-size:14px;letter-spacing:.06em}
