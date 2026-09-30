@@ -1,5 +1,6 @@
 const dms = (v: number, pos: string, neg: string) => {
-  const a = Math.abs(v), d = Math.floor(a), m = Math.round((a - d) * 60);
+  // 先换成整分再拆度和分，否则 16.9999° 会写成 16°60′
+  const total = Math.round(Math.abs(v) * 60), d = Math.floor(total / 60), m = total % 60;
   return `${d}°${String(m).padStart(2, '0')}′${v >= 0 ? pos : neg}`;
 };
 
