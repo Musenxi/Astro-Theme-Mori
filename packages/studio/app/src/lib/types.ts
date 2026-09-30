@@ -8,8 +8,6 @@ export interface EntrySummary {
   id: string;
   title: string;
   date: string;
-  /** 文件最后一次修改的时间（毫秒），“最近撰写”按它排 */
-  edited?: number;
   category?: string;
   tags: string[];
   words: number;

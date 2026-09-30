@@ -29,7 +29,7 @@ export default function Dashboard() {
   ];
   const entries = project?.entries ?? [];
   const drafts = entries.filter((e) => e.draft).length;
-  const recent = [...entries].filter((e) => !e.broken).sort((a, b) => (b.edited ?? 0) - (a.edited ?? 0)).slice(0, RECENT);
+  const recent = entries.filter((e) => !e.broken && !e.draft).sort((a, b) => b.date.localeCompare(a.date)).slice(0, RECENT); // 已发布的，按发布日期
   const cm = project?.comments;
   const canList = cm?.provider === 'mori' && cm.hasToken;
   const replies = useQuery({ queryKey: ['comments', 'recent'], queryFn: () => api.comments(), enabled: !!canList, staleTime: 10_000 });
@@ -76,19 +76,18 @@ export default function Dashboard() {
 
             {/* 最近：两栏并排，窄屏叠起来 */}
             <div className="mt-6 grid gap-6 md:grid-cols-2">
-              <Recent title="最近撰写" more={{ to: '/posts', label: '全部文章' }}>
-                {recent.length === 0 && <li className="px-3 py-3 text-[13px] text-ink-3">还没有文章。</li>}
+              <Recent title="最近发布的文章" more={{ to: '/posts', label: '全部文章' }}>
+                {recent.length === 0 && <li className="px-3 py-3 text-[13px] text-ink-3">还没有发布过文章。</li>}
                 {recent.map((e) => (
                   <li key={e.id}>
                     <Link to={`/posts/${e.id}`} className="flex items-baseline gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-lift">
                       <span className="min-w-0 flex-1 truncate">{e.title || e.id}</span>
-                      {e.draft && <span className="shrink-0 rounded-full bg-ink/[.07] px-2 py-px text-[11px] text-ink-2">草稿</span>}
-                      <span className="mono shrink-0 text-[11.5px] text-ink-3">{e.edited ? when(e.edited) : ''}</span>
+                      <span className="mono shrink-0 text-[11.5px] text-ink-3">{e.date.replaceAll('-', '.')}</span>
                     </Link>
                   </li>
                 ))}
               </Recent>
-              <Recent title="最近的回复" more={canList ? { to: '/comments', label: '全部评论' } : undefined}>
+              <Recent title="最近得到的回复" more={canList ? { to: '/comments', label: '全部评论' } : undefined}>
                 {!canList && <li className="px-3 py-3 text-[13px] text-ink-3">{cm?.provider === 'mori' ? '还没有填评论服务的管理令牌。' : '没有启用自建评论。'}</li>}
                 {canList && replies.error && <li className="px-3 py-3 text-[13px] text-ink-3">评论服务没有连上。</li>}
                 {canList && !replies.error && !replies.isPending && latest.length === 0 && <li className="px-3 py-3 text-[13px] text-ink-3">还没有人留言。</li>}
