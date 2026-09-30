@@ -50,8 +50,8 @@ function Place({ b, patch, doc }: { b: Doc; patch: (p: Doc) => void; doc: Doc })
   return (
     <div className="mb-3 grid grid-cols-[1.4fr_1fr_1fr] gap-2">
       <Row label="站点"><Select value={b.stop} onValueChange={(v) => patch({ stop: v })} options={(doc.stops ?? []).map((s: Doc) => ({ value: s.id, label: s.name || s.id }))} /></Row>
-      <Row label="y" hint="横滚时的上下位置：0 顶 1 底"><NumInput value={b.y} onChange={(v) => patch({ y: v })} min={0} max={1} placeholder="0.5" /></Row>
-      <Row label="缩放" hint="横滚时的缩放"><NumInput value={b.scale} onChange={(v) => patch({ scale: v })} min={0.1} placeholder="1" /></Row>
+      <Row label="y" hint="横滚时的上下位置：0 顶 1 底"><NumInput value={b.y} onChange={(v) => patch({ y: v })} min={0} max={1} /></Row>
+      <Row label="缩放" hint="横滚时的缩放"><NumInput value={b.scale} onChange={(v) => patch({ scale: v })} min={0.1} /></Row>
     </div>
   );
 }
@@ -184,7 +184,7 @@ function FreeCanvas({ b, patch }: { b: Doc; patch: (p: Doc) => void }) {
           {s.kind === 'image' ? (
             <div className="grid grid-cols-[8rem_1fr] gap-2"><Row label="叠放"><NumInput value={s.z} onChange={(v) => put(sel!, { z: Math.round(v ?? 1) })} /></Row><Input placeholder="替代文字" value={s.alt ?? ''} onChange={(e) => put(sel!, { alt: e.target.value })} /></div>
           ) : (
-            <InlineField key={sel} rows={2} value={s.text} onChange={(v) => put(sel!, { text: v })} placeholder="竖排的一小段文字" />
+            <InlineField key={sel} rows={2} value={s.text} onChange={(v) => put(sel!, { text: v })} placeholder="文字" />
           )}
           <Button variant="link" onClick={() => { patch({ items: items.filter((_, k) => k !== sel) }); setSel(null); }}>移除选中的</Button>
         </div>
@@ -242,7 +242,7 @@ function StopsEditor({ doc, patch }: { doc: Doc; patch: (p: Doc) => void }) {
                       <span className="mono w-5 text-[11px] text-ink-3">{String(i + 1).padStart(2, '0')}</span>
                       <Input className="w-40" value={s.name} placeholder="站名" onChange={(e) => put(i, { name: e.target.value })} />
                       <Input value={s.en ?? ''} placeholder="英文名" onChange={(e) => put(i, { en: e.target.value || undefined })} />
-                      <Input className="w-24" value={s.date ?? ''} placeholder="06.20" onChange={(e) => put(i, { date: e.target.value || undefined })} />
+                      <Input className="w-24" value={s.date ?? ''} placeholder="日期" onChange={(e) => put(i, { date: e.target.value || undefined })} />
                       <Button variant="ghost" size="icon-sm" aria-label={isOpen ? '收起' : '经纬度与 id'} onClick={() => setOpen({ ...open, [s.id]: !open[s.id] })}><ChevronDown size={14} className={cn('transition-transform', isOpen && 'rotate-180')} /></Button>
                       <Button variant="ghost" size="icon-sm" aria-label="删除站点" onClick={() => remove(i)}><Trash2 size={14} /></Button>
                     </div>
@@ -314,7 +314,7 @@ export function RouteData({ doc, patch }: { doc: Doc; patch: (p: Doc) => void })
                 <input type="checkbox" checked={!!picked[i]} onChange={(e) => setPicked({ ...picked, [i]: e.target.checked })} className="accent-[var(--ink)]" />
                 <span className="mono text-[11px] text-ink-3">{s.date ?? '无日期'} · {s.count} 张 · {s.lnglat[1].toFixed(2)}, {s.lnglat[0].toFixed(2)}</span>
               </span>
-              <Input className="mt-1.5" placeholder="站名（可稍后再填）" value={names[i] ?? ''} onChange={(e) => setNames({ ...names, [i]: e.target.value })} />
+              <Input className="mt-1.5" placeholder="站名" value={names[i] ?? ''} onChange={(e) => setNames({ ...names, [i]: e.target.value })} />
             </label>
           ))}
           <div className="flex gap-2 pt-1"><Button size="sm" variant="primary" onClick={addStops}>把选中的加入站点</Button><Button size="sm" variant="ghost" onClick={() => setSug(null)}>取消</Button></div>

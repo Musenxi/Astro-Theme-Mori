@@ -19,7 +19,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'archive.title': '全部文章', 'archive.sub': 'Archive', 'posts.sub': 'Posts', 'travels.sub': 'Journeys',
   'lightbox.close': 'Esc 關閉', 'footer.search': '搜尋', 'footer.rss': '訂閱',
   'notfound.title': '找不到這一頁', 'notfound.h': '這一頁不在目次裡。', 'notfound.back': '回到目次 →',
-  'search.title': '搜尋', 'search.placeholder': '標題、摘要、正文',
+  'search.title': '搜尋',
   'comments.title': '留言',
   'cover.vol': 'VOL.{v} — NO.{n}',
   'cover.seasonIssue': '{year}年 · {season}季號',

@@ -64,15 +64,15 @@ export default function Publish() {
               <div className="mt-3">
                 {form.target === 'git' && <GitForm form={form} set={set} />}
                 {form.target === 'local' && (<>
-                  <Field label="文件夹"><Input value={form.dest ?? ''} onChange={(e) => set({ dest: e.target.value })} placeholder="~/Sites/blog" /></Field>
+                  <Field label="文件夹"><Input value={form.dest ?? ''} onChange={(e) => set({ dest: e.target.value })} /></Field>
                 </>)}
                 {form.target === 'cloudflare-pages' && (<>
-                  <Field label="项目名"><Input value={form.project ?? ''} onChange={(e) => set({ project: e.target.value })} placeholder="Cloudflare 里的项目名称" /></Field>
-                  <Field label="分支"><Input value={form.branch ?? ''} onChange={(e) => set({ branch: e.target.value })} placeholder="选填，填 main 表示发布到正式站" /></Field>
+                  <Field label="项目名"><Input value={form.project ?? ''} onChange={(e) => set({ project: e.target.value })} /></Field>
+                  <Field label="分支"><Input value={form.branch ?? ''} onChange={(e) => set({ branch: e.target.value })} /></Field>
                   <p className="pl-[7.5rem] text-[12px] text-ink-3">先在终端运行 <span className="mono select-all">npx wrangler login</span></p>
                 </>)}
                 {form.target === 'rsync' && (<>
-                  <Field label="服务器路径"><Input value={form.dest ?? ''} onChange={(e) => set({ dest: e.target.value })} placeholder="用户名@服务器地址:/网站目录/" /></Field>
+                  <Field label="服务器路径"><Input value={form.dest ?? ''} onChange={(e) => set({ dest: e.target.value })} /></Field>
                   <p className="pl-[7.5rem] text-[12px] text-ink-3">服务器目录里多余的文件会被删除</p>
                 </>)}
               </div>
@@ -103,7 +103,7 @@ function GitForm({ form, set }: { form: PublishConfig; set: (p: Partial<PublishC
   const origin = info.remotes?.find((r) => r.name === (form.remote || 'origin')) ?? info.remotes?.[0];
   if (!info.isRepo || !info.remotes?.length) {
     return (<>
-      <Field label="仓库地址"><Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://github.com/你的用户名/仓库名.git" /></Field>
+      <Field label="仓库地址"><Input value={url} onChange={(e) => setUrl(e.target.value)} /></Field>
       <div className="pl-[7.5rem]"><Button disabled={busy || !url.trim()} onClick={connect}>{busy ? '连接中……' : '连接仓库'}</Button></div>
     </>);
   }
@@ -114,6 +114,6 @@ function GitForm({ form, set }: { form: PublishConfig; set: (p: Partial<PublishC
       {info.nested && <><br />这个项目放在另一个仓库的文件夹里，发布会推送到那个仓库。</>}
     </p>
     <Field label="分支"><Input value={form.branch ?? ''} onChange={(e) => set({ branch: e.target.value })} placeholder={`默认 ${info.branch}`} /></Field>
-    <Field label="提交说明"><Input value={form.message ?? ''} onChange={(e) => set({ message: e.target.value })} placeholder="默认：更新内容 加日期时间" /></Field>
+    <Field label="提交说明"><Input value={form.message ?? ''} onChange={(e) => set({ message: e.target.value })} /></Field>
   </>);
 }

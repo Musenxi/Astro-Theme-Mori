@@ -73,7 +73,7 @@ export default function NavEditor() {
                       <div className="flex items-center gap-2 rounded-xl px-1.5 py-1.5 transition-colors hover:bg-ink/[.035]">
                         {handle}
                         <Input className="w-40" value={r.label} placeholder="名字" onChange={(e) => put(r.key, { label: e.target.value })} />
-                        {known ? <span className="mono flex-1 truncate text-ink-3">{r.href}<span className="ml-2 rounded-full bg-ink/[.06] px-2 py-px text-[10.5px]">{known.group}</span></span> : <Input className="mono flex-1" value={r.href} placeholder="/about/ 或 https://……" onChange={(e) => put(r.key, { href: e.target.value })} />}
+                        {known ? <span className="mono flex-1 truncate text-ink-3">{r.href}<span className="ml-2 rounded-full bg-ink/[.06] px-2 py-px text-[10.5px]">{known.group}</span></span> : <Input className="mono flex-1" value={r.href} placeholder="地址" onChange={(e) => put(r.key, { href: e.target.value })} />}
                         <Button variant="ghost" size="icon-sm" aria-label="移除入口" onClick={() => setRows(rows.filter((x) => x.key !== r.key))}><Trash2 size={14} /></Button>
                       </div>
                     )}

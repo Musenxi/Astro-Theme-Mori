@@ -30,7 +30,7 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
     return (
       <div className="p-6">
         <Group title="页面">
-          <Field label="英文副题"><Input value={doc.subtitle ?? ''} onChange={(e) => set({ subtitle: e.target.value || undefined })} placeholder="About" /></Field>
+          <Field label="英文副题"><Input value={doc.subtitle ?? ''} onChange={(e) => set({ subtitle: e.target.value || undefined })} /></Field>
           <Field label="摘要"><Textarea rows={2} value={doc.excerpt ?? ''} onChange={(e) => set({ excerpt: e.target.value })} /></Field>
           <Field label="版式">
             <Select value={doc.template ?? 'default'} onValueChange={(v) => set({ template: v })} options={[{ value: 'default', label: '普通页面' }, { value: 'friends', label: '友人帐' }]} />
@@ -57,7 +57,7 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
         <Field label="模版">
           <Segmented value={kind === 'travel' ? 'travel' : 'post'} onValueChange={(v) => void switchTemplate(v)} options={[{ value: 'post', label: '普通' }, { value: 'travel', label: '游记' }]} />
         </Field>
-        <Field label="英文副题"><Input value={doc.subtitle ?? ''} onChange={(e) => set({ subtitle: e.target.value || undefined })} placeholder="Iceland, counter-clockwise" /></Field>
+        <Field label="英文副题"><Input value={doc.subtitle ?? ''} onChange={(e) => set({ subtitle: e.target.value || undefined })} /></Field>
         <Field label="日期"><Input type="date" value={String(doc.date ?? '').slice(0, 10)} onChange={(e) => set({ date: e.target.value })} /></Field>
         <Field label="栏目">
           <Select value={doc.category || undefined} onValueChange={(v) => set({ category: v })} placeholder="选择栏目"
@@ -79,7 +79,7 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
             <Field label="开篇引文">
               <Textarea rows={3} value={(pin.quote ?? []).join('\n')} onChange={(e) => setPin({ quote: e.target.value.split('\n') })} onBlur={(e) => setPin({ quote: e.target.value.split('\n').filter((l) => l.trim()).length ? e.target.value.split('\n').filter((l) => l.trim()) : [''] })} />
             </Field>
-            <Field label="图注"><Input value={pin.caption ?? ''} onChange={(e) => setPin({ caption: e.target.value })} placeholder="地点 · 日期 · 路线" /></Field>
+            <Field label="图注"><Input value={pin.caption ?? ''} onChange={(e) => setPin({ caption: e.target.value })} /></Field>
             <Field label="三条信息">
               <div className="space-y-1.5">
                 {(pin.meta ?? []).map((m: { label: string; value: string }, i: number) => (

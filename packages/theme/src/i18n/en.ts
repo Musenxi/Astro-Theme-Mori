@@ -19,7 +19,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'archive.title': 'All posts', 'archive.sub': 'Archive', 'posts.sub': 'Posts', 'travels.sub': 'Journeys',
   'lightbox.close': 'Esc to close', 'footer.search': 'Search', 'footer.rss': 'Subscribe',
   'notfound.title': 'Page not found', 'notfound.h': 'This page is not in the contents.', 'notfound.back': 'Back to contents →',
-  'search.title': 'Search', 'search.placeholder': 'Title, summary, text',
+  'search.title': 'Search',
   'comments.title': 'Comments',
   'cover.vol': 'VOL.{v} — NO.{n}',
   'cover.seasonIssue': '{season} {year} issue',

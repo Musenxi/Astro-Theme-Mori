@@ -319,7 +319,7 @@ function StopMarker({ stop, index, count, g, open, onOpen, patch, onMove, onRemo
               <Input value={stop.name ?? ''} placeholder="站名" onChange={(e) => patch({ name: e.target.value })} />
               <div className="grid grid-cols-[1fr_6rem] gap-2">
                 <Input value={stop.en ?? ''} placeholder="英文名" onChange={(e) => patch({ en: e.target.value || undefined })} />
-                <Input value={stop.date ?? ''} placeholder="06.20" onChange={(e) => patch({ date: e.target.value || undefined })} />
+                <Input value={stop.date ?? ''} placeholder="日期" onChange={(e) => patch({ date: e.target.value || undefined })} />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <label className="text-[11.5px] text-ink-3">经度<NumInput className="mt-1 text-ink" value={stop.lnglat?.[0]} onChange={(v) => patch({ lnglat: [v ?? 0, stop.lnglat?.[1] ?? 0] })} /></label>

@@ -18,7 +18,7 @@ export default {
   'archive.title': '全部文章', 'archive.sub': 'Archive', 'posts.sub': 'Posts', 'travels.sub': 'Journeys',
   'lightbox.close': 'Esc 关闭', 'footer.search': '搜索', 'footer.rss': '订阅',
   'notfound.title': '找不到这一页', 'notfound.h': '这一页不在目次里。', 'notfound.back': '回到目次 →',
-  'search.title': '搜索', 'search.placeholder': '标题、摘要、正文',
+  'search.title': '搜索',
   'comments.title': '评论',
   'cover.vol': 'VOL.{v} — NO.{n}',
   'cover.seasonIssue': '{year}年 · {season}季号',

@@ -19,7 +19,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'archive.title': 'すべての記事', 'archive.sub': 'Archive', 'posts.sub': 'Posts', 'travels.sub': 'Journeys',
   'lightbox.close': 'Esc で閉じる', 'footer.search': '検索', 'footer.rss': '購読',
   'notfound.title': 'ページが見つかりません', 'notfound.h': 'このページは目次にありません。', 'notfound.back': '目次へ戻る →',
-  'search.title': '検索', 'search.placeholder': 'タイトル、要約、本文',
+  'search.title': '検索',
   'comments.title': 'コメント',
   'cover.vol': 'VOL.{v} — NO.{n}',
   'cover.seasonIssue': '{year}年 · {season}号',

@@ -59,7 +59,7 @@ export default function Friends() {
       <PageHeader title="友人帐" sub={`${rows.length} 位`} actions={dirty && <><Button variant="ghost" onClick={() => data && setRows(withKeys(data.friends))}>放弃修改</Button><Button variant="primary" onClick={save}>保存</Button></>} />
       <Body>
         <form className="mb-5 flex gap-2" onSubmit={(e) => { e.preventDefault(); void addByUrl(); }}>
-          <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="粘贴对方的网址，自动带出站名、简介和头像" disabled={probing === '__new'} />
+          <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="网址" disabled={probing === '__new'} />
           <Button type="submit" variant="primary" disabled={!url.trim() || probing === '__new'}>{probing === '__new' ? '读取中……' : '添加'}</Button>
         </form>
         <SortableList items={rows} getId={(r) => r.key} onReorder={setRows}>
@@ -74,8 +74,8 @@ export default function Friends() {
                     </button>
                     <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-2 gap-y-1.5">
                       <Input value={r.name} placeholder="名字" onChange={(e) => put(r.key, { name: e.target.value })} />
-                      <Input className="mono" value={r.url} placeholder="https://……" onChange={(e) => put(r.key, { url: e.target.value })} />
-                      <Input className="col-span-2" value={r.desc ?? ''} placeholder="一句话" onChange={(e) => put(r.key, { desc: e.target.value })} />
+                      <Input className="mono" value={r.url} placeholder="网址" onChange={(e) => put(r.key, { url: e.target.value })} />
+                      <Input className="col-span-2" value={r.desc ?? ''} placeholder="简介" onChange={(e) => put(r.key, { desc: e.target.value })} />
                     </div>
                     <div className="flex flex-col">
                       <Button variant="ghost" size="icon-sm" aria-label="从网址补全" title="从网址补全空着的项" disabled={probing === r.key || !r.url.trim()} onClick={() => refill(r)}><RefreshCw size={14} className={cn(probing === r.key && 'animate-spin')} /></Button>

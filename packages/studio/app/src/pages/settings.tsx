@@ -93,7 +93,6 @@ function Swatch({ bg, paper, ink, label }: { bg: string; paper: string; ink: str
     <div style={{ background: paper, color: ink }} className="rounded-xl p-4 shadow-soft">
       <div style={{ background: bg }} className="h-8 w-full rounded-lg" />
       <div className="mt-2 text-[12.5px]">{label}</div>
-      <div style={{ color: bg }} className="mt-1 text-[15px]">路线、当前位置、小标签</div>
     </div>
   );
 }
