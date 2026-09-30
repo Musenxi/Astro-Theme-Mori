@@ -79,17 +79,22 @@ export function TravelLayout({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) 
   const patchBlock = (id: string, p: Doc, history = true) => commit({ ...doc, blocks: blocks.map((b) => (b.id === id ? clean({ ...b, ...p }) : b)) }, history);
   const patchStop = (id: string, p: Doc) => commit({ ...doc, stops: stops.map((s) => (s.id === id ? clean({ ...s, ...p }) : s)) }, false);
 
-  const g = { S, padT: S * 0.08, padB: S * 0.13, inner: S * 0.79, ph: S * 0.66, gap: S * 0.085, fs: S * 0.0195 };
+  // 手卷：横滚方向右→左，第一站在最右边（主题里是 direction:rtl，块自己仍按 ltr 排）
+  const rtl = doc.reading?.direction === 'rtl';
+  const g: Geo = { S, padT: S * 0.08, padB: S * 0.13, inner: S * 0.79, ph: S * 0.66, gap: S * 0.085, fs: S * 0.0195, rtl };
 
   /* ── 拖动 ── */
   const slotAt = (clientX: number, id: string) => {
     const els = [...(track.current?.querySelectorAll<HTMLElement>('[data-seq]') ?? [])].filter((el) => el.dataset.id !== id);
     let slot = 0;
-    for (const el of els) { const r = el.getBoundingClientRect(); if (r.left + r.width / 2 < clientX) slot++; }
+    for (const el of els) { const r = el.getBoundingClientRect(), mid = r.left + r.width / 2; if (rtl ? mid > clientX : mid < clientX) slot++; }
     slot = Math.max(1, slot);
     const t = track.current!.getBoundingClientRect();
     const prev = els[slot - 1]?.getBoundingClientRect(), next = els[slot]?.getBoundingClientRect();
-    const line = (prev && next ? (prev.right + next.left) / 2 : prev ? prev.right + g.gap / 2 : next!.left - g.gap / 2) - t.left;
+    const edge = rtl
+      ? (prev && next ? (prev.left + next.right) / 2 : prev ? prev.left - g.gap / 2 : next!.right + g.gap / 2)
+      : (prev && next ? (prev.right + next.left) / 2 : prev ? prev.right + g.gap / 2 : next!.left - g.gap / 2);
+    const line = edge - t.left;
     return { slot, line };
   };
 
@@ -149,7 +154,7 @@ export function TravelLayout({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) 
     if (!selected) return;
     const step = e.shiftKey ? 0.1 : 0.02;
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); patchBlock(selected.id, { y: r2(clamp((selected.y ?? 0.5) + (e.key === 'ArrowUp' ? -step : step), 0, 1)) }); }
-    else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); commit(ops.nudgeBlock(doc, selected.id, e.key === 'ArrowLeft' ? -1 : 1)); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); commit(ops.nudgeBlock(doc, selected.id, (e.key === 'ArrowLeft') === rtl ? 1 : -1)); }
     else if ((e.key === '=' || e.key === '+' || e.key === '-') && SCALABLE.has(selected.type)) { e.preventDefault(); patchBlock(selected.id, { scale: r2(clamp((selected.scale ?? 1) + (e.key === '-' ? -0.05 : 0.05), 0.3, 1.6)) }); }
     else if (e.key === 'Escape') setSel(null);
     else if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); void remove(selected); }
@@ -198,11 +203,12 @@ export function TravelLayout({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) 
           ref={scroller}
           tabIndex={0}
           onKeyDown={onKey}
-          onWheel={(e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) scroller.current!.scrollLeft += e.deltaY; }}
+          onWheel={(e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) scroller.current!.scrollLeft += rtl ? -e.deltaY : e.deltaY; }}
           onPointerDown={(e) => { if (e.target === e.currentTarget || e.target === track.current) setSel(null); }}
           className="absolute inset-0 flex items-center overflow-x-auto overflow-y-hidden rounded-2xl bg-sunk/70 outline-none [scrollbar-width:thin]"
+          style={rtl ? { direction: 'rtl' } : undefined}
         >
-          <div ref={track} className="relative flex w-max items-start" style={{ height: S, padding: `${g.padT}px ${S * 0.1}px ${g.padB}px`, columnGap: g.gap }}>
+          <div ref={track} className="relative flex w-max items-start" style={{ height: S, padding: `${g.padT}px ${S * 0.1}px ${g.padB}px`, columnGap: g.gap, direction: 'ltr', flexDirection: rtl ? 'row-reverse' : 'row' }}>
             {seq.map((x, i) => x.kind === 'stop' ? (
               <StopMarker key={`s-${x.stop.id}`} stop={x.stop} index={stops.indexOf(x.stop)} count={stops.length} g={g} open={openStop === x.stop.id} onOpen={(o) => setOpenStop(o ? x.stop.id : null)}
                 patch={(p) => patchStop(x.stop.id, p)}
@@ -228,7 +234,7 @@ export function TravelLayout({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) 
           {selected?.type === 'free' ? '拖里面的图换位置，右下角圆点改宽度；拖空白处移动整块'
             : selected?.type === 'strip' ? '上下拖一张图让它错开，右下角圆点改这一张的大小；拖图组外框移动整块'
             : selected ? '↑↓ 微调位置　←→ 换顺序　+ − 大小　⌘Z 撤销'
-            : `横向读法的样子${hRead ? '' : '　·　这篇没有开放横向读法，位置和大小暂时用不到'}`}
+            : `横向读法的样子${rtl ? '（右 → 左，第一站在最右）' : ''}${hRead ? '' : '　·　这篇没有开放横向读法，位置和大小暂时用不到'}`}
         </p>
       </div>
 
@@ -303,18 +309,18 @@ function StopMarker({ stop, index, count, g, open, onOpen, patch, onMove, onRemo
   return (
     // 没有内容的站点：标签占住自己的宽度，免得被下一站的标签盖住
     <div data-seq={seq} className="relative flex-none self-stretch" style={{ width: empty ? undefined : 1, marginTop: -g.padT * 0.72, marginBottom: -g.padB * 0.6 }}>
-      <i className="absolute bottom-0 left-0 top-8 w-px bg-rule-2" />
-      {empty && <span className="absolute left-3 top-10 whitespace-nowrap text-[11.5px] text-ink-3">这一站还没有内容</span>}
+      <i className={cn('absolute bottom-0 top-8 w-px bg-rule-2', g.rtl ? 'right-0' : 'left-0')} />
+      {empty && <span className={cn('absolute top-10 whitespace-nowrap text-[11.5px] text-ink-3', g.rtl ? 'right-3' : 'left-3')}>这一站还没有内容</span>}
       <Popover.Root open={open} onOpenChange={onOpen}>
         <Popover.Trigger asChild>
-          <button type="button" className={cn(empty ? 'relative' : 'absolute', 'left-0 top-0 flex h-7 items-center gap-2 whitespace-nowrap rounded-full px-3 text-[12.5px] transition-[background-color,box-shadow]', open ? 'bg-sunk-2' : 'bg-sunk hover:bg-sunk-2')}>
+          <button type="button" className={cn(empty ? 'relative' : 'absolute', g.rtl ? 'right-0' : 'left-0', 'top-0 flex h-7 items-center gap-2 whitespace-nowrap rounded-full px-3 text-[12.5px] transition-[background-color,box-shadow]', open ? 'bg-sunk-2' : 'bg-sunk hover:bg-sunk-2')}>
             <span className="mono text-[11px] text-ink-3">{String(index + 1).padStart(2, '0')}</span>
             <span className="font-medium">{stop.name || '未命名'}</span>
             {!located && <span className="flex items-center gap-0.5 text-[11.5px] text-ink-3"><MapPin size={11} />未定位</span>}
           </button>
         </Popover.Trigger>
         <Popover.Portal>
-          <Popover.Content side="bottom" align="start" sideOffset={8} onOpenAutoFocus={(e) => e.preventDefault()}
+          <Popover.Content side="bottom" align={g.rtl ? 'end' : 'start'} sideOffset={8} onOpenAutoFocus={(e) => e.preventDefault()}
             className="z-[80] w-[19rem] rounded-xl bg-lift p-4 shadow-pop outline-none data-[state=open]:animate-pop">
             <div className="space-y-2">
               <Input value={stop.name ?? ''} placeholder="站名" onChange={(e) => patch({ name: e.target.value })} />
@@ -329,8 +335,11 @@ function StopMarker({ stop, index, count, g, open, onOpen, patch, onMove, onRemo
               <p className="text-[11.5px] leading-relaxed text-ink-3">经纬度可以从地图软件里复制；或者在“信息 → 路线”里从照片自动建议。</p>
             </div>
             <div className="mt-3 flex items-center gap-1">
-              <ToolBtn label="整站往前挪" disabled={index === 0} onClick={() => onMove(-1)}><ChevronLeft size={15} /></ToolBtn>
-              <ToolBtn label="整站往后挪" disabled={index === count - 1} onClick={() => onMove(1)}><ChevronRight size={15} /></ToolBtn>
+              {(g.rtl ? [1, -1] : [-1, 1]).map((d) => (
+                <ToolBtn key={d} label={d < 0 ? '整站往前挪' : '整站往后挪'} disabled={d < 0 ? index === 0 : index === count - 1} onClick={() => onMove(d)}>
+                  {(d < 0) === !g.rtl ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}
+                </ToolBtn>
+              ))}
               <span className="flex-1" />
               <Button size="sm" variant="danger" disabled={count < 2} onClick={onRemove}><Trash2 size={13} />删除这一站</Button>
             </div>
@@ -344,7 +353,7 @@ function StopMarker({ stop, index, count, g, open, onOpen, patch, onMove, onRemo
 
 /* ───────────── 块 ───────────── */
 
-type Geo = { S: number; padT: number; padB: number; inner: number; ph: number; gap: number; fs: number };
+type Geo = { S: number; padT: number; padB: number; inner: number; ph: number; gap: number; fs: number; rtl: boolean };
 
 function BlockFrame({ b, g, seq, selected, drag, onDown, onScale, onOpen, children }: {
   b: Doc; g: Geo; seq: number; selected: boolean; drag: Drag | null; onDown: (e: React.PointerEvent) => void; onScale: (e: React.PointerEvent) => void; onOpen: () => void; children: ReactNode;
@@ -416,11 +425,11 @@ const Knob = ({ onDown }: { onDown: (e: React.PointerEvent) => void }) => (
   <span onPointerDown={onDown} className="absolute -bottom-[9px] -right-[9px] z-30 grid h-[18px] w-[18px] cursor-nwse-resize place-items-center rounded-full bg-lift shadow-pop"><i className="h-1.5 w-1.5 rounded-full bg-ink" /></span>
 );
 
-function StripFace({ b, H, fs, active, onPatch }: { b: Doc; H: number; fs: number; active: boolean; onPatch: (p: Doc) => void }) {
+function StripFace({ b, H, fs, rtl, active, onPatch }: { b: Doc; H: number; fs: number; rtl: boolean; active: boolean; onPatch: (p: Doc) => void }) {
   const { items, start } = useItemDrag<Doc>(b.images, (images) => onPatch({ images }));
   const put = (i: number, p: Doc) => items.map((x, k) => (k === i ? { ...x, ...p } : x));
   return (
-    <div className="flex items-start" style={{ gap: fs * 0.7 }}>
+    <div className="flex items-start" style={{ gap: fs * 0.7, direction: rtl ? 'rtl' : 'ltr' }}>
       {items.map((im, i) => {
         const s = im.scale ?? 1, o = im.offset ?? 0;
         return (
@@ -502,7 +511,7 @@ function Face({ b, g, scale, stop, stopIndex, stops, head, active, onPatch }: { 
       );
     }
     case 'strip':
-      return <><StripFace b={b} H={H} fs={fs} active={active} onPatch={onPatch} />{cap(caption(b.images))}</>;
+      return <><StripFace b={b} H={H} fs={fs} rtl={g.rtl} active={active} onPatch={onPatch} />{cap(caption(b.images))}</>;
     case 'free':
       return <FreeFace b={b} h={g.ph * 1.04 * scale} fs={fs} active={active} onPatch={onPatch} />;
     case 'map':
