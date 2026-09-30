@@ -38,7 +38,8 @@
 
 @theme static {
   --font-serif: "STDongGuanTi", "ZhuqueFS", "Songti SC", "Noto Serif SC", serif;
-  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  /* 等宽只管西文和数字；中文落回正文的宋体，不掉到系统黑体上 */
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, "STDongGuanTi", "ZhuqueFS", "Songti SC", monospace;
   --font-display: "Cormorant Garamond", "Cormorant", Georgia, serif;
   --ease-mori: cubic-bezier(0.2, 0.75, 0.15, 1);
   --default-transition-timing-function: ease;

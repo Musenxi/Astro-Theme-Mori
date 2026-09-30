@@ -1,28 +1,26 @@
 ---
-import BackLink from './BackLink.astro';
 /**
  * E 刻度（spec §2）：位置就是时间，一格一个月，空着的地方就是没写东西（或这个分类没更新）的月份。
  * 旁边的大号年月随滚动逐位翻动。横排时时间轴往下走；竖排时像手卷一样从右往左展开，标题竖着挂在轴线下。
  * 归档、分类页、文章列表、游记列表都用它；时间范围总是整站的（这样分类页的空档才有意义）。
  */
 import type { Entry } from '../lib/entries.ts';
-import { pad2 } from '../lib/zh.ts';
-import { t, tn, fmt } from '../lib/i18n.ts';
+import { pad2, cnMonthDay } from '../lib/zh.ts';
+import { tn, fmt, lang } from '../lib/i18n.ts';
 
 interface Props {
   title: string;
   en?: string;
-  roman?: string;
   /** 要画在轴上的文章 */
   entries: Entry[];
   /** 整站的文章，用来定时间范围 */
   all: Entry[];
-  /** 空月份的提示：“没写游记” */
-  empty: string;
   /** 分类页：每一项都在这个分类里，不必在每一行后面再写一遍分类名 */
   hideCategory?: boolean;
 }
-const { title, en, roman, entries, all, empty, hideCategory = false } = Astro.props;
+const { title, en, entries, all, hideCategory = false } = Astro.props;
+/** 竖排时的日期：九月十四 */
+const monthDay = (d: Date) => (lang === 'en' ? `${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}` : cnMonthDay(d));
 
 const ym = (d: Date) => d.getFullYear() * 12 + d.getMonth(); // 月序数，0 起
 const newest = Math.max(...all.map((e) => ym(e.data.date)));
@@ -32,7 +30,7 @@ const ny = Math.floor(newest / 12), nm = (newest % 12) + 1;
 
 const tick = 'pointer-events-none absolute horiz:left-0 horiz:top-[calc(var(--p)*var(--mh))] horiz:border-t vert:top-[calc(30vh_-_12px)] vert:right-[calc(var(--edge)_+_var(--p)*var(--mw))] vert:border-l';
 const tickY = 'horiz:w-10 vert:top-[calc(30vh_-_40px)] vert:h-10 horiz:border-t-foreground vert:border-l-foreground';
-const tickI = 'absolute font-mono text-[11px] leading-none whitespace-nowrap not-italic';
+const tickI = 'absolute font-mono text-[12px] leading-none whitespace-nowrap not-italic';
 const ticks = Array.from({ length: months }, (_, k) => {
   const tm = newest - k, y = Math.floor(tm / 12), m = (tm % 12) + 1;
   return { k, y, m, yearTop: m === 12 || k === 0 };
@@ -44,27 +42,22 @@ const posOf = (e: Entry) => {
 };
 ---
 
-<header class="wrap pt-[clamp(28px,6vh,72px)]">
-  <BackLink />
-  <div class="mt-[18px] flex items-baseline gap-[18px] border-b border-b-foreground pb-3.5">
-    {roman && <span class="font-display text-[60px] leading-[.9] font-light narrow:text-[40px]">{roman}</span>}
-    <h1 class="w-fit text-[clamp(32px,3.4vw,50px)] leading-[1.2] font-normal tracking-[.14em] [view-transition-name:cat-title]">{title}</h1>
-    {en && <em class="font-display text-[26px] font-light text-muted-foreground italic narrow:text-[20px]">{en}</em>}
-    <span class="mono ml-auto text-muted-foreground">{tn('count', entries.length, { n: fmt.num(entries.length) })}</span>
+<header class="wrap pt-[clamp(48px,8vh,96px)]">
+  <div class="flex items-baseline gap-4 border-b border-b-border pb-5">
+    <h1 class="w-fit text-[clamp(30px,3.4vw,46px)] leading-[1.25] font-normal tracking-[.08em] [view-transition-name:cat-title]">{title}</h1>
+    {en && <em class="font-display text-[clamp(20px,2vw,26px)] font-light text-muted-foreground italic">{en}</em>}
+    <span class="meta ml-auto">{tn('count', entries.length, { n: fmt.num(entries.length) })}</span>
   </div>
 </header>
 
 <section class="he pt-[clamp(20px,4vh,48px)] pb-10 [--mh:112px] [--mw:150px] narrow:[--mh:92px] narrow:[--mw:120px]" data-ny={ny} data-nm={nm} data-months={months}>
   <div class="horiz:mx-auto horiz:grid horiz:max-w-(--maxw) horiz:grid-cols-[minmax(0,1fr)_auto] horiz:gap-x-(--gap) horiz:px-(--gut) horiz:narrow:grid-cols-1" id="he-body">
     <div class="horiz:contents vert:sticky vert:top-0 vert:h-screen vert:overflow-hidden vert:[direction:rtl]">
-      <div class="wrap vert:contents horiz:col-[1/-1] horiz:m-0 horiz:max-w-none horiz:p-0 horiz:narrow:row-2">
-        <p class="mb-7 text-[14px] tracking-[.08em] text-muted-foreground vert:absolute vert:top-[calc(30vh_-_110px)] vert:right-(--edge) vert:m-0 vert:[direction:ltr] [&_b]:font-normal [&_b]:text-foreground">{t('scale.note')} <b>{t('scale.empty', { what: empty })}</b></p>
-      </div>
       <div class="relative horiz:col-1 horiz:row-2 horiz:h-[calc(var(--months)*var(--mh))] horiz:border-l horiz:border-l-foreground horiz:narrow:row-3 vert:h-full vert:w-[calc(var(--months)*var(--mw)_+_2*var(--edge))] vert:will-change-transform vert:[direction:ltr] vert:before:absolute vert:before:top-[30vh] vert:before:right-(--edge) vert:before:left-(--edge) vert:before:border-t vert:before:border-t-foreground vert:before:content-['']" id="he-axis" style={{ '--months': months }}>
         {
           ticks.map((t) => (
             <>
-              <span class:list={[tick, t.yearTop ? tickY : 'horiz:w-3 vert:h-3 horiz:border-t-muted-foreground vert:border-l-muted-foreground']} style={{ '--p': t.k }}>{t.yearTop && <i class:list={[tickI, 'text-[12px] tracking-[.1em] text-foreground horiz:left-[52px] horiz:top-[-.5em] horiz:narrow:left-1 horiz:narrow:top-[-1.5em] vert:left-1.5 vert:top-0']}>{t.y}</i>}</span>
+              <span class:list={[tick, t.yearTop ? tickY : 'horiz:w-3 vert:h-3 horiz:border-t-muted-foreground vert:border-l-muted-foreground']} style={{ '--p': t.k }}>{t.yearTop && <i class:list={[tickI, 'text-[13px] tracking-[.08em] text-foreground horiz:left-[52px] horiz:top-[-.5em] horiz:narrow:left-1 horiz:narrow:top-[-1.5em] vert:left-1.5 vert:top-0']}>{t.y}</i>}</span>
               <span class:list={[tick, 'border-0! horiz:w-3 vert:h-3']} style={{ '--p': t.k }}><i class:list={[tickI, 'text-muted-foreground horiz:left-5 horiz:top-[calc(var(--mh)/2_-_.5em)] vert:top-[-4px] vert:right-[calc(var(--mw)/2_-_1em)] vert:left-auto']}>{pad2(t.m)}</i></span>
             </>
           ))
@@ -72,18 +65,17 @@ const posOf = (e: Entry) => {
         {
           entries.map((e) => (
             <a class="he-item group/it absolute flex items-baseline gap-[14px] whitespace-nowrap horiz:top-[var(--q,calc(var(--p)*var(--mh)))] horiz:left-[clamp(96px,12vw,180px)] horiz:[transform:translateY(-50%)] horiz:narrow:left-16 horiz:narrow:max-w-[calc(100%_-_64px)] horiz:narrow:flex-wrap horiz:narrow:gap-x-2.5 horiz:narrow:whitespace-normal vert:top-[calc(30vh_+_22px)] vert:right-[calc(var(--edge)_+_var(--q,calc(var(--p)*var(--mw))))] vert:max-h-[56vh] vert:[writing-mode:vertical-rl] vert:[transform:translateX(50%)]" href={e.href} style={{ '--p': posOf(e).toFixed(3) }}>
-              <span class="text-[clamp(19px,1.9vw,27px)] tracking-[.06em] transition-[color] duration-300 group-hover/it:text-primary horiz:narrow:basis-full">{e.data.title}</span>
-              {!hideCategory && <span class:list={['text-[13px]', e.kind === 'travel' ? 'text-primary' : 'text-muted-foreground']}>{e.category.zh}</span>}
-              <span class="font-mono text-[11px] leading-[normal] text-muted-foreground vert:[text-combine-upright:none]">{pad2(e.data.date.getMonth() + 1)}.{pad2(e.data.date.getDate())}</span>
+              <span class="text-[clamp(19px,1.8vw,25px)] tracking-[.06em] transition-[color] duration-300 group-hover/it:text-primary horiz:narrow:basis-full">{e.data.title}</span>
+              <span class="meta vert:tracking-[.18em]">{!hideCategory && <>{e.category.zh}<span class="px-1.5">·</span></>}<span class="vert:hidden">{pad2(e.data.date.getMonth() + 1)}.{pad2(e.data.date.getDate())}</span><span class="horiz:hidden">{monthDay(e.data.date)}</span></span>
             </a>
           ))
         }
       </div>
-      <div class="pointer-events-none font-mono text-[clamp(56px,9.5vw,164px)] leading-none font-light tracking-[-.02em] whitespace-nowrap text-foreground horiz:sticky horiz:top-[34vh] horiz:col-2 horiz:row-2 horiz:self-start horiz:narrow:top-[60px] horiz:narrow:z-2 horiz:narrow:col-1 horiz:narrow:row-1 horiz:narrow:justify-self-end horiz:narrow:text-[44px] vert:absolute vert:bottom-[8vh] vert:left-(--edge) vert:[direction:ltr]" id="he-counter" aria-hidden="true">
+      <div class="pointer-events-none font-display text-[clamp(56px,8.5vw,136px)] leading-none font-light tracking-[.01em] whitespace-nowrap text-muted-foreground [font-feature-settings:'lnum'] horiz:sticky horiz:top-[34vh] horiz:col-2 horiz:row-2 horiz:self-start horiz:narrow:top-[60px] horiz:narrow:z-2 horiz:narrow:col-1 horiz:narrow:row-1 horiz:narrow:justify-self-end horiz:narrow:text-[44px] vert:absolute vert:bottom-[8vh] vert:left-(--edge) vert:[direction:ltr]" id="he-counter" aria-hidden="true">
         {
           [0, 0, 0, 0, '.', 0, 0].map((d) =>
             d === '.' ? (
-              <span class="text-primary">.</span>
+              <span class="mx-[.06em] text-primary">·</span>
             ) : (
               <span class="dg inline-block h-[1em] overflow-hidden align-top"><i class="block not-italic [transition:transform_.8s_var(--ease-mori)]">{[...'0123456789'].map((x) => <b class="block h-[1em] [font-weight:inherit]">{x}</b>)}</i></span>
             ),

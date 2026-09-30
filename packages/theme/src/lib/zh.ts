@@ -21,5 +21,8 @@ export const pad3 = (n: number) => String(n).padStart(3, '0');
 /** 春 3–5、夏 6–8、秋 9–11、冬 12–2 */
 export const season = (month: number) => (month >= 3 && month <= 5 ? '春' : month >= 6 && month <= 8 ? '夏' : month >= 9 && month <= 11 ? '秋' : '冬');
 
+/** 九月十四（竖排里的月日） */
+export const cnMonthDay = (d: Date) => `${cnNumber(d.getMonth() + 1)}月${cnNumber(d.getDate())}`;
+
 /** 2025.09.14 */
 export const dotDate = (d: Date) => `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}`;

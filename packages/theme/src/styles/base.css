@@ -4,7 +4,7 @@
   --muted: #e9e5db;
   --foreground: #1d1b18;
   --soft-foreground: #55504a;
-  --muted-foreground: #8f887d;
+  --muted-foreground: #7d766b;
   --border: #d7d0c3;
   --destructive: #b0442b;
   /* 主题色：作者在编辑器里改，默认克莱因蓝。亮色下压暗、暗色下提亮到可读的亮度，色相和饱和度不变 */
@@ -30,7 +30,7 @@
     --muted: #1f1d1a;
     --foreground: #e8e3d9;
     --soft-foreground: #b2ab9f;
-    --muted-foreground: #7b756b;
+    --muted-foreground: #857f74;
     --border: #34302b;
     --primary: var(--accent-dark, oklch(from var(--accent-base) max(l, 0.7) min(c, 0.18) h));
     --land: #2a2723;

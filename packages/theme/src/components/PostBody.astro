@@ -15,7 +15,7 @@ const html = (spans: Inline) => renderInline(spans, numbers);
 
 let h2 = 0, fig = 0;
 const p = 'mb-[1.1em] text-justify text-pretty';
-const li = "relative [border-bottom:1px_dotted_var(--border)] py-[.35em] pl-[1.6em] text-pretty before:absolute before:top-[1.05em] before:left-0 before:h-px before:w-[.7em] before:bg-muted-foreground before:content-['']";
+const li = "relative py-[.2em] pl-[1.6em] text-pretty before:absolute before:top-[1.12em] before:left-[.1em] before:h-px before:w-[.6em] before:bg-muted-foreground before:content-['']";
 const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref]?.text ?? [] }));
 ---
 
@@ -45,8 +45,8 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
           if (b.level === 3) return <h3 class="col-[3/9]" data-b={b.id} set:html={html(b.text)} />;
           h2 += 1;
           return (
-            <h2 class="col-[3/9] mt-[2.4em] mb-[.8em] flex items-baseline gap-3.5 text-[24px] font-bold tracking-[.08em]" data-b={b.id}>
-              <span class="mono font-normal text-primary" data-skip>{pad2(h2)}</span>
+            <h2 class="col-[3/9] mt-[2.6em] mb-[.9em] flex items-baseline gap-4 text-[24px] leading-[1.5] font-bold tracking-[.08em]" data-b={b.id}>
+              <span class="font-display text-[26px] leading-none font-light tracking-normal text-muted-foreground [font-feature-settings:'lnum']" data-skip>{pad2(h2)}</span>
               <Fragment set:html={html(b.text)} />
             </h2>
           );
@@ -84,17 +84,17 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         }
         case 'code':
           return (
-            <pre class="col-[3/10] mt-[.4em] mb-[1.6em] overflow-x-auto border-l-2 border-l-muted-foreground bg-muted px-[22px] py-[18px] text-soft-foreground [font:12.5px/1.75_var(--font-mono)]" data-b={b.id} data-lang={b.lang}><code>{b.code}</code></pre>
+            <pre class="col-[3/10] mt-[.4em] mb-[1.6em] overflow-x-auto rounded-[6px] bg-muted px-[22px] py-[18px] text-soft-foreground [font:13px/1.8_var(--font-mono)]" data-b={b.id} data-lang={b.lang}><code>{b.code}</code></pre>
           );
       }
     })
   }
   {
     footnotes.length > 0 && (
-      <section class="fns col-[3/9] mt-[3em] border-t border-t-border pt-[1.2em] text-[14px] leading-[1.8] text-muted-foreground" aria-label={t('notes.foot')}>
-        <ol class="mb-[1.2em]">
+      <section class="fns col-[3/9] mt-[3.2em] text-[14px] leading-[1.8] text-muted-foreground before:mb-[1.1em] before:block before:h-px before:w-12 before:bg-border before:content-['']" aria-label={t('notes.foot')}>
+        <ol class="grid gap-[.5em]">
           {footnotes.map((f) => (
-            <li class={`${li} flex gap-[.8em]`} id={`fn-${f.ref}`}>
+            <li class="flex gap-[.7em] text-pretty" id={`fn-${f.ref}`}>
               <sup class="nref mr-0">{f.n}</sup>
               <span set:html={html(f.text)} />
             </li>

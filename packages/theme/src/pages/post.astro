@@ -40,7 +40,7 @@ const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | '
     </main>
   ) : (
     <main data-page="post">
-      <PostHeader title={d.title} kicker={`${entry.category.zh} · ${dotDate(d.date)}`} meta={t('post.meta', { chars: approx, min: Math.max(1, Math.round(chars / 450)) })} />
+      <PostHeader title={d.title} meta={[{ label: entry.category.zh, href: `/category/${entry.category.id}/` }, dotDate(d.date), ...t('post.meta', { chars: approx, min: Math.max(1, Math.round(chars / 450)) }).split(' · ')]} />
       <PostBody blocks={p.blocks} notes={p.notes} />
       <Comments entry={`posts/${entry.id}`} />
       <EntryNav older={older} newer={newer} />

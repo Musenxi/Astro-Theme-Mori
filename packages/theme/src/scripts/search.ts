@@ -22,7 +22,7 @@ function score(it: Item, terms: string[]) {
 
 /** 正文里第一处命中的上下文，命中的词加粗 */
 function snippet(it: Item, terms: string[]) {
-  const src = it.e + ' … ' + it.x, low = src.toLowerCase();
+  const src = !it.e || it.x.startsWith(it.e) ? it.x : it.e + ' … ' + it.x, low = src.toLowerCase(); // 正文常以摘要开头，别重复一遍
   const at = Math.min(...terms.map((w) => low.indexOf(w)).filter((i) => i >= 0), src.length);
   const from = Math.max(0, at - 20);
   let out = esc(src.slice(from, from + 90));
@@ -34,20 +34,25 @@ async function init() {
   const input = document.querySelector<HTMLInputElement>('#q');
   const list = document.querySelector<HTMLElement>('#srch-list');
   const note = document.querySelector<HTMLElement>('#srch-note');
+  const clear = document.querySelector<HTMLElement>('#q-clear');
+  const cats = document.querySelector<HTMLElement>('#srch-cats');
   if (!input || !list || !note || input.dataset.ready) return;
   input.dataset.ready = '1';
 
   const run = async () => {
     const q = input.value.trim().toLowerCase();
     history.replaceState(null, '', q ? `?q=${encodeURIComponent(q)}` : location.pathname);
+    if (clear) clear.hidden = !q;
+    if (cats) cats.hidden = !!q;
     if (!q) { list.replaceChildren(); note.textContent = ''; return; }
     index ??= await (await fetch('/search.json')).json();
     const terms = [...new Set([q, ...q.split(/\s+/)].filter(Boolean))].slice(0, 6);
     const hits = index!.map((it) => ({ it, s: score(it, q.includes(' ') ? q.split(/\s+/).filter(Boolean) : [q]) })).filter((h) => h.s > 0).sort((a, b) => b.s - a.s || b.it.d.localeCompare(a.it.d));
     note.textContent = hits.length ? t('js.search.count', { n: hits.length }) : t('js.search.none');
-    list.innerHTML = hits.map(({ it }) => `<li><a class="group grid gap-1 border-b border-b-border pt-4 pb-[18px]" href="${it.u}"><span class="mono lbl">${esc(it.c)} · ${it.d}</span><b class="text-[clamp(19px,1.8vw,24px)] font-normal tracking-[.04em] transition-[color] duration-300 group-hover:text-primary">${esc(it.t)}</b><span class="text-[14px] leading-[1.8] text-muted-foreground [&_mark]:bg-transparent [&_mark]:text-primary">${snippet(it, terms)}</span></a></li>`).join('');
+    list.innerHTML = hits.map(({ it }) => `<li><a class="group block border-b border-b-border py-5" href="${it.u}"><span class="flex items-baseline justify-between gap-5"><b class="text-[20px] leading-[1.5] font-normal tracking-[.05em] transition-[color] duration-300 group-hover:text-primary">${esc(it.t)}</b><span class="meta whitespace-nowrap">${esc(it.c)} · ${it.d}</span></span><span class="mt-1.5 line-clamp-2 text-[14.5px] leading-[1.8] tracking-[.03em] text-muted-foreground [&_mark]:bg-transparent [&_mark]:text-foreground [&_mark]:underline [&_mark]:decoration-primary [&_mark]:decoration-1 [&_mark]:underline-offset-4">${snippet(it, terms)}</span></a></li>`).join('');
   };
   input.addEventListener('input', run);
+  clear?.addEventListener('click', () => { input.value = ''; run(); input.focus(); });
   const q = new URLSearchParams(location.search).get('q');
   if (q) { input.value = q; run(); }
   input.focus();

@@ -1,18 +1,41 @@
 ---
-import BackLink from '../components/BackLink.astro';
-import { t, lang } from '../lib/i18n.ts';
+import { t } from '../lib/i18n.ts';
 import config from 'virtual:mori/config';
 import Base from '../layouts/Base.astro';
+import { getEntries } from '../lib/entries.ts';
+
+// 还没输入时列出分类，给一个起点
+const entries = await getEntries();
+const cats = config.categories.map((c) => ({ ...c, n: entries.filter((e) => e.category.id === c.id).length })).filter((c) => c.n > 0);
 ---
 
 <Base title={t('search.title')} direction={config.archive.direction}>
-  <main data-page="search" class="wrap g pt-[clamp(28px,6vh,72px)] pb-20">
+  <main data-page="search" class="wrap g min-h-[calc(100dvh_-_220px)] content-start pt-[clamp(48px,9vw,120px)] pb-24">
     <header class="col-[3/11]">
-      <BackLink />
-      <label class="mt-[18px] flex items-baseline gap-4 border-b border-b-foreground pb-2.5"><span class="mono lbl">{t('search.title')}</span><input class="flex-1 [font-family:inherit] [font-style:inherit] [font-weight:inherit] leading-[inherit] text-[clamp(24px,3vw,38px)] tracking-[.06em] text-inherit bg-transparent border-0 [outline:0] placeholder:text-muted-foreground" id="q" type="search" autocomplete="off" autofocus /></label>
-      <p class="mono lbl mt-2.5 min-h-[1.6em]" id="srch-note"></p>
+      <label class="flex items-center gap-4 border-b border-b-foreground pb-3">
+        <svg class="size-[22px] flex-none text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m15.5 15.5 5 5"></path></svg>
+        <span class="sr-only">{t('search.title')}</span>
+        <input class="min-w-0 flex-1 appearance-none border-0 bg-transparent text-[clamp(24px,2.8vw,34px)] leading-[1.4] tracking-[.06em] text-inherit [font-family:inherit] [outline:0] placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden" id="q" type="search" placeholder={t('search.title')} autocomplete="off" autofocus />
+        <button class="grid size-8 flex-none place-items-center rounded-full text-muted-foreground transition-[color,background-color] duration-300 hover:bg-muted hover:text-foreground" id="q-clear" type="button" title={t('search.clear')} aria-label={t('search.clear')} hidden>
+          <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+        </button>
+      </label>
+      <p class="meta mt-3 min-h-[1.6em]" id="srch-note"></p>
     </header>
-    <ol class="col-[3/11] mt-2" id="srch-list"></ol>
+    {
+      cats.length > 0 && (
+        <nav class="col-[3/11] mt-6 flex flex-wrap items-baseline gap-x-7 gap-y-3" id="srch-cats" aria-label={t('search.cats')}>
+          <span class="meta mr-1">{t('search.cats')}</span>
+          {cats.map((c) => (
+            <a class="group text-[16px] tracking-[.06em]" href={`/category/${c.id}/`}>
+              <span class="transition-[color] duration-300 group-hover:text-primary">{c.zh}</span>
+              <span class="meta ml-1.5">{c.n}</span>
+            </a>
+          ))}
+        </nav>
+      )
+    }
+    <ol class="col-[3/11]" id="srch-list"></ol>
   </main>
   <script>
     import '../scripts/search.ts';

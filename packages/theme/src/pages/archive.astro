@@ -1,5 +1,5 @@
 ---
-import { t, lang } from '../lib/i18n.ts';
+import { t } from '../lib/i18n.ts';
 import config from 'virtual:mori/config';
 import Base from '../layouts/Base.astro';
 import Scale from '../components/Scale.astro';
@@ -10,6 +10,6 @@ const entries = await getEntries();
 
 <Base title={t('nav.archive')} direction={config.archive.direction}>
   <main data-page="archive">
-    <Scale title={t('archive.title')} en={lang === 'en' ? undefined : t('archive.sub')} entries={entries} all={entries} empty={t('empty.all')} />
+    <Scale title={t('archive.title')} entries={entries} all={entries} />
   </main>
 </Base>
