@@ -36,7 +36,6 @@ export function makeFmt(lang: Lang) {
   const season = (month: number) => t(`season.${{ 春: 'spring', 夏: 'summer', 秋: 'autumn', 冬: 'winter' }[seasonOf(month)]}` as Key);
   return {
     num, year, season,
-    issue: (n: number) => t('issue', { n: num(n) }),
     yearSeason: (d: Date) => t('yearSeason', { year: year(d.getFullYear()), season: season(d.getMonth() + 1) }),
     stop: (i: number) => t('travel.stop', { n: num(i) }),
   };

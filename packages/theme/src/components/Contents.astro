@@ -9,7 +9,7 @@ interface Props {
   entries: Entry[];
   latest: Entry;
 }
-const { entries, latest } = Astro.props;
+const { entries } = Astro.props;
 const ROMAN = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ', 'Ⅶ', 'Ⅷ', 'Ⅸ', 'Ⅹ'];
 const sections = config.categories
   .map((c) => ({ c, list: entries.filter((e) => e.category.id === c.id) }))
@@ -19,7 +19,7 @@ const sections = config.categories
 
 <section class="wrap fcon">
   <header class="f-run mono">
-    <span>{config.title} — {fmt.issue(latest.n)}</span>
+    <span>{config.title}</span>
     <span>{t('toc.run')}</span>
   </header>
   <div class="g fcon-body">

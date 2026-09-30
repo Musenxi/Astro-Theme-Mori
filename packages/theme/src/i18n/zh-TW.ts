@@ -4,7 +4,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'nav.posts': '文章', 'nav.travels': '遊記', 'nav.archive': '歸檔',
   'a11y.mainNav': '主導覽', 'theme.toggle': '切換晝夜', 'theme.toLight': '晝', 'theme.toDark': '夜',
   'toc.title': '目次', 'toc.sub': 'Contents', 'toc.run': '目次 · CONTENTS', 'toc.editor': '編者按', 'toc.back': '← 目次', 'toc.byTime': '按時間看',
-  'issue': '第{n}期', 'yearSeason': '{year}年 · {season}',
+  'yearSeason': '{year}年 · {season}',
   'season.spring': '春', 'season.summer': '夏', 'season.autumn': '秋', 'season.winter': '冬',
   'home.feature': '本期特稿', 'home.region': '本期收錄', 'home.title': '篇名', 'home.date': '日期', 'home.readMore': '閱讀全文', 'home.empty': '還沒有文章。把 JSON 放進 src/content/posts 或 src/content/travels。',
   'count.one': '{n}篇', 'count.other': '{n}篇',
