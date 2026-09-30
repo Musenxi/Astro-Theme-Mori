@@ -19,7 +19,7 @@ const initial = allowed.includes(short(d.reading.default)) ? short(d.reading.def
 <article class="travel" data-mode={initial} data-dir={vertical ? d.reading.direction : 'ltr'}>
   <header class="t-hero wrap g items-center gap-y-8 pt-[clamp(28px,5vw,72px)] pb-[clamp(48px,7vw,96px)]">
     <div class="col-[1/6]">
-      <div class="kicker mono mb-[18px] text-muted-foreground">{entry.category.zh} · {dotDate(d.date)}</div>
+      <div class="mono mb-[18px] text-muted-foreground">{entry.category.zh} · {dotDate(d.date)}</div>
       <h1 class="w-fit text-[clamp(40px,5.6vw,76px)] leading-[1.15] font-normal tracking-[.06em] [view-transition-name:title-is]">{d.title}</h1>
       <p class="ex mt-[22px] mb-7 max-w-[24em] text-soft-foreground">{d.excerpt}</p>
       {d.facts.length > 0 && (

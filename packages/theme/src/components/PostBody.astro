@@ -54,7 +54,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         case 'quote': {
           const vq = b.writing === 'v' && vertical;
           return (
-            <blockquote class:list={['col-[3/9]', vq && 'vq mt-[1.4em] mb-[2.2em] h-[12.5em] justify-self-center border-r border-r-primary pr-[1.1em] text-[21px] leading-[2.1] tracking-[.2em] text-soft-foreground [writing-mode:vertical-rl]']} data-b={b.id}>
+            <blockquote class:list={['col-[3/9]', vq && 'mt-[1.4em] mb-[2.2em] h-[12.5em] justify-self-center border-r border-r-primary pr-[1.1em] text-[21px] leading-[2.1] tracking-[.2em] text-soft-foreground [writing-mode:vertical-rl]']} data-b={b.id}>
               <Fragment set:html={html(b.text)} />
               {b.cite && <cite class={vq ? 'block text-end text-[13px] text-muted-foreground not-italic [margin-block-start:.4em]' : undefined} data-skip>{b.cite}</cite>}
             </blockquote>

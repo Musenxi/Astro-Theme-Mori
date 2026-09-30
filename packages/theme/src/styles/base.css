@@ -112,3 +112,6 @@ figcaption,
 .ex {
   text-wrap: balance;
 }
+@media (max-width:760px){
+  body{font-size:16px}
+}

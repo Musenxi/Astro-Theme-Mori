@@ -9,7 +9,12 @@
     ],
     "types": [
       "astro/client"
-    ]
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
   },
   "include": [
     "src/**/*.ts",

@@ -75,7 +75,6 @@ const vt = {
 
 let fig = 0;
 const nextFig = () => pad2(++fig);
-const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:${b.y}`, b.scale !== undefined && `--s:${b.scale}`].filter(Boolean).join(';') || undefined;
 ---
 
 <div class="t-body">
@@ -92,7 +91,7 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
               const head = b.head ?? firstText.get(b.stop) === b.id;
               const k = v ? vt : ht; // 竖排文字和横排文字的行内块样式不同，渲染时就选好
               return (
-                <section id={anchor} class:list={['blk', 'b-text', v && 'v tracking-[.12em] leading-[2.05] [writing-mode:vertical-rl]']} data-b={b.id} data-stop={b.stop} style={place(b)}>
+                <section id={anchor} class:list={['blk', 'b-text', v && 'v tracking-[.12em] leading-[2.05] [writing-mode:vertical-rl]']} data-b={b.id} data-stop={b.stop} style={{ '--y': b.y, '--s': b.scale }}>
                   {head && (
                     <header class={k.stop}>
                       {v ? (
@@ -103,10 +102,10 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
                         </>
                       ) : (
                         <>
-                          <span class={`no mono ${k.no}`}>{pad2(si + 1)}{stop.date ? ` · ${stop.date}` : ''}</span>
+                          <span class={`mono ${k.no}`}>{pad2(si + 1)}{stop.date ? ` · ${stop.date}` : ''}</span>
                           <h2 class={k.h2}>{stop.name}</h2>
                           {stop.en && <span class={k.en}>{stop.en}</span>}
-                          <span class="co mono mt-0.5 block text-muted-foreground">{coord(stop.lnglat)}</span>
+                          <span class="mono mt-0.5 block text-muted-foreground">{coord(stop.lnglat)}</span>
                         </>
                       )}
                     </header>
@@ -136,14 +135,14 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
             }
             case 'single':
               return (
-                <figure id={anchor} class:list={['blk', 'b-single', 'rv', b.layout === 'inset' && 'inset']} data-b={b.id} data-stop={b.stop} style={place(b)}>
+                <figure id={anchor} class:list={['blk', 'b-single', 'rv', b.layout === 'inset' && 'inset']} data-b={b.id} data-stop={b.stop} style={{ '--y': b.y, '--s': b.scale }}>
                   <Image src={b.src} alt={b.alt} widths={[800, 1200, 1800, 2400]} sizes="100vw" />
                   {b.caption && <figcaption class="mt-2.5 flex items-baseline gap-3 text-[13px] text-muted-foreground"><span class="mono flex-none">{nextFig()}</span>{b.caption}</figcaption>}
                 </figure>
               );
             case 'pair':
               return (
-                <figure id={anchor} class="blk b-pair rv" data-b={b.id} data-stop={b.stop} style={place(b)}>
+                <figure id={anchor} class="blk b-pair rv" data-b={b.id} data-stop={b.stop} style={{ '--y': b.y, '--s': b.scale }}>
                   <div class="imgs">
                     {b.images.map((im) => <Image src={im.src} alt={im.alt} widths={[600, 900, 1400]} sizes="(max-width: 760px) 50vw, 45vw" />)}
                   </div>
@@ -152,11 +151,11 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
               );
             case 'strip':
               return (
-                <figure id={anchor} class="blk b-strip rv" data-b={b.id} data-stop={b.stop} style={place(b)}>
+                <figure id={anchor} class="blk b-strip rv" data-b={b.id} data-stop={b.stop} style={{ '--y': b.y, '--s': b.scale }}>
                   <div class="strip-vp">
                     <div class="strip-sc">
                       <div class="strip-track">
-                        {b.images.map((im) => <Image src={im.src} alt={im.alt} height={900} widths={[600, 900, 1400]} sizes="60vw" style={`--s:${im.scale};--o:${im.offset}`} />)}
+                        {b.images.map((im) => <Image src={im.src} alt={im.alt} height={900} widths={[600, 900, 1400]} sizes="60vw" style={{ '--s': im.scale, '--o': im.offset }} />)}
                       </div>
                     </div>
                     <figcaption class="flex items-baseline gap-3 text-[13px] text-muted-foreground">
@@ -172,7 +171,7 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
               );
             case 'grid':
               return (
-                <figure id={anchor} class="blk b-grid rv" data-b={b.id} data-stop={b.stop} style={place(b)}>
+                <figure id={anchor} class="blk b-grid rv" data-b={b.id} data-stop={b.stop} style={{ '--y': b.y, '--s': b.scale }}>
                   <div class="imgs">
                     {b.images.map((im, i) => <Image src={im.src} alt={im.alt} widths={[500, 900, 1400]} sizes={i === 0 ? '66vw' : '33vw'} />)}
                   </div>
@@ -181,13 +180,13 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
               );
             case 'free':
               return (
-                <div id={anchor} class="blk b-free rv" data-b={b.id} data-stop={b.stop} style={place(b)}>
-                  <div class="canvas" style={`--ar:${b.ar}`}>
+                <div id={anchor} class="blk b-free rv" data-b={b.id} data-stop={b.stop} style={{ '--y': b.y, '--s': b.scale }}>
+                  <div class="canvas" style={{ '--ar': b.ar }}>
                     {b.items.map((it, i) =>
                       it.kind === 'image' ? (
-                        <Image class="fi" src={it.src} alt={it.alt} widths={[400, 800, 1400]} sizes={`${Math.round(it.w * 100)}vw`} style={`--x:${it.x};--y:${it.y};--w:${it.w};--z:${it.z};--i:${i}`} />
+                        <Image class="fi" src={it.src} alt={it.alt} widths={[400, 800, 1400]} sizes={`${Math.round(it.w * 100)}vw`} style={{ '--x': it.x, '--y': it.y, '--w': it.w, '--z': it.z, '--i': i }} />
                       ) : (
-                        <p class="fnote" style={`--x:${it.x};--y:${it.y}`} set:html={html(it.text)} />
+                        <p class="fnote" style={{ '--x': it.x, '--y': it.y }} set:html={html(it.text)} />
                       ),
                     )}
                   </div>
@@ -195,7 +194,7 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
               );
             case 'map':
               return (
-                <div id={anchor} class="blk b-map" data-b={b.id} data-stop={b.stop} style={place(b)}>
+                <div id={anchor} class="blk b-map" data-b={b.id} data-stop={b.stop} style={{ '--y': b.y, '--s': b.scale }}>
                   <RouteMap variant="block" stops={stops} track={travel.track} scope={b.scope} stopId={b.stop} />
                 </div>
               );
@@ -204,7 +203,7 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
       }
       <div class="blk b-endcard" data-stop={stops[stops.length - 1].id}>
         <span class="mono lbl">{t('travel.total')}</span>
-        <span class="big text-[44px] tracking-[.04em] text-foreground">{endStat}</span>
+        <span class="text-[44px] tracking-[.04em] text-foreground">{endStat}</span>
         <span>{t('travel.endNote')}</span>
       </div>
     </div>
@@ -233,7 +232,7 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
     {
       stops.map((s, i) => (
         <li class="grid cursor-pointer grid-cols-[3em_5.5em_1fr_auto] items-baseline gap-(--gap) border-b border-b-border py-3 transition-[color] duration-300 hover:text-primary narrow:grid-cols-[2.2em_4.6em_1fr]">
-          <a href={`#stop-${s.id}`} style="display:contents">
+          <a class="contents" href={`#stop-${s.id}`}>
             <span class="mono text-muted-foreground">{pad2(i + 1)}</span>
             <span class="mono text-muted-foreground">{s.date ?? ''}</span>
             <span class="text-[18px]">{s.name}{s.en && <small class="ml-2.5 text-[13px] text-muted-foreground">{s.en}</small>}</span>

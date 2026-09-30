@@ -12,12 +12,9 @@
 @import "./opening.css" layer(components);
 @import "./cover.css" layer(components);
 @import "./prose.css" layer(components);
-@import "./page.css" layer(components);
 @import "./travel.css" layer(components);
 @import "./comments.css" layer(components);
 @import "./transitions.css" layer(components);
-@import "./responsive.css" layer(components);
-@import "./polish.css" layer(components);
 /* 第三方评论框自己的样式是不进层的，改写它们的规则也不能进层，否则会被压过 */
 @import "./embed.css";
 
@@ -60,6 +57,8 @@
   --color-ring: var(--ring);
   --color-land: var(--land);
   --color-land-edge: var(--land-edge);
+  --color-border-soft: color-mix(in srgb, var(--border) 60%, transparent);
+  --color-lightbox: color-mix(in srgb, var(--background) 52%, transparent);
   /* 首页封面版：封面是反色的，这几个值由 .fc 自己定义 */
   --color-on: var(--on);
   --color-on-2: var(--on-2);

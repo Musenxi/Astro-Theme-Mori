@@ -29,6 +29,7 @@ pnpm build      # 静态构建到 examples/demo/dist
 pnpm studio     # 只跑 Studio（正常模式），http://127.0.0.1:4400
 pnpm comments   # 只跑评论服务（开发用管理令牌是 dev-token，数据库在 packages/comments/.data/）
 pnpm check      # 主题包的 TypeScript 检查
+pnpm lint       # 主题里 Tailwind 类名的检查（@shadcn/lint：不存在的类名、原始色值、行内样式）
 pnpm test       # 各包的测试（Studio、评论服务、引用评论定位）
 ```
 

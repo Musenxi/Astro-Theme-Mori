@@ -11,6 +11,7 @@
     "studio": "pnpm --filter demo studio",
     "test": "pnpm -r --if-present test",
     "comments": "pnpm --filter mori-comments dev",
-    "site": "pnpm --filter demo dev"
+    "site": "pnpm --filter demo dev",
+    "lint": "pnpm -r --if-present lint"
   }
 }

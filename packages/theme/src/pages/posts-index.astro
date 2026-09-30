@@ -26,7 +26,7 @@ const zh = lang !== 'en';
             <ol>
               {list.map((e) => (
                 <li class="group/row">
-                  <a class="group/a grid grid-cols-[3.4rem_minmax(0,1fr)_auto] items-baseline gap-x-[18px] border-b border-b-[color-mix(in_srgb,var(--border)_60%,transparent)] py-3.5 group-last/row:border-b-0 narrow:grid-cols-[3rem_minmax(0,1fr)] narrow:gap-y-0.5" href={e.href}>
+                  <a class="group/a grid grid-cols-[3.4rem_minmax(0,1fr)_auto] items-baseline gap-x-[18px] border-b border-b-border-soft py-3.5 group-last/row:border-b-0 narrow:grid-cols-[3rem_minmax(0,1fr)] narrow:gap-y-0.5" href={e.href}>
                     <time class="mono text-muted-foreground" datetime={e.data.date.toISOString().slice(0, 10)}>{pad2(e.data.date.getMonth() + 1)}.{pad2(e.data.date.getDate())}</time>
                     <span class="grid min-w-0 gap-[3px]">
                       <span class="w-fit max-w-full bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-[size:0_1px] bg-no-repeat text-[19px] leading-[1.5] tracking-[.05em] [transition:background-size_.5s_var(--ease-mori),color_.3s] group-hover/a:bg-[size:100%_1px] group-hover/a:text-primary">{e.data.title}</span>
@@ -40,7 +40,7 @@ const zh = lang !== 'en';
           </section>
         ))
       }
-      {entries.length === 0 && <p class="empty">{t('empty.all')}</p>}
+      {entries.length === 0 && <p>{t('empty.all')}</p>}
     </div>
   </main>
 </Base>

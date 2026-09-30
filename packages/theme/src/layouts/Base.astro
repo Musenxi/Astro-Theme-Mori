@@ -29,7 +29,8 @@ const canonical = config.site ? new URL(Astro.url.pathname, config.site).href : 
 ---
 
 <!doctype html>
-<html lang={lang} data-hdir={direction} data-hdir-cfg={direction}>
+<!-- 主题色：写在 <html> 的自定义属性上（base.css 里有默认值），行内样式的优先级最高，不靠谁排在后面 -->
+<html lang={lang} data-hdir={direction} data-hdir-cfg={direction} style={{ '--accent-base': config.accent, '--accent-dark': config.accentDark }}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -42,8 +43,6 @@ const canonical = config.site ? new URL(Astro.url.pathname, config.site).href : 
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="alternate" type="application/rss+xml" title={config.title} href="/feed" />
-    <!-- 主题色：base.css 里有一份默认值（同样是 :root），这里用 :root:root 抬高优先级，不靠谁排在后面 -->
-    <style is:inline set:html={`:root:root{--accent-base:${config.accent}${config.accentDark ? `;--accent-dark:${config.accentDark}` : ''}}`} />
     <!-- 昼夜：先于首次绘制，避免闪一下；换页时 <html> 的属性会被换掉，所以每次换页后再补上 -->
     <script is:inline>
       (() => {

@@ -1,11 +1,15 @@
 /* 全站通用的几个类：版心、12 栏网格、等宽小字、箭头、下划线 */
-.wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gut)}
-.g{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gap)}
-.mono{font-family:var(--font-mono);font-size:11.5px;line-height:1.6;letter-spacing:.06em;font-feature-settings:"tnum"}
-.lbl{color:var(--muted-foreground)}
+.wrap{@apply mx-auto max-w-(--maxw) px-(--gut)}
+.g{@apply grid grid-cols-12 gap-x-(--gap)}
+.mono{@apply font-mono text-[11.5px] leading-[1.6] tracking-[.06em] [font-feature-settings:"tnum"]}
+.lbl{@apply text-muted-foreground}
 /* 箭头：一个画出来的 >，两臂夹角约 100°，比字体里的 > 开得大；颜色跟着文字。.l 是镜像的 < */
 .chev{width:.6em;height:.75em;margin-left:.55em;vertical-align:-.06em;overflow:visible;fill:none;stroke:currentColor;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}
 .chev.l{margin-left:0;margin-right:.55em;transform:scaleX(-1)}
 .ul{background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .5s var(--ease-mori)}
 a:hover .ul,a.ul:hover{background-size:100% 1px}
 .tcy{text-combine-upright:all}
+/* 窄屏：所有网格的直接子元素都占满一行（用 !important 压过各处写的栏位） */
+@media (max-width:760px){
+  .g > *,.prose > *{grid-column:1/-1!important}
+}

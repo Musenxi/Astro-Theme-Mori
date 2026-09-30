@@ -1,9 +1,0 @@
-/* 窄屏与减少动态效果 —— 由 design/style-probe/index.html 还原（首页、文章部分；游记、归档随各自页面加入） */
-@media (max-width:760px){
-  body{font-size:16px}
-  .g > *,.prose > *{grid-column:1/-1!important}
-}
-@media (prefers-reduced-motion:reduce){
-  *,::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important;transition:none!important}
-  .rv img{clip-path:none;transform:none;opacity:1}
-}
