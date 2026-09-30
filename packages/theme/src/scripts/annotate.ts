@@ -149,6 +149,7 @@ function init() {
   pop.innerHTML = `
     <blockquote class="anno-q"></blockquote>
     <div class="anno-row"><input name="name" placeholder="${t('js.cmt.name')}" required maxlength="40" autocomplete="nickname"><input name="email" type="email" placeholder="${t('js.anno.email')}" maxlength="120" autocomplete="email"></div>
+    <input name="url" type="text" inputmode="url" placeholder="${t('js.cmt.url')}" maxlength="200" autocomplete="url">
     <textarea name="body" placeholder="${t('js.anno.write')}" required rows="3" maxlength="4000"></textarea>
     <input name="website" class="cmt-trap" tabindex="-1" autocomplete="off" aria-hidden="true">
     <div class="anno-ts"></div>
@@ -183,7 +184,7 @@ function init() {
   }
 
   const $ = <T extends HTMLElement>(s: string) => pop.querySelector<T>(s)!;
-  const name = $<HTMLInputElement>('[name=name]'), email = $<HTMLInputElement>('[name=email]'), text = $<HTMLTextAreaElement>('[name=body]');
+  const name = $<HTMLInputElement>('[name=name]'), email = $<HTMLInputElement>('[name=email]'), url = $<HTMLInputElement>('[name=url]'), text = $<HTMLTextAreaElement>('[name=body]');
   const trap = $<HTMLInputElement>('[name=website]'), msg = $('.anno-msg'), send = $<HTMLButtonElement>('.anno-send');
 
   let cur: ReturnType<typeof currentSelection> = null;
@@ -235,7 +236,7 @@ function init() {
     if (!cur) return;
     popOpen = true; btn.hidden = true; seen.hidden = true;
     $('.anno-q').textContent = cur.anchor.quote;
-    name.value = remember.get('mori-cmt-name'); email.value = remember.get('mori-cmt-email'); msg.textContent = '';
+    name.value = remember.get('mori-cmt-name'); email.value = remember.get('mori-cmt-email'); url.value = remember.get('mori-cmt-url'); msg.textContent = '';
     const r = cur.range.getBoundingClientRect(), rects = cur.range.getClientRects(), last = rects[rects.length - 1] ?? r;
     pop.hidden = false;
     // 桌面：贴着选区下方；手机：CSS 里改成从底部弹出
@@ -262,9 +263,9 @@ function init() {
       const a = cur.anchor;
       const r = await sendComment(cfg, {
         entry: cfg.entry, block: cur.block.dataset.b, start: a.start, end: a.end, quote: a.quote, prefix: a.prefix, suffix: a.suffix,
-        name: name.value, email: email.value, body: text.value, website: trap.value, turnstile: widget?.token(),
+        name: name.value, email: email.value, url: url.value, body: text.value, website: trap.value, turnstile: widget?.token(),
       });
-      remember.set('mori-cmt-name', name.value); remember.set('mori-cmt-email', email.value);
+      remember.set('mori-cmt-name', name.value); remember.set('mori-cmt-email', email.value); remember.set('mori-cmt-url', url.value);
       widget?.reset();
       getSelection()?.removeAllRanges();
       if (r.status === 'approved' && r.comment) document.dispatchEvent(new CustomEvent('mori:comment-added', { detail: r.comment }));

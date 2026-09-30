@@ -13,10 +13,14 @@ export interface MoriComment {
   name: string;
   createdAt: number;
   parentId: number | null;
+  /** 头像哈希（小写邮箱的 MD5，或没留邮箱时名字的 MD5）；老评论没有 */
+  avatar?: string | null;
+  /** 读者留的网址（http / https），可空 */
+  url?: string | null;
 }
 export interface SendResult { status: 'approved' | 'pending'; comment?: MoriComment }
 
-export interface MoriCommentsConfig { provider: string; endpoint?: string; turnstileSiteKey?: string; annotations?: boolean }
+export interface MoriCommentsConfig { provider: string; endpoint?: string; turnstileSiteKey?: string; annotations?: boolean; /** 头像地址模板，{hash} 会被换成评论的头像哈希；空 = 不显示 */ avatar?: string }
 
 /** 当前页面的评论设置（评论区 section 上的 data-config）。没有评论区 / 不是自建评论就是 null */
 export function moriConfig(): (MoriCommentsConfig & { entry: string }) | null {

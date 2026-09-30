@@ -10,7 +10,9 @@ CREATE TABLE IF NOT EXISTS comments (
   suffix      TEXT,
   body        TEXT    NOT NULL,
   name        TEXT    NOT NULL,
-  email_hash  TEXT,                          -- 邮箱只存哈希
+  email_hash  TEXT,                          -- 邮箱只存哈希（加盐的，用来判断“是不是老朋友”）
+  avatar_hash TEXT,                          -- 头像哈希：小写邮箱的 MD5（Gravatar / Cravatar 认的那种）；没留邮箱就是名字的 MD5，取一个固定的默认头像
+  url         TEXT,                          -- 读者留的网址（可选，只接受 http / https）
   ip_hash     TEXT,                          -- IP 只存加盐哈希，用来限流
   created_at  INTEGER NOT NULL,              -- 毫秒时间戳
   status      TEXT    NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'hidden')),

@@ -4,6 +4,7 @@
  */
 import { t } from './i18n.ts';
 import { mountEmbed } from './cmt-embed.ts';
+import { avatarUrl } from '../lib/avatar.mjs';
 import { moriConfig, listComments, sendComment, mountTurnstile, remember, dotDate, type MoriComment, type MoriCommentsConfig } from './cmt-api.ts';
 
 type Child = Node | string | null | false | undefined;
@@ -64,12 +65,27 @@ function init() {
 
   function item(c: MoriComment, kids: MoriComment[]): HTMLLIElement {
     const li: HTMLLIElement = h('li', { id: `c${c.id}`, class: 'cmt-item' },
-      h('div', { class: 'cmt-meta mono' }, h('b', {}, c.name), dotDate(c.createdAt)),
+      h('div', { class: 'cmt-meta mono' }, avatar(c), byline(c), dotDate(c.createdAt)),
       c.block && c.quote ? quote(c) : null,
       h('div', { class: 'cmt-text' }, c.body),
       !c.parentId ? h('button', { class: 'linkbtn cmt-reply', type: 'button', onclick: (ev: Event) => toggleReply(li, c, ev.currentTarget as HTMLElement) }, t('js.cmt.reply')) : null,
       kids.length ? h('ol', { class: 'cmt-replies' }, ...kids.map((k) => item(k, []))) : null);
     return li;
+  }
+
+  /** 头像：评论服务给的哈希 + 站点配置的头像服务；没有哈希（老评论）或关掉头像就不画。图片加载失败就悄悄去掉，不留破图 */
+  function avatar(c: MoriComment) {
+    const src = avatarUrl(cfg!.avatar, c.avatar);
+    if (!src) return null;
+    const img = h('img', { class: 'cmt-av', src, alt: '', width: '28', height: '28', loading: 'lazy', decoding: 'async', referrerpolicy: 'no-referrer' });
+    img.addEventListener('error', () => img.remove(), { once: true });
+    return img;
+  }
+
+  /** 名字；读者留了网址就是链接（nofollow ugc：不给外链传递权重，新窗口打开） */
+  function byline(c: MoriComment) {
+    const name = h('b', {}, c.name);
+    return c.url && /^https?:\/\//i.test(c.url) ? h('a', { class: 'cmt-by', href: c.url, rel: 'nofollow ugc noopener noreferrer', target: '_blank' }, name) : name;
   }
 
   /** 引用评论带着引用的原文（细线引用样式，过长截断）；点一下回到正文里那一段 */
@@ -102,13 +118,14 @@ function init() {
 function form(cfg: MoriCommentsConfig & { entry: string }, parent: MoriComment | null) {
   const name = h('input', { name: 'name', placeholder: t('js.cmt.name'), required: true, maxlength: '40', autocomplete: 'nickname', value: remember.get('mori-cmt-name') });
   const email = h('input', { name: 'email', type: 'email', placeholder: t('js.cmt.email'), maxlength: '120', autocomplete: 'email', value: remember.get('mori-cmt-email') });
+  const url = h('input', { name: 'url', type: 'text', inputmode: 'url', placeholder: t('js.cmt.url'), maxlength: '200', autocomplete: 'url', value: remember.get('mori-cmt-url') });
   const text = h('textarea', { name: 'body', placeholder: parent ? t('js.cmt.replyTo', { name: parent.name }) : t('js.cmt.write'), required: true, rows: '4', maxlength: '4000' });
   // 蜜罐：真人看不到，机器人会填
   const trap = h('input', { name: 'website', class: 'cmt-trap', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' });
   const ts = h('div', { class: 'cmt-ts' });
   const msg = h('p', { class: 'cmt-msg mono', role: 'status' });
   const btn = h('button', { class: 'cmt-send', type: 'submit' }, (parent ? t('js.cmt.sendReply') : t('js.cmt.send')) + ' ', h('span', {}, '→'));
-  const f = h('form', { class: 'cmt-form' }, h('div', { class: 'cmt-row' }, name, email), text, trap, ts, h('div', { class: 'cmt-foot' }, msg, btn));
+  const f = h('form', { class: 'cmt-form' }, h('div', { class: 'cmt-row' }, name, email, url), text, trap, ts, h('div', { class: 'cmt-foot' }, msg, btn));
   let widget: { token(): string; reset(): void } | null = null;
   // 人机验证控件在第一次聚焦时才加载
   f.addEventListener('focusin', async () => { if (!widget && cfg.turnstileSiteKey) widget = await mountTurnstile(cfg, ts); }, { once: true });
@@ -117,8 +134,8 @@ function form(cfg: MoriCommentsConfig & { entry: string }, parent: MoriComment |
     e.preventDefault();
     btn.disabled = true; msg.textContent = t('js.cmt.sending'); msg.classList.remove('bad');
     try {
-      const r = await sendComment(cfg, { entry: cfg.entry, name: name.value, email: email.value, body: text.value, website: trap.value, parentId: parent?.id, turnstile: widget?.token() });
-      remember.set('mori-cmt-name', name.value); remember.set('mori-cmt-email', email.value);
+      const r = await sendComment(cfg, { entry: cfg.entry, name: name.value, email: email.value, url: url.value, body: text.value, website: trap.value, parentId: parent?.id, turnstile: widget?.token() });
+      remember.set('mori-cmt-name', name.value); remember.set('mori-cmt-email', email.value); remember.set('mori-cmt-url', url.value);
       text.value = '';
       widget?.reset();
       if (r.status === 'approved' && r.comment) document.dispatchEvent(new CustomEvent('mori:comment-added', { detail: r.comment }));

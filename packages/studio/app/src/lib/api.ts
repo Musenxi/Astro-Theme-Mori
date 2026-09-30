@@ -21,7 +21,7 @@ export interface SaveResult {
 }
 export interface AssetInfo { name: string; size: number; mtime: number; width?: number; height?: number; usedBy: Array<{ kind: 'post' | 'travel' | 'page' | 'friends'; id: string; title: string }> }
 export interface GitInfo { isRepo: boolean; top?: string; nested?: boolean; branch?: string; remotes?: Array<{ name: string; url: string }>; changed?: number; last?: string }
-export interface CommentRow { id: number; entry: string; name: string; body: string; createdAt: number; status: 'pending' | 'approved' | 'hidden'; block?: string | null; quote?: string | null; parentId?: number | null }
+export interface CommentRow { id: number; entry: string; name: string; avatar?: string | null; url?: string | null; body: string; createdAt: number; status: 'pending' | 'approved' | 'hidden'; block?: string | null; quote?: string | null; parentId?: number | null }
 
 /** 长任务（构建 / 发布）：输出一路推给 onChunk，结束时返回退出码 */
 async function stream(url: string, onChunk: (all: string) => void): Promise<number> {

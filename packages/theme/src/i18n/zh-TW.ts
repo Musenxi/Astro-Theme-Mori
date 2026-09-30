@@ -28,7 +28,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'cover.ruler': '刊期 · 一格一個月',
   'js.theme.toLight': '晝', 'js.theme.toDark': '夜',
   'js.cmt.loading': '留言載入中……', 'js.cmt.retry': '重試', 'js.cmt.count': '{n} 則', 'js.cmt.none': '還沒有留言。', 'js.cmt.reply': '回覆', 'js.cmt.cancelReply': '取消回覆',
-  'js.cmt.jump': '回到正文裡的這一段', 'js.cmt.name': '名字', 'js.cmt.email': '信箱（可不填，不會公開）', 'js.cmt.write': '寫點什麼', 'js.cmt.replyTo': '回覆 {name}', 'js.cmt.send': '發表', 'js.cmt.sendReply': '發表回覆',
+  'js.cmt.jump': '回到正文裡的這一段', 'js.cmt.name': '名字', 'js.cmt.email': '信箱（可不填，用來顯示頭像，不會公開）', 'js.cmt.url': '網址（可不填）', 'js.cmt.write': '寫點什麼', 'js.cmt.replyTo': '回覆 {name}', 'js.cmt.send': '發表', 'js.cmt.sendReply': '發表回覆',
   'js.cmt.sending': '傳送中……', 'js.cmt.pending': '已收到。通過審核後會顯示在這裡。', 'js.cmt.loadFail': '留言載入失敗（{status}）', 'js.cmt.postFail': '送出失敗（{status}）', 'js.cmt.tsFail': '人機驗證腳本載入失敗',
   'js.cmt.scriptFail': '腳本載入失敗：{src}', 'js.cmt.unknown': '不認識的留言服務：{provider}',
   'js.anno.btn': '引用留言', 'js.anno.email': '信箱（可不填）', 'js.anno.write': '寫下你的想法', 'js.anno.cancel': '取消', 'js.anno.posted': '留言已發表，在文末留言區', 'js.anno.pending': '已收到，通過審核後會顯示在文末留言區',

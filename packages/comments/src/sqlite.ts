@@ -11,7 +11,12 @@ export function sqliteStore(path: string): Store {
   const all = (sql: string, ...args: any[]) => db.prepare(sql).all(...args) as any[];
   const one = (sql: string, ...args: any[]) => db.prepare(sql).get(...args) as any;
   return {
-    async init() { db.exec(readFileSync(new URL('../schema.sql', import.meta.url), 'utf8')); },
+    async init() {
+      db.exec(readFileSync(new URL('../schema.sql', import.meta.url), 'utf8'));
+      // 老数据库：补上后来加的列（CREATE TABLE IF NOT EXISTS 不会改已经存在的表）
+      const have = new Set(all('PRAGMA table_info(comments)').map((c) => c.name));
+      for (const col of ['avatar_hash', 'url']) if (!have.has(col)) db.exec(`ALTER TABLE comments ADD COLUMN ${col} TEXT`);
+    },
     async insert(c) { return Number(db.prepare(SQL.insert).run(...insertArgs(c)).lastInsertRowid); },
     async get(id) { const r = one(SQL.get, id); return r ? fromDb(r) : null; },
     async listApproved(entry) { return all(SQL.listApproved, entry).map(fromDb); },

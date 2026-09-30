@@ -23,7 +23,8 @@
     "./validate": "./src/content/validate.ts",
     "./config": "./src/config.ts",
     "./anchor": "./src/lib/anchor-text.ts",
-    "./markdown": "./src/lib/markdown.mjs"
+    "./markdown": "./src/lib/markdown.mjs",
+    "./avatar": "./src/lib/avatar.mjs"
   },
   "files": [
     "src",

@@ -4,6 +4,7 @@ import { Check, EyeOff, RefreshCw, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ApiError, api, type CommentRow } from '@/lib/api';
 import { cn } from '@/lib/cn';
+import { avatarUrl } from 'astro-mori/avatar';
 import { useProject, useRefresh } from '@/lib/hooks';
 import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/components/ui/dialog';
@@ -85,10 +86,12 @@ function List() {
         <div className="space-y-3">
           {rows.map((m) => (
             <article key={m.id} className="flex gap-3.5 rounded-2xl bg-sunk/70 p-4 transition-colors hover:bg-sunk">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink/[.07] text-[14px] font-medium text-ink-2">{[...(m.name || '?')][0]}</span>
+              <Avatar name={m.name} src={avatarUrl(project?.comments.avatar, m.avatar)} />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-ink-3">
-                  <b className="font-medium text-ink">{m.name}</b>
+                  {m.url && /^https?:\/\//i.test(m.url)
+                    ? <a href={m.url} target="_blank" rel="noopener noreferrer nofollow" title={m.url} className="font-medium text-ink underline decoration-ink/25 underline-offset-2 transition-colors hover:decoration-ink">{m.name}</a>
+                    : <b className="font-medium text-ink">{m.name}</b>}
                   <span className="mono text-[11.5px]">{when(m.createdAt)}</span>
                   <span className="text-[12.5px]">{title(m.entry)}</span>
                   {m.parentId && <span className="mono rounded-full bg-ink/[.06] px-2 py-px text-[11px]">回复 #{m.parentId}</span>}
@@ -107,5 +110,15 @@ function List() {
         {!list.isPending && rows.length === 0 && <Empty>这里没有评论。</Empty>}
       </Body>
     </>
+  );
+}
+
+/** 头像：评论服务给的哈希 + 站点选的头像服务；没有头像、或图片打不开，就退回名字的第一个字 */
+function Avatar({ name, src }: { name: string; src: string }) {
+  const [broken, setBroken] = useState(false);
+  return (
+    <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-ink/[.07] text-[14px] font-medium text-ink-2">
+      {src && !broken ? <img src={src} alt="" width={36} height={36} referrerPolicy="no-referrer" onError={() => setBroken(true)} className="h-full w-full object-cover" /> : [...(name || '?')][0]}
+    </span>
   );
 }

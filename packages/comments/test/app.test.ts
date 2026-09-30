@@ -65,7 +65,8 @@ for (const [name, mk] of STORES) {
     const { post, call } = await setup({ autoApprove: 'all' });
     await post({ email: 'x@y.zz' });
     const c: any = ((await (await call('GET', `/comments?entry=${ENTRY}`)).json()) as any).comments[0];
-    assert.deepEqual(Object.keys(c).sort(), ['block', 'body', 'createdAt', 'end', 'id', 'name', 'parentId', 'prefix', 'quote', 'start', 'suffix']);
+    assert.deepEqual(Object.keys(c).sort(), ['avatar', 'block', 'body', 'createdAt', 'end', 'id', 'name', 'parentId', 'prefix', 'quote', 'start', 'suffix', 'url']);
+    assert.ok(!JSON.stringify(c).includes('x@y.zz')); // 邮箱本身不出现；对外的只有头像哈希
   });
 
   test(`[${name}] 划词引用评论：带位置和原文；位置不合法会被拒绝`, async () => {

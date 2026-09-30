@@ -32,7 +32,7 @@ export type MoriPublish =
  *  - 其余是第三方，只有文末评论，没有引用评论
  */
 export type MoriComments =
-  | { provider: 'mori'; /** 评论服务的地址，如 https://comments.example.com */ endpoint: string; /** Cloudflare Turnstile 的站点密钥（公开的那个） */ turnstileSiteKey?: string; /** 是否开启划词引用评论，默认开 */ annotations?: boolean }
+  | { provider: 'mori'; /** 评论服务的地址，如 https://comments.example.com */ endpoint: string; /** Cloudflare Turnstile 的站点密钥（公开的那个） */ turnstileSiteKey?: string; /** 是否开启划词引用评论，默认开 */ annotations?: boolean; /** 头像服务：'cravatar'（默认，国内能用）、'gravatar'、'none'（不显示），或含 {hash} 的自定义地址 */ avatar?: string }
   | { provider: 'giscus'; repo: string; repoId: string; category: string; categoryId: string; mapping?: string }
   | { provider: 'waline'; serverURL: string }
   | { provider: 'twikoo'; envId: string }

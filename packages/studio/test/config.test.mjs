@@ -77,3 +77,16 @@ test('feed.content：没有 feed 块时新建，有就只改取值；只接受 e
   assert.match(s, /home: \{\n    editorNote/);
   assert.throws(() => setConfigValue(f, 'feed.content', 'all'), /excerpt/);
 });
+
+test('comments.avatar：只改评论块里的头像服务；没有启用自建评论时不凭空新建一个 comments；只接受 cravatar / gravatar / none', () => {
+  const f = make();
+  assert.throws(() => setConfigValue(f, 'comments.avatar', 'gravatar'), /启用自建评论/);
+  assert.doesNotMatch(readFileSync(f, 'utf8'), /comments/);
+  const g = join(mkdtempSync(join(tmpdir(), 'mori-')), 'mori.config.ts');
+  writeFileSync(g, `export default defineMoriConfig({\n  title: 'x',\n  comments: { provider: 'mori', endpoint: 'https://c.example.com' },\n});\n`);
+  setConfigValue(g, 'comments.avatar', 'gravatar');
+  assert.match(readFileSync(g, 'utf8'), /comments: \{ avatar: 'gravatar', provider: 'mori', endpoint: 'https:\/\/c\.example\.com' \},/);
+  setConfigValue(g, 'comments.avatar', 'none');
+  assert.equal(readFileSync(g, 'utf8').match(/avatar/g).length, 1);
+  assert.throws(() => setConfigValue(g, 'comments.avatar', 'https://x.example/{hash}'), /只能是/);
+});

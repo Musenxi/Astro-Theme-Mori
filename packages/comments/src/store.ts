@@ -13,6 +13,8 @@ export interface CommentRow {
   body: string;
   name: string;
   emailHash: string | null;
+  avatarHash: string | null;
+  url: string | null;
   ipHash: string | null;
   createdAt: number;
   status: Status;
@@ -45,8 +47,8 @@ export interface Store {
 
 /** SQL 的公共部分：SQLite 和 D1 都是 `?` 占位符 */
 export const SQL = {
-  insert: `INSERT INTO comments (entry, block, start, "end", quote, prefix, suffix, body, name, email_hash, ip_hash, created_at, status, parent_id)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  insert: `INSERT INTO comments (entry, block, start, "end", quote, prefix, suffix, body, name, email_hash, avatar_hash, url, ip_hash, created_at, status, parent_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   get: `SELECT * FROM comments WHERE id = ?`,
   listApproved: `SELECT * FROM comments WHERE entry = ? AND status = 'approved' ORDER BY created_at ASC, id ASC`,
   // 筛选条件传 NULL 表示不限；SQLite 和 D1 都是同一条语句
@@ -62,10 +64,10 @@ export const SQL = {
 /** 数据库列 → 驼峰 */
 export const fromDb = (r: any): CommentRow => ({
   id: r.id, entry: r.entry, block: r.block, start: r.start, end: r.end, quote: r.quote, prefix: r.prefix, suffix: r.suffix,
-  body: r.body, name: r.name, emailHash: r.email_hash, ipHash: r.ip_hash, createdAt: r.created_at, status: r.status, parentId: r.parent_id,
+  body: r.body, name: r.name, emailHash: r.email_hash, avatarHash: r.avatar_hash ?? null, url: r.url ?? null, ipHash: r.ip_hash, createdAt: r.created_at, status: r.status, parentId: r.parent_id,
 });
 
-export const insertArgs = (c: NewComment) => [c.entry, c.block, c.start, c.end, c.quote, c.prefix, c.suffix, c.body, c.name, c.emailHash, c.ipHash, c.createdAt, c.status, c.parentId];
+export const insertArgs = (c: NewComment) => [c.entry, c.block, c.start, c.end, c.quote, c.prefix, c.suffix, c.body, c.name, c.emailHash, c.avatarHash, c.url, c.ipHash, c.createdAt, c.status, c.parentId];
 
 export const statusCounts = (rows: Array<{ status: Status; n: number }>): Record<Status, number> => {
   const out: Record<Status, number> = { pending: 0, approved: 0, hidden: 0 };

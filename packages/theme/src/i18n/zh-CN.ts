@@ -28,7 +28,7 @@ export default {
   // ↓ 浏览器里的脚本用
   'js.theme.toLight': '昼', 'js.theme.toDark': '夜',
   'js.cmt.loading': '评论加载中……', 'js.cmt.retry': '重试', 'js.cmt.count': '{n} 条', 'js.cmt.none': '还没有评论。', 'js.cmt.reply': '回复', 'js.cmt.cancelReply': '取消回复',
-  'js.cmt.jump': '回到正文里的这一段', 'js.cmt.name': '名字', 'js.cmt.email': '邮箱（可不填，不会公开）', 'js.cmt.write': '写点什么', 'js.cmt.replyTo': '回复 {name}', 'js.cmt.send': '发表', 'js.cmt.sendReply': '发表回复',
+  'js.cmt.jump': '回到正文里的这一段', 'js.cmt.name': '名字', 'js.cmt.email': '邮箱（可不填，用来显示头像，不会公开）', 'js.cmt.url': '网址（可不填）', 'js.cmt.write': '写点什么', 'js.cmt.replyTo': '回复 {name}', 'js.cmt.send': '发表', 'js.cmt.sendReply': '发表回复',
   'js.cmt.sending': '发送中……', 'js.cmt.pending': '已收到。通过审核后会显示在这里。', 'js.cmt.loadFail': '评论加载失败（{status}）', 'js.cmt.postFail': '提交失败（{status}）', 'js.cmt.tsFail': '人机验证脚本加载失败',
   'js.cmt.scriptFail': '脚本加载失败：{src}', 'js.cmt.unknown': '不认识的评论服务：{provider}',
   'js.anno.btn': '引用评论', 'js.anno.email': '邮箱（可不填）', 'js.anno.write': '写下你的想法', 'js.anno.cancel': '取消', 'js.anno.posted': '评论已发表，在文末评论区', 'js.anno.pending': '已收到，通过审核后会显示在文末评论区',

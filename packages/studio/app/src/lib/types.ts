@@ -35,6 +35,7 @@ export interface Project {
     home?: { style?: 'quote' | 'cover'; direction?: 'h' | 'v'; editorNote?: string };
     archive?: { direction?: 'h' | 'v' };
     feed?: { content?: 'excerpt' | 'full' };
+    comments?: { avatar?: string };
     nav: NavItem[] | null;
   };
   entries: EntrySummary[];
@@ -42,7 +43,7 @@ export interface Project {
   assets: string[];
   preview: { port: number; url: string | null };
   publish: PublishConfig | null;
-  comments: { provider: string | null; endpoint: string; hasToken: boolean; pending: number };
+  comments: { provider: string | null; /** 头像地址模板，{hash} 换成评论的头像哈希；空 = 不显示 */ avatar: string; endpoint: string; hasToken: boolean; pending: number };
 }
 
 export interface Friend { id?: string; name: string; url: string; desc?: string; avatar?: string; order?: number }

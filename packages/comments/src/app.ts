@@ -11,6 +11,7 @@
  */
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { md5 } from './md5.ts';
 import type { Store, CommentRow, Status } from './store.ts';
 
 export interface AppOptions {
@@ -29,15 +30,25 @@ export interface AppOptions {
   fetchImpl?: typeof fetch;
 }
 
-export const LIMITS = { name: 40, email: 120, body: 4000, quote: 600, context: 200, perMinute: 3, perDay: 20 };
+export const LIMITS = { name: 40, email: 120, url: 200, body: 4000, quote: 600, context: 200, perMinute: 3, perDay: 20 };
 const ENTRY = /^(posts|pages)\/[A-Za-z0-9][A-Za-z0-9_-]*$/;
 const BLOCK = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
 
-/** 对外的字段：不含邮箱哈希、IP 哈希、状态之外的内部信息 */
+/** 对外的字段：不含加盐的邮箱哈希、IP 哈希、状态之外的内部信息。avatar 是头像哈希（Gravatar 那种），url 是读者留的网址 */
 export const publicOf = (c: CommentRow) => ({
   id: c.id, block: c.block, start: c.start, end: c.end, quote: c.quote, prefix: c.prefix, suffix: c.suffix,
-  body: c.body, name: c.name, createdAt: c.createdAt, parentId: c.parentId,
+  body: c.body, name: c.name, avatar: c.avatarHash, url: c.url, createdAt: c.createdAt, parentId: c.parentId,
 });
+
+/** 读者留的网址：只收 http / https，去掉首尾空白；没写返回 ''，写了但不合法返回 null */
+export function cleanUrl(v: unknown): string | null {
+  const raw = clip(v, LIMITS.url);
+  if (!raw) return '';
+  try {
+    const u = new URL(/^[a-z][a-z0-9+.-]*:/i.test(raw) ? raw : `https://${raw}`); // 只写了 example.com 也行，补上 https
+    return (u.protocol === 'http:' || u.protocol === 'https:') && u.hostname.includes('.') ? u.href : null;
+  } catch { return null; }
+}
 
 async function sha256(text: string) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -88,10 +99,12 @@ export function createApp(opts: AppOptions) {
     if (typeof b.website === 'string' && b.website !== '') return c.json({ status: 'pending' }, 201);
 
     const entry = clip(b.entry, 200), body = clip(b.body, LIMITS.body), name = clip(b.name, LIMITS.name), email = clip(b.email, LIMITS.email);
+    const url = cleanUrl(b.url);
     if (!ENTRY.test(entry)) return c.json({ error: 'entry 不合法' }, 400);
     if (!body) return c.json({ error: '评论不能是空的' }, 400);
     if (!name) return c.json({ error: '请留个名字' }, 400);
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return c.json({ error: '邮箱格式不对' }, 400);
+    if (url === null) return c.json({ error: '网址格式不对' }, 400);
 
     // 引用评论：钉在哪个块的哪一段字上；块 id 加起止位置，加被选中的原文和前后文（文章改了以后靠它们重新找）
     let anchor: { block: string; start: number; end: number; quote: string; prefix: string; suffix: string } | null = null;
@@ -125,13 +138,14 @@ export function createApp(opts: AppOptions) {
     }
 
     const emailHash = email ? await sha256(`${salt}|mail|${email.toLowerCase()}`) : null;
+    const avatarHash = md5(email ? email.toLowerCase() : `name:${name.toLowerCase()}`); // 没留邮箱：按名字取一个固定的默认头像，不会泄露什么
     const mode = opts.autoApprove ?? 'returning';
     const status: Status = mode === 'all' ? 'approved' : mode === 'none' ? 'pending' : (await store.hasApprovedBefore(emailHash, name, ipHash)) ? 'approved' : 'pending';
 
     const id = await store.insert({
       entry, block: anchor?.block ?? null, start: anchor?.start ?? null, end: anchor?.end ?? null,
       quote: anchor?.quote ?? null, prefix: anchor?.prefix ?? null, suffix: anchor?.suffix ?? null,
-      body, name, emailHash, ipHash, createdAt: t, status, parentId,
+      body, name, emailHash, avatarHash, url: url || null, ipHash, createdAt: t, status, parentId,
     });
     const saved = (await store.get(id))!;
     return c.json({ status, comment: status === 'approved' ? publicOf(saved) : undefined }, 201);
