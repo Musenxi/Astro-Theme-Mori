@@ -103,7 +103,8 @@ export function createApp(opts: AppOptions) {
     if (!ENTRY.test(entry)) return c.json({ error: 'entry 不合法' }, 400);
     if (!body) return c.json({ error: '评论不能是空的' }, 400);
     if (!name) return c.json({ error: '请留个名字' }, 400);
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return c.json({ error: '邮箱格式不对' }, 400);
+    if (!email) return c.json({ error: '请留个邮箱' }, 400);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return c.json({ error: '邮箱格式不对' }, 400);
     if (url === null) return c.json({ error: '网址格式不对' }, 400);
 
     // 引用评论：钉在哪个块的哪一段字上；块 id 加起止位置，加被选中的原文和前后文（文章改了以后靠它们重新找）
@@ -137,8 +138,8 @@ export function createApp(opts: AppOptions) {
       if ((await store.countRecentByIp(ipHash, t - 86_400_000)) >= LIMITS.perDay) return c.json({ error: '今天发得够多了，明天再来' }, 429);
     }
 
-    const emailHash = email ? await sha256(`${salt}|mail|${email.toLowerCase()}`) : null;
-    const avatarHash = md5(email ? email.toLowerCase() : `name:${name.toLowerCase()}`); // 没留邮箱：按名字取一个固定的默认头像，不会泄露什么
+    const emailHash = await sha256(`${salt}|mail|${email.toLowerCase()}`);
+    const avatarHash = md5(email.toLowerCase());
     const mode = opts.autoApprove ?? 'returning';
     const status: Status = mode === 'all' ? 'approved' : mode === 'none' ? 'pending' : (await store.hasApprovedBefore(emailHash, name, ipHash)) ? 'approved' : 'pending';
 

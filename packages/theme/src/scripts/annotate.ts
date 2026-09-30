@@ -148,7 +148,7 @@ function init() {
   pop.className = 'anno-pop glass'; pop.hidden = true;
   pop.innerHTML = `
     <blockquote class="anno-q"></blockquote>
-    <div class="anno-row"><input name="name" placeholder="${t('js.cmt.name')}" required maxlength="40" autocomplete="nickname"><input name="email" type="email" placeholder="${t('js.anno.email')}" maxlength="120" autocomplete="email"></div>
+    <div class="anno-row"><input name="name" placeholder="${t('js.cmt.name')}" required maxlength="40" autocomplete="nickname"><input name="email" type="email" placeholder="${t('js.anno.email')}" required maxlength="120" autocomplete="email"></div>
     <input name="url" type="text" inputmode="url" placeholder="${t('js.cmt.url')}" maxlength="200" autocomplete="url">
     <textarea name="body" placeholder="${t('js.anno.write')}" required rows="3" maxlength="4000"></textarea>
     <input name="website" class="cmt-trap" tabindex="-1" autocomplete="off" aria-hidden="true">

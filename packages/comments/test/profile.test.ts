@@ -42,18 +42,23 @@ test('留了邮箱：对外的头像哈希是小写邮箱的 MD5（Gravatar 认�
   assert.ok(!/reader@example/i.test(text));
 });
 
-test('没留邮箱：按名字取固定的头像哈希；没留网址是 null', async () => {
+test('昵称、邮箱必填：缺了会被拒绝，并说明缺什么；网址可以不写（存成 null）', async () => {
   const { post } = await setup();
-  const a = ((await (await post({ name: '小明' }, '2.2.2.2')).json()) as any).comment;
-  const b = ((await (await post({ name: '小明' }, '3.3.3.3')).json()) as any).comment;
-  assert.equal(a.avatar, md5('name:小明'));
-  assert.equal(a.avatar, b.avatar);
-  assert.equal(a.url, null);
+  const noEmail = await post({ name: '小明', email: undefined }, '2.2.2.2');
+  assert.equal(noEmail.status, 400);
+  assert.match(((await noEmail.json()) as any).error, /邮箱/);
+  const bad = await post({ name: '小明', email: 'not-an-email' }, '2.2.2.3');
+  assert.equal(bad.status, 400);
+  const noName = await post({ name: '', email: 'a@b.cc' }, '2.2.2.4');
+  assert.equal(noName.status, 400);
+  assert.match(((await noName.json()) as any).error, /名字/);
+  const ok = ((await (await post({ name: '小明', email: 'a@b.cc' }, '2.2.2.5')).json()) as any).comment;
+  assert.equal(ok.url, null);
 });
 
 test('网址不合法：拒绝，并说明原因', async () => {
   const { post } = await setup();
-  const r = await post({ name: '读者', url: 'javascript:alert(1)' });
+  const r = await post({ name: '读者', email: 'a@b.cc', url: 'javascript:alert(1)' });
   assert.equal(r.status, 400);
   assert.match(((await r.json()) as any).error, /网址/);
 });

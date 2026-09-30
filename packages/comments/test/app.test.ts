@@ -33,7 +33,7 @@ async function setupWith(makeStore: () => import('../src/store.ts').Store, opts:
   const app = createApp({ store, adminToken: TOKEN, salt: 'test', now: () => t, ...opts });
   const call = (method: string, path: string, body?: unknown, headers: Record<string, string> = {}) =>
     app.request(path, { method, headers: { 'Content-Type': 'application/json', 'cf-connecting-ip': '1.2.3.4', ...headers }, body: body === undefined ? undefined : JSON.stringify(body) });
-  const post = (body: Record<string, unknown>, headers?: Record<string, string>) => call('POST', '/comments', { entry: ENTRY, name: '读者', body: '写得好', ...body }, headers);
+  const post = (body: Record<string, unknown>, headers?: Record<string, string>) => call('POST', '/comments', { entry: ENTRY, name: '读者', email: 'reader@example.com', body: '写得好', ...body }, headers);
   const admin = (method: string, path: string, body?: unknown) => call(method, `/admin${path}`, body, { Authorization: `Bearer ${TOKEN}` });
   return { store, app, call, post, admin, tick: (ms: number) => { t += ms; } };
 }

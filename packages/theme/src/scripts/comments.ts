@@ -117,7 +117,7 @@ function init() {
 /** 发表 / 回复的表单。parent 有值就是回复 */
 function form(cfg: MoriCommentsConfig & { entry: string }, parent: MoriComment | null) {
   const name = h('input', { name: 'name', placeholder: t('js.cmt.name'), required: true, maxlength: '40', autocomplete: 'nickname', value: remember.get('mori-cmt-name') });
-  const email = h('input', { name: 'email', type: 'email', placeholder: t('js.cmt.email'), maxlength: '120', autocomplete: 'email', value: remember.get('mori-cmt-email') });
+  const email = h('input', { name: 'email', type: 'email', placeholder: t('js.cmt.email'), required: true, maxlength: '120', autocomplete: 'email', value: remember.get('mori-cmt-email') });
   const url = h('input', { name: 'url', type: 'text', inputmode: 'url', placeholder: t('js.cmt.url'), maxlength: '200', autocomplete: 'url', value: remember.get('mori-cmt-url') });
   const text = h('textarea', { name: 'body', placeholder: parent ? t('js.cmt.replyTo', { name: parent.name }) : t('js.cmt.write'), required: true, rows: '4', maxlength: '4000' });
   // 蜜罐：真人看不到，机器人会填

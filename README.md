@@ -109,7 +109,7 @@ comments: { provider: 'giscus', repo: '…', repoId: '…', category: '…', cat
 
 - **自建评论**（`packages/comments`）：读者选中正文里的一段文字就能针对这段发表评论；引用评论和普通评论一起显示在文末评论区，带着引用的原文，点一下回到正文并临时高亮，正文里不留记号。文章改动后按“块 id + 位置 → 原文 + 前后文”重新定位，找不到的引用旁标“原文已修改”。
 - 第一次留言的人先审后发；蜜罐、按 IP 限流、可选 Turnstile。邮箱和 IP 只存加盐哈希。
-- **头像和网址**：读者留言时可以填邮箱（用来显示头像，不公开）和网址（都可不填；网址只收 http / https，名字会带上链接，`nofollow ugc`）。头像用 Gravatar 那一套：评论服务对外只给“小写邮箱的 MD5”，站点按 `comments.avatar` 拼图片地址——`'cravatar'`（默认，Gravatar 的国内镜像）、`'gravatar'`、`'none'`（不显示），或含 `{hash}` 的自己的服务地址（如 `'https://avatars.example.com/{hash}'`）。没留邮箱的读者按名字取一个固定的几何头像（identicon）。也可以在 Studio 的“设定 → 评论”里选。注意：头像哈希是公开的，和 Gravatar 一样，知道某个邮箱的人能核对它是不是这位读者。
+- **昵称、邮箱、网站**：读者留言时昵称和邮箱必填（表单里带 `*`），网站可不填（只收 http / https，名字会带上链接，`nofollow ugc`）。邮箱用来显示头像，不公开；头像用 Gravatar 那一套：评论服务对外只给“小写邮箱的 MD5”，站点按 `comments.avatar` 拼图片地址——`'cravatar'`（默认，Gravatar 的国内镜像）、`'gravatar'`、`'none'`（不显示），或含 `{hash}` 的自己的服务地址（如 `'https://avatars.example.com/{hash}'`）；没设过头像的读者显示几何图案（identicon）。也可以在 Studio 的“设定 → 评论”里选。注意：头像哈希是公开的，和 Gravatar 一样，知道某个邮箱的人能核对它是不是这位读者。
 - **升级**：Node + SQLite 的评论服务启动时自动给旧库补上头像、网址两列。Cloudflare D1 上已经建好的库要手动执行一次：`wrangler d1 execute <库名> --file=packages/comments/migrations-001-profile.sql`（新建的库用 `schema.sql` 就行）。
 - 本地开发：`pnpm dev` 会一起启动评论服务（管理令牌 `dev-token`，Studio 的“评论”页里填这个）。正式部署用环境变量 `ADMIN_TOKEN`。部署：VPS 见 [deploy/](deploy/README.md)，Cloudflare 见 `packages/comments/wrangler.example.toml`。
 - 管理在 Studio 的“评论”页：待审列表、通过 / 隐藏 / 删除；保存文章时，如果改动会让已有引用评论找不到原文，会先提醒。
