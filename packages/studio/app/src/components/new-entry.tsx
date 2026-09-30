@@ -10,7 +10,7 @@ import { Dialog, DialogContent } from './ui/dialog';
 import { Field, Input } from './ui/input';
 import { Select } from './ui/select';
 
-/** 撰写：先起个标题、选个栏目，然后进编辑器。地址名默认自动生成，需要时在“高级”里改 */
+/** 撰写：先起个标题、选个分类，然后进编辑器。地址名默认自动生成，需要时在“高级”里改 */
 export function NewEntryDialog({ open, onOpenChange, kind: initial = 'post' }: { open: boolean; onOpenChange: (o: boolean) => void; kind?: Kind }) {
   const { data: project } = useProject();
   const refresh = useRefresh();
@@ -47,7 +47,7 @@ export function NewEntryDialog({ open, onOpenChange, kind: initial = 'post' }: {
         <form onSubmit={(e) => { e.preventDefault(); void submit(); }}>
           <Field label="标题"><Input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="标题" /></Field>
           {kind !== 'page' && (
-            <Field label="栏目"><Select value={category || cats[0]?.id} onValueChange={setCategory} options={cats.map((c) => ({ value: c.id, label: c.zh, hint: c.en }))} /></Field>
+            <Field label="分类"><Select value={category || cats[0]?.id} onValueChange={setCategory} options={cats.map((c) => ({ value: c.id, label: c.zh, hint: c.en }))} /></Field>
           )}
           <div className="mt-1 pl-[7.5rem]">
             <button type="button" onClick={() => setAdv(!adv)} className="text-[12px] text-ink-3 transition-colors hover:text-ink">{adv ? '收起' : '地址名'}：{finalId}</button>

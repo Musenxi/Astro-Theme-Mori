@@ -195,7 +195,7 @@ function closeOf(src, from, open, close) {
   return i;
 }
 
-/** 整个 categories 数组重写一遍（数组外的内容和注释不动）。分类是有序的，顺序就是栏目在页面上的先后 */
+/** 整个 categories 数组重写一遍（数组外的内容和注释不动）。分类是有序的，顺序就是分类在页面上的先后 */
 export function setCategories(configPath, cats) {
   if (!Array.isArray(cats) || !cats.length) throw new Error('至少要有一个分类');
   const seen = new Set();

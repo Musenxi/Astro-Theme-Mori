@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getEntries } from '../lib/entries.ts';
 import { dotDate } from '../lib/zh.ts';
 
-/** 站内搜索的索引：标题、栏目、摘要、正文前 1200 字。构建时生成，浏览器里直接查 */
+/** 站内搜索的索引：标题、分类、摘要、正文前 1200 字。构建时生成，浏览器里直接查 */
 function bodyText(node: unknown, out: string[]) {
   if (Array.isArray(node)) node.forEach((n) => bodyText(n, out));
   else if (node && typeof node === 'object') {

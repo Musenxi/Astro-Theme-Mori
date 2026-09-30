@@ -4,7 +4,7 @@ import { makeT, verticalOk, type Lang } from './i18n/index.ts';
 export type { Lang } from './i18n/index.ts';
 
 export interface MoriCategory {
-  /** 栏目 id，文章的 `category` 字段引用它 */
+  /** 分类 id，文章的 `category` 字段引用它 */
   id: string;
   zh: string;
   en: string;
@@ -61,7 +61,7 @@ export interface MoriUserConfig {
     editorNote?: string;
   };
   archive?: {
-    /** 归档 / 栏目刻度页的排法（手机上一律横排） */
+    /** 归档 / 分类刻度页的排法（手机上一律横排） */
     direction?: 'h' | 'v';
   };
   /** RSS 订阅（/feed） */

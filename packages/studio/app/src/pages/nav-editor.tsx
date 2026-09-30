@@ -16,7 +16,7 @@ let seq = 0;
 const withKeys = (items: NavItem[]): Row[] => items.map((n) => ({ ...n, key: `n${++seq}` }));
 const plain = (rows: Row[]) => rows.map(({ label, href }) => ({ label: label.trim(), href: href.trim() }));
 
-/** 网站顶部玻璃胶囊里的入口：内置页、栏目、你的页面，或者任意链接；拖动排序 */
+/** 网站顶部玻璃胶囊里的入口：内置页、分类、你的页面，或者任意链接；拖动排序 */
 export default function NavEditor() {
   const { data: project } = useProject();
   const refresh = useRefresh();
@@ -32,7 +32,7 @@ export default function NavEditor() {
 
   const candidates = useMemo(() => [
     { group: '内置', label: '文章', href: '/posts/' }, { group: '内置', label: '归档', href: '/archive/' }, { group: '内置', label: '搜索', href: '/search/' },
-    ...(project?.config.categories ?? []).map((c) => ({ group: '栏目', label: c.zh, href: `/category/${c.id}/` })),
+    ...(project?.config.categories ?? []).map((c) => ({ group: '分类', label: c.zh, href: `/category/${c.id}/` })),
     ...(project?.pages ?? []).map((p) => ({ group: '页面', label: p.title, href: `/${p.id}/` })),
   ], [project]);
   const available = candidates.filter((c) => !rows.some((r) => r.href === c.href));

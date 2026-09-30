@@ -33,7 +33,7 @@ export async function getEntries(): Promise<Entry[]> {
       const category = categories.get(raw.data.category);
       if (!category) {
         throw new Error(
-          `《${raw.data.title}》的栏目 “${raw.data.category}” 没有在 mori.config.ts 的 categories 里定义（已有：${[...categories.keys()].join('、')}）`,
+          `《${raw.data.title}》的分类 “${raw.data.category}” 没有在 mori.config.ts 的 categories 里定义（已有：${[...categories.keys()].join('、')}）`,
         );
       }
       return { kind, id: raw.id, href: `/posts/${raw.id}/`, n: i + 1, category, data: raw.data, raw };

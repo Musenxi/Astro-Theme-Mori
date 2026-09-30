@@ -1,5 +1,5 @@
 /**
- * 首页：点左侧目录换篇（交叉溶解）；进场动画只在第一次打开首页时播；目次的栏目标题进入视口时画开下划线。
+ * 首页：点左侧目录换篇（交叉溶解）；进场动画只在第一次打开首页时播；目次的分类标题进入视口时画开下划线。
  * 换篇只有点击和目录里的上下方向键；不钉住、不跟滚动联动、不自动轮播。
  */
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -11,12 +11,12 @@ function initContents() {
   const fcon = document.querySelector<HTMLElement>('.fcon');
   if (!fcon || fcon.dataset.ready) return;
   fcon.dataset.ready = '1';
-  // 点目次里的栏目标题：这一个标题带上过渡名（同一页只能有一个），进栏目页后从原位移到页顶
+  // 点目次里的分类标题：这一个标题带上过渡名（同一页只能有一个），进分类页后从原位移到页顶
   document.querySelectorAll<HTMLElement>('.f-sh').forEach((a) => a.addEventListener('click', () => {
     document.querySelectorAll<HTMLElement>('.f-sh h3').forEach((h) => (h.style.viewTransitionName = ''));
     a.querySelector<HTMLElement>('h3')!.style.viewTransitionName = 'cat-title';
   }));
-  // 栏目标题的细线在进入视口时画开
+  // 分类标题的细线在进入视口时画开
   const io = new IntersectionObserver((es) => es.forEach((e) => {
     if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
   }), { threshold: 0.2 });

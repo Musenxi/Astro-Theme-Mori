@@ -84,14 +84,14 @@ export default function PostList({ view }: { view: 'all' | 'draft' }) {
             <Search size={14} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-3" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="搜索标题或地址名" className="rounded-full pl-9" />
           </div>
-          <Select className="w-32" value={cat} onValueChange={setCat} options={[{ value: ALL, label: '全部栏目' }, ...cats.map((c) => ({ value: c.id, label: c.zh }))]} />
+          <Select className="w-32" value={cat} onValueChange={setCat} options={[{ value: ALL, label: '全部分类' }, ...cats.map((c) => ({ value: c.id, label: c.zh }))]} />
           {tags.length > 0 && <Select className="w-32" value={tag} onValueChange={setTag} options={[{ value: ALL, label: '全部标签' }, ...tags.map((t) => ({ value: t, label: t }))]} />}
           {view === 'all' && <Segmented size="sm" className="ml-auto" value={status} onValueChange={setStatus} options={[{ value: 'all', label: '全部' }, { value: 'pub', label: '已发布' }, { value: 'draft', label: '草稿' }]} />}
         </div>
 
         <div>
           <div className={cn(grid, 'py-2')}>
-            {head('title', '标题')}{head('category', '栏目')}
+            {head('title', '标题')}{head('category', '分类')}
             <span className="hide-xl text-[12px] font-medium text-ink-3">标签</span>
             {head('date', '日期')}{head('words', '字数', 'justify-end')}
             <span className="hide-xl text-[12px] font-medium text-ink-3">状态</span><span />

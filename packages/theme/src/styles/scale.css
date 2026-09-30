@@ -1,4 +1,4 @@
-/* E 刻度：归档 / 栏目 / 文章 / 游记列表页 —— 由 design/style-probe/index.html 还原 */
+/* E 刻度：归档 / 分类 / 文章 / 游记列表页 —— 由 design/style-probe/index.html 还原 */
 .he-head{padding-top:clamp(28px,6vh,72px)}
 .he-back{color:var(--ink-3);transition:color .3s}
 .he-back:hover{color:var(--accent)}

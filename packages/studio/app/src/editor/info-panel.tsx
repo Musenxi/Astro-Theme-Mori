@@ -19,7 +19,7 @@ const Group = ({ title, children, action }: { title: string; children: React.Rea
   </section>
 );
 
-/** 右侧“信息”面板：正文以外的一切——栏目、日期、摘要、封面、置顶…… */
+/** 右侧“信息”面板：正文以外的一切——分类、日期、摘要、封面、置顶…… */
 export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; set: (patch: Doc) => void; setDoc: (fn: (d: Doc) => Doc) => void }) {
   const { data: project } = useProject();
   const confirm = useConfirm();
@@ -59,8 +59,8 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
         </Field>
         <Field label="英文副题"><Input value={doc.subtitle ?? ''} onChange={(e) => set({ subtitle: e.target.value || undefined })} /></Field>
         <Field label="日期"><Input type="date" value={String(doc.date ?? '').slice(0, 10)} onChange={(e) => set({ date: e.target.value })} /></Field>
-        <Field label="栏目">
-          <Select value={doc.category || undefined} onValueChange={(v) => set({ category: v })} placeholder="选择栏目"
+        <Field label="分类">
+          <Select value={doc.category || undefined} onValueChange={(v) => set({ category: v })} placeholder="选择分类"
             options={[...(doc.category && !cats.some((c) => c.id === doc.category) ? [{ value: doc.category, label: doc.category }] : []), ...cats.map((c) => ({ value: c.id, label: c.zh, hint: c.en }))]} />
         </Field>
         <Field label="标签"><TagsInput value={doc.tags ?? []} onChange={(v) => set({ tags: v.length ? v : undefined })} known={knownTags} /></Field>

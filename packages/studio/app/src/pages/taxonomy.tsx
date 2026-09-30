@@ -36,7 +36,7 @@ export default function Taxonomy() {
       const renames = Object.fromEntries(rows.filter((r) => r.orig && r.orig !== r.id).map((r) => [r.orig!, r.id]));
       const r = await api.setCategories(clean(rows), renames);
       await refresh();
-      toast.success(r.moved ? `已保存，并更新了 ${r.moved} 篇文章的栏目` : '已保存');
+      toast.success(r.moved ? `已保存，并更新了 ${r.moved} 篇文章的分类` : '已保存');
     } catch (e) { toast.error((e as Error).message); }
   };
   const remove = async (r: Row) => {

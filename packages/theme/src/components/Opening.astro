@@ -15,7 +15,7 @@ interface Props {
 }
 const { pinned, latest } = Astro.props;
 const many = pinned.length > 1;
-/** 栏目的中英名：两个一样、或英文名留空时只写一个，不拼出“游记 · 游记”“游记 · ” */
+/** 分类的中英名：两个一样、或英文名留空时只写一个，不拼出“游记 · 游记”“游记 · ” */
 const catName = (c: { zh: string; en?: string }) => [...new Set([c.zh, c.en].filter(Boolean))].join(' · ');
 const ld = latest.data.date;
 
