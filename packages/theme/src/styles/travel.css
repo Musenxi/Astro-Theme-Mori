@@ -1,7 +1,7 @@
 /* 游记：三种读法（竖向 / 混合 / 横向）的版式、图片块、进场显现。由 <div.travel data-mode> 的属性驱动，所以留在 CSS 里；文字、封面、行程表、角落控件的样式在各自的组件里 */
 .t-body,.t-vp,.t-track,.blk{position:relative}
 
-.blk img{background:var(--muted);object-fit:cover}
+.blk img{background:var(--muted);object-fit:cover;cursor:zoom-in}
 .rv img{clip-path:inset(5% 0 5% 0);transform:scale(1.035);opacity:0;transition:clip-path 1.1s var(--ease-mori),transform 1.4s var(--ease-mori),opacity .8s ease}
 .rv.in img{clip-path:inset(0);transform:none;opacity:1}
 .b-free.rv img{transition-delay:calc(var(--i,0)*120ms)}
@@ -77,10 +77,6 @@
 .travel[data-dir="rtl"] .b-strip figcaption{direction:ltr}
 .travel[data-dir="rtl"] .h-progress i{transform-origin:100% 50%}
 
-.loc svg{width:60px;height:auto;flex:none}
-.loc .route{stroke-width:1.5}
-.loc .route-p{transition:stroke-dashoffset .9s var(--ease-mori)}
-.loc .here{transition:transform .9s var(--ease-mori)}
 /* —— 以下是主题包自己加的 —— */
 .travel:not([data-mode="h"]) .b-map{grid-column:2/12}
 .travel[data-mode="h"] .b-map{width:min(78vh,60vw)}

@@ -13,11 +13,8 @@
 @import "./cover.css" layer(components);
 @import "./prose.css" layer(components);
 @import "./page.css" layer(components);
-@import "./map.css" layer(components);
 @import "./travel.css" layer(components);
-@import "./lightbox.css" layer(components);
 @import "./comments.css" layer(components);
-@import "./search.css" layer(components);
 @import "./transitions.css" layer(components);
 @import "./responsive.css" layer(components);
 @import "./polish.css" layer(components);

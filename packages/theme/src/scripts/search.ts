@@ -45,7 +45,7 @@ async function init() {
     const terms = [...new Set([q, ...q.split(/\s+/)].filter(Boolean))].slice(0, 6);
     const hits = index!.map((it) => ({ it, s: score(it, q.includes(' ') ? q.split(/\s+/).filter(Boolean) : [q]) })).filter((h) => h.s > 0).sort((a, b) => b.s - a.s || b.it.d.localeCompare(a.it.d));
     note.textContent = hits.length ? t('js.search.count', { n: hits.length }) : t('js.search.none');
-    list.innerHTML = hits.map(({ it }) => `<li><a href="${it.u}"><span class="mono lbl">${esc(it.c)} · ${it.d}</span><b>${esc(it.t)}</b><span class="srch-sn">${snippet(it, terms)}</span></a></li>`).join('');
+    list.innerHTML = hits.map(({ it }) => `<li><a class="group grid gap-1 border-b border-b-border pt-4 pb-[18px]" href="${it.u}"><span class="mono lbl">${esc(it.c)} · ${it.d}</span><b class="text-[clamp(19px,1.8vw,24px)] font-normal tracking-[.04em] transition-[color] duration-300 group-hover:text-primary">${esc(it.t)}</b><span class="text-[14px] leading-[1.8] text-muted-foreground [&_mark]:bg-transparent [&_mark]:text-primary">${snippet(it, terms)}</span></a></li>`).join('');
   };
   input.addEventListener('input', run);
   const q = new URLSearchParams(location.search).get('q');

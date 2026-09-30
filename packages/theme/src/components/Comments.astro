@@ -19,9 +19,9 @@ const pub = c?.provider === 'mori' ? { ...c, avatar: avatarTemplate(c.avatar) } 
 
 {
   c && (
-    <section class="wrap g cmt" id="comments" data-entry={entry} data-provider={c.provider} data-config={JSON.stringify(pub)}>
-      <header class="cmt-h"><h2>{t('comments.title')}</h2><span class="mono lbl" data-count></span></header>
-      <div class="cmt-body" data-body></div>
+    <section class="cmt wrap g pt-[clamp(56px,8vw,104px)] pb-[clamp(56px,8vw,96px)]" id="comments" data-entry={entry} data-provider={c.provider} data-config={JSON.stringify(pub)}>
+      <header class="col-[3/11] mb-2 flex items-baseline gap-3.5 border-t border-t-foreground pt-3.5"><h2 class="text-[22px] font-normal tracking-[.14em]">{t('comments.title')}</h2><span class="mono lbl" data-count></span></header>
+      <div class="col-[3/11]" data-body></div>
     </section>
   )
 }

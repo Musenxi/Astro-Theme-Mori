@@ -1,8 +1,4 @@
 /* 评论区：细线分隔，名字和日期用等宽小字，不用卡片和头像 */
-.cmt{padding-top:clamp(56px,8vw,104px);padding-bottom:clamp(56px,8vw,96px)}
-.cmt > *{grid-column:3/11}
-.cmt-h{display:flex;align-items:baseline;gap:14px;border-top:1px solid var(--foreground);padding-top:14px;margin-bottom:8px}
-.cmt-h h2{font-size:22px;font-weight:400;letter-spacing:.14em}
 .cmt-none{color:var(--muted-foreground);padding:18px 0}
 .cmt-list,.cmt-replies{list-style:none}
 .cmt-item{padding:18px 0 4px;border-bottom:1px solid var(--border)}

@@ -6,13 +6,13 @@ import Base from '../layouts/Base.astro';
 ---
 
 <Base title={t('search.title')} direction={config.archive.direction}>
-  <main data-page="search" class="wrap g srch">
-    <header>
+  <main data-page="search" class="wrap g pt-[clamp(28px,6vh,72px)] pb-20">
+    <header class="col-[3/11]">
       <BackLink />
-      <label class="srch-in"><span class="mono lbl">{t('search.title')}</span><input id="q" type="search" autocomplete="off" autofocus /></label>
-      <p class="mono lbl" id="srch-note"></p>
+      <label class="mt-[18px] flex items-baseline gap-4 border-b border-b-foreground pb-2.5"><span class="mono lbl">{t('search.title')}</span><input class="flex-1 [font-family:inherit] [font-style:inherit] [font-weight:inherit] leading-[inherit] text-[clamp(24px,3vw,38px)] tracking-[.06em] text-inherit bg-transparent border-0 [outline:0] placeholder:text-muted-foreground" id="q" type="search" autocomplete="off" autofocus /></label>
+      <p class="mono lbl mt-2.5 min-h-[1.6em]" id="srch-note"></p>
     </header>
-    <ol class="srch-list" id="srch-list"></ol>
+    <ol class="col-[3/11] mt-2" id="srch-list"></ol>
   </main>
   <script>
     import '../scripts/search.ts';
