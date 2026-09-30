@@ -13,7 +13,7 @@ export default {
   'travel.endNote': '回到起点。继续向下滚动，是整段行程。', 'travel.left': '向左', 'travel.right': '向右', 'travel.readingGroup': '阅读方式',
   'travel.mode.v': '竖', 'travel.mode.h': '横', 'travel.mode.m': '混',
   'travel.modeLabel.v': '竖向阅读', 'travel.modeLabel.h': '横向阅读', 'travel.modeLabel.m': '混合阅读',
-  'map.route': '路线：{list}', 'map.arctic': '北极圈 66°33′N', 'map.tropicN': '北回归线 23°26′N', 'map.equator': '赤道 0°', 'map.tropicS': '南回归线 23°26′S', 'map.antarctic': '南极圈 66°33′S', 'empty.all': '没写东西',
+  'map.route': '路线：{list}', 'map.arctic': '北极圈 66°33′N', 'map.tropicN': '北回归线 23°26′N', 'map.equator': '赤道 0°', 'map.tropicS': '南回归线 23°26′S', 'map.antarctic': '南极圈 66°33′S', 'empty.all': '没写东西', 'empty.default': '没写{name}',
   'archive.title': '全部文章',
   'lightbox.close': 'Esc 关闭', 'footer.search': '搜索', 'footer.rss': '订阅',
   'notfound.title': '找不到这一页', 'notfound.h': '这一页不在目次里。', 'notfound.back': '回到目次',

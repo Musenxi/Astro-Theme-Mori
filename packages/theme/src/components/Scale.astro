@@ -11,6 +11,8 @@ import { tn, fmt, lang } from '../lib/i18n.ts';
 interface Props {
   title: string;
   en?: string;
+  /** 写在空档里的字：“没写随笔” */
+  empty: string;
   /** 要画在轴上的文章 */
   entries: Entry[];
   /** 整站的文章，用来定时间范围 */
@@ -18,7 +20,7 @@ interface Props {
   /** 分类页：每一项都在这个分类里，不必在每一行后面再写一遍分类名 */
   hideCategory?: boolean;
 }
-const { title, en, entries, all, hideCategory = false } = Astro.props;
+const { title, en, empty, entries, all, hideCategory = false } = Astro.props;
 /** 竖排时的日期：九月十四 */
 const monthDay = (d: Date) => (lang === 'en' ? `${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}` : cnMonthDay(d));
 
@@ -40,6 +42,9 @@ const posOf = (e: Entry) => {
   const d = e.data.date;
   return newest - ym(d) + 1 - (d.getDate() - 1) / 31;
 };
+/** 连着三个月以上没有文章的空档，在中间淡淡写一句“没写随笔”（含轴的两头） */
+const marks = [0, ...entries.map(posOf).sort((a, b) => a - b), months];
+const gaps = marks.slice(1).map((b, i) => ({ a: marks[i], b })).filter((g) => g.b - g.a >= 3).map((g) => (g.a + g.b) / 2);
 ---
 
 <header class="wrap pt-[clamp(48px,8vh,96px)]">
@@ -60,6 +65,11 @@ const posOf = (e: Entry) => {
               <span class:list={[tick, t.yearTop ? tickY : 'horiz:w-3 vert:h-3 horiz:border-t-muted-foreground vert:border-l-muted-foreground']} style={{ '--p': t.k }}>{t.yearTop && <i class:list={[tickI, 'text-[13px] tracking-[.08em] text-foreground horiz:left-[52px] horiz:top-[-.5em] horiz:narrow:left-1 horiz:narrow:top-[-1.5em] vert:left-1.5 vert:top-0']}>{t.y}</i>}</span>
               <span class:list={[tick, 'border-0! horiz:w-3 vert:h-3']} style={{ '--p': t.k }}><i class:list={[tickI, 'text-muted-foreground horiz:left-5 horiz:top-[calc(var(--mh)/2_-_.5em)] vert:top-[-4px] vert:right-[calc(var(--mw)/2_-_1em)] vert:left-auto']}>{pad2(t.m)}</i></span>
             </>
+          ))
+        }
+        {
+          gaps.map((p) => (
+            <span class="pointer-events-none absolute text-[14px] tracking-[.3em] whitespace-nowrap text-muted-foreground/60 horiz:top-[calc(var(--p)*var(--mh))] horiz:left-[clamp(96px,12vw,180px)] horiz:[transform:translateY(-50%)] horiz:narrow:left-16 vert:top-[calc(30vh_+_22px)] vert:right-[calc(var(--edge)_+_var(--p)*var(--mw))] vert:[writing-mode:vertical-rl] vert:[transform:translateX(50%)]" style={{ '--p': p.toFixed(3) }}>{empty}</span>
           ))
         }
         {

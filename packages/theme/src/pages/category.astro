@@ -15,6 +15,6 @@ const entries = all.filter((e) => e.category.id === category.id);
 
 <Base title={category.zh} direction={config.archive.direction}>
   <main data-page="category">
-    <Scale title={category.zh} en={category.en} hideCategory entries={entries} all={all} />
+    <Scale title={category.zh} en={category.en} empty={category.empty ?? t('empty.default', { name: category.zh })} hideCategory entries={entries} all={all} />
   </main>
 </Base>
