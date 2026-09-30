@@ -1,12 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
 import { ArrowUpRight, RefreshCw } from 'lucide-react';
-import { api } from '@/lib/api';
+import { api, type CommentRow } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { wan } from '@/lib/format';
 import { useProject } from '@/lib/hooks';
 import { Button } from '@/components/ui/button';
 import { Body, PageHeader } from '@/components/ui/page';
+
+const RECENT = 6;
+const when = (t: number) => { const d = new Date(t), p = (n: number) => String(n).padStart(2, '0'); return `${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; };
+const STATUS: Record<CommentRow['status'], string | null> = { pending: '待审', approved: null, hidden: '已隐藏' };
 
 interface Cell { label: string; value: string | number | null | undefined; to?: string; hint?: string; alert?: boolean }
 
@@ -25,10 +29,16 @@ export default function Dashboard() {
   ];
   const entries = project?.entries ?? [];
   const drafts = entries.filter((e) => e.draft).length;
+  const recent = [...entries].filter((e) => !e.broken).sort((a, b) => (b.edited ?? 0) - (a.edited ?? 0)).slice(0, RECENT);
+  const cm = project?.comments;
+  const canList = cm?.provider === 'mori' && cm.hasToken;
+  const replies = useQuery({ queryKey: ['comments', 'recent'], queryFn: () => api.comments(), enabled: !!canList, staleTime: 10_000 });
+  const latest = [...(replies.data?.comments ?? [])].sort((a, b) => b.createdAt - a.createdAt).slice(0, RECENT);
+  const titleOf = (entry: string) => { const id = entry.split('/')[1]; return entries.find((e) => e.id === id)?.title ?? project?.pages.find((p) => p.id === id)?.title ?? entry; };
 
   return (
     <>
-      <PageHeader title="仪表盘" actions={<Button variant="ghost" size="sm" onClick={() => refetch()}><RefreshCw size={14} className={cn(isFetching && 'animate-spin')} />刷新</Button>} />
+      <PageHeader title="仪表盘" actions={<Button variant="ghost" size="sm" onClick={() => { void refetch(); void replies.refetch(); }}><RefreshCw size={14} className={cn(isFetching && 'animate-spin')} />刷新</Button>} />
       <Body wide>
         {error ? <p className="text-danger">{(error as Error).message}</p> : (
           <>
@@ -63,9 +73,56 @@ export default function Dashboard() {
                   : <div key={cell.label} className={cls}>{inner}</div>;
               })}
             </dl>
+
+            {/* 最近：两栏并排，窄屏叠起来 */}
+            <div className="mt-6 grid gap-6 md:grid-cols-2">
+              <Recent title="最近撰写" more={{ to: '/posts', label: '全部文章' }}>
+                {recent.length === 0 && <li className="px-3 py-3 text-[13px] text-ink-3">还没有文章。</li>}
+                {recent.map((e) => (
+                  <li key={e.id}>
+                    <Link to={`/posts/${e.id}`} className="flex items-baseline gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-lift">
+                      <span className="min-w-0 flex-1 truncate">{e.title || e.id}</span>
+                      {e.draft && <span className="shrink-0 rounded-full bg-ink/[.07] px-2 py-px text-[11px] text-ink-2">草稿</span>}
+                      <span className="mono shrink-0 text-[11.5px] text-ink-3">{e.edited ? when(e.edited) : ''}</span>
+                    </Link>
+                  </li>
+                ))}
+              </Recent>
+              <Recent title="最近的回复" more={canList ? { to: '/comments', label: '全部评论' } : undefined}>
+                {!canList && <li className="px-3 py-3 text-[13px] text-ink-3">{cm?.provider === 'mori' ? '还没有填评论服务的管理令牌。' : '没有启用自建评论。'}</li>}
+                {canList && replies.error && <li className="px-3 py-3 text-[13px] text-ink-3">评论服务没有连上。</li>}
+                {canList && !replies.error && !replies.isPending && latest.length === 0 && <li className="px-3 py-3 text-[13px] text-ink-3">还没有人留言。</li>}
+                {latest.map((m) => (
+                  <li key={m.id}>
+                    <Link to="/comments" className="block rounded-xl px-3 py-2.5 transition-colors hover:bg-lift">
+                      <div className="flex items-baseline gap-2 text-[12.5px] text-ink-3">
+                        <b className="font-medium text-ink">{m.name}</b>
+                        {m.block && <span className="rounded-full bg-ink/[.07] px-2 py-px text-[11px] text-ink-2">批注</span>}
+                        {STATUS[m.status] && <span className="rounded-full bg-ink/[.07] px-2 py-px text-[11px] text-ink-2">{STATUS[m.status]}</span>}
+                        <span className="min-w-0 flex-1 truncate">{titleOf(m.entry)}</span>
+                        <span className="mono shrink-0 text-[11.5px]">{when(m.createdAt)}</span>
+                      </div>
+                      <p className="mt-0.5 line-clamp-2 break-words text-[13.5px] text-ink-2">{m.body}</p>
+                    </Link>
+                  </li>
+                ))}
+              </Recent>
+            </div>
           </>
         )}
       </Body>
     </>
+  );
+}
+
+function Recent({ title, more, children }: { title: string; more?: { to: string; label: string }; children: React.ReactNode }) {
+  return (
+    <section className="rounded-2xl bg-sunk/70 p-2">
+      <div className="flex items-center px-3 pb-1 pt-2.5">
+        <h2 className="text-[13px] text-ink-3">{title}</h2>
+        {more && <Link to={more.to} className="ml-auto flex items-center gap-0.5 text-[12px] text-ink-3 transition-colors hover:text-ink">{more.label}<ArrowUpRight size={12} /></Link>}
+      </div>
+      <ul>{children}</ul>
+    </section>
   );
 }

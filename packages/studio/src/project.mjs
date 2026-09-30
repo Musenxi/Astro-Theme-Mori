@@ -33,9 +33,9 @@ export function listEntries(root) {
       try {
         const d = JSON.parse(readFileSync(join(dir, f), 'utf8'));
         const kind = kindOf(d);
-        out.push({ kind, id, title: d.title ?? id, date: String(d.date ?? '').slice(0, 10), category: d.category, tags: Array.isArray(d.tags) ? d.tags : [], words: wordCount(d), draft: !!d.draft, pinned: !!d.pin });
+        out.push({ kind, id, edited: statSync(join(dir, f)).mtimeMs, title: d.title ?? id, date: String(d.date ?? '').slice(0, 10), category: d.category, tags: Array.isArray(d.tags) ? d.tags : [], words: wordCount(d), draft: !!d.draft, pinned: !!d.pin });
       } catch (e) {
-        out.push({ kind: 'post', id, title: `${id}（JSON 有语法错误）`, date: '', broken: true });
+        out.push({ kind: 'post', id, edited: 0, title: `${id}（JSON 有语法错误）`, date: '', broken: true });
       }
     }
   }
