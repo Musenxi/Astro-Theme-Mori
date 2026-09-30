@@ -86,8 +86,6 @@
 .f-sh .ct{margin-left:auto;color:var(--ink-3);transition:color .3s}
 .f-sh h3{transition:color .3s}
 .f-sh:hover h3,.f-sh:hover .ct{color:var(--accent)}
-.f-sh .ct span{display:inline-block;transition:transform .5s var(--ease)}
-.f-sh:hover .ct span{transform:translateX(5px)}
 .f-en a{display:grid;grid-template-columns:4.4em 1fr auto;column-gap:18px;align-items:baseline;padding:17px 0 19px;border-bottom:1px solid var(--rule)}
 .f-en .pn{font-family:var(--display);font-weight:300;font-size:36px;line-height:1;font-variant-numeric:oldstyle-nums;transition:color .3s}
 .f-en .tt{font-size:clamp(20px,1.75vw,26px);line-height:1.4;letter-spacing:.04em;width:fit-content;background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .6s var(--ease)}
