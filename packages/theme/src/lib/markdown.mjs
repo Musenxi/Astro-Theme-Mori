@@ -127,7 +127,7 @@ export function markdownToPost(src, { category = 'essays' } = {}) {
 }
 
 /* ───────────── JSON → Markdown ───────────── */
-const inlineMd = (spans) =>
+export const inlineMd = (spans) =>
   (typeof spans === 'string' ? [{ t: spans }] : spans) // 手写的 JSON 里，文字可以是裸字符串
     .map((s) => (s.marks ?? []).reduceRight((t, m) => {
       switch (m.type) {
@@ -163,3 +163,138 @@ export function postToMarkdown(post) {
   return fm.join('\n') + '\n' + blocksToMarkdown(post);
 }
 
+
+/* ───────────── 游记 ⇄ Markdown ─────────────
+ * 写法：
+ *   # 标题
+ *   ## 站名 {en=Reykjavík lnglat=-21.94,64.14 date=06.20}   ← 一个站点；下面的内容都属于这一站
+ *   一段文字（连着的几段是一个文字块；两块文字之间要隔开就写一行 ---）
+ *   ![说明](图.jpg "图注")                                  ← 单图；{layout=inset} 内缩
+ *   :::v … :::                       竖排的文字块
+ *   :::pair / :::grid … :::          每行一张图
+ *   :::strip … :::                   每行一张图，行尾可写 {scale=0.8 offset=0.12}
+ *   :::free ar=1.6 … :::             自由排布：图行尾写 {x= y= w= z=}，文字用 > 开头并写 {x= y=}
+ *   :::map / :::map stop             地图：全程路线 / 这一站附近
+ * 位置、缩放这类横滚参数不出现在文本里，由 Studio 按块保留。 */
+
+const num = (n) => +Number(n).toFixed(4);
+const attrText = (o) => Object.entries(o).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => `${k}=${/[\s"{}]/.test(String(v)) ? JSON.stringify(String(v)) : v}`).join(' ');
+const parseAttrs = (s = '') => {
+  const o = {};
+  for (const m of s.matchAll(/([A-Za-z]\w*)=("(?:[^"\\]|\\.)*"|[^\s}]+)/g)) { try { o[m[1]] = m[2].startsWith('"') ? JSON.parse(m[2]) : m[2]; } catch { o[m[1]] = m[2]; } }
+  return o;
+};
+const withAttrs = (line, o) => { const a = attrText(o); return a ? `${line} {${a}}` : line; };
+const imgLine = (im, extra = {}) => withAttrs(`![${im.alt ?? ''}](${im.src ?? ''}${im.caption ? ` "${im.caption}"` : ''})`, extra);
+const IMG = /^!\[([^\]]*)\]\(([^)\s]*)(?:\s+"([^"]*)")?\)\s*(?:\{([^}]*)\})?\s*$/;
+
+/** 一个游记块 → Markdown（不含所属站点） */
+export function travelBlockToMarkdown(b) {
+  const fence = (head, lines) => `:::${head}\n${lines.join('\n')}\n:::`;
+  switch (b.type) {
+    case 'text': {
+      const body = (b.paras ?? []).map((p) => inlineMd(p.text)).join('\n\n');
+      return b.writing === 'v' ? fence('v', [body]) : body;
+    }
+    case 'single': return imgLine(b, { layout: b.layout === 'inset' ? 'inset' : undefined });
+    case 'pair': case 'grid': return fence(b.type, b.images.map((im) => imgLine(im)));
+    case 'strip': return fence('strip', b.images.map((im) => imgLine(im, { scale: im.scale !== undefined && im.scale !== 1 ? num(im.scale) : undefined, offset: im.offset ? num(im.offset) : undefined })));
+    case 'free': return `:::free ar=${num(b.ar)}\n${(b.items ?? []).map((it) => (it.kind === 'text'
+      ? withAttrs(`> ${inlineMd(it.text)}`, { x: num(it.x), y: num(it.y) })
+      : imgLine(it, { x: num(it.x), y: num(it.y), w: num(it.w), z: it.z && it.z !== 1 ? it.z : undefined }))).join('\n')}\n:::`;
+    case 'map': return b.scope === 'stop' ? ':::map stop' : ':::map';
+    default: return '';
+  }
+}
+
+/** 站点 + 块 + 旁注 → 正文 Markdown（不含 # 标题） */
+export function travelToMarkdown({ stops = [], blocks = [], notes = {} }) {
+  const parts = [];
+  for (const s of stops) {
+    const lonlat = s.lnglat && (s.lnglat[0] !== 0 || s.lnglat[1] !== 0) ? `${num(s.lnglat[0])},${num(s.lnglat[1])}` : undefined;
+    parts.push(withAttrs(`## ${s.name ?? ''}`, { en: s.en, lnglat: lonlat, date: s.date }));
+    let prev;
+    for (const b of blocks.filter((x) => x.stop === s.id)) {
+      const md = travelBlockToMarkdown(b);
+      if (!md) continue;
+      // 两块横排文字紧挨着，中间要一条分隔线，否则读回来会并成一块
+      if (prev && prev.type === 'text' && prev.writing !== 'v' && b.type === 'text' && b.writing !== 'v') parts.push('---');
+      parts.push(md);
+      prev = b;
+    }
+  }
+  const defs = Object.entries(notes).map(([k, v]) => `[^${k}]: ${inlineMd(v.text)}`);
+  return parts.join('\n\n') + (defs.length ? `\n\n${defs.join('\n')}` : '') + '\n';
+}
+
+/** Markdown → { title, stops, blocks, notes }。块没有 id，`stop` 是 stops 里的序号；第一个站点之前的内容归到第一站 */
+export function parseTravel(body) {
+  const lines = body.split(/\r?\n/);
+  const stops = [], blocks = [], notes = {};
+  let title, cur = -1, text = null;
+  const flush = () => { text = null; };
+  const put = (b) => { flush(); blocks.push({ ...b, stop: Math.max(cur, 0) }); };
+  const addPara = (spans) => {
+    if (!text) { text = { type: 'text', stop: Math.max(cur, 0), paras: [] }; blocks.push(text); }
+    text.paras.push({ text: spans });
+  };
+  const join = (ls) => ls.map((s) => s.trim()).reduce((a, s) => (a && /[A-Za-z0-9]$/.test(a) && /^[A-Za-z0-9]/.test(s) ? `${a} ${s}` : a + s), '');
+  const isStart = (l) => /^(#{1,3}(\s|$)|:::|!\[|\[\^[^\]]+\]:|---\s*$)/.test(l);
+
+  for (let i = 0; i < lines.length; ) {
+    const line = lines[i];
+    if (!line.trim()) { i++; continue; }
+
+    const fn = line.match(/^\[\^([^\]]+)\]:\s*(.*)$/);
+    if (fn) { notes[fn[1]] = { text: parseInline(fn[2]) }; i++; continue; }
+    if (/^---\s*$/.test(line)) { flush(); i++; continue; }
+
+    const h = line.match(/^(#{1,3})(?:\s+(.*?))?\s*$/);
+    if (h) {
+      if (h[1] === '#') { title ??= (h[2] ?? '').trim(); i++; continue; }
+      const m = (h[2] ?? '').match(/^(.*?)\s*(?:\{([^{}]*)\})?$/);
+      const a = parseAttrs(m[2]);
+      const ll = a.lnglat?.split(',').map(Number);
+      stops.push({ name: m[1].trim(), ...(a.en ? { en: a.en } : {}), ...(ll && ll.length === 2 && ll.every(Number.isFinite) ? { lnglat: ll } : {}), ...(a.date ? { date: a.date } : {}) });
+      cur = stops.length - 1; flush(); i++; continue;
+    }
+
+    const f = line.match(/^:::(\w+)\s*(.*)$/);
+    if (f) {
+      const inner = [], kind = f[1];
+      i++;
+      if (kind !== 'map') {
+        // 围栏到单独一行的 ::: 结束；忘了写结尾时，遇到下一个站点标题也收住
+        for (; i < lines.length && !/^:::\s*$/.test(lines[i]) && !/^##(\s|$)/.test(lines[i]); i++) inner.push(lines[i]);
+        if (/^:::\s*$/.test(lines[i] ?? '')) i++;
+      }
+      const a = parseAttrs(f[2].replace(/^stop\b/, 'scope=stop'));
+      const imgs = () => inner.map((l) => l.match(IMG)).filter(Boolean).map((m) => ({ src: m[2], alt: m[1], ...(m[3] ? { caption: m[3] } : {}), extra: parseAttrs(m[4]) }));
+      const plain = ({ extra, ...im }) => im;
+      if (kind === 'v' || !['pair', 'grid', 'strip', 'free', 'map'].includes(kind)) {
+        const paras = inner.join('\n').split(/\n\s*\n/).map((p) => join(p.split('\n'))).filter(Boolean);
+        flush(); blocks.push({ type: 'text', stop: Math.max(cur, 0), ...(kind === 'v' ? { writing: 'v' } : {}), paras: paras.map((p) => ({ text: parseInline(p) })) });
+      } else if (kind === 'map') put({ type: 'map', scope: a.scope === 'stop' ? 'stop' : 'route' });
+      else if (kind === 'strip') put({ type: 'strip', images: imgs().map((im) => ({ ...plain(im), scale: im.extra.scale ? +im.extra.scale : 1, offset: im.extra.offset ? +im.extra.offset : 0 })) });
+      else if (kind === 'free') {
+        const items = [];
+        for (const l of inner) {
+          const im = l.match(IMG), q = l.match(/^>\s?(.*?)\s*\{([^{}]*)\}\s*$/);
+          if (im) { const e = parseAttrs(im[4]); items.push({ kind: 'image', src: im[2], alt: im[1], ...(im[3] ? { caption: im[3] } : {}), x: +e.x || 0, y: +e.y || 0, w: +e.w || 0.4, z: e.z ? +e.z : 1 }); }
+          else if (q) { const e = parseAttrs(q[2]); items.push({ kind: 'text', text: parseInline(q[1]), x: +e.x || 0, y: +e.y || 0 }); }
+        }
+        put({ type: 'free', ar: +a.ar > 0 ? +a.ar : 1.6, items });
+      } else put({ type: kind, images: imgs().map(plain) });
+      continue;
+    }
+
+    const im = line.match(IMG);
+    if (im) { const e = parseAttrs(im[4]); put({ type: 'single', src: im[2], alt: im[1], ...(im[3] ? { caption: im[3] } : {}), layout: e.layout === 'inset' ? 'inset' : 'full' }); i++; continue; }
+
+    const para = [];
+    for (; i < lines.length && lines[i].trim() && !isStart(lines[i]); i++) para.push(lines[i]);
+    if (!para.length) para.push(lines[i++]);
+    addPara(parseInline(join(para)));
+  }
+  return { title, stops, blocks, notes };
+}

@@ -33,7 +33,7 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
   const { data: project } = useProject();
   const refresh = useRefresh();
   const kind: Kind = routeKind === 'page' ? 'page' : initial.kind === 'travel' || (initial.kind === undefined && Array.isArray(initial.stops)) ? 'travel' : 'post';
-  const modes = useMemo<Array<{ value: Mode; label: string }>>(() => (kind === 'travel' ? [{ value: 'blocks', label: '块' }, { value: 'raw', label: '源码' }] : [{ value: 'md', label: 'Markdown' }, { value: 'blocks', label: '块' }, { value: 'raw', label: '源码' }]), [kind]);
+  const modes = useMemo<Array<{ value: Mode; label: string }>>(() => [{ value: 'md', label: 'Markdown' }, { value: 'blocks', label: '块' }, { value: 'raw', label: '源码' }], []);
   const [mode, setModeState] = useState<Mode>(() => { try { const m = localStorage.getItem(MODE_KEY) as Mode | null; if (m && modes.some((x) => x.value === m)) return m; } catch { /* 存不了就用默认 */ } return modes[0].value; });
   const setMode = (m: Mode) => { setModeState(m); if (m !== 'raw') try { localStorage.setItem(MODE_KEY, m); } catch { /* 无所谓 */ } };
   const [panel, setPanel] = useState<'info' | 'preview' | null>(null);
@@ -71,7 +71,7 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
       <div className="flex min-h-0 flex-1">
         <div className="min-w-0 flex-1">
           <Suspense fallback={<div className="grid h-full place-items-center text-ink-3">载入编辑器……</div>}>
-            {mode === 'md' && <MarkdownView doc={doc} setDoc={setDoc} />}
+            {mode === 'md' && <MarkdownView doc={doc} setDoc={setDoc} travel={kind === 'travel'} />}
             {mode === 'blocks' && <BlocksView kind={kind} doc={doc} patch={patch} setDoc={setDoc} />}
             {mode === 'raw' && <RawView doc={doc} setDoc={setDoc} />}
           </Suspense>

@@ -43,7 +43,7 @@ export function CommandPalette({ open, onOpenChange, onCompose }: { open: boolea
       { key: 'c-pub', group: '前往', label: '构建发布', icon: Send, run: go('/publish') },
       { key: 'c-set', group: '前往', label: '设定', icon: SlidersHorizontal, run: go('/settings') },
     ];
-    const posts: Item[] = (project?.entries ?? []).map((e) => ({ key: `p-${e.id}`, group: '文章', label: e.title, hint: `${e.kind === 'travel' ? '游记 · ' : ''}${e.date}${e.draft ? ' · 草稿' : ''}`, icon: FileText, run: go(`/posts/${e.id}`) }));
+    const posts: Item[] = (project?.entries ?? []).map((e) => ({ key: `p-${e.id}`, group: '文章', label: e.title, hint: `${e.date}${e.draft ? ' · 草稿' : ''}`, icon: FileText, run: go(`/posts/${e.id}`) }));
     const pages: Item[] = (project?.pages ?? []).map((p) => ({ key: `g-${p.id}`, group: '页面', label: p.title, hint: `/${p.id}/`, icon: Files, run: go(`/pages/${p.id}`) }));
     return [...cmds, ...posts, ...pages];
     // eslint-disable-next-line react-hooks/exhaustive-deps

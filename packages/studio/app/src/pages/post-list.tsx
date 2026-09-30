@@ -27,7 +27,6 @@ export default function PostList({ view }: { view: 'all' | 'draft' }) {
   const [q, setQ] = useState('');
   const [cat, setCat] = useState(ALL);
   const [tag, setTag] = useState(ALL);
-  const [kind, setKind] = useState<'all' | 'post' | 'travel'>('all');
   const [status, setStatus] = useState<'all' | 'pub' | 'draft'>('all');
   const [sort, setSort] = useState<[SortKey, 1 | -1]>(['date', -1]);
   const [compose, setCompose] = useState(false);
@@ -41,14 +40,14 @@ export default function PostList({ view }: { view: 'all' | 'draft' }) {
     const list = base.filter((e) =>
       (!term || e.title.toLowerCase().includes(term) || e.id.toLowerCase().includes(term)) &&
       (cat === ALL || e.category === cat) && (tag === ALL || e.tags.includes(tag)) &&
-      (kind === 'all' || e.kind === kind) && (view === 'draft' || status === 'all' || (status === 'draft') === e.draft));
+      (view === 'draft' || status === 'all' || (status === 'draft') === e.draft));
     const [key, dir] = sort;
     const val = (e: EntrySummary) => (key === 'category' ? catName(e.category) : e[key]);
     return [...list].sort((a, b) => {
       const x = val(a), y = val(b);
       return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'zh')) * dir;
     });
-  }, [base, q, cat, tag, kind, status, sort, view, cats]);
+  }, [base, q, cat, tag, status, sort, view, cats]);
 
   const toggleDraft = async (e: EntrySummary) => {
     try {
@@ -87,7 +86,6 @@ export default function PostList({ view }: { view: 'all' | 'draft' }) {
           </div>
           <Select className="w-32" value={cat} onValueChange={setCat} options={[{ value: ALL, label: '全部栏目' }, ...cats.map((c) => ({ value: c.id, label: c.zh }))]} />
           {tags.length > 0 && <Select className="w-32" value={tag} onValueChange={setTag} options={[{ value: ALL, label: '全部标签' }, ...tags.map((t) => ({ value: t, label: t }))]} />}
-          <Segmented size="sm" value={kind} onValueChange={setKind} options={[{ value: 'all', label: '全部' }, { value: 'post', label: '文章' }, { value: 'travel', label: '游记' }]} />
           {view === 'all' && <Segmented size="sm" className="ml-auto" value={status} onValueChange={setStatus} options={[{ value: 'all', label: '全部' }, { value: 'pub', label: '已发布' }, { value: 'draft', label: '草稿' }]} />}
         </div>
 
@@ -102,7 +100,6 @@ export default function PostList({ view }: { view: 'all' | 'draft' }) {
             <div key={e.id} className={cn(grid, 'group rounded-xl py-3 transition-colors hover:bg-ink/[.045]')}>
               <Link to={`/posts/${e.id}`} className={cn('flex min-w-0 items-baseline gap-2 truncate', e.draft && 'text-ink-3')}>
                 <span className="truncate font-medium">{e.title}</span>
-                {e.kind === 'travel' && <span className="shrink-0 rounded-full bg-ink/[.07] px-2 py-px text-[11px] font-normal not-italic text-ink-2">游记</span>}
                 {e.pinned && <span className="shrink-0 rounded-full bg-ink/[.07] px-2 py-px text-[11px] font-normal not-italic text-ink-2">置顶</span>}
               </Link>
               <span className="truncate text-ink-2">{catName(e.category)}</span>
