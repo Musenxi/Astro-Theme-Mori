@@ -45,7 +45,7 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
   const switchTemplate = async (to: string) => {
     if ((to === 'travel') === (kind === 'travel')) return;
     const ok = await confirm(to === 'travel'
-      ? { title: '换成游记模版？', description: '正文里的二级标题会变成站点，段落和图片按站点编排；之后在“排版”里摆版式、在站点上填经纬度。段落沿用原来的编号，读者的划词批注不受影响。', confirmLabel: '换成游记' }
+      ? { title: '换成游记模版？', description: '正文里的二级标题会变成站点，段落和图片按站点编排；之后在“排版”里摆版式、在站点上填经纬度。段落沿用原来的编号，读者划词引用的评论不受影响。', confirmLabel: '换成游记' }
       : { title: '换成普通模版？', description: '站点会变成二级标题，图组、双图、自由排布里的图变成一张张图片，地图去掉。站点的经纬度会留在文件里，换回游记时按站名找回来。', confirmLabel: '换成普通文章' });
     if (ok) setDoc((d) => (to === 'travel' ? toTravel(d) : toArticle(d)));
   };

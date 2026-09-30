@@ -102,15 +102,15 @@ publish: { target: 'cloudflare-pages', project: 'my-site' }                     
 二选一，互相隔离，在 `mori.config.ts` 里配：
 
 ```ts
-comments: { provider: 'mori', endpoint: 'https://你的域名/_comments', turnstileSiteKey: '…' }   // 自建：文末评论 + 划词批注
+comments: { provider: 'mori', endpoint: 'https://你的域名/_comments', turnstileSiteKey: '…' }   // 自建：文末评论 + 划词引用评论
 comments: { provider: 'giscus', repo: '…', repoId: '…', category: '…', categoryId: '…' }        // 第三方：只有文末评论
 // 也支持 waline（serverURL）、twikoo（envId）、artalk（server、site）
 ```
 
-- **自建评论**（`packages/comments`）：读者选中正文里的一段文字就能针对这段发表评论；批注和普通评论一起显示在文末评论区，带着引用的原文，点一下回到正文并临时高亮，正文里不留记号。文章改动后按“块 id + 位置 → 原文 + 前后文”重新定位，找不到的引用旁标“原文已修改”。
+- **自建评论**（`packages/comments`）：读者选中正文里的一段文字就能针对这段发表评论；引用评论和普通评论一起显示在文末评论区，带着引用的原文，点一下回到正文并临时高亮，正文里不留记号。文章改动后按“块 id + 位置 → 原文 + 前后文”重新定位，找不到的引用旁标“原文已修改”。
 - 第一次留言的人先审后发；蜜罐、按 IP 限流、可选 Turnstile。邮箱和 IP 只存加盐哈希。
 - 本地开发：`pnpm dev` 会一起启动评论服务（管理令牌 `dev-token`，Studio 的“评论”页里填这个）。正式部署用环境变量 `ADMIN_TOKEN`。部署：VPS 见 [deploy/](deploy/README.md)，Cloudflare 见 `packages/comments/wrangler.example.toml`。
-- 管理在 Studio 的“评论”页：待审列表、通过 / 隐藏 / 删除；保存文章时，如果改动会让已有批注找不到原文，会先提醒。
+- 管理在 Studio 的“评论”页：待审列表、通过 / 隐藏 / 删除；保存文章时，如果改动会让已有引用评论找不到原文，会先提醒。
 
 ## 从 Markdown 迁移
 

@@ -23,7 +23,7 @@ export default function Comments() {
     return (
       <>
         <PageHeader title="评论" />
-        <Body><p className="max-w-xl leading-relaxed text-ink-2">还没有启用 MORI 自带的评论（支持读者划词批注）。要启用，需要先部署评论服务，再把它的地址填进站点的配置文件。如果用的是 Giscus、Waline、Twikoo 或 Artalk，评论在它们各自的后台里管理。</p></Body>
+        <Body><p className="max-w-xl leading-relaxed text-ink-2">还没有启用 MORI 自带的评论（支持读者划词引用评论）。要启用，需要先部署评论服务，再把它的地址填进站点的配置文件。如果用的是 Giscus、Waline、Twikoo 或 Artalk，评论在它们各自的后台里管理。</p></Body>
       </>
     );
   }

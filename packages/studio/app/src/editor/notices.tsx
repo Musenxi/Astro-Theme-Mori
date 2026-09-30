@@ -1,7 +1,7 @@
 import { AlertTriangle } from 'lucide-react';
 import type { SaveState } from './use-autosave';
 
-/** 保存后的提示：校验问题（不阻止保存）和“这次修改会让读者的批注找不到原文” */
+/** 保存后的提示：校验问题（不阻止保存）和“这次修改会让读者引用评论的原文找不到” */
 export function Notices({ state }: { state: SaveState }) {
   const { errors, warnings } = state;
   if (!errors.length && !warnings.length) return null;
@@ -21,9 +21,9 @@ export function Notices({ state }: { state: SaveState }) {
         <div className="flex gap-2.5">
           <AlertTriangle size={15} className="mt-0.5 shrink-0 text-warn" />
           <div className="text-ink-2">
-            <p className="text-warn">这次修改会让 {warnings.length} 条读者批注找不到原文：</p>
+            <p className="text-warn">这次修改会让 {warnings.length} 条引用评论找不到原文：</p>
             <ul className="mt-1 space-y-0.5">{warnings.slice(0, 5).map((w) => <li key={w.id}>“{(w.quote ?? '').slice(0, 30)}{(w.quote ?? '').length > 30 ? '……' : ''}”</li>)}</ul>
-            <p className="mt-1 text-ink-3">这些批注会在评论区里保留，引用旁标注“原文已修改”，点击不再跳转。想保留的话，把这段文字改回去。</p>
+            <p className="mt-1 text-ink-3">这些评论会在评论区里保留，引用旁标注“原文已修改”，点击不再跳转。想保留的话，把这段文字改回去。</p>
           </div>
         </div>
       )}
