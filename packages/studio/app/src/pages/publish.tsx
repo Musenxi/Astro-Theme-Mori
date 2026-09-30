@@ -65,16 +65,15 @@ export default function Publish() {
                 {form.target === 'git' && <GitForm form={form} set={set} />}
                 {form.target === 'local' && (<>
                   <Field label="文件夹"><Input value={form.dest ?? ''} onChange={(e) => set({ dest: e.target.value })} placeholder="~/Sites/blog" /></Field>
-                  <p className="pl-[7.5rem] text-[12px] leading-relaxed text-ink-3">生成站点后复制到这个文件夹，用来在本机试一下发布。文件夹需要是空的，或之前由 Studio 发布过；里面别的文件不会被动。</p>
                 </>)}
                 {form.target === 'cloudflare-pages' && (<>
                   <Field label="项目名"><Input value={form.project ?? ''} onChange={(e) => set({ project: e.target.value })} placeholder="Cloudflare 里的项目名称" /></Field>
                   <Field label="分支"><Input value={form.branch ?? ''} onChange={(e) => set({ branch: e.target.value })} placeholder="选填，填 main 表示发布到正式站" /></Field>
-                  <p className="pl-[7.5rem] text-[12px] leading-relaxed text-ink-3">第一次使用前，需要在这台电脑上登录一次 Cloudflare：在终端运行 <span className="mono select-all">npx wrangler login</span>。</p>
+                  <p className="pl-[7.5rem] text-[12px] text-ink-3">先在终端运行 <span className="mono select-all">npx wrangler login</span></p>
                 </>)}
                 {form.target === 'rsync' && (<>
                   <Field label="服务器路径"><Input value={form.dest ?? ''} onChange={(e) => set({ dest: e.target.value })} placeholder="用户名@服务器地址:/网站目录/" /></Field>
-                  <p className="pl-[7.5rem] text-[12px] leading-relaxed text-ink-3">需要先配置好免密登录。发布时，服务器上的网站目录会和新站点完全一致，多余的旧文件会被删除。</p>
+                  <p className="pl-[7.5rem] text-[12px] text-ink-3">服务器目录里多余的文件会被删除</p>
                 </>)}
               </div>
               <div className="mt-4 flex gap-2 pl-[7.5rem]"><Button variant="primary" onClick={() => savePublish(form)}>保存</Button>{pub && <Button onClick={() => setEditing(false)}>取消</Button>}</div>
@@ -83,7 +82,6 @@ export default function Publish() {
         </Card></Section>
 
         <Section title="更新站点"><Card>
-          <p className="mb-4 text-[12.5px] leading-relaxed text-ink-3">构建：生成站点文件，检查内容有没有错误。构建并发布：先生成，成功后再发布到上面选的位置。</p>
           <div className="flex gap-2">
             <Button variant="primary" disabled={!!busy || !pub} title={pub ? undefined : '先在上面设置发布到哪里'} onClick={() => run('publish')}><Send size={14} />{busy === 'publish' ? '发布中……' : '构建并发布'}</Button>
             <Button disabled={!!busy} onClick={() => run('build')}><Hammer size={14} />{busy === 'build' ? '构建中……' : '只构建'}</Button>
@@ -105,7 +103,6 @@ function GitForm({ form, set }: { form: PublishConfig; set: (p: Partial<PublishC
   const origin = info.remotes?.find((r) => r.name === (form.remote || 'origin')) ?? info.remotes?.[0];
   if (!info.isRepo || !info.remotes?.length) {
     return (<>
-      <p className="mb-2 text-[12.5px] leading-relaxed text-ink-3">把文章和设置推送到你在 GitHub 上的仓库，推送后由 GitHub 或 Cloudflare Pages 自动构建上线。先填仓库的地址：</p>
       <Field label="仓库地址"><Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://github.com/你的用户名/仓库名.git" /></Field>
       <div className="pl-[7.5rem]"><Button disabled={busy || !url.trim()} onClick={connect}>{busy ? '连接中……' : '连接仓库'}</Button></div>
     </>);
@@ -118,6 +115,5 @@ function GitForm({ form, set }: { form: PublishConfig; set: (p: Partial<PublishC
     </p>
     <Field label="分支"><Input value={form.branch ?? ''} onChange={(e) => set({ branch: e.target.value })} placeholder={`默认 ${info.branch}`} /></Field>
     <Field label="提交说明"><Input value={form.message ?? ''} onChange={(e) => set({ message: e.target.value })} placeholder="默认：更新内容 加日期时间" /></Field>
-    <p className="pl-[7.5rem] text-[12px] leading-relaxed text-ink-3">发布前会先检查站点能否正常生成，通过了才会推送。用的是这台电脑上已经登录的 Git 账号；推送失败时，先在终端运行 <span className="mono">gh auth login</span> 登录。管理令牌不会被上传。</p>
   </>);
 }

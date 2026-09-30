@@ -51,7 +51,7 @@ export default function Files() {
         <div className="mb-5 flex items-center gap-3">
           <Input className="w-56 rounded-full px-4" value={q} onChange={(e) => setQ(e.target.value)} placeholder="按文件名找" />
           <Segmented size="sm" value={view} onValueChange={setView} options={[{ value: 'all', label: '全部' }, { value: 'unused', label: '没被引用' }]} />
-          <span className="ml-auto text-[12px] text-ink-3">{over ? '松手上传' : '也可以把图片直接拖到这一页'}</span>
+          <span className="ml-auto text-[12px] text-ink-3">{over ? '松手上传' : ''}</span>
         </div>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(11.5rem,1fr))] gap-4">
           {list.map((a) => (

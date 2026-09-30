@@ -228,7 +228,7 @@ function StopsEditor({ doc, patch }: { doc: Doc; patch: (p: Doc) => void }) {
     patch({ stops: stops.filter((_, k) => k !== i) });
   };
   return (
-    <Section title="站点" hint={`${stops.length} 个 · 顺序就是路线的先后`} className="mt-8">
+    <Section title="站点" hint={`${stops.length} 个`} className="mt-8">
       <SortableList items={stops} getId={(s) => s.id} onReorder={(next) => patch({ stops: next })}>
         <div className="space-y-1.5">
           {stops.map((s, i) => {

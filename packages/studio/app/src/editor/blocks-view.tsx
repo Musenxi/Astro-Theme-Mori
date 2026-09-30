@@ -93,7 +93,7 @@ function NotesEditor({ doc, patch }: { doc: Doc; patch: (p: Doc) => void }) {
     put(Object.fromEntries(Object.entries(notes).map(([k, v]) => [k === from ? to : k, v])));
   };
   return (
-    <Section title="旁注与脚注" hint={<>正文里写 <span className="mono">{'{文字|note:n1}'}</span>（旁注）或 <span className="mono">{'{文字|fn:n1}'}</span>（脚注）</>}>
+    <Section title="旁注与脚注">
       <div className="space-y-2">
         {ids.map((id) => (
           <div key={id} className="flex items-start gap-2">

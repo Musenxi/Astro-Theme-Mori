@@ -87,8 +87,7 @@ export default function Friends() {
             ))}
           </div>
         </SortableList>
-        {rows.length === 0 && <Empty>还没有友人。在上面粘贴一个网址开始。</Empty>}
-        <p className="mt-6 text-[12px] leading-relaxed text-ink-3">友人帐会显示在版式为“友人帐”的页面上（在「页面」里新建，选“友人帐”版式）。头像可以是对方站点的图标网址，也可以点头像从图库里选一张。</p>
+        {rows.length === 0 && <Empty>还没有友人。</Empty>}
       </Body>
       <AssetDialog open={picking !== null} onOpenChange={(o) => !o && setPicking(null)} onPick={(n) => { if (picking) put(picking, { avatar: `../assets/${n}` }); setPicking(null); }} />
     </>

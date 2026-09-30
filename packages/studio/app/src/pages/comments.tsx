@@ -24,7 +24,7 @@ export default function Comments() {
     return (
       <>
         <PageHeader title="评论" />
-        <Body><p className="max-w-xl leading-relaxed text-ink-2">还没有启用 MORI 自带的评论（支持读者划词引用评论）。要启用，需要先部署评论服务，再把它的地址填进站点的配置文件。如果用的是 Giscus、Waline、Twikoo 或 Artalk，评论在它们各自的后台里管理。</p></Body>
+        <Body><p className="text-ink-2">没有启用自建评论。</p></Body>
       </>
     );
   }
@@ -44,16 +44,15 @@ function Token({ wrong }: { wrong?: boolean }) {
       <Body>
         {local ? (
           <div className="mb-6">
-            <p className="leading-relaxed text-ink-2">评论服务运行在这台电脑上（<span className="mono">{c.endpoint}</span>）。如果是用开发模式启动的，管理令牌是 <b className="mono font-normal text-ink">dev-token</b>。</p>
+            <p className="mono text-ink-3">{c.endpoint}</p>
             <Button variant="primary" className="mt-3" onClick={() => save('dev-token')}>使用 dev-token</Button>
           </div>
-        ) : <p className="mb-6 leading-relaxed text-ink-2">评论服务：<span className="mono">{c.endpoint}</span>。管理令牌是部署评论服务时设置的那一个。</p>}
+        ) : <p className="mono mb-6 text-ink-3">{c.endpoint}</p>}
         {wrong && <p className="mb-4 rounded-lg bg-sunk px-3.5 py-2.5 text-danger">令牌不对，评论服务拒绝了。{local && '如果你是自己用别的令牌启动的服务，请填那个。'}</p>}
         <form className="flex max-w-md gap-2" onSubmit={(e) => { e.preventDefault(); if (token) void save(token); }}>
           <Input type="password" value={token} onChange={(e) => setToken(e.target.value)} placeholder="管理令牌" />
           <Button type="submit" disabled={!token}>保存</Button>
         </form>
-        <p className="mono mt-4 text-[11.5px] text-ink-3">令牌只保存在这台电脑上，不会被发布或上传。</p>
       </Body>
     </>
   );

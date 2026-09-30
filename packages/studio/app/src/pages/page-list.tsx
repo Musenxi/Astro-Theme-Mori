@@ -62,7 +62,7 @@ export default function PageList() {
               </Menu>
             </div>
           ))}
-          {pages.length === 0 && <Empty>还没有页面。点右上角“新建页面”。</Empty>}
+          {pages.length === 0 && <Empty>还没有页面。</Empty>}
         </div>
       </Body>
       <NewEntryDialog open={compose} onOpenChange={setCompose} kind="page" />

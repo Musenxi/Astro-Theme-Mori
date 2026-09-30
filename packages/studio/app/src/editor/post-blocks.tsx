@@ -23,7 +23,7 @@ const cap = (b: Doc) => b.text; // 让 lint 别抱怨
 export function PostBlockBody({ b, patch, travel }: { b: Doc; patch: (p: Doc) => void; travel?: boolean }) {
   switch (b.type) {
     case 'p':
-      return <InlineField rows={3} value={cap(b)} onChange={(v) => patch({ text: v })} placeholder="正文。**粗** *斜* [链接](地址) {文字|note:n1}" />;
+      return <InlineField rows={3} value={cap(b)} onChange={(v) => patch({ text: v })} placeholder="正文" />;
     case 'h':
       return (
         <div className="flex items-start gap-2">

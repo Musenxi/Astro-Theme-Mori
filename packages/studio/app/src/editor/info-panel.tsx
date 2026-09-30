@@ -31,12 +31,12 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
       <div className="p-6">
         <Group title="页面">
           <Field label="英文副题"><Input value={doc.subtitle ?? ''} onChange={(e) => set({ subtitle: e.target.value || undefined })} placeholder="About" /></Field>
-          <Field label="摘要" hint="搜索引擎和分享时显示的一句话"><Textarea rows={2} value={doc.excerpt ?? ''} onChange={(e) => set({ excerpt: e.target.value })} /></Field>
+          <Field label="摘要"><Textarea rows={2} value={doc.excerpt ?? ''} onChange={(e) => set({ excerpt: e.target.value })} /></Field>
           <Field label="版式">
-            <Select value={doc.template ?? 'default'} onValueChange={(v) => set({ template: v })} options={[{ value: 'default', label: '普通页面' }, { value: 'friends', label: '友人帐', hint: '正文后面接友人帐' }]} />
+            <Select value={doc.template ?? 'default'} onValueChange={(v) => set({ template: v })} options={[{ value: 'default', label: '普通页面' }, { value: 'friends', label: '友人帐' }]} />
           </Field>
           <Field label="评论"><Switch checked={!!doc.comments} onCheckedChange={(v) => set({ comments: v || undefined })} label="页面底部开放评论" /></Field>
-          <Field label="草稿"><Switch checked={!!doc.draft} onCheckedChange={(v) => set({ draft: v || undefined })} label="只在预览里可见，不发布" /></Field>
+          <Field label="草稿"><Switch checked={!!doc.draft} onCheckedChange={(v) => set({ draft: v || undefined })} /></Field>
         </Group>
       </div>
     );
@@ -54,7 +54,7 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
   return (
     <div className="p-6">
       <Group title="文章">
-        <Field label="模版" hint={kind === 'travel' ? '按站点编排，有地图和三种读法；版式在“排版”里摆' : '一栏正文，有旁注和脚注'}>
+        <Field label="模版">
           <Segmented value={kind === 'travel' ? 'travel' : 'post'} onValueChange={(v) => void switchTemplate(v)} options={[{ value: 'post', label: '普通' }, { value: 'travel', label: '游记' }]} />
         </Field>
         <Field label="英文副题"><Input value={doc.subtitle ?? ''} onChange={(e) => set({ subtitle: e.target.value || undefined })} placeholder="Iceland, counter-clockwise" /></Field>
@@ -64,10 +64,10 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
             options={[...(doc.category && !cats.some((c) => c.id === doc.category) ? [{ value: doc.category, label: doc.category }] : []), ...cats.map((c) => ({ value: c.id, label: c.zh, hint: c.en }))]} />
         </Field>
         <Field label="标签"><TagsInput value={doc.tags ?? []} onChange={(v) => set({ tags: v.length ? v : undefined })} known={knownTags} /></Field>
-        <Field label="摘要" hint="目次里标题下面那一行"><Textarea rows={2} value={doc.excerpt ?? ''} onChange={(e) => set({ excerpt: e.target.value })} /></Field>
+        <Field label="摘要"><Textarea rows={2} value={doc.excerpt ?? ''} onChange={(e) => set({ excerpt: e.target.value })} /></Field>
         <Field label="封面"><ImageField value={doc.cover} onChange={(v) => set({ cover: v })} /></Field>
         {doc.cover && <Field label="封面说明"><Input value={doc.coverAlt ?? ''} onChange={(e) => set({ coverAlt: e.target.value || undefined })} /></Field>}
-        <Field label="草稿"><Switch checked={!!doc.draft} onCheckedChange={(v) => set({ draft: v || undefined })} label="只在预览里可见，不发布" /></Field>
+        <Field label="草稿"><Switch checked={!!doc.draft} onCheckedChange={(v) => set({ draft: v || undefined })} /></Field>
       </Group>
 
       {kind === 'travel' ? <TravelExtras doc={doc} set={set} /> : null}
@@ -76,7 +76,7 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
         {pin && (
           <>
             <Field label="顺序"><Input type="number" className="w-24" value={pin.order ?? 0} onChange={(e) => setPin({ order: +e.target.value })} /></Field>
-            <Field label="开篇引文" hint="一行一句，按句读断好；首尾的「」由主题补">
+            <Field label="开篇引文">
               <Textarea rows={3} value={(pin.quote ?? []).join('\n')} onChange={(e) => setPin({ quote: e.target.value.split('\n') })} onBlur={(e) => setPin({ quote: e.target.value.split('\n').filter((l) => l.trim()).length ? e.target.value.split('\n').filter((l) => l.trim()) : [''] })} />
             </Field>
             <Field label="图注"><Input value={pin.caption ?? ''} onChange={(e) => setPin({ caption: e.target.value })} placeholder="地点 · 日期 · 路线" /></Field>
@@ -92,7 +92,7 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
                 {(pin.meta ?? []).length < 3 && <Button variant="link" onClick={() => setPin({ meta: [...(pin.meta ?? []), { label: '', value: '' }] })}><Plus size={14} />添加一条</Button>}
               </div>
             </Field>
-            <Field label="封面图" hint="不选就用文章封面"><ImageField value={pin.image} onChange={(v) => setPin({ image: v })} /></Field>
+            <Field label="封面图"><ImageField value={pin.image} onChange={(v) => setPin({ image: v })} /></Field>
             <Field label="图片说明"><Input value={pin.alt ?? ''} onChange={(e) => setPin({ alt: e.target.value || undefined })} /></Field>
             <Field label="淡出强度">
               <div className="flex items-center gap-3">
@@ -134,7 +134,7 @@ function TravelExtras({ doc, set }: { doc: Doc; set: (patch: Doc) => void }) {
         <Field label="横滚方向"><Select value={r.direction} onValueChange={(v) => put({ direction: v })} options={[{ value: 'ltr', label: '左 → 右' }, { value: 'rtl', label: '右 → 左（手卷）' }]} /></Field>
       </Group>
       <Group title="路线"><RouteData doc={doc} patch={set} /></Group>
-      <Group title="事实"action={<span className="text-[12px] font-normal text-ink-3">封面里的“路线 / 日期 / 里程”</span>}>
+      <Group title="事实">
         <div className="space-y-1.5 py-1">
           {facts.map((f, i) => (
             <div key={i} className="flex gap-1.5">

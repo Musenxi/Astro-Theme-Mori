@@ -107,7 +107,6 @@ function Preview({ base, path, nonce, onRefresh, onStarted }: { base: string | n
     return (
       <div className="grid h-full place-items-center px-8 text-center">
         <div>
-          <p className="mb-4 text-ink-3">预览用的是站点自己的主题，真实渲染。</p>
           <Button variant="primary" onClick={start} disabled={starting}>{starting ? '正在启动……' : '启动预览'}</Button>
         </div>
       </div>

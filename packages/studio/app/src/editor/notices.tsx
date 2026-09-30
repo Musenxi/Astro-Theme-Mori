@@ -23,7 +23,6 @@ export function Notices({ state }: { state: SaveState }) {
           <div className="text-ink-2">
             <p className="text-warn">这次修改会让 {warnings.length} 条引用评论找不到原文：</p>
             <ul className="mt-1 space-y-0.5">{warnings.slice(0, 5).map((w) => <li key={w.id}>“{(w.quote ?? '').slice(0, 30)}{(w.quote ?? '').length > 30 ? '……' : ''}”</li>)}</ul>
-            <p className="mt-1 text-ink-3">这些评论会在评论区里保留，引用旁标注“原文已修改”，点击不再跳转。想保留的话，把这段文字改回去。</p>
           </div>
         </div>
       )}

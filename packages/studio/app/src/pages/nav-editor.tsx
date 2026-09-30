@@ -55,7 +55,6 @@ export default function NavEditor() {
         {dirty && <><Button variant="ghost" onClick={() => setRows(withKeys(effective))}>放弃修改</Button><Button variant="primary" onClick={save}>保存</Button></>}
       </>} />
       <Body>
-        <p className="mb-6 max-w-xl text-[12.5px] leading-relaxed text-ink-3">网站顶部那颗玻璃胶囊里放哪些入口，由你决定。{!custom && '现在用的是默认：文章、归档，再加上所有已发布的页面；改动保存之后就完全按你的设置来。'}</p>
 
         <div className="mb-8 flex justify-center rounded-2xl bg-sunk/70 py-9">
           <div className="flex items-center gap-1 rounded-full bg-lift/80 p-1 shadow-pop backdrop-blur">
@@ -63,7 +62,7 @@ export default function NavEditor() {
           </div>
         </div>
 
-        <Section title="入口" hint="拖动排序 · 最多 10 个">
+        <Section title="入口">
           <SortableList items={rows} getId={(r) => r.key} onReorder={setRows}>
             <div className="space-y-1.5">
               {rows.map((r) => {

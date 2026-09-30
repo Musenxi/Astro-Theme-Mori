@@ -49,7 +49,7 @@ export default function Taxonomy() {
     <>
       <PageHeader title="分类 / 标签" actions={dirty && <><Button variant="ghost" onClick={() => cats && setRows(toRows(cats))}>放弃修改</Button><Button variant="primary" onClick={save}>保存</Button></>} />
       <Body>
-        <Section title="分类" hint="顺序就是栏目在页面上的先后">
+        <Section title="分类">
           <SortableList items={rows} getId={(r) => r.key} onReorder={setRows}>
             <div className="space-y-1.5">
               {rows.map((r) => (
@@ -70,7 +70,6 @@ export default function Taxonomy() {
           </SortableList>
           <div className="mt-3 flex items-center gap-4">
             <Button variant="link" onClick={add}><Plus size={14} />添加分类</Button>
-            <span className="text-[12px] text-ink-3">地址名是网址里用的英文名；改它会同时更新用到它的文章。</span>
           </div>
         </Section>
         <TagSection />
@@ -96,7 +95,7 @@ function TagSection() {
     try { const r = await api.renameTag(from, to); await refresh(); setEditing(null); toast.success(`已更新 ${r.changed} 篇`); } catch (e) { toast.error((e as Error).message); }
   };
   return (
-    <Section title="标签" hint={`${tags.length} 个 · 在文章的「信息」里给文章加标签`}>
+    <Section title="标签" hint={`${tags.length} 个`}>
       {tags.length === 0 ? <Empty>还没有标签。</Empty> : (
         <div className="space-y-0.5">
           {tags.map(([t, n]) => (
@@ -110,7 +109,7 @@ function TagSection() {
         </div>
       )}
       <Dialog open={editing !== null} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent title={`改名「${editing}」`} description="改成已有的标签名，就是把两个标签合并">
+        <DialogContent title={`改名「${editing}」`}>
           <form onSubmit={(e) => { e.preventDefault(); if (editing && name.trim() && name.trim() !== editing) void rename(editing, name); }}>
             <Field label="新名字" hint={merging ? '已有这个标签，将合并' : undefined}><Input autoFocus value={name} onChange={(e) => setName(e.target.value)} /></Field>
             <div className="mt-5 flex justify-end gap-2"><Button onClick={() => setEditing(null)}>取消</Button><Button type="submit" variant="primary" disabled={!name.trim() || name.trim() === editing}>{merging ? '合并' : '改名'}</Button></div>

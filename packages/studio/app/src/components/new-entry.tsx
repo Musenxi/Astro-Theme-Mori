@@ -43,7 +43,7 @@ export function NewEntryDialog({ open, onOpenChange, kind: initial = 'post' }: {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent title={kind === 'page' ? '新建页面' : '撰写'} description={kind === 'page' ? '页面是“关于”“留言”这样的独立页' : '想写成游记，进去之后在“信息”里换模版'}>
+      <DialogContent title={kind === 'page' ? '新建页面' : '撰写'}>
         <form onSubmit={(e) => { e.preventDefault(); void submit(); }}>
           <Field label="标题"><Input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="标题" /></Field>
           {kind !== 'page' && (

@@ -180,14 +180,13 @@ export function TravelLayout({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) 
     setSel(r.id);
   };
 
-  const hRead = (doc.reading?.allowed ?? ['v', 'h', 'mix']).includes('h');
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* 上面一条：没选中时是说明和插入，选中后是这一块的版式 */}
       <div className="mx-5 flex min-h-11 shrink-0 flex-wrap items-center gap-2 rounded-[22px] bg-sunk/70 px-2 py-1">
         {selected ? <BlockBar key={selected.id} b={selected} doc={doc} stops={stops} commit={commit} patch={(p) => patchBlock(selected.id, p)} onDetail={() => setDetail(true)} onRemove={() => void remove(selected)} />
-          : <span className="px-2 text-[12.5px] text-ink-3">上下拖动调位置，拖到左右换顺序；选中后拖右下角的圆点改大小</span>}
+          : <span />}
         <span className="ml-auto flex items-center gap-0.5">
           <Segmented size="sm" className="mr-1.5" value={zoom} onValueChange={setZoom} options={[{ value: 's', label: '小' }, { value: 'm', label: '中' }, { value: 'l', label: '大' }]} />
           <ToolBtn label="插入图片" onClick={() => setLib(true)}><ImagePlus size={15} /></ToolBtn>
@@ -230,18 +229,12 @@ export function TravelLayout({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) 
             {drag?.line !== undefined && <i className="pointer-events-none absolute w-0.5 rounded-full bg-ink" style={{ left: drag.line - 1, top: g.padT * 0.5, bottom: g.padB * 0.5 }} />}
           </div>
         </div>
-        <p className="pointer-events-none absolute bottom-2.5 left-4 text-[11.5px] text-ink-3">
-          {selected?.type === 'free' ? '拖里面的图换位置，右下角圆点改宽度；拖空白处移动整块'
-            : selected?.type === 'strip' ? '上下拖一张图让它错开，右下角圆点改这一张的大小；拖图组外框移动整块'
-            : selected ? '↑↓ 微调位置　←→ 换顺序　+ − 大小　⌘Z 撤销'
-            : `横向读法的样子${rtl ? '（右 → 左，第一站在最右）' : ''}${hRead ? '' : '　·　这篇没有开放横向读法，位置和大小暂时用不到'}`}
-        </p>
       </div>
 
       <AssetDialog open={lib} onOpenChange={setLib} onPick={(n) => { setLib(false); insert({ type: 'single', src: assetPath(n), alt: '', layout: 'full' }); }} />
       <Dialog open={detail && !!selected} onOpenChange={setDetail}>
         {selected && (
-          <DialogContent wide title={`${NAMES[selected.type] ?? '块'}的细节`} description={selected.type === 'free' ? '在画布上拖动图片；宽度、叠放和竖排小字在下面调' : '图注、替代文字这些，改了立即生效'}>
+          <DialogContent wide title={`${NAMES[selected.type] ?? '块'}的细节`}>
             <div><TravelBlockBody b={selected} doc={doc} ids={blocks.flatMap((b) => [b.id, ...(b.paras ?? []).map((p: Doc) => p.id)])} patch={(p) => patchBlock(selected.id, p, false)} noPlace /></div>
           </DialogContent>
         )}
@@ -332,7 +325,6 @@ function StopMarker({ stop, index, count, g, open, onOpen, patch, onMove, onRemo
                 <label className="text-[11.5px] text-ink-3">经度<NumInput className="mt-1 text-ink" value={stop.lnglat?.[0]} onChange={(v) => patch({ lnglat: [v ?? 0, stop.lnglat?.[1] ?? 0] })} /></label>
                 <label className="text-[11.5px] text-ink-3">纬度<NumInput className="mt-1 text-ink" value={stop.lnglat?.[1]} onChange={(v) => patch({ lnglat: [stop.lnglat?.[0] ?? 0, v ?? 0] })} /></label>
               </div>
-              <p className="text-[11.5px] leading-relaxed text-ink-3">经纬度可以从地图软件里复制；或者在“信息 → 路线”里从照片自动建议。</p>
             </div>
             <div className="mt-3 flex items-center gap-1">
               {(g.rtl ? [1, -1] : [-1, 1]).map((d) => (
