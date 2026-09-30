@@ -2,11 +2,15 @@ import { Plus, Trash2 } from 'lucide-react';
 import { ImageField } from '@/components/asset-picker';
 import { TagsInput } from '@/components/tags-input';
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/dialog';
 import { Field, Input, Textarea } from '@/components/ui/input';
+import { Segmented } from '@/components/ui/segmented';
 import { Select } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useProject } from '@/lib/hooks';
+import { toArticle, toTravel } from '@/lib/template.js';
 import type { Doc, Kind } from '@/lib/types';
+import { RouteData } from './travel-blocks';
 
 const Group = ({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) => (
   <section className="mt-8 first:mt-0">
@@ -16,8 +20,9 @@ const Group = ({ title, children, action }: { title: string; children: React.Rea
 );
 
 /** 右侧“信息”面板：正文以外的一切——栏目、日期、摘要、封面、置顶…… */
-export function InfoPanel({ kind, doc, set }: { kind: Kind; doc: Doc; set: (patch: Doc) => void }) {
+export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; set: (patch: Doc) => void; setDoc: (fn: (d: Doc) => Doc) => void }) {
   const { data: project } = useProject();
+  const confirm = useConfirm();
   const cats = project?.config.categories ?? [];
   const knownTags = [...new Set((project?.entries ?? []).flatMap((e) => e.tags))];
 
@@ -37,11 +42,21 @@ export function InfoPanel({ kind, doc, set }: { kind: Kind; doc: Doc; set: (patc
     );
   }
 
+  const switchTemplate = async (to: string) => {
+    if ((to === 'travel') === (kind === 'travel')) return;
+    const ok = await confirm(to === 'travel'
+      ? { title: '换成游记模版？', description: '正文里的二级标题会变成站点，段落和图片按站点编排；之后在“排版”里摆版式、在站点上填经纬度。段落沿用原来的编号，读者的划词批注不受影响。', confirmLabel: '换成游记' }
+      : { title: '换成普通模版？', description: '站点会变成二级标题，图组、双图、自由排布里的图变成一张张图片，地图去掉。站点的经纬度会留在文件里，换回游记时按站名找回来。', confirmLabel: '换成普通文章' });
+    if (ok) setDoc((d) => (to === 'travel' ? toTravel(d) : toArticle(d)));
+  };
   const pin = doc.pin as Doc | undefined;
   const setPin = (patch: Doc) => set({ pin: { ...pin, ...patch } });
   return (
     <div className="p-6">
       <Group title="文章">
+        <Field label="模版" hint={kind === 'travel' ? '按站点编排，有地图和三种读法；版式在“排版”里摆' : '一栏正文，有旁注和脚注'}>
+          <Segmented value={kind === 'travel' ? 'travel' : 'post'} onValueChange={(v) => void switchTemplate(v)} options={[{ value: 'post', label: '普通' }, { value: 'travel', label: '游记' }]} />
+        </Field>
         <Field label="英文副题"><Input value={doc.subtitle ?? ''} onChange={(e) => set({ subtitle: e.target.value || undefined })} placeholder="Iceland, counter-clockwise" /></Field>
         <Field label="日期"><Input type="date" value={String(doc.date ?? '').slice(0, 10)} onChange={(e) => set({ date: e.target.value })} /></Field>
         <Field label="栏目">
@@ -55,7 +70,7 @@ export function InfoPanel({ kind, doc, set }: { kind: Kind; doc: Doc; set: (patc
         <Field label="草稿"><Switch checked={!!doc.draft} onCheckedChange={(v) => set({ draft: v || undefined })} label="只在预览里可见，不发布" /></Field>
       </Group>
 
-      {kind === 'travel' || doc.kind === 'travel' ? <TravelExtras doc={doc} set={set} /> : null}
+      {kind === 'travel' ? <TravelExtras doc={doc} set={set} /> : null}
 
       <Group title="首页置顶" action={<Switch checked={!!pin} onCheckedChange={(v) => set({ pin: v ? { order: 0, quote: [''], caption: '', meta: [] } : undefined })} />}>
         {pin && (
@@ -118,7 +133,8 @@ function TravelExtras({ doc, set }: { doc: Doc; set: (patch: Doc) => void }) {
         <Field label="默认"><Select value={r.default} onValueChange={(v) => put({ default: v })} options={MODES.filter(([m]) => r.allowed.includes(m)).map(([m, n]) => ({ value: m, label: n }))} /></Field>
         <Field label="横滚方向"><Select value={r.direction} onValueChange={(v) => put({ direction: v })} options={[{ value: 'ltr', label: '左 → 右' }, { value: 'rtl', label: '右 → 左（手卷）' }]} /></Field>
       </Group>
-      <Group title="事实" action={<span className="text-[12px] font-normal text-ink-3">封面里的“路线 / 日期 / 里程”</span>}>
+      <Group title="路线"><RouteData doc={doc} patch={set} /></Group>
+      <Group title="事实"action={<span className="text-[12px] font-normal text-ink-3">封面里的“路线 / 日期 / 里程”</span>}>
         <div className="space-y-1.5 py-1">
           {facts.map((f, i) => (
             <div key={i} className="flex gap-1.5">

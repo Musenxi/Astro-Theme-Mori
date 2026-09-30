@@ -14,9 +14,11 @@ import { InfoPanel } from '@/editor/info-panel';
 import { Notices } from '@/editor/notices';
 import { RawView } from '@/editor/raw-view';
 import { useAutosave } from '@/editor/use-autosave';
+import { isTravelDoc } from '@/lib/template.js';
 
 const MarkdownView = lazy(() => import('@/editor/markdown-view').then((m) => ({ default: m.MarkdownView })));
 const BlocksView = lazy(() => import('@/editor/blocks-view').then((m) => ({ default: m.BlocksView })));
+const TravelLayout = lazy(() => import('@/editor/travel-layout').then((m) => ({ default: m.TravelLayout })));
 
 type Mode = 'md' | 'blocks' | 'raw';
 const MODE_KEY = 'mori-studio-mode';
@@ -32,14 +34,15 @@ export default function Editor({ kind }: { kind: 'post' | 'page' }) {
 function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: string; initial: Doc }) {
   const { data: project } = useProject();
   const refresh = useRefresh();
-  const kind: Kind = routeKind === 'page' ? 'page' : initial.kind === 'travel' || (initial.kind === undefined && Array.isArray(initial.stops)) ? 'travel' : 'post';
-  const modes = useMemo<Array<{ value: Mode; label: string }>>(() => [{ value: 'md', label: 'Markdown' }, { value: 'blocks', label: kind === 'travel' ? '排版' : '块' }, { value: 'raw', label: '源码' }], [kind]);
+  const modes = useMemo<Array<{ value: Mode; label: string }>>(() => [{ value: 'md', label: 'Markdown' }, { value: 'blocks', label: '排版' }, { value: 'raw', label: '源码' }], []);
   const [mode, setModeState] = useState<Mode>(() => { try { const m = localStorage.getItem(MODE_KEY) as Mode | null; if (m && modes.some((x) => x.value === m)) return m; } catch { /* 存不了就用默认 */ } return modes[0].value; });
   const setMode = (m: Mode) => { setModeState(m); if (m !== 'raw') try { localStorage.setItem(MODE_KEY, m); } catch { /* 无所谓 */ } };
   const [panel, setPanel] = useState<'info' | 'preview' | null>(null);
   const [previewKey, setPreviewKey] = useState(0);
 
   const [doc, setDocState] = useState<Doc>(initial);
+  // 普通文章还是游记，看内容本身：在“信息”里换了模版，这里跟着变
+  const kind: Kind = routeKind === 'page' ? 'page' : isTravelDoc(doc) ? 'travel' : 'post';
   const setDoc = useCallback((fn: (d: Doc) => Doc) => setDocState((d) => fn(d)), []);
   const patch = useCallback((p: Doc) => setDocState((d) => {
     const next = { ...d, ...p };
@@ -71,13 +74,13 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
       <div className="flex min-h-0 flex-1">
         <div className="min-w-0 flex-1">
           <Suspense fallback={<div className="grid h-full place-items-center text-ink-3">载入编辑器……</div>}>
-            {mode === 'md' && <MarkdownView doc={doc} setDoc={setDoc} travel={kind === 'travel'} />}
-            {mode === 'blocks' && <BlocksView kind={kind} doc={doc} patch={patch} setDoc={setDoc} />}
+            {mode === 'md' && <MarkdownView key={kind} doc={doc} setDoc={setDoc} travel={kind === 'travel'} />}
+            {mode === 'blocks' && (kind === 'travel' ? <TravelLayout doc={doc} setDoc={setDoc} /> : <BlocksView key={kind} kind={kind} doc={doc} patch={patch} setDoc={setDoc} />)}
             {mode === 'raw' && <RawView doc={doc} setDoc={setDoc} />}
           </Suspense>
         </div>
         {panel === 'info' && (
-          <aside className={cn('mb-2 mr-2 w-[26rem] shrink-0 animate-slide-in overflow-y-auto rounded-2xl bg-sunk/60', onCard)}><InfoPanel kind={kind} doc={doc} set={patch} /></aside>
+          <aside className={cn('mb-2 mr-2 w-[26rem] shrink-0 animate-slide-in overflow-y-auto rounded-2xl bg-sunk/60', onCard)}><InfoPanel kind={kind} doc={doc} set={patch} setDoc={setDoc} /></aside>
         )}
         {panel === 'preview' && project && (
           <aside className="mb-2 mr-2 w-[46%] min-w-[24rem] shrink-0 animate-slide-in overflow-hidden rounded-2xl bg-sunk/60">

@@ -8,7 +8,6 @@ import type { Kind } from '@/lib/types';
 import { Button } from './ui/button';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Field, Input } from './ui/input';
-import { Segmented } from './ui/segmented';
 import { Select } from './ui/select';
 
 /** 撰写：先起个标题、选个栏目，然后进编辑器。地址名默认自动生成，需要时在“高级”里改 */
@@ -16,7 +15,7 @@ export function NewEntryDialog({ open, onOpenChange, kind: initial = 'post' }: {
   const { data: project } = useProject();
   const refresh = useRefresh();
   const nav = useNavigate();
-  const [kind, setKind] = useState<Kind>(initial);
+  const kind: Kind = initial === 'page' ? 'page' : 'post';
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [id, setId] = useState('');
@@ -44,13 +43,8 @@ export function NewEntryDialog({ open, onOpenChange, kind: initial = 'post' }: {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent title={kind === 'page' ? '新建页面' : '撰写'} description={kind === 'page' ? '页面是“关于”“留言”这样的独立页' : '文章和游记都放在“文章”里'}>
+      <DialogContent title={kind === 'page' ? '新建页面' : '撰写'} description={kind === 'page' ? '页面是“关于”“留言”这样的独立页' : '想写成游记，进去之后在“信息”里换模版'}>
         <form onSubmit={(e) => { e.preventDefault(); void submit(); }}>
-          {kind !== 'page' && (
-            <Field label="类型">
-              <Segmented value={kind} onValueChange={setKind} options={[{ value: 'post', label: '文章' }, { value: 'travel', label: '游记' }]} />
-            </Field>
-          )}
           <Field label="标题"><Input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="标题" /></Field>
           {kind !== 'page' && (
             <Field label="栏目"><Select value={category || cats[0]?.id} onValueChange={setCategory} options={cats.map((c) => ({ value: c.id, label: c.zh, hint: c.en }))} /></Field>

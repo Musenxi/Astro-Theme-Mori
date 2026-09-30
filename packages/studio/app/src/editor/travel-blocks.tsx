@@ -58,8 +58,8 @@ function Images({ b, patch, extra, removable }: { b: Doc; patch: (p: Doc) => voi
   );
 }
 
-export function TravelBlockBody({ b, patch, doc, ids }: { b: Doc; patch: (p: Doc) => void; doc: Doc; ids: string[] }) {
-  const place = <Place b={b} patch={patch} doc={doc} />;
+export function TravelBlockBody({ b, patch, doc, ids, noPlace }: { b: Doc; patch: (p: Doc) => void; doc: Doc; ids: string[]; noPlace?: boolean }) {
+  const place = noPlace ? null : <Place b={b} patch={patch} doc={doc} />;
   switch (b.type) {
     case 'text':
       return (
@@ -240,7 +240,7 @@ function StopsEditor({ doc, patch }: { doc: Doc; patch: (p: Doc) => void }) {
   );
 }
 
-function RouteData({ doc, patch }: { doc: Doc; patch: (p: Doc) => void }) {
+export function RouteData({ doc, patch }: { doc: Doc; patch: (p: Doc) => void }) {
   const [msg, setMsg] = useState('');
   const [sug, setSug] = useState<Awaited<ReturnType<typeof api.exif>> | null>(null);
   const [names, setNames] = useState<Record<number, string>>({});
@@ -253,7 +253,7 @@ function RouteData({ doc, patch }: { doc: Doc; patch: (p: Doc) => void }) {
     try { const j = await api.importGpx(f); patch({ track: j.track }); setMsg(`已导入：${j.points} 个点，简化成 ${j.simplified} 个`); } catch (e) { setMsg((e as Error).message); }
   };
   const suggest = async () => {
-    setMsg('读取照片的 EXIF……');
+    setMsg('读取照片的拍摄地点……');
     try {
       const j = await api.exif();
       setSug(j); setPicked(Object.fromEntries(j.stops.map((_, i) => [i, true]))); setNames({});
@@ -272,26 +272,29 @@ function RouteData({ doc, patch }: { doc: Doc; patch: (p: Doc) => void }) {
   };
 
   return (
-    <Section title="路线数据" hint={track ? `轨迹 ${track.length} 个点` : '没有轨迹：按站点顺序连线'} className="mt-8">
+    <div>
+      <p className="mb-2 text-[12px] text-ink-3">{track ? `已有轨迹，${track.length} 个点` : '没有轨迹：地图上按站点顺序连线'}</p>
       <div className="flex flex-wrap gap-2">
         <input ref={file} type="file" accept=".gpx,application/gpx+xml,text/xml" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void importGpx(f); e.target.value = ''; }} />
         <Button size="sm" onClick={() => file.current?.click()}><Upload size={13} />导入 GPX 轨迹</Button>
         {track && <Button size="sm" variant="ghost" onClick={() => { patch({ track: undefined }); setMsg('已清除轨迹'); }}>清除轨迹</Button>}
-        <Button size="sm" onClick={suggest}><Compass size={13} />从图库照片的 EXIF 建议站点</Button>
+        <Button size="sm" onClick={suggest}><Compass size={13} />按照片的拍摄地点建议站点</Button>
       </div>
-      {msg && <p className="mono mt-2 text-[11.5px] text-ink-3">{msg}</p>}
+      {msg && <p className="mt-2 text-[12px] text-ink-3">{msg}</p>}
       {sug && sug.stops.length > 0 && (
-        <div className={cn('mt-3 space-y-1.5 rounded-xl bg-sunk/60 p-3', onCard)}>
+        <div className="mt-3 space-y-3 rounded-xl bg-lift p-3 shadow-soft">
           {sug.stops.map((s, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <input type="checkbox" checked={!!picked[i]} onChange={(e) => setPicked({ ...picked, [i]: e.target.checked })} className="accent-[var(--ink)]" />
-              <span className="mono w-52 shrink-0 text-[11px] text-ink-3">{s.date ?? '无日期'} · {s.count} 张 · {s.lnglat[1].toFixed(2)}, {s.lnglat[0].toFixed(2)}</span>
-              <Input placeholder="站名（可稍后再填）" value={names[i] ?? ''} onChange={(e) => setNames({ ...names, [i]: e.target.value })} />
-            </div>
+            <label key={i} className="block">
+              <span className="flex items-center gap-2">
+                <input type="checkbox" checked={!!picked[i]} onChange={(e) => setPicked({ ...picked, [i]: e.target.checked })} className="accent-[var(--ink)]" />
+                <span className="mono text-[11px] text-ink-3">{s.date ?? '无日期'} · {s.count} 张 · {s.lnglat[1].toFixed(2)}, {s.lnglat[0].toFixed(2)}</span>
+              </span>
+              <Input className="mt-1.5" placeholder="站名（可稍后再填）" value={names[i] ?? ''} onChange={(e) => setNames({ ...names, [i]: e.target.value })} />
+            </label>
           ))}
           <div className="flex gap-2 pt-1"><Button size="sm" variant="primary" onClick={addStops}>把选中的加入站点</Button><Button size="sm" variant="ghost" onClick={() => setSug(null)}>取消</Button></div>
         </div>
       )}
-    </Section>
+    </div>
   );
 }
