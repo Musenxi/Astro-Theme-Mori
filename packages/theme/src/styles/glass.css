@@ -37,4 +37,11 @@
 .lg-btn{width:39px;height:39px;display:grid;place-items:center;font-size:13.5px;color:var(--lg-fg);transition:color .3s,transform .4s cubic-bezier(.34,1.45,.5,1)}
 .lg-btn:hover{color:var(--lg-fg-on)}
 .lg-btn:active{transform:scale(.92)}
-
+/* 页头压在封面上时换成反色 */
+.site .mark{transition:color .4s,opacity .3s}
+.site.on-cover .mark{color:var(--background)}
+/* 封面底色和页面相反，玻璃直接借用另一套主题的参数 */
+.site.on-cover{
+  --lg-fg:color-mix(in srgb,var(--background) 72%,transparent);--lg-fg-on:var(--background);--lg-tint:rgba(24,22,20,.3);--lg-spec-o:.7;--lg-rim:rgba(255,255,255,.34);--lg-rim-2:rgba(255,255,255,.12);--lg-glow:rgba(255,255,255,.05);--lg-drop:rgba(0,0,0,.55);--lg-lens:rgba(255,255,255,.12);--lg-lens-rim:rgba(255,255,255,.3);
+  @variant dark{--lg-tint:rgba(255,255,255,.3);--lg-rim:rgba(255,255,255,.95);--lg-rim-2:rgba(255,255,255,.4);--lg-glow:rgba(255,255,255,.35);--lg-drop:rgba(60,45,30,.2);--lg-lens:rgba(255,255,255,.62);--lg-lens-rim:rgba(255,255,255,1)}
+}

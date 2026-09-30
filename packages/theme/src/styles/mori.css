@@ -63,4 +63,10 @@
   --color-ring: var(--ring);
   --color-land: var(--land);
   --color-land-edge: var(--land-edge);
+  /* 首页封面版：封面是反色的，这几个值由 .fc 自己定义 */
+  --color-on: var(--on);
+  --color-on-2: var(--on-2);
+  --color-on-3: var(--on-3);
+  --color-on-line: var(--on-line);
+  --color-acc: var(--acc);
 }
