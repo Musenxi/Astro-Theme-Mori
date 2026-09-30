@@ -25,7 +25,7 @@ const TOOLS: Array<{ cmd: MdCommand | 'image' | 'note'; label: string; icon: typ
 /** 游记里 `##` 是“新的一站”，其余工具和文章一样；悬停时提示改成游记的叫法 */
 const travelLabel = (t: (typeof TOOLS)[number]) => (t.cmd === 'h2' ? '新的一站' : t.label);
 
-/** 用 Markdown 写：一个大文本框，标题是第一行 `# 标题`；停笔 250ms 后解析成块，并保住没改动的块（和它们的划词批注） */
+/** 用 Markdown 写：一个大文本框，标题是第一行 `# 标题`；停笔 250ms 后解析成块，并保住没改动的块（和它们的划词引用评论） */
 export function MarkdownView({ doc, setDoc, travel }: { doc: Doc; setDoc: (fn: (d: Doc) => Doc) => void; travel?: boolean }) {
   const host = useRef<HTMLDivElement>(null);
   const ed = useRef<MdEditor | null>(null);

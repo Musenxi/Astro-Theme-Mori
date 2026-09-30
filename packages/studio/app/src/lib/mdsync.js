@@ -1,7 +1,7 @@
 /**
  * Markdown 写作页和 JSON 文档之间的同步层。
  * JSON 是存储，Markdown 只是它的一种“视图”：每次编辑把文本解析成块，再对齐回旧块，
- * 让没动过的块原样保留（包括 tcy 之类 Markdown 表达不了的标注），改动不大的块沿用 id（划词批注靠 id 定位）。
+ * 让没动过的块原样保留（包括 tcy 之类 Markdown 表达不了的标注），改动不大的块沿用 id（划词引用评论靠 id 定位）。
  */
 import { parseBlocks, blocksToMarkdown, parseTravel, travelToMarkdown, travelItems, travelParaMd } from 'astro-mori/markdown';
 

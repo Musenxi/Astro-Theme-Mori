@@ -78,7 +78,7 @@ function init() {
     } else scrollTo(0, b.getBoundingClientRect().top + scrollY - innerHeight * 0.2);
   }
 
-  // 划词批注的“回到正文”：把这一块带到屏幕中间。横向读法下换算成竖向滚动距离（左→右和右→左的手卷都适用），不切换读法
+  // 划词引用评论的“回到正文”：把这一块带到屏幕中间。横向读法下换算成竖向滚动距离（左→右和右→左的手卷都适用），不切换读法
   const onReveal = (e: Event) => {
     if (!travel!.isConnected) { document.removeEventListener('mori:reveal', onReveal); return; }
     const el = (e as CustomEvent<{ el: Element; handled: boolean }>).detail.el;

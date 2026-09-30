@@ -68,7 +68,7 @@ for (const [name, mk] of STORES) {
     assert.deepEqual(Object.keys(c).sort(), ['block', 'body', 'createdAt', 'end', 'id', 'name', 'parentId', 'prefix', 'quote', 'start', 'suffix']);
   });
 
-  test(`[${name}] 划词批注：带位置和原文；位置不合法会被拒绝`, async () => {
+  test(`[${name}] 划词引用评论：带位置和原文；位置不合法会被拒绝`, async () => {
     const { post, call } = await setup({ autoApprove: 'all' });
     const ok = await post({ block: 'b03', start: 4, end: 9, quote: '上图东观体', prefix: '正文和标题都用', suffix: '。它的字形' });
     assert.equal(ok.status, 201);

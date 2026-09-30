@@ -1,4 +1,4 @@
-/** 评论服务的接口封装：文末评论区和划词批注共用 */
+/** 评论服务的接口封装：文末评论区和划词引用评论共用 */
 import { t } from './i18n.ts';
 
 export interface MoriComment {

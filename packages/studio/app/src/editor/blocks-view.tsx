@@ -30,7 +30,7 @@ export function BlocksView({ kind, doc, patch, setDoc }: { kind: Kind; doc: Doc;
     const id = nextId(ids, def.prefix);
     const stop = travel ? blocks.at(-1)?.stop ?? doc.stops?.[0]?.id : undefined;
     const body = def.make();
-    // 游记的文字块，段落 id 跟着块 id 走（批注靠它定位）
+    // 游记的文字块，段落 id 跟着块 id 走（引用评论靠它定位）
     if (travel && type === 'text') body.paras = [{ id: `${id}p1`, text: '' }];
     setBlocks([...blocks, { id, ...(stop ? { stop } : {}), ...body }]);
   };

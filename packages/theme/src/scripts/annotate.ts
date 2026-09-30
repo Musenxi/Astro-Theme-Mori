@@ -1,8 +1,8 @@
 /**
- * 划词批注（spec §3.4）：读者选中正文里的一段文字，针对这段发表评论。
- *  - 选中后浮出一颗小玻璃按钮“批注”；点开是选区旁边的小输入框（手机上从底部弹出）；发完就收起，读者留在原处。
- *  - 批注就是评论：显示在文末评论区，带着引用的原文；点引用，回到正文里那一段并临时高亮（CSS Custom Highlight API，不改正文 DOM）。
- *  - 正文里被批注过的文字不留任何记号；读者划词时，如果选区和某条批注的原文重叠，选区下面浮出一张小卡，列出引用这段文字的评论。
+ * 划词引用评论（spec §3.4）：读者选中正文里的一段文字，针对这段发表评论。
+ *  - 选中后浮出一颗小玻璃按钮“引用评论”；点开是选区旁边的小输入框（手机上从底部弹出）；发完就收起，读者留在原处。
+ *  - 划词发的评论也是评论：显示在文末评论区，带着引用的原文；点引用，回到正文里那一段并临时高亮（CSS Custom Highlight API，不改正文 DOM）。
+ *  - 正文里被引用过的文字不留任何记号；读者划词时，如果选区和某条引用评论的原文重叠，选区下面浮出一张小卡，列出引用这段文字的评论。
  *  - 位置 = 块 id + 起止字符位置（跳过 data-skip 的旁注编号、标题序号等），另存原文和前后文，文章改了以后重新定位（anchor-text.ts）。
  *  - 只有使用 MORI 自建评论时才有；图片不能划词。
  */
@@ -73,7 +73,7 @@ function currentSelection() {
   return { block: s, range: range.cloneRange(), anchor };
 }
 
-/** 在块里找回一条批注的位置；文章改过、找不到就是 null */
+/** 在块里找回一条引用评论的位置；文章改过、找不到就是 null */
 function resolve(block: Element, c: Pick<MoriComment, 'start' | 'end' | 'quote' | 'prefix' | 'suffix'>): Range | null {
   const ps = parts(block);
   const at = locate(textOf(ps), { start: c.start ?? 0, end: c.end ?? 0, quote: c.quote ?? '', prefix: c.prefix ?? '', suffix: c.suffix ?? '' });
@@ -153,7 +153,7 @@ function init() {
     <input name="website" class="cmt-trap" tabindex="-1" autocomplete="off" aria-hidden="true">
     <div class="anno-ts"></div>
     <div class="anno-foot"><span class="anno-msg mono" role="status"></span><button type="button" class="anno-cancel linkbtn">${t('js.anno.cancel')}</button><button type="submit" class="anno-send">${t('js.cmt.send')} <span>→</span></button></div>`;
-  // 选区和已有批注的原文重叠时，列出引用它的评论
+  // 选区和已有引用评论的原文重叠时，列出引用它的评论
   const seen = document.createElement('div');
   seen.className = 'anno-seen glass'; seen.hidden = true;
   seen.addEventListener('pointerdown', (e) => e.preventDefault()); // 点卡片不能让选区丢掉
@@ -164,7 +164,7 @@ function init() {
   listComments(cfg, cfg.entry).then((l) => { if (!known.length) known = l; }).catch(() => {});
   on(document, 'mori:comment-added', (e) => { const c = (e as CustomEvent<MoriComment>).detail; if (c && !known.some((x) => x.id === c.id)) known.push(c); });
 
-  /** 引用了选区文字的批注（原文位置和选区有重叠），按时间 */
+  /** 引用了选区文字的引用评论（原文位置和选区有重叠），按时间 */
   function citing(s: NonNullable<ReturnType<typeof currentSelection>>): MoriComment[] {
     const id = s.block.dataset.b, text = textOf(parts(s.block));
     return known.filter((c) => !c.parentId && c.block === id).filter((c) => {
@@ -293,7 +293,7 @@ function init() {
     whenSettled(() => highlight(range)); // 等滚动到位再高亮
   });
 
-  // 评论区画好以后，检查每条批注在现在的正文里还找不找得到
+  // 评论区画好以后，检查每条引用评论在现在的正文里还找不找得到
   on(document, 'mori:comments-rendered', (e) => { known = (e as CustomEvent<MoriComment[]>).detail; markGone(known); });
 }
 

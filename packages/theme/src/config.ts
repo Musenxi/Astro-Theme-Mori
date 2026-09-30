@@ -28,11 +28,11 @@ export type MoriPublish =
 
 /**
  * 评论（spec §5）：二选一，互相隔离。
- *  - mori：自建评论服务（packages/comments），文末评论 + 划词批注
- *  - 其余是第三方，只有文末评论，没有批注
+ *  - mori：自建评论服务（packages/comments），文末评论 + 划词引用评论
+ *  - 其余是第三方，只有文末评论，没有引用评论
  */
 export type MoriComments =
-  | { provider: 'mori'; /** 评论服务的地址，如 https://comments.example.com */ endpoint: string; /** Cloudflare Turnstile 的站点密钥（公开的那个） */ turnstileSiteKey?: string; /** 是否开启划词批注，默认开 */ annotations?: boolean }
+  | { provider: 'mori'; /** 评论服务的地址，如 https://comments.example.com */ endpoint: string; /** Cloudflare Turnstile 的站点密钥（公开的那个） */ turnstileSiteKey?: string; /** 是否开启划词引用评论，默认开 */ annotations?: boolean }
   | { provider: 'giscus'; repo: string; repoId: string; category: string; categoryId: string; mapping?: string }
   | { provider: 'waline'; serverURL: string }
   | { provider: 'twikoo'; envId: string }

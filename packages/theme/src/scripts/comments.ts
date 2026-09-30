@@ -1,5 +1,5 @@
 /**
- * 文末评论区（自建评论）：进入视口才加载；列表按时间排，回复缩进一层；批注在列表里带一段引用的原文，点一下回到正文（annotate.ts 处理）。
+ * 文末评论区（自建评论）：进入视口才加载；列表按时间排，回复缩进一层；引用评论在列表里带一段引用的原文，点一下回到正文（annotate.ts 处理）。
  * 第三方评论（giscus / waline / twikoo / artalk）见 cmt-embed.ts。
  */
 import { t } from './i18n.ts';
@@ -72,7 +72,7 @@ function init() {
     return li;
   }
 
-  /** 批注带着引用的原文（细线引用样式，过长截断）；点一下回到正文里那一段 */
+  /** 引用评论带着引用的原文（细线引用样式，过长截断）；点一下回到正文里那一段 */
   function quote(c: MoriComment) {
     const q = h('blockquote', { class: 'cmt-quote', tabindex: '0', role: 'button', title: t('js.cmt.jump') }, c.quote!);
     const go = () => document.dispatchEvent(new CustomEvent('mori:jump', { detail: c }));

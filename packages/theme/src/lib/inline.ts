@@ -32,7 +32,7 @@ export function numberNotes(blocks: unknown): NoteNumbers {
   return { side, foot };
 }
 
-/** 一个 span 的标注从外到内依次包上去；note / fn 在文字后面接一个上标编号（`data-skip`：算批注位置时跳过） */
+/** 一个 span 的标注从外到内依次包上去；note / fn 在文字后面接一个上标编号（`data-skip`：算引用评论位置时跳过） */
 function wrap(html: string, mark: Mark, numbers: NoteNumbers): string {
   switch (mark.type) {
     case 'em': return `<em>${html}</em>`;

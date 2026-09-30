@@ -1,11 +1,11 @@
--- MORI 评论：文末评论和划词批注是同一种评论，区别只是有没有“钉”在文字上（block 不为空的就是批注）
+-- MORI 评论：文末评论和划词引用评论是同一种评论，区别只是有没有“钉”在文字上（block 不为空的就是引用评论）
 CREATE TABLE IF NOT EXISTS comments (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   entry       TEXT    NOT NULL,              -- posts/<id>（普通文章和游记都在 posts 下）
-  block       TEXT,                          -- 批注：钉在哪个块（段落）上；文末评论为空
-  start       INTEGER,                       -- 批注：选区在这个块文字里的起止字符位置
+  block       TEXT,                          -- 引用评论：钉在哪个块（段落）上；文末评论为空
+  start       INTEGER,                       -- 引用评论：选区在这个块文字里的起止字符位置
   "end"       INTEGER,
-  quote       TEXT,                          -- 批注：被选中的原文，和前后各几十个字（文章改动后靠它重新定位）
+  quote       TEXT,                          -- 引用评论：被选中的原文，和前后各几十个字（文章改动后靠它重新定位）
   prefix      TEXT,
   suffix      TEXT,
   body        TEXT    NOT NULL,

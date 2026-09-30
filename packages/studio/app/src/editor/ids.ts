@@ -1,4 +1,4 @@
-/** 下一个块 id：同前缀里最大的序号 + 1，如 b07 → b08（id 创建后不再变，批注靠它定位） */
+/** 下一个块 id：同前缀里最大的序号 + 1，如 b07 → b08（id 创建后不再变，引用评论靠它定位） */
 export function nextId(used: Iterable<string>, prefix: string, width = 2): string {
   let max = 0;
   const re = new RegExp(`^${prefix}(\\d+)$`);

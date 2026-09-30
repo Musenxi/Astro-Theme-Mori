@@ -11,7 +11,7 @@
 .cmt-meta{display:flex;gap:12px;align-items:baseline;color:var(--ink-3)}
 .cmt-meta b{color:var(--ink);font-weight:400;font-family:var(--serif);font-size:15px;letter-spacing:.04em}
 .cmt-text{white-space:pre-line;overflow-wrap:anywhere;margin:6px 0 4px}
-/* 批注引用的原文：细线引用样式，过长截断 */
+/* 引用评论引用的原文：细线引用样式，过长截断 */
 .cmt-quote{margin:8px 0;padding-left:12px;border-left:1px solid var(--accent);color:var(--ink-2);font-size:14px;line-height:1.7;cursor:pointer;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;transition:color .3s}
 .cmt-quote:hover{color:var(--ink)}
 .cmt-quote.gone{cursor:default}
@@ -38,7 +38,7 @@ li > .cmt-form{margin:8px 0 18px}
 .cmt-send[disabled]{opacity:.5;cursor:default}
 @media (max-width:760px){.cmt-row{grid-template-columns:1fr}.cmt-replies{margin-left:.4em}}
 
-/* ───────── 划词批注：小玻璃按钮、输入框、回到正文时的临时高亮 ───────── */
+/* ───────── 划词引用评论：小玻璃按钮、输入框、回到正文时的临时高亮 ───────── */
 .anno-btn{position:fixed;z-index:40;padding:5px 14px;border-radius:999px;font-size:13px;letter-spacing:.14em;color:var(--ink);cursor:pointer;animation:anno-in .35s var(--ease) both}
 .anno-btn:hover{color:var(--accent)}
 @keyframes anno-in{from{opacity:0;transform:translateY(4px) scale(.96)}}

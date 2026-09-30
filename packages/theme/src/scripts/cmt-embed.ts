@@ -1,5 +1,5 @@
 /**
- * 第三方评论（spec §5.2）：giscus / waline / twikoo / artalk。只有文末评论，没有划词批注。
+ * 第三方评论（spec §5.2）：giscus / waline / twikoo / artalk。只有文末评论，没有划词引用评论。
  * 都是进入视口才加载脚本；每次换页都用新的页面标识重新加载；昼夜切换时同步给评论框。
  * 脚本和样式来自各家的 CDN（jsdelivr / unpkg / giscus.app）。
  */

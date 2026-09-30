@@ -2,8 +2,8 @@
  * MORI 自建评论的 HTTP 接口（spec §5.1）。Hono 写一份，Node 和 Cloudflare Workers 共用；
  * 存储通过 Store 接口注入（SQLite / D1）。
  *
- *   GET    /comments?entry=posts/xxx         某篇文章下已通过的评论（含划词批注）
- *   POST   /comments                         提交评论 / 批注 / 回复
+ *   GET    /comments?entry=posts/xxx         某篇文章下已通过的评论（含划词引用评论）
+ *   POST   /comments                         提交评论 / 引用评论 / 回复
  *   GET    /admin/comments?status=&entry=    管理：列表        ┐ 只接受管理令牌
  *   GET    /admin/stats                      管理：各状态数量  │ Authorization: Bearer <token>
  *   PATCH  /admin/comments/:id  {status}     管理：通过 / 隐藏 │
@@ -93,11 +93,11 @@ export function createApp(opts: AppOptions) {
     if (!name) return c.json({ error: '请留个名字' }, 400);
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return c.json({ error: '邮箱格式不对' }, 400);
 
-    // 批注：钉在哪个块的哪一段字上；块 id 加起止位置，加被选中的原文和前后文（文章改了以后靠它们重新找）
+    // 引用评论：钉在哪个块的哪一段字上；块 id 加起止位置，加被选中的原文和前后文（文章改了以后靠它们重新找）
     let anchor: { block: string; start: number; end: number; quote: string; prefix: string; suffix: string } | null = null;
     if (b.block != null) {
       const quote = clip(b.quote, LIMITS.quote);
-      if (typeof b.block !== 'string' || !BLOCK.test(b.block) || !isInt(b.start) || !isInt(b.end) || b.end <= b.start || !quote) return c.json({ error: '批注的位置不合法' }, 400);
+      if (typeof b.block !== 'string' || !BLOCK.test(b.block) || !isInt(b.start) || !isInt(b.end) || b.end <= b.start || !quote) return c.json({ error: '引用评论的位置不合法' }, 400);
       anchor = { block: b.block, start: b.start, end: b.end, quote, prefix: clip(b.prefix, LIMITS.context), suffix: clip(b.suffix, LIMITS.context) };
     }
 

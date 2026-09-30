@@ -2,7 +2,7 @@
 
 一个安静的、编辑排版式的 Astro 博客主题：竖排文字、游记（竖向 / 混合 / 横向三种读法）、剪影地图、克莱因蓝的单一强调色。
 
-> 状态：开发中（v0.0.x）。已经有：首页、文章、游记（三种读法、剪影地图）、刻度页（归档 / 栏目）、看大图、自建评论（含划词批注）、第三方评论接入、Studio 编辑器（Markdown 写作、页面与友人帐、文件、预览、评论管理、构建发布）。还没有：桌面版打包、专题地图（MapLibre）。已有站内搜索和四种界面语言（zh-CN / zh-TW / en / ja）。
+> 状态：开发中（v0.0.x）。已经有：首页、文章、游记（三种读法、剪影地图）、刻度页（归档 / 栏目）、看大图、自建评论（含划词引用评论）、第三方评论接入、Studio 编辑器（Markdown 写作、页面与友人帐、文件、预览、评论管理、构建发布）。还没有：桌面版打包、专题地图（MapLibre）。已有站内搜索和四种界面语言（zh-CN / zh-TW / en / ja）。
 > 需求与设计决定见 [docs/需求草案.md](docs/需求草案.md)，视觉的实物参照是 [design/style-probe](design/style-probe/index.html)。
 
 ## 目录
@@ -29,7 +29,7 @@ pnpm build      # 静态构建到 examples/demo/dist
 pnpm studio     # 只跑 Studio（正常模式），http://127.0.0.1:4400
 pnpm comments   # 只跑评论服务（开发用管理令牌是 dev-token，数据库在 packages/comments/.data/）
 pnpm check      # 主题包的 TypeScript 检查
-pnpm test       # 各包的测试（Studio、评论服务、批注定位）
+pnpm test       # 各包的测试（Studio、评论服务、引用评论定位）
 ```
 
 ## 在自己的站里使用

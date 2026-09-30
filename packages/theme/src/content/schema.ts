@@ -1,6 +1,6 @@
 /**
  * MORI 内容格式（spec §3.3）：一篇文章 = 元信息 + 块序列。
- * 每个块有创建后不变的 id（划词批注靠它定位）；段落内部是“文字 + 标注”的序列，不在字符串里嵌 Markdown。
+ * 每个块有创建后不变的 id（划词引用评论靠它定位）；段落内部是“文字 + 标注”的序列，不在字符串里嵌 Markdown。
  * 普通文章和游记各一套 schema，共用同一份元信息和行内文字。
  */
 import { z } from 'astro/zod';
@@ -88,7 +88,7 @@ function walk(value: unknown, visit: (node: Record<string, unknown>) => void) {
   }
 }
 
-/** 块和游记文字块里的段落都带 id（批注钉在它们上面），图片、自由排布项没有；id 在一篇文章里必须唯一 */
+/** 块和游记文字块里的段落都带 id（引用评论钉在它们上面），图片、自由排布项没有；id 在一篇文章里必须唯一 */
 function checkIntegrity(data: { blocks: unknown; notes: Record<string, unknown> }, ctx: z.RefinementCtx) {
   const seen = new Set<string>();
   const refs: string[] = [];

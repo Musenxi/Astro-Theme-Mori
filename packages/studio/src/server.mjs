@@ -62,7 +62,7 @@ export function blockTexts(kind, data) {
   return out;
 }
 
-/** 这次修改会让哪些批注找不到原文（块没了，或原文对不上）——保存时提醒作者 */
+/** 这次修改会让哪些引用评论找不到原文（块没了，或原文对不上）——保存时提醒作者 */
 export function brokenAnnotations(kind, data, comments) {
   const texts = blockTexts(kind, data);
   return comments
@@ -305,7 +305,7 @@ export async function startStudio({ root, port = 4400, dev = false }) {
           // 校验不通过也允许保存草稿（写作过程中难免不完整），但把问题原样返回；`?strict=1` 时拒绝
           if (!v.ok && url.searchParams.get('strict')) return send(res, 422, v);
           writeEntry(root, kind, id, data);
-          // 使用自建评论时：这次修改会不会让已有的批注找不到原文？只提醒，不阻止保存
+          // 使用自建评论时：这次修改会不会让已有的引用评论找不到原文？只提醒，不阻止保存
           let annotationWarnings;
           if (kind !== 'page' && commentsEndpoint() && adminToken()) {
             try {
