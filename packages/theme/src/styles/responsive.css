@@ -2,28 +2,6 @@
 @media (max-width:760px){
   body{font-size:16px}
   .g > *,.prose > *{grid-column:1/-1!important}
-  .fo-side{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin-bottom:28px;padding:0}
-  .fo-side .k{margin:0}
-  .fo-side b{font-size:24px;margin:0}
-  .fo-more{flex-basis:100%;margin-top:22px}
-  /* 手机上的封面：整幅图铺满屏宽、顶到屏幕最上（玻璃页头浮在图上），引文压在图里，刊期信息和目录放在图下面 */
-  .fo{padding-top:0}
-  .fo-stage{margin:-53px calc(-1*var(--gut)) 0}
-  .fo-side{grid-row:2;position:static;margin:26px 0 0}
-  .fo-cover .ph{height:clamp(320px,calc(100svh - 200px),660px)}
-  .fo-cite{padding-left:var(--gut);padding-right:var(--gut);background-position:var(--gut) 0;background-size:calc(100% - 2*var(--gut)) 1px}
-  .fo-cite > div:not(.ttl){display:none}
-  .fo-cover .ph{--dir:to left}
-  .fo-cover figcaption{padding:0 var(--gut)}
-  :root:not([data-hdir="v"]) .fo-cover .ph{-webkit-mask-image:linear-gradient(to bottom,#000 32%,rgb(0 0 0/calc(1 - 0.20*var(--k,1))) 48%,rgb(0 0 0/calc(1 - 0.50*var(--k,1))) 62%,rgb(0 0 0/calc(1 - 0.76*var(--k,1))) 78%,rgb(0 0 0/calc(1 - 0.92*var(--k,1))) 100%);mask-image:linear-gradient(to bottom,#000 32%,rgb(0 0 0/calc(1 - 0.20*var(--k,1))) 48%,rgb(0 0 0/calc(1 - 0.50*var(--k,1))) 62%,rgb(0 0 0/calc(1 - 0.76*var(--k,1))) 78%,rgb(0 0 0/calc(1 - 0.92*var(--k,1))) 100%)}
-  .fo-qa{align-self:end;padding:0 0 46px 1em!important}
-  :root:not([data-hdir="v"]) .fo-q{text-indent:-1em;font-size:clamp(25px,7.6vw,32px)}
-  .fo-cite{grid-template-columns:1fr auto;row-gap:16px}
-  .fo-cite dd{font-size:14px}
-  .f-ed{position:static;margin-bottom:56px}
-  .f-en a{grid-template-columns:3.2em 1fr}
-  .f-en .dt{grid-column:2}
-  .f-en .pn{font-size:28px}
   .prose .n{display:block}
   .prose .n > .ns{margin:-.4em 0 1.4em}
   .prose .n aside{padding-top:.5em}

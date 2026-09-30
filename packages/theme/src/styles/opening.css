@@ -1,0 +1,31 @@
+/* 首页开篇：换篇的状态（JS 切 on / out / enter）、封面图的渐隐蒙版、进场和换篇的动画。版式在 Opening.astro 里 */
+.fo-slide{visibility:hidden}
+.fo-slide.on,.fo-slide.out{visibility:visible}
+.fo-slide.on{z-index:2}.fo-slide.out{z-index:1}
+/* 图朝着引文的一侧淡出（纸色），字落在淡出的那一段：横排时引文在左、图淡左缘；竖排时引文在右、图淡右缘。淡出用多停点近似缓动，避免色带 */
+.fo-cover .ph{--dir:to right;position:relative;height:clamp(300px,calc(100svh - 330px),620px);overflow:hidden;
+  -webkit-mask-image:linear-gradient(var(--dir),rgb(0 0 0/calc(1 - 0.95*var(--k,1))) 0,rgb(0 0 0/calc(1 - 0.88*var(--k,1))) 12%,rgb(0 0 0/calc(1 - 0.76*var(--k,1))) 26%,rgb(0 0 0/calc(1 - 0.50*var(--k,1))) 40%,rgb(0 0 0/calc(1 - 0.20*var(--k,1))) 52%,#000 64%);
+  mask-image:linear-gradient(var(--dir),rgb(0 0 0/calc(1 - 0.95*var(--k,1))) 0,rgb(0 0 0/calc(1 - 0.88*var(--k,1))) 12%,rgb(0 0 0/calc(1 - 0.76*var(--k,1))) 26%,rgb(0 0 0/calc(1 - 0.50*var(--k,1))) 40%,rgb(0 0 0/calc(1 - 0.20*var(--k,1))) 52%,#000 64%)}
+:root[data-hdir="v"] .fo-cover .ph{--dir:to left}
+/* 进场（第一次打开）：图从上往下展开，引文一个字一个字像墨一样洇开，细线画开，最后出现篇名等信息 */
+.fo.play .fo-slide.on:not(.enter) .ph{animation:cover-in 1.4s var(--ease-mori) .5s both}
+.fo.play .fo-slide.on .fo-q .ch{animation:ink 1s ease calc(.2s + var(--i)*40ms) both}
+@keyframes ink{from{opacity:0;filter:blur(7px)}}
+.fo.play .fo-slide.on:not(.enter) .fo-cite{animation:cite-rule 1.3s var(--ease-mori) 1.2s both}
+@keyframes cite-rule{from{background-size:0 1px}}
+.fo.play .fo-slide.on:not(.enter) .fo-cite > *,.fo.play .fo-side,.fo.play .fo-slide.on:not(.enter) figcaption{animation:fade .9s ease 1.6s both}
+@keyframes cover-in{from{clip-path:inset(0 0 100% 0)}}
+@keyframes fade{from{opacity:0}}
+/* 换篇：交叉溶解（参考 velasx.com 精选区）。新旧两篇叠在一起，旧的淡出、新的淡入，同时进行；
+   图、引文、图注、篇名信息是一整块，一起溶过去；没有位移、缩放、裁切，引文也不再逐字洇开。
+   0.65 秒，quint-out（先快后慢）：前五分之一已经换过去大半，后面慢慢收尾 */
+.fo-slide.on.enter{animation:dissolve-in .65s cubic-bezier(.22,1,.36,1) both}
+.fo-slide.out{animation:dissolve-out .65s cubic-bezier(.22,1,.36,1) both}
+@keyframes dissolve-in{from{opacity:0}}
+@keyframes dissolve-out{to{opacity:0}}
+.fo.play .fo-slide.on.enter .fo-q .ch{animation:none}
+@media (max-width:760px){
+  .fo-cover .ph{height:clamp(320px,calc(100svh - 200px),660px)}
+  .fo-cover .ph{--dir:to left}
+  :root:not([data-hdir="v"]) .fo-cover .ph{-webkit-mask-image:linear-gradient(to bottom,#000 32%,rgb(0 0 0/calc(1 - 0.20*var(--k,1))) 48%,rgb(0 0 0/calc(1 - 0.50*var(--k,1))) 62%,rgb(0 0 0/calc(1 - 0.76*var(--k,1))) 78%,rgb(0 0 0/calc(1 - 0.92*var(--k,1))) 100%);mask-image:linear-gradient(to bottom,#000 32%,rgb(0 0 0/calc(1 - 0.20*var(--k,1))) 48%,rgb(0 0 0/calc(1 - 0.50*var(--k,1))) 62%,rgb(0 0 0/calc(1 - 0.76*var(--k,1))) 78%,rgb(0 0 0/calc(1 - 0.92*var(--k,1))) 100%)}
+}

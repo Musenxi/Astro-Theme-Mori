@@ -9,7 +9,7 @@
 @import "./base.css" layer(base);
 @import "./common.css" layer(components);
 @import "./glass.css" layer(components);
-@import "./home.css" layer(components);
+@import "./opening.css" layer(components);
 @import "./cover.css" layer(components);
 @import "./post.css" layer(components);
 @import "./page.css" layer(components);
