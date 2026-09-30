@@ -60,9 +60,9 @@ const fd: any = feature.data;
       </ol>
     </div>
     <div class="f-ruler relative mt-[clamp(36px,7vh,80px)] h-[46px] border-t border-t-on-line">
-      {ticks.map((k) => <span class:list={['absolute top-0 left-(--l) border-l', k.year ? 'h-3 border-l-on-2' : 'h-[5px] border-l-on-line']} style={{ '--l': `${k.left}%` }}><i class:list={['absolute top-4 left-[5px] block font-mono text-[10px] leading-[normal] tracking-[.08em] whitespace-nowrap text-on-3 not-italic', !k.year && 'narrow:hidden']}>{k.label}</i></span>)}
+      {ticks.map((k) => <span class:list={['absolute top-0 left-(--l) border-l', k.year ? 'h-3 border-l-on-2' : 'h-[5px] border-l-on-line']} style={{ '--l': `${k.left}%` }}><i class:list={['absolute top-4 left-[5px] block font-mono text-[11.5px] leading-[normal] tracking-[.06em] whitespace-nowrap text-on-3 not-italic', !k.year && 'narrow:hidden']}>{k.label}</i></span>)}
       {points.map((p) => <a class:list={['pt absolute -top-1 left-(--l) -ml-[3.5px] size-[7px] rounded-[50%] after:pointer-events-none after:absolute after:bottom-4 after:left-1/2 after:[transform:translate(-50%,4px)] after:whitespace-nowrap after:text-on after:opacity-0 after:[font:14px/1.4_var(--font-serif)] after:tracking-[.04em] after:[transition:opacity_.3s,transform_.4s_var(--ease-mori)] after:content-[attr(data-t)] hover:after:[transform:translate(-50%,0)] hover:after:opacity-100', p.e.kind === 'travel' ? 'bg-acc' : 'bg-on']} href={p.e.href} data-t={p.e.data.title} style={{ '--l': `${p.left}%`, '--i': p.i }} aria-label={p.e.data.title}></a>)}
-      <span class="absolute -top-[22px] right-0 font-mono text-[10px] leading-[normal] tracking-[.08em] text-on-3">{t('cover.ruler')}</span>
+      <span class="absolute -top-[22px] right-0 font-mono text-[11.5px] leading-[normal] tracking-[.06em] text-on-3">{t('cover.ruler')}</span>
     </div>
   </div>
 </section>
