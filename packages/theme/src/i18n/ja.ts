@@ -3,7 +3,7 @@ import type zhCN from './zh-CN.ts';
 const d: Record<keyof typeof zhCN, string> = {
   'nav.posts': '記事', 'nav.travels': '旅の記', 'nav.archive': 'アーカイブ',
   'a11y.mainNav': 'メインナビゲーション', 'theme.toggle': '昼夜の切り替え', 'theme.toLight': '昼', 'theme.toDark': '夜',
-  'toc.title': '目次', 'toc.sub': 'Contents', 'toc.run': '目次 · CONTENTS', 'toc.editor': '編集後記', 'toc.back': '← 目次', 'toc.byTime': '日付順に見る',
+  'toc.title': '目次', 'toc.sub': 'Contents', 'toc.run': '目次 · CONTENTS', 'toc.editor': '編集後記', 'toc.back': '← 目次',
   'yearSeason': '{year}年 · {season}',
   'season.spring': '春', 'season.summer': '夏', 'season.autumn': '秋', 'season.winter': '冬',
   'home.feature': '特集', 'home.region': '今号の収録', 'home.title': '題', 'home.date': '日付', 'home.readMore': '全文を読む', 'home.empty': 'まだ記事がありません。src/content/posts か src/content/travels に JSON を置いてください。',

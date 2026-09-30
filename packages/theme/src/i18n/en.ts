@@ -3,7 +3,7 @@ import type zhCN from './zh-CN.ts';
 const d: Record<keyof typeof zhCN, string> = {
   'nav.posts': 'Posts', 'nav.travels': 'Journeys', 'nav.archive': 'Archive',
   'a11y.mainNav': 'Main navigation', 'theme.toggle': 'Toggle light / dark', 'theme.toLight': 'Day', 'theme.toDark': 'Night',
-  'toc.title': 'Contents', 'toc.sub': '', 'toc.run': 'CONTENTS', 'toc.editor': 'Editor’s note', 'toc.back': '← Contents', 'toc.byTime': 'by date',
+  'toc.title': 'Contents', 'toc.sub': '', 'toc.run': 'CONTENTS', 'toc.editor': 'Editor’s note', 'toc.back': '← Contents',
   'yearSeason': '{season} {year}',
   'season.spring': 'Spring', 'season.summer': 'Summer', 'season.autumn': 'Autumn', 'season.winter': 'Winter',
   'home.feature': 'Feature', 'home.region': 'In this issue', 'home.title': 'Title', 'home.date': 'Date', 'home.readMore': 'Read', 'home.empty': 'Nothing here yet. Put JSON files in src/content/posts or src/content/travels.',
