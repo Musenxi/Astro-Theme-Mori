@@ -1,4 +1,5 @@
 ---
+import Chevron from '../components/Chevron.astro';
 import { t, lang } from '../lib/i18n.ts';
 import config from 'virtual:mori/config';
 import Base from '../layouts/Base.astro';
@@ -8,7 +9,7 @@ import Base from '../layouts/Base.astro';
   <main data-page="404" class="wrap nf">
     <p class="mono lbl">404</p>
     <h1>{t('notfound.h')}</h1>
-    <a class="ul" href="/">{t('notfound.back')}</a>
+    <a class="ul" href="/">{t('notfound.back')}<Chevron /></a>
   </main>
 </Base>
 <style>

@@ -1,4 +1,5 @@
 ---
+import Chevron from './Chevron.astro';
 import { t } from '../lib/i18n.ts';
 import type { Entry } from '../lib/entries.ts';
 interface Props {
@@ -9,6 +10,6 @@ const { older, newer } = Astro.props;
 ---
 
 <nav class="wrap g post-end" aria-label={t('post.nav')}>
-  {older ? <a href={older.href}><span class="mono lbl">{t('post.prev')}</span><span class="ul">{older.data.title}</span></a> : <span />}
-  {newer ? <a href={newer.href}><span class="mono lbl">{t('post.next')}</span><span class="ul">{newer.data.title}</span></a> : <span />}
+  {older ? <a href={older.href}><span class="mono lbl"><Chevron dir="left" />{t('post.prev')}</span><span class="ul">{older.data.title}</span></a> : <span />}
+  {newer ? <a href={newer.href}><span class="mono lbl">{t('post.next')}<Chevron /></span><span class="ul">{newer.data.title}</span></a> : <span />}
 </nav>

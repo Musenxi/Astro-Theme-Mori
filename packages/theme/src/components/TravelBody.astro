@@ -1,4 +1,5 @@
 ---
+import Chevron from './Chevron.astro';
 /**
  * 游记正文（框架版，只有竖向读法）：块序列，每块属于一个站点。
  * 站点标题挂在每站第一个文字块上（block.head 可以覆盖）。混合 / 横向读法之后在这个结构上加。
@@ -122,8 +123,8 @@ const place = (b: { y?: number; scale?: number }) => [b.y !== undefined && `--y:
                       <span class="mono">{nextFig()}</span>
                       {b.images.map((i) => i.caption).filter(Boolean).join(' / ')}
                       <span class="strip-ctl">
-                        <button type="button" data-dir="-1" aria-label={t('travel.left')}>‹</button>
-                        <button type="button" data-dir="1" aria-label={t('travel.right')}>›</button>
+                        <button type="button" data-dir="-1" aria-label={t('travel.left')}><Chevron dir="left" /></button>
+                        <button type="button" data-dir="1" aria-label={t('travel.right')}><Chevron /></button>
                       </span>
                     </figcaption>
                   </div>

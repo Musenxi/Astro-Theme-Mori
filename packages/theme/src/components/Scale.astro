@@ -1,4 +1,5 @@
 ---
+import Chevron from './Chevron.astro';
 /**
  * E 刻度（spec §2）：位置就是时间，一格一个月，空着的地方就是没写东西（或这个分类没更新）的月份。
  * 旁边的大号年月随滚动逐位翻动。横排时时间轴往下走；竖排时像手卷一样从右往左展开，标题竖着挂在轴线下。
@@ -41,7 +42,7 @@ const posOf = (e: Entry) => {
 ---
 
 <header class="wrap he-head">
-  <a class="he-back mono" href="/">{t('toc.back')}</a>
+  <a class="he-back mono" href="/"><Chevron dir="left" />{t('toc.back')}</a>
   <div class="he-ttl">
     {roman && <span class="rn">{roman}</span>}
     <h1>{title}</h1>

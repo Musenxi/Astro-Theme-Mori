@@ -7,6 +7,7 @@
  *  - 只有使用 MORI 自建评论时才有；图片不能划词。
  */
 import { t } from './i18n.ts';
+import { chevronHtml } from '../lib/chevron.ts';
 import { locate, contextOf, type Anchor } from '../lib/anchor-text.ts';
 import { moriConfig, listComments, sendComment, mountTurnstile, remember, type MoriComment } from './cmt-api.ts';
 
@@ -153,7 +154,7 @@ function init() {
     <textarea name="body" placeholder="${t('js.anno.write')}" required rows="3" maxlength="4000"></textarea>
     <input name="website" class="cmt-trap" tabindex="-1" autocomplete="off" aria-hidden="true">
     <div class="anno-ts"></div>
-    <div class="anno-foot"><span class="anno-msg mono" role="status"></span><button type="button" class="anno-cancel linkbtn">${t('js.anno.cancel')}</button><button type="submit" class="anno-send">${t('js.cmt.send')} <span>→</span></button></div>`;
+    <div class="anno-foot"><span class="anno-msg mono" role="status"></span><button type="button" class="anno-cancel linkbtn">${t('js.anno.cancel')}</button><button type="submit" class="anno-send">${t('js.cmt.send')}${chevronHtml()}</button></div>`;
   // 选区和已有引用评论的原文重叠时，列出引用它的评论
   const seen = document.createElement('div');
   seen.className = 'anno-seen glass'; seen.hidden = true;

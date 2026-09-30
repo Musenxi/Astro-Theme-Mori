@@ -1,4 +1,5 @@
 ---
+import Chevron from './Chevron.astro';
 /**
  * 首页“引文开篇”（spec §2 · F 期刊·引文版）：左侧窄栏（本期特稿 + 目录）+ 舞台（封面图，引文压在图上）+ 篇名信息。
  * 置顶可以有好几篇，由读者点左边目录切换；只有一篇时没有目录，就是一张静止的封面。
@@ -93,7 +94,7 @@ const first = slides[0];
                 <dl class="fo-cite">
                   <div class="ttl"><dt>{t('home.title')}</dt><dd class="t">{s.e.data.title}</dd></div>
                   {s.meta.map((m) => <div><dt>{m.label}</dt><dd>{m.value}</dd></div>)}
-                  <a class="fo-go" href={s.e.href}>{t('home.readMore')} <span>→</span></a>
+                  <a class="fo-go" href={s.e.href}>{t('home.readMore')}<Chevron /></a>
                 </dl>
               </article>
             ))

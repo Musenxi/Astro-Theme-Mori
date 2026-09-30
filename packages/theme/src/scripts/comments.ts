@@ -5,6 +5,7 @@
 import { t } from './i18n.ts';
 import { mountEmbed } from './cmt-embed.ts';
 import { avatarUrl } from '../lib/avatar.mjs';
+import { chevronEl } from '../lib/chevron.ts';
 import { moriConfig, listComments, sendComment, mountTurnstile, remember, dotDate, type MoriComment, type MoriCommentsConfig } from './cmt-api.ts';
 
 type Child = Node | string | null | false | undefined;
@@ -124,7 +125,7 @@ function form(cfg: MoriCommentsConfig & { entry: string }, parent: MoriComment |
   const trap = h('input', { name: 'website', class: 'cmt-trap', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' });
   const ts = h('div', { class: 'cmt-ts' });
   const msg = h('p', { class: 'cmt-msg mono', role: 'status' });
-  const btn = h('button', { class: 'cmt-send', type: 'submit' }, (parent ? t('js.cmt.sendReply') : t('js.cmt.send')) + ' ', h('span', {}, '→'));
+  const btn = h('button', { class: 'cmt-send', type: 'submit' }, (parent ? t('js.cmt.sendReply') : t('js.cmt.send')), chevronEl());
   const f = h('form', { class: 'cmt-form' }, h('div', { class: 'cmt-row' }, name, email, url), text, trap, ts, h('div', { class: 'cmt-foot' }, msg, btn));
   let widget: { token(): string; reset(): void } | null = null;
   // 人机验证控件在第一次聚焦时才加载

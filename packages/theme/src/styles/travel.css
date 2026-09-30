@@ -58,7 +58,8 @@
 .strip-track{display:flex;align-items:flex-start;gap:clamp(8px,1vw,14px);width:max-content}
 .strip-track img{width:auto;max-width:none;height:calc(var(--sh)*var(--s,1));margin-top:calc(var(--sh)*var(--o,0))}
 .strip-ctl{margin-left:auto;display:flex;gap:4px}
-.strip-ctl button{width:28px;height:24px;border:1px solid var(--rule);border-radius:2px;color:var(--ink-2);font-size:14px;line-height:1}
+.strip-ctl button{width:28px;height:24px;border:1px solid var(--rule);border-radius:2px;color:var(--ink-2);display:grid;place-items:center}
+.strip-ctl .chev{margin:0;vertical-align:baseline}
 .strip-ctl button:hover{border-color:var(--ink-3);color:var(--ink)}
 
 /* ---------- 竖向 + 混合 ---------- */

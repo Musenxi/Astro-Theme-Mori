@@ -1,0 +1,7 @@
+---
+/** 箭头：一个画出来的 >（两臂夹角约 100°），颜色跟着文字；dir="left" 是镜像的 < */
+interface Props { dir?: 'left' | 'right' }
+const { dir = 'right' } = Astro.props;
+---
+
+<svg class:list={['chev', dir === 'left' && 'l']} viewBox="0 0 8 10" aria-hidden="true"><polyline points="2,1 5.4,5 2,9"></polyline></svg>

@@ -45,8 +45,8 @@
 .fo-cite dd{font-size:15px;line-height:1.6}
 .fo-cite .ttl dd{font-size:23px;letter-spacing:.06em;line-height:1.3;width:fit-content}
 .fo-go{white-space:nowrap;font-size:15px;padding-bottom:2px}
-.fo-go span{display:inline-block;color:var(--accent);transition:transform .5s var(--ease)}
-.fo-go:hover span{transform:translateX(5px)}
+.fo-go .chev{color:var(--accent);transition:transform .5s var(--ease)}
+.fo-go:hover .chev{transform:translateX(5px)}
 /* 进场（第一次打开）：图从上往下展开，引文一个字一个字像墨一样洇开，细线画开，最后出现篇名等信息 */
 .fo.play .fo-slide.on:not(.enter) .ph{animation:cover-in 1.4s var(--ease) .5s both}
 .fo.play .fo-slide.on .fo-q .ch{animation:ink 1s ease calc(.2s + var(--i)*40ms) both}
@@ -86,8 +86,6 @@
 .f-sh .ct{margin-left:auto;color:var(--ink-3);transition:color .3s}
 .f-sh h3{transition:color .3s}
 .f-sh:hover h3,.f-sh:hover .ct{color:var(--accent)}
-/* ›：两臂夹角约 100°，比字体里的 > 开得大；颜色跟着文字 */
-.chev{width:.6em;height:.75em;margin-left:.55em;vertical-align:-.06em;overflow:visible;fill:none;stroke:currentColor;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}
 .f-en a{display:grid;grid-template-columns:4.4em 1fr auto;column-gap:18px;align-items:baseline;padding:17px 0 19px;border-bottom:1px solid var(--rule)}
 .f-en .pn{font-family:var(--display);font-weight:300;font-size:36px;line-height:1;font-variant-numeric:oldstyle-nums;transition:color .3s}
 .f-en .tt{font-size:clamp(20px,1.75vw,26px);line-height:1.4;letter-spacing:.04em;width:fit-content;background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .6s var(--ease)}

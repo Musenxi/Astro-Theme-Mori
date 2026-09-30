@@ -36,8 +36,8 @@ li > .cmt-form{margin:8px 0 18px}
 .cmt-msg{color:var(--ink-3)}
 .cmt-msg.bad{color:#b0442b}
 .cmt-send{font-size:15px;letter-spacing:.06em;padding-bottom:2px}
-.cmt-send span{display:inline-block;color:var(--accent);transition:transform .5s var(--ease)}
-.cmt-send:hover span{transform:translateX(5px)}
+.cmt-send .chev{color:var(--accent);transition:transform .5s var(--ease)}
+.cmt-send:hover .chev{transform:translateX(5px)}
 .cmt-send[disabled]{opacity:.5;cursor:default}
 @media (max-width:760px){.cmt-row{grid-template-columns:1fr}.cmt-replies{margin-left:.4em}}
 
@@ -62,7 +62,7 @@ li > .cmt-form{margin:8px 0 18px}
 .anno-msg.bad{color:#b0442b}
 .anno-cancel{font-size:13px;color:var(--ink-3)}
 .anno-send{font-size:14px;letter-spacing:.06em}
-.anno-send span{color:var(--accent)}
+.anno-send .chev{color:var(--accent)}
 .anno-send[disabled]{opacity:.5}
 .anno-toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:42;padding:7px 16px;border-radius:999px;color:var(--ink-2);animation:anno-in .4s var(--ease) both;transition:opacity .5s}
 .anno-toast.out{opacity:0}
