@@ -51,17 +51,17 @@ export default function Taxonomy() {
       <Body>
         <Section title="分类" hint="顺序就是栏目在页面上的先后">
           <SortableList items={rows} getId={(r) => r.key} onReorder={setRows}>
-            <div className="mt-2 border-t border-rule">
+            <div className="space-y-1.5">
               {rows.map((r) => (
-                <SortableItem key={r.key} id={r.key} className="border-b border-rule bg-paper">
+                <SortableItem key={r.key} id={r.key} className="rounded-xl">
                   {(handle) => (
-                    <div className="flex items-center gap-2 py-2">
+                    <div className="flex items-center gap-2 rounded-xl px-1.5 py-1.5 transition-colors hover:bg-ink/[.035]">
                       {handle}
                       <Input className="w-36" value={r.zh} placeholder="中文名" onChange={(e) => put(r.key, { zh: e.target.value })} />
                       <Input className="w-40" value={r.en ?? ''} placeholder="English" onChange={(e) => put(r.key, { en: e.target.value })} />
                       <Input className="mono w-36" value={r.id} title="网址里用的英文名；改它会同时更新用到它的文章" onChange={(e) => put(r.key, { id: e.target.value.trim() })} />
                       <span className="mono w-14 text-right text-ink-3">{count(r.orig)} 篇</span>
-                      <Button variant="ghost" size="icon-sm" aria-label="删除分类" className="ml-auto" onClick={() => remove(r)}><Trash2 size={13} /></Button>
+                      <Button variant="ghost" size="icon-sm" aria-label="删除分类" className="ml-auto" onClick={() => remove(r)}><Trash2 size={14} /></Button>
                     </div>
                   )}
                 </SortableItem>
@@ -69,7 +69,7 @@ export default function Taxonomy() {
             </div>
           </SortableList>
           <div className="mt-3 flex items-center gap-4">
-            <Button variant="link" onClick={add}><Plus size={13} />添加分类</Button>
+            <Button variant="link" onClick={add}><Plus size={14} />添加分类</Button>
             <span className="text-[12px] text-ink-3">地址名是网址里用的英文名；改它会同时更新用到它的文章。</span>
           </div>
         </Section>
@@ -98,13 +98,13 @@ function TagSection() {
   return (
     <Section title="标签" hint={`${tags.length} 个 · 在文章的「信息」里给文章加标签`}>
       {tags.length === 0 ? <Empty>还没有标签。</Empty> : (
-        <div className="mt-2 border-t border-rule">
+        <div className="space-y-0.5">
           {tags.map(([t, n]) => (
-            <div key={t} className="flex items-center gap-4 border-b border-rule py-2.5">
-              <span className="flex-1">{t}</span>
+            <div key={t} className="group flex items-center gap-4 rounded-xl px-3 py-2.5 transition-colors hover:bg-ink/[.045]">
+              <span className="flex-1"><span className="rounded-full bg-ink/[.06] px-3 py-1 text-[13px]">{t}</span></span>
               <span className="mono text-ink-3">{n} 篇</span>
-              <Button variant="link" onClick={() => { setEditing(t); setName(t); }}>改名 / 合并</Button>
-              <Button variant="link" onClick={async () => { if (await confirm({ title: `删除标签「${t}」？`, description: `会从 ${n} 篇文章里去掉这个标签。`, confirmLabel: '删除', danger: true })) void rename(t, null); }}>删除</Button>
+              <Button variant="ghost" size="sm" className="opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100" onClick={() => { setEditing(t); setName(t); }}>改名 / 合并</Button>
+              <Button variant="danger" size="sm" className="opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100" onClick={async () => { if (await confirm({ title: `删除标签「${t}」？`, description: `会从 ${n} 篇文章里去掉这个标签。`, confirmLabel: '删除', danger: true })) void rename(t, null); }}>删除</Button>
             </div>
           ))}
         </div>

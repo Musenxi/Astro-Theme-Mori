@@ -32,9 +32,9 @@ function Shell() {
   if (error) return <div className="grid h-full place-items-center px-6 text-center text-ink-3">{(error as Error).message}</div>;
   if (isPending) return <div className="grid h-full place-items-center text-ink-3">读取项目……</div>;
   return (
-    <div className="flex h-full">
+    <div className="flex h-full gap-1 p-2">
       <Sidebar onCompose={() => setCompose(true)} onSearch={() => setPalette(true)} />
-      <main className="min-w-0 flex-1 overflow-y-auto">
+      <main className="min-w-0 flex-1 overflow-y-auto rounded-2xl bg-surface shadow-panel">
         <Suspense fallback={null}><Outlet context={{ compose: () => setCompose(true) }} /></Suspense>
       </main>
       <NewEntryDialog open={compose} onOpenChange={setCompose} />
@@ -74,7 +74,7 @@ export function App() {
       <TooltipProvider>
         <ConfirmProvider>
           <RouterProvider router={router} />
-          <Toaster position="bottom-center" toastOptions={{ classNames: { toast: '!rounded-sm !border !border-rule-2 !bg-surface !text-ink !shadow-none !font-sans !text-[13px]' } }} />
+          <Toaster position="bottom-center" toastOptions={{ classNames: { toast: '!rounded-xl !border-0 !bg-lift !text-ink !shadow-pop !font-sans !text-[13px]' } }} />
         </ConfirmProvider>
       </TooltipProvider>
     </QueryClientProvider>

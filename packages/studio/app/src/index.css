@@ -1,54 +1,87 @@
 @import "tailwindcss";
 
 /*
- * MORI Studio 的视觉：纸、墨、细线、一个强调色（用站点自己的主题色）。
- * 不用渐变、大圆角、阴影卡片；用间距和细线分层，动效只解释位置和状态。
+ * MORI Studio 的视觉：一块浮起来的浅色面板，坐在稍深一点的灰底上。
+ * 颜色克制：整体是中性偏暖的灰阶，墨色就是主色（主按钮、选中态都是墨色或灰底）；
+ * 站点主题色只留给很小的地方——键盘焦点、正文链接、编辑器光标和选区、拖放高亮。
+ * 分层靠底色深浅、留白和圆角面，不靠描边和阴影。
+ *
+ *   paper   最底层的底色（侧栏、窗口边缘）
+ *   surface 主面板（内容所在）
+ *   sunk    面板上的浅色块：输入框、卡片、分段选择的轨道
+ *   sunk-2  浅色块被悬停 / 按下
+ *   lift    浮在面板之上的东西：弹窗、菜单、分段选择里选中的那格
+ *   rule    极淡的分隔线（尽量不用）
  */
 :root {
-  --paper: #f3f0e8;
-  --surface: #faf8f2;
-  --sunk: #ebe7dc;
-  --ink: #1b1915;
-  --ink-2: #524d44;
-  --ink-3: #8a8377;
-  --rule: #d9d2c4;
-  --rule-2: #c4bcab;
+  --paper: #e9e9e6;
+  --surface: #fbfbfa;
+  --sunk: #f2f2f0;
+  --sunk-2: #e9e9e6;
+  --lift: #ffffff;
+  --ink: #1b1b19;
+  --ink-2: #565650;
+  --ink-3: #8e8e87;
+  --rule: rgb(27 27 25 / .07);
+  --rule-2: rgb(27 27 25 / .14);
   --accent-base: #002fa7;
   --accent: oklch(from var(--accent-base) min(l, .52) c h);
-  --danger: #a8402a;
-  --ok: #3f6b4f;
-  --warn: #93650f;
+  --on-accent: #ffffff;
+  --danger: #b3402f;
+  --ok: #5c8a6d;
+  --warn: #9a7430;
+  --field: var(--sunk);
+  --field-hover: var(--sunk-2);
+  --field-shadow: 0 0 0 0 transparent;
+  --scrim: rgb(27 27 25 / .28);
+  --sh-panel: 0 0 0 1px rgb(27 27 25 / .05), 0 1px 2px rgb(27 27 25 / .03);
+  --sh-soft: 0 0 0 1px rgb(27 27 25 / .05), 0 1px 2px rgb(27 27 25 / .06);
+  --sh-pop: 0 0 0 1px rgb(27 27 25 / .06), 0 2px 6px rgb(27 27 25 / .05), 0 14px 32px -12px rgb(27 27 25 / .2);
   color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --paper: #131210;
-  --surface: #1b1916;
-  --sunk: #23201c;
-  --ink: #ebe6db;
-  --ink-2: #b4ad9f;
-  --ink-3: #7c766a;
-  --rule: #2e2a25;
-  --rule-2: #3f3a32;
+  --paper: #0f0f0e;
+  --surface: #181817;
+  --sunk: #222220;
+  --sunk-2: #2c2c2a;
+  --lift: #333331;
+  --ink: #ededea;
+  --ink-2: #a6a6a0;
+  --ink-3: #6e6e68;
+  --rule: rgb(255 255 255 / .07);
+  --rule-2: rgb(255 255 255 / .14);
   --accent: oklch(from var(--accent-base) max(l, .7) min(c, .18) h);
-  --danger: #e08a70;
-  --ok: #8fbf9f;
-  --warn: #d8a94a;
+  --on-accent: #0b0d12;
+  --danger: #e58c78;
+  --ok: #86b596;
+  --warn: #cfa863;
+  --scrim: rgb(0 0 0 / .55);
+  --sh-panel: 0 0 0 1px rgb(255 255 255 / .05), 0 1px 2px rgb(0 0 0 / .3);
+  --sh-soft: 0 0 0 1px rgb(255 255 255 / .06), 0 1px 3px rgb(0 0 0 / .4);
+  --sh-pop: 0 0 0 1px rgb(255 255 255 / .09), 0 2px 6px rgb(0 0 0 / .3), 0 14px 32px -12px rgb(0 0 0 / .7);
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #131210;
-    --surface: #1b1916;
-    --sunk: #23201c;
-    --ink: #ebe6db;
-    --ink-2: #b4ad9f;
-    --ink-3: #7c766a;
-    --rule: #2e2a25;
-    --rule-2: #3f3a32;
+    --paper: #0f0f0e;
+    --surface: #181817;
+    --sunk: #222220;
+    --sunk-2: #2c2c2a;
+    --lift: #333331;
+    --ink: #ededea;
+    --ink-2: #a6a6a0;
+    --ink-3: #6e6e68;
+    --rule: rgb(255 255 255 / .07);
+    --rule-2: rgb(255 255 255 / .14);
     --accent: oklch(from var(--accent-base) max(l, .7) min(c, .18) h);
-    --danger: #e08a70;
-    --ok: #8fbf9f;
-    --warn: #d8a94a;
+    --on-accent: #0b0d12;
+    --danger: #e58c78;
+    --ok: #86b596;
+    --warn: #cfa863;
+    --scrim: rgb(0 0 0 / .55);
+    --sh-panel: 0 0 0 1px rgb(255 255 255 / .05), 0 1px 2px rgb(0 0 0 / .3);
+    --sh-soft: 0 0 0 1px rgb(255 255 255 / .06), 0 1px 3px rgb(0 0 0 / .4);
+    --sh-pop: 0 0 0 1px rgb(255 255 255 / .09), 0 2px 6px rgb(0 0 0 / .3), 0 14px 32px -12px rgb(0 0 0 / .7);
     color-scheme: dark;
   }
 }
@@ -57,33 +90,42 @@
   --color-paper: var(--paper);
   --color-surface: var(--surface);
   --color-sunk: var(--sunk);
+  --color-sunk-2: var(--sunk-2);
+  --color-lift: var(--lift);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
   --color-rule: var(--rule);
   --color-rule-2: var(--rule-2);
   --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
   --color-danger: var(--danger);
   --color-ok: var(--ok);
   --color-warn: var(--warn);
-  --font-sans: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  --color-scrim: var(--scrim);
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
   --font-serif: "Songti SC", "Noto Serif SC", "Source Han Serif SC", "STSong", serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --radius-xs: 2px;
-  --radius-sm: 3px;
-  --radius-md: 5px;
-  --radius-lg: 8px;
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --shadow-panel: var(--sh-panel);
+  --shadow-soft: var(--sh-soft);
+  --shadow-pop: var(--sh-pop);
   --ease-out: cubic-bezier(.2, .75, .15, 1);
   --animate-fade-in: fade-in .18s var(--ease-out) both;
-  --animate-rise: rise .32s var(--ease-out) both;
-  --animate-pop: pop .16s var(--ease-out) both;
-  --animate-slide-in: slide-in .28s var(--ease-out) both;
+  --animate-rise: rise .34s var(--ease-out) both;
+  --animate-pop: pop .18s var(--ease-out) both;
+  --animate-slide-in: slide-in .3s var(--ease-out) both;
 }
 
 @keyframes fade-in { from { opacity: 0 } to { opacity: 1 } }
-@keyframes rise { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
-@keyframes pop { from { opacity: 0; transform: scale(.97) } to { opacity: 1; transform: none } }
-@keyframes slide-in { from { transform: translateX(16px); opacity: 0 } to { transform: none; opacity: 1 } }
+@keyframes rise { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+@keyframes pop { from { opacity: 0; transform: translateY(-4px) scale(.965) } to { opacity: 1; transform: none } }
+@keyframes slide-in { from { transform: translateX(14px); opacity: 0 } to { transform: none; opacity: 1 } }
 
 @layer base {
   html, body, #root { height: 100%; }
@@ -96,12 +138,11 @@
   }
   button, input, select, textarea { font: inherit; color: inherit; }
   button { cursor: pointer; }
-  ::selection { background: color-mix(in srgb, var(--accent) 24%, transparent); }
-  :focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+  ::selection { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+  :focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent); outline-offset: 2px; }
 
   /* 细滚动条 */
   * { scrollbar-width: thin; scrollbar-color: var(--rule-2) transparent; }
-
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -109,7 +150,22 @@
 }
 
 @layer components {
-  .mono { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .04em; font-feature-settings: "tnum"; }
+  .mono { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .02em; font-feature-settings: "tnum"; }
   .serif { font-family: var(--font-serif); }
-  .label { font-size: 12px; color: var(--ink-3); letter-spacing: .04em; }
+  .label { font-size: 12px; color: var(--ink-3); }
+  /* 填充式输入框：平时是一块浅色底，聚焦时变亮，边缘出现一圈很淡的墨色（不用主题色） */
+  .field {
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    background: var(--field);
+    box-shadow: var(--field-shadow);
+    transition: background-color .15s, border-color .15s, box-shadow .15s;
+  }
+  .field:hover:not(:disabled) { background: var(--field-hover); }
+  .field:focus, .field:focus-within, .field[data-state="open"] {
+    outline: none;
+    background: var(--lift);
+    border-color: color-mix(in srgb, var(--ink) 26%, transparent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ink) 7%, transparent);
+  }
 }

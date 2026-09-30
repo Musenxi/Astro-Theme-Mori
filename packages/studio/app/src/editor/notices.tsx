@@ -6,7 +6,7 @@ export function Notices({ state }: { state: SaveState }) {
   const { errors, warnings } = state;
   if (!errors.length && !warnings.length) return null;
   return (
-    <div className="max-h-[30vh] shrink-0 space-y-3 overflow-auto border-b border-rule bg-sunk/40 px-8 py-3 text-[12.5px]">
+    <div className="mx-5 mb-2 max-h-[30vh] shrink-0 space-y-3 overflow-auto rounded-xl bg-sunk/70 px-5 py-3.5 text-[12.5px]">
       {errors.length > 0 && (
         <div className="flex gap-2.5">
           <AlertTriangle size={15} className="mt-0.5 shrink-0 text-danger" />

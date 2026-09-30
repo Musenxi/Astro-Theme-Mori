@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Body, Empty, PageHeader } from '@/components/ui/page';
+import { Segmented } from '@/components/ui/segmented';
 
 const TABS = [['pending', '待审'], ['approved', '已通过'], ['hidden', '已隐藏']] as const;
 type Tab = (typeof TABS)[number][0];
@@ -46,7 +47,7 @@ function Token({ wrong }: { wrong?: boolean }) {
             <Button variant="primary" className="mt-3" onClick={() => save('dev-token')}>使用 dev-token</Button>
           </div>
         ) : <p className="mb-6 leading-relaxed text-ink-2">评论服务：<span className="mono">{c.endpoint}</span>。管理令牌是部署评论服务时设置的那一个。</p>}
-        {wrong && <p className="mb-4 border border-danger/40 px-3 py-2 text-danger">令牌不对，评论服务拒绝了。{local && '如果你是自己用别的令牌启动的服务，请填那个。'}</p>}
+        {wrong && <p className="mb-4 rounded-lg bg-sunk px-3.5 py-2.5 text-danger">令牌不对，评论服务拒绝了。{local && '如果你是自己用别的令牌启动的服务，请填那个。'}</p>}
         <form className="flex max-w-md gap-2" onSubmit={(e) => { e.preventDefault(); if (token) void save(token); }}>
           <Input type="password" value={token} onChange={(e) => setToken(e.target.value)} placeholder="管理令牌" />
           <Button type="submit" disabled={!token}>保存</Button>
@@ -79,32 +80,31 @@ function List() {
     <>
       <PageHeader title="评论" sub={stats.data ? `待审 ${stats.data.pending} · 已通过 ${stats.data.approved} · 已隐藏 ${stats.data.hidden}` : undefined} actions={<Button variant="ghost" size="sm" onClick={() => void reload()}><RefreshCw size={14} className={cn(list.isFetching && 'animate-spin')} />刷新</Button>} />
       <Body>
-        <div className="mb-2 flex gap-6 border-b border-rule">
-          {TABS.map(([k, n]) => (
-            <button key={k} type="button" onClick={() => setTab(k)} className={cn('-mb-px border-b-2 pb-2 text-[13.5px] transition-colors', tab === k ? 'border-accent text-ink' : 'border-transparent text-ink-3 hover:text-ink')}>
-              {n}{stats.data && stats.data[k] ? <span className="mono ml-1.5 text-[11px] text-ink-3">{stats.data[k]}</span> : null}
-            </button>
+        <Segmented className="mb-4" value={tab} onValueChange={setTab} options={TABS.map(([k, n]) => ({ value: k, label: stats.data && stats.data[k] ? `${n} ${stats.data[k]}` : n }))} />
+        {list.error && !(list.error instanceof ApiError && list.error.status === 401) && <p className="my-4 rounded-lg bg-sunk px-3.5 py-2.5 text-danger">{(list.error as Error).message}</p>}
+        <div className="space-y-3">
+          {rows.map((m) => (
+            <article key={m.id} className="flex gap-3.5 rounded-2xl bg-sunk/70 p-4 transition-colors hover:bg-sunk">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink/[.07] text-[14px] font-medium text-ink-2">{[...(m.name || '?')][0]}</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-ink-3">
+                  <b className="font-medium text-ink">{m.name}</b>
+                  <span className="mono text-[11.5px]">{when(m.createdAt)}</span>
+                  <span className="text-[12.5px]">{title(m.entry)}</span>
+                  {m.block && <span className="rounded-full bg-ink/[.07] px-2 py-px text-[11px] text-ink-2">批注</span>}
+                  {m.parentId && <span className="mono rounded-full bg-ink/[.06] px-2 py-px text-[11px]">回复 #{m.parentId}</span>}
+                </div>
+                {m.quote && <blockquote className="my-2.5 rounded-lg bg-ink/[.05] px-3.5 py-2 text-[13px] text-ink-2">{m.quote}</blockquote>}
+                <p className="my-1.5 whitespace-pre-wrap break-words">{m.body}</p>
+                <div className="-ml-2.5 mt-2 flex gap-1">
+                  {m.status !== 'approved' && <Button variant="ghost" size="sm" onClick={() => act(() => api.setCommentStatus(m.id, 'approved'))}><Check size={14} />通过</Button>}
+                  {m.status !== 'hidden' && <Button variant="ghost" size="sm" onClick={() => act(() => api.setCommentStatus(m.id, 'hidden'))}><EyeOff size={14} />隐藏</Button>}
+                  <Button variant="ghost" size="sm" className="hover:bg-ink/[.06] hover:text-danger" onClick={async () => { if (await confirm({ title: '永久删除这条评论？', description: '它下面的回复也会一起删除，不能恢复。', confirmLabel: '删除', danger: true })) void act(() => api.removeComment(m.id)); }}><Trash2 size={14} />删除</Button>
+                </div>
+              </div>
+            </article>
           ))}
         </div>
-        {list.error && !(list.error instanceof ApiError && list.error.status === 401) && <p className="my-4 border border-danger/40 px-3 py-2 text-danger">{(list.error as Error).message}</p>}
-        {rows.map((m) => (
-          <article key={m.id} className="border-b border-rule py-4">
-            <div className="flex flex-wrap items-baseline gap-x-3 text-ink-3">
-              <b className="font-normal text-ink">{m.name}</b>
-              <span className="mono text-[11.5px]">{when(m.createdAt)}</span>
-              <span className="text-[12.5px]">{title(m.entry)}</span>
-              {m.block && <span className="mono text-[11px] text-accent">批注</span>}
-              {m.parentId && <span className="mono text-[11px]">回复 #{m.parentId}</span>}
-            </div>
-            {m.quote && <blockquote className="my-2 border-l border-accent pl-3 text-[13px] text-ink-2">{m.quote}</blockquote>}
-            <p className="my-1.5 whitespace-pre-wrap break-words">{m.body}</p>
-            <div className="mt-2 flex gap-4">
-              {m.status !== 'approved' && <Button variant="link" onClick={() => act(() => api.setCommentStatus(m.id, 'approved'))}><Check size={13} />通过</Button>}
-              {m.status !== 'hidden' && <Button variant="link" onClick={() => act(() => api.setCommentStatus(m.id, 'hidden'))}><EyeOff size={13} />隐藏</Button>}
-              <Button variant="link" onClick={async () => { if (await confirm({ title: '永久删除这条评论？', description: '它下面的回复也会一起删除，不能恢复。', confirmLabel: '删除', danger: true })) void act(() => api.removeComment(m.id)); }}><Trash2 size={13} />删除</Button>
-            </div>
-          </article>
-        ))}
         {!list.isPending && rows.length === 0 && <Empty>这里没有评论。</Empty>}
       </Body>
     </>

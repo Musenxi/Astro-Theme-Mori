@@ -56,17 +56,17 @@ export function MarkdownView({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) 
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex shrink-0 items-center gap-0.5 border-b border-rule px-6 py-1.5">
+      <div className="mx-5 flex shrink-0 items-center gap-0.5 rounded-full bg-sunk/70 px-2 py-1">
         {TOOLS.map((t) => (
-          <span key={t.cmd} className={t.gap ? 'ml-3 border-l border-rule pl-3' : ''}>
+          <span key={t.cmd} className={t.gap ? 'ml-3' : ''}>
             <Tip label={t.key ? `${t.label}　${t.key}` : t.label}>
-              <button type="button" aria-label={t.label} onMouseDown={(e) => e.preventDefault()} onClick={() => run(t.cmd)} className="grid h-7 w-7 place-items-center rounded-sm text-ink-3 transition-colors hover:bg-sunk hover:text-ink active:translate-y-px">
+              <button type="button" aria-label={t.label} onMouseDown={(e) => e.preventDefault()} onClick={() => run(t.cmd)} className="grid h-7 w-7 place-items-center rounded-full text-ink-2 transition-[background-color,color,transform] hover:bg-lift hover:text-ink hover:shadow-soft active:scale-90">
                 <t.icon size={15} />
               </button>
             </Tip>
           </span>
         ))}
-        <span className="mono ml-auto text-[11px] text-ink-3">{wan(words)} 字 · {doc.blocks?.length ?? 0} 块</span>
+        <span className="mono ml-auto pr-2 text-[11px] text-ink-3">{wan(words)} 字 · {doc.blocks?.length ?? 0} 块</span>
       </div>
       <div ref={host} className="min-h-0 flex-1" />
       <AssetDialog open={lib} onOpenChange={setLib} onPick={(n) => { ed.current?.insertBlock(`![](${n})`); setLib(false); }} />

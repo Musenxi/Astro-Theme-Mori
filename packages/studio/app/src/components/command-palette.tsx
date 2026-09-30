@@ -65,21 +65,21 @@ export function CommandPalette({ open, onOpenChange, onCompose }: { open: boolea
   return (
     <D.Root open={open} onOpenChange={onOpenChange}>
       <D.Portal>
-        <D.Overlay className="fixed inset-0 z-40 bg-paper/60 backdrop-blur-md data-[state=open]:animate-fade-in" />
-        <D.Content aria-describedby={undefined} className="fixed left-1/2 top-[14vh] z-50 w-[min(34rem,calc(100vw-2rem))] -translate-x-1/2 border border-rule-2 bg-surface outline-none data-[state=open]:animate-pop">
+        <D.Overlay className="fixed inset-0 z-40 bg-scrim backdrop-blur-[3px] data-[state=open]:animate-fade-in" />
+        <D.Content aria-describedby={undefined} className="fixed left-1/2 top-[14vh] z-50 w-[min(34rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-2xl bg-lift shadow-pop outline-none data-[state=open]:animate-pop">
           <D.Title className="sr-only">搜索</D.Title>
-          <div className="flex items-center gap-2.5 border-b border-rule px-4">
-            <Search size={15} className="text-ink-3" />
-            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey} placeholder="跳到文章、页面或功能……" className="h-11 flex-1 bg-transparent text-[14px] outline-none placeholder:text-ink-3/70" />
-            <kbd className="mono rounded-xs border border-rule-2 px-1.5 text-[10.5px] text-ink-3">esc</kbd>
+          <div className="flex items-center gap-3 border-b border-rule px-5">
+            <Search size={16} className="text-ink-3" />
+            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey} placeholder="跳到文章、页面或功能……" className="h-14 flex-1 bg-transparent text-[15px] outline-none placeholder:text-ink-3/70" />
+            <kbd className="mono rounded-xs bg-ink/[.06] px-1.5 py-px text-[10.5px] text-ink-3">esc</kbd>
           </div>
-          <div ref={list} className="max-h-[52vh] overflow-y-auto p-1.5">
+          <div ref={list} className="max-h-[52vh] overflow-y-auto p-2">
             {shown.length === 0 && <p className="px-3 py-8 text-center text-ink-3">没有匹配的。</p>}
             {shown.map((it, i) => (
               <div key={it.key}>
-                {(i === 0 || shown[i - 1].group !== it.group) && <div className="px-3 pb-1 pt-2.5 text-[11px] tracking-[.2em] text-ink-3">{it.group}</div>}
-                <button type="button" data-active={i === active} onMouseMove={() => setActive(i)} onClick={it.run} className={cn('flex h-9 w-full items-center gap-3 rounded-sm px-3 text-left transition-colors', i === active ? 'bg-sunk text-ink' : 'text-ink-2')}>
-                  <it.icon size={15} className="shrink-0 text-ink-3" />
+                {(i === 0 || shown[i - 1].group !== it.group) && <div className="px-3 pb-1.5 pt-3 text-[11.5px] font-medium text-ink-3">{it.group}</div>}
+                <button type="button" data-active={i === active} onMouseMove={() => setActive(i)} onClick={it.run} className={cn('flex h-10 w-full items-center gap-3 rounded-lg px-2.5 text-left transition-colors', i === active ? 'bg-ink/[.06] text-ink' : 'text-ink-2')}>
+                  <span className={cn('grid h-6 w-6 shrink-0 place-items-center rounded-md transition-colors', i === active ? 'bg-ink/[.08] text-ink' : 'bg-ink/[.04] text-ink-3')}><it.icon size={14} /></span>
                   <span className="flex-1 truncate">{it.label}</span>
                   {it.hint && <span className="mono shrink-0 text-[11px] text-ink-3">{it.hint}</span>}
                   {i === active && <CornerDownLeft size={13} className="shrink-0 text-ink-3" />}

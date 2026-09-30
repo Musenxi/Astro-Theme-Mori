@@ -9,8 +9,8 @@ import { useProject } from '@/lib/hooks';
 import type { Doc, Kind } from '@/lib/types';
 
 const Group = ({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) => (
-  <section className="mt-6 border-t border-ink pt-3 first:mt-0 first:border-t-0 first:pt-0">
-    <h3 className="mb-1 flex items-center justify-between text-[12px] tracking-[.22em] text-ink-3">{title}{action}</h3>
+  <section className="mt-8 first:mt-0">
+    <h3 className="mb-2 flex min-h-6 items-center justify-between text-[14px] font-semibold">{title}{action}</h3>
     {children}
   </section>
 );
@@ -71,17 +71,17 @@ export function InfoPanel({ kind, doc, set }: { kind: Kind; doc: Doc; set: (patc
                   <div key={i} className="flex gap-1.5">
                     <Input className="w-20" value={m.label} placeholder="标签" onChange={(e) => setPin({ meta: pin.meta.map((x: Doc, k: number) => (k === i ? { ...x, label: e.target.value } : x)) })} />
                     <Input value={m.value} placeholder="内容" onChange={(e) => setPin({ meta: pin.meta.map((x: Doc, k: number) => (k === i ? { ...x, value: e.target.value } : x)) })} />
-                    <Button variant="ghost" size="icon-sm" aria-label="删除" onClick={() => setPin({ meta: pin.meta.filter((_: unknown, k: number) => k !== i) })}><Trash2 size={13} /></Button>
+                    <Button variant="ghost" size="icon-sm" aria-label="删除" onClick={() => setPin({ meta: pin.meta.filter((_: unknown, k: number) => k !== i) })}><Trash2 size={14} /></Button>
                   </div>
                 ))}
-                {(pin.meta ?? []).length < 3 && <Button variant="link" onClick={() => setPin({ meta: [...(pin.meta ?? []), { label: '', value: '' }] })}><Plus size={13} />添加一条</Button>}
+                {(pin.meta ?? []).length < 3 && <Button variant="link" onClick={() => setPin({ meta: [...(pin.meta ?? []), { label: '', value: '' }] })}><Plus size={14} />添加一条</Button>}
               </div>
             </Field>
             <Field label="封面图" hint="不选就用文章封面"><ImageField value={pin.image} onChange={(v) => setPin({ image: v })} /></Field>
             <Field label="图片说明"><Input value={pin.alt ?? ''} onChange={(e) => setPin({ alt: e.target.value || undefined })} /></Field>
             <Field label="淡出强度">
               <div className="flex items-center gap-3">
-                <input type="range" min={0} max={1} step={0.05} value={pin.fade ?? 0.5} onChange={(e) => setPin({ fade: +e.target.value })} className="h-1 flex-1 accent-[var(--accent)]" />
+                <input type="range" min={0} max={1} step={0.05} value={pin.fade ?? 0.5} onChange={(e) => setPin({ fade: +e.target.value })} className="h-1 flex-1 accent-[var(--ink)]" />
                 <span className="mono w-8 text-right text-ink-3">{(pin.fade ?? 0.5).toFixed(2)}</span>
               </div>
             </Field>
@@ -111,23 +111,23 @@ function TravelExtras({ doc, set }: { doc: Doc; set: (patch: Doc) => void }) {
         <Field label="允许读者选">
           <div className="flex gap-4 pt-1">
             {MODES.map(([m, n]) => (
-              <label key={m} className="flex cursor-pointer items-center gap-1.5 text-[13px]"><input type="checkbox" checked={r.allowed.includes(m)} onChange={() => toggle(m)} className="accent-[var(--accent)]" />{n}</label>
+              <label key={m} className="flex cursor-pointer items-center gap-1.5 text-[13px]"><input type="checkbox" checked={r.allowed.includes(m)} onChange={() => toggle(m)} className="accent-[var(--ink)]" />{n}</label>
             ))}
           </div>
         </Field>
         <Field label="默认"><Select value={r.default} onValueChange={(v) => put({ default: v })} options={MODES.filter(([m]) => r.allowed.includes(m)).map(([m, n]) => ({ value: m, label: n }))} /></Field>
         <Field label="横滚方向"><Select value={r.direction} onValueChange={(v) => put({ direction: v })} options={[{ value: 'ltr', label: '左 → 右' }, { value: 'rtl', label: '右 → 左（手卷）' }]} /></Field>
       </Group>
-      <Group title="事实" action={<span className="normal-case tracking-normal">封面里的“路线 / 日期 / 里程”</span>}>
+      <Group title="事实" action={<span className="text-[12px] font-normal text-ink-3">封面里的“路线 / 日期 / 里程”</span>}>
         <div className="space-y-1.5 py-1">
           {facts.map((f, i) => (
             <div key={i} className="flex gap-1.5">
               <Input className="w-20" value={f.label} placeholder="标签" onChange={(e) => setFacts(facts.map((x, k) => (k === i ? { ...x, label: e.target.value } : x)))} />
               <Input value={f.value} placeholder="内容" onChange={(e) => setFacts(facts.map((x, k) => (k === i ? { ...x, value: e.target.value } : x)))} />
-              <Button variant="ghost" size="icon-sm" aria-label="删除" onClick={() => setFacts(facts.filter((_, k) => k !== i))}><Trash2 size={13} /></Button>
+              <Button variant="ghost" size="icon-sm" aria-label="删除" onClick={() => setFacts(facts.filter((_, k) => k !== i))}><Trash2 size={14} /></Button>
             </div>
           ))}
-          <Button variant="link" onClick={() => setFacts([...facts, { label: '', value: '' }])}><Plus size={13} />添加一条</Button>
+          <Button variant="link" onClick={() => setFacts([...facts, { label: '', value: '' }])}><Plus size={14} />添加一条</Button>
         </div>
       </Group>
     </>

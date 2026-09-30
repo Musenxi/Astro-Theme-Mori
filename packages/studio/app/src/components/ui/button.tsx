@@ -3,17 +3,18 @@ import { forwardRef, type ButtonHTMLAttributes } from 'react';
 import { cn } from '@/lib/cn';
 
 const button = cva(
-  'inline-flex shrink-0 select-none items-center justify-center gap-1.5 whitespace-nowrap text-[13px] transition-[background-color,color,border-color,transform,opacity] duration-150 active:translate-y-px disabled:pointer-events-none disabled:opacity-40',
+  'inline-flex shrink-0 select-none items-center justify-center gap-1.5 whitespace-nowrap text-[13px] font-medium transition-[background-color,color,box-shadow,transform,opacity] duration-150 active:scale-[.97] disabled:pointer-events-none disabled:opacity-40',
   {
     variants: {
       variant: {
-        primary: 'bg-ink text-paper hover:bg-ink/85',
-        secondary: 'border border-rule-2 hover:border-ink-3 hover:bg-sunk',
-        ghost: 'text-ink-2 hover:bg-sunk hover:text-ink',
-        danger: 'border border-danger/40 text-danger hover:bg-danger/10',
-        link: 'h-auto px-0 text-ink-2 underline decoration-rule-2 underline-offset-4 hover:text-accent hover:decoration-accent',
+        primary: 'bg-ink text-surface hover:bg-ink/85',
+        secondary: 'bg-ink/[.06] text-ink hover:bg-ink/[.1]',
+        ghost: 'text-ink-2 hover:bg-ink/[.06] hover:text-ink',
+        danger: 'bg-ink/[.06] text-danger hover:bg-ink/[.1]',
+        destructive: 'bg-danger text-surface hover:opacity-90',
+        link: 'h-8 rounded-md px-2.5 text-ink-2 hover:bg-ink/[.06] hover:text-ink',
       },
-      size: { sm: 'h-7 rounded-sm px-2.5', md: 'h-8 rounded-sm px-3.5', icon: 'h-8 w-8 rounded-sm', 'icon-sm': 'h-7 w-7 rounded-sm' },
+      size: { sm: 'h-8 rounded-md px-3', md: 'h-9 rounded-md px-4', icon: 'h-9 w-9 rounded-full', 'icon-sm': 'h-8 w-8 rounded-full' },
     },
     defaultVariants: { variant: 'secondary', size: 'md' },
   },
@@ -22,6 +23,6 @@ const button = cva(
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof button> {}
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({ className, variant, size, type = 'button', ...props }, ref) => (
-  <button ref={ref} type={type} className={cn(button({ variant, size }), variant === 'link' && 'h-auto', className)} {...props} />
+  <button ref={ref} type={type} className={cn(button({ variant, size }), className)} {...props} />
 ));
 Button.displayName = 'Button';

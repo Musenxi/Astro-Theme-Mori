@@ -14,7 +14,7 @@ export function InlineField({ value, onChange, rows = 2, placeholder, className 
   return (
     <Textarea
       ref={ref} rows={rows} value={text} placeholder={placeholder} spellCheck={false}
-      className={cn('resize-none overflow-hidden border-transparent bg-transparent hover:border-rule-2 focus:bg-surface', className)}
+      className={cn('resize-none overflow-hidden bg-transparent shadow-none hover:bg-ink/[.04] focus:bg-lift', className)}
       onChange={(e) => { setText(e.target.value); onChange(compact(textToSpans(e.target.value))); }}
     />
   );

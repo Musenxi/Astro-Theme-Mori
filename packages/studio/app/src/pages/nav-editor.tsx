@@ -57,25 +57,25 @@ export default function NavEditor() {
       <Body>
         <p className="mb-6 max-w-xl text-[12.5px] leading-relaxed text-ink-3">网站顶部那颗玻璃胶囊里放哪些入口，由你决定。{!custom && '现在用的是默认：文章、归档，再加上所有已发布的页面；改动保存之后就完全按你的设置来。'}</p>
 
-        <div className="mb-8 flex justify-center border border-rule bg-sunk/40 py-8">
-          <div className="flex items-center gap-1 rounded-full border border-rule-2 bg-surface/70 p-1 backdrop-blur">
-            {rows.length ? rows.map((r, i) => <span key={r.key} className={i === 0 ? 'rounded-full bg-sunk px-3.5 py-1 text-[13px] tracking-[.14em]' : 'px-3.5 py-1 text-[13px] tracking-[.14em] text-ink-2'}>{r.label || '·'}</span>) : <span className="px-3.5 py-1 text-ink-3">空</span>}
+        <div className="mb-8 flex justify-center rounded-2xl bg-sunk/70 py-9">
+          <div className="flex items-center gap-1 rounded-full bg-lift/80 p-1 shadow-pop backdrop-blur">
+            {rows.length ? rows.map((r, i) => <span key={r.key} className={i === 0 ? 'rounded-full bg-ink/[.07] px-4 py-1.5 text-[13px]' : 'px-4 py-1.5 text-[13px] text-ink-2'}>{r.label || '·'}</span>) : <span className="px-4 py-1.5 text-ink-3">空</span>}
           </div>
         </div>
 
         <Section title="入口" hint="拖动排序 · 最多 10 个">
           <SortableList items={rows} getId={(r) => r.key} onReorder={setRows}>
-            <div className="mt-2 border-t border-rule">
+            <div className="space-y-1.5">
               {rows.map((r) => {
                 const known = candidates.find((c) => c.href === r.href);
                 return (
-                  <SortableItem key={r.key} id={r.key} className="border-b border-rule bg-paper">
+                  <SortableItem key={r.key} id={r.key} className="rounded-xl">
                     {(handle) => (
-                      <div className="flex items-center gap-2 py-2">
+                      <div className="flex items-center gap-2 rounded-xl px-1.5 py-1.5 transition-colors hover:bg-ink/[.035]">
                         {handle}
                         <Input className="w-40" value={r.label} placeholder="名字" onChange={(e) => put(r.key, { label: e.target.value })} />
-                        {known ? <span className="mono flex-1 truncate text-ink-3">{r.href}<span className="ml-2 text-[10.5px]">{known.group}</span></span> : <Input className="mono flex-1" value={r.href} placeholder="/about/ 或 https://……" onChange={(e) => put(r.key, { href: e.target.value })} />}
-                        <Button variant="ghost" size="icon-sm" aria-label="移除入口" onClick={() => setRows(rows.filter((x) => x.key !== r.key))}><Trash2 size={13} /></Button>
+                        {known ? <span className="mono flex-1 truncate text-ink-3">{r.href}<span className="ml-2 rounded-full bg-ink/[.06] px-2 py-px text-[10.5px]">{known.group}</span></span> : <Input className="mono flex-1" value={r.href} placeholder="/about/ 或 https://……" onChange={(e) => put(r.key, { href: e.target.value })} />}
+                        <Button variant="ghost" size="icon-sm" aria-label="移除入口" onClick={() => setRows(rows.filter((x) => x.key !== r.key))}><Trash2 size={14} /></Button>
                       </div>
                     )}
                   </SortableItem>

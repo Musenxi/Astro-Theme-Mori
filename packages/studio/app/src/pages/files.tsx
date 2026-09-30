@@ -47,25 +47,25 @@ export default function Files() {
         <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => { void upload([...(e.target.files ?? [])]); e.target.value = ''; }} />
         <Button variant="primary" onClick={() => input.current?.click()} disabled={busy}><Upload size={14} />{busy ? '上传中……' : '上传图片'}</Button>
       </>} />
-      <Body wide className={cn('transition-colors', over && 'bg-accent/5')}>
+      <Body wide className={cn('rounded-2xl transition-[background-color,box-shadow]', over && 'bg-ink/[.03] ring-2 ring-ink/20')}>
         <div className="mb-5 flex items-center gap-3">
-          <Input className="w-56" value={q} onChange={(e) => setQ(e.target.value)} placeholder="按文件名找" />
+          <Input className="w-56 rounded-full px-4" value={q} onChange={(e) => setQ(e.target.value)} placeholder="按文件名找" />
           <Segmented size="sm" value={view} onValueChange={setView} options={[{ value: 'all', label: '全部' }, { value: 'unused', label: '没被引用' }]} />
           <span className="ml-auto text-[12px] text-ink-3">{over ? '松手上传' : '也可以把图片直接拖到这一页'}</span>
         </div>
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(11rem,1fr))] gap-x-4 gap-y-6">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(11.5rem,1fr))] gap-4">
           {list.map((a) => (
-            <figure key={a.name} className="group">
-              <div className="relative overflow-hidden border border-rule bg-sunk">
+            <figure key={a.name} className="group rounded-2xl bg-sunk/70 p-2 transition-colors hover:bg-sunk">
+              <div className="relative overflow-hidden rounded-xl bg-sunk-2">
                 <img loading="lazy" src={assetUrl(a.name, 360)} alt="" className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
-                <button type="button" aria-label={`删除 ${a.name}`} onClick={() => remove(a)} className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-sm bg-paper/80 text-ink-3 opacity-0 backdrop-blur transition-opacity hover:text-danger focus:opacity-100 group-hover:opacity-100"><Trash2 size={13} /></button>
+                <button type="button" aria-label={`删除 ${a.name}`} onClick={() => remove(a)} className="absolute right-1.5 top-1.5 grid h-8 w-8 place-items-center rounded-full bg-lift/90 text-ink-2 opacity-0 shadow-soft backdrop-blur transition-opacity hover:text-danger focus:opacity-100 group-hover:opacity-100"><Trash2 size={13} /></button>
               </div>
-              <figcaption className="mt-1.5">
+              <figcaption className="px-1.5 pb-1 pt-2">
                 <div className="mono truncate text-[11.5px]" title={a.name}>{a.name}</div>
                 <div className="mono text-[10.5px] text-ink-3">{a.width && a.height ? `${a.width}×${a.height} · ` : ''}{size(a.size)}</div>
                 <div className="mt-0.5 text-[12px]">
                   {a.usedBy.length === 0 ? <span className="text-ink-3">没被引用</span> : (
-                    <span className="text-ink-2">被引用：{a.usedBy.slice(0, 2).map((r, i) => <span key={r.kind + r.id}>{i > 0 && '、'}<Link to={href(r)} className="underline decoration-rule-2 underline-offset-2 hover:text-accent">{r.title}</Link></span>)}{a.usedBy.length > 2 && ` 等 ${a.usedBy.length} 处`}</span>
+                    <span className="text-ink-2">被引用：{a.usedBy.slice(0, 2).map((r, i) => <span key={r.kind + r.id}>{i > 0 && '、'}<Link to={href(r)} className="text-ink underline decoration-ink/20 underline-offset-2 hover:decoration-ink">{r.title}</Link></span>)}{a.usedBy.length > 2 && ` 等 ${a.usedBy.length} 处`}</span>
                   )}
                 </div>
               </figcaption>

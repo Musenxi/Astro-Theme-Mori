@@ -8,6 +8,7 @@ import { cn } from '@/lib/cn';
 import { useProject, useRefresh } from '@/lib/hooks';
 import type { Doc, Kind } from '@/lib/types';
 import { Button } from '@/components/ui/button';
+import { onCard } from '@/components/ui/page';
 import { Segmented } from '@/components/ui/segmented';
 import { InfoPanel } from '@/editor/info-panel';
 import { Notices } from '@/editor/notices';
@@ -55,18 +56,18 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex min-h-[3.25rem] shrink-0 items-center gap-4 border-b border-rule bg-paper px-6 py-2">
-        <Link to={routeKind === 'page' ? '/pages' : '/posts'} className="flex items-center gap-1 text-ink-3 transition-colors hover:text-ink"><ChevronLeft size={16} />{routeKind === 'page' ? '页面' : '文章'}</Link>
-        <h1 className="serif min-w-0 flex-1 truncate text-[16px] tracking-[.1em]">{doc.title || id}</h1>
-        <span className={cn('mono flex items-center gap-1.5 text-[11.5px]', state.status === 'error' || state.errors.length ? 'text-danger' : 'text-ink-3')}>
-          <i className={cn('h-1.5 w-1.5 rounded-full', state.status === 'saved' ? 'bg-ok' : state.status === 'error' ? 'bg-danger' : 'animate-pulse bg-warn')} />{status}
+      <header className="flex min-h-[4rem] shrink-0 items-center gap-3 px-5 py-2">
+        <Link to={routeKind === 'page' ? '/pages' : '/posts'} className="flex h-8 items-center gap-0.5 rounded-full pl-2 pr-3.5 text-ink-2 transition-colors hover:bg-ink/[.06] hover:text-ink"><ChevronLeft size={16} />{routeKind === 'page' ? '页面' : '文章'}</Link>
+        <h1 className="min-w-0 flex-1 truncate text-[17px] font-semibold tracking-tight">{doc.title || id}</h1>
+        <span className={cn('flex items-center gap-2 rounded-full px-3 py-1 text-[12px] transition-colors', state.status === 'error' || state.errors.length ? 'bg-sunk text-danger' : 'bg-ink/[.05] text-ink-3')}>
+          <i className={cn('h-1.5 w-1.5 rounded-full', state.status === 'saved' ? 'bg-ink-3/60' : state.status === 'error' ? 'bg-danger' : 'animate-pulse bg-ink-2')} />{status}
         </span>
         <Segmented size="sm" value={mode} onValueChange={setMode} options={modes} />
-        <Button variant={panel === 'info' ? 'primary' : 'secondary'} size="sm" onClick={() => setPanel(panel === 'info' ? null : 'info')}><PanelRight size={14} />信息</Button>
-        <Button variant={panel === 'preview' ? 'primary' : 'secondary'} size="sm" onClick={() => setPanel(panel === 'preview' ? null : 'preview')}><Eye size={14} />预览</Button>
+        <Button size="sm" className={cn(panel === 'info' && 'bg-ink/[.14] hover:bg-ink/[.18]')} onClick={() => setPanel(panel === 'info' ? null : 'info')}><PanelRight size={14} />信息</Button>
+        <Button size="sm" className={cn(panel === 'preview' && 'bg-ink/[.14] hover:bg-ink/[.18]')} onClick={() => setPanel(panel === 'preview' ? null : 'preview')}><Eye size={14} />预览</Button>
       </header>
       <Notices state={state} />
-      {state.status === 'error' && <p className="shrink-0 border-b border-danger/40 bg-danger/5 px-8 py-2 text-[12.5px] text-danger">没能保存：{state.message}。内容还在这个页面里，修好之后会自动重试。</p>}
+      {state.status === 'error' && <p className="mx-5 mb-2 shrink-0 rounded-xl bg-sunk px-4 py-2.5 text-[12.5px] text-danger">没能保存：{state.message}。内容还在这个页面里，修好之后会自动重试。</p>}
       <div className="flex min-h-0 flex-1">
         <div className="min-w-0 flex-1">
           <Suspense fallback={<div className="grid h-full place-items-center text-ink-3">载入编辑器……</div>}>
@@ -76,10 +77,10 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
           </Suspense>
         </div>
         {panel === 'info' && (
-          <aside className="w-[26rem] shrink-0 animate-slide-in overflow-y-auto border-l border-rule bg-paper"><InfoPanel kind={kind} doc={doc} set={patch} /></aside>
+          <aside className={cn('mb-2 mr-2 w-[26rem] shrink-0 animate-slide-in overflow-y-auto rounded-2xl bg-sunk/60', onCard)}><InfoPanel kind={kind} doc={doc} set={patch} /></aside>
         )}
         {panel === 'preview' && project && (
-          <aside className="w-[46%] min-w-[24rem] shrink-0 animate-slide-in border-l border-rule bg-paper">
+          <aside className="mb-2 mr-2 w-[46%] min-w-[24rem] shrink-0 animate-slide-in overflow-hidden rounded-2xl bg-sunk/60">
             <Preview base={project.preview.url} path={path} nonce={previewKey} onRefresh={() => setPreviewKey((k) => k + 1)} onStarted={() => void refresh()} />
           </aside>
         )}
@@ -111,12 +112,12 @@ function Preview({ base, path, nonce, onRefresh, onStarted }: { base: string | n
   }
   return (
     <div className="flex h-full flex-col">
-      <div className="mono flex shrink-0 items-center gap-2 border-b border-rule px-4 py-1.5 text-[11.5px] text-ink-3">
-        <span className="flex-1 truncate">{path}</span>
-        <button type="button" aria-label="刷新" className="hover:text-ink" onClick={onRefresh}><RefreshCw size={13} /></button>
-        <a aria-label="在新窗口打开" className="hover:text-ink" href={`${base}${path}`} target="_blank" rel="noreferrer"><ExternalLink size={13} /></a>
+      <div className="mono flex shrink-0 items-center gap-1 px-4 py-2 text-[11.5px] text-ink-3">
+        <span className="flex-1 truncate rounded-full bg-ink/[.06] px-3 py-1">{path}</span>
+        <button type="button" aria-label="刷新" className="grid h-7 w-7 place-items-center rounded-full transition-colors hover:bg-ink/[.08] hover:text-ink" onClick={onRefresh}><RefreshCw size={13} /></button>
+        <a aria-label="在新窗口打开" className="grid h-7 w-7 place-items-center rounded-full transition-colors hover:bg-ink/[.08] hover:text-ink" href={`${base}${path}`} target="_blank" rel="noreferrer"><ExternalLink size={13} /></a>
       </div>
-      <iframe key={nonce} title="预览" src={`${base}${path}`} className="min-h-0 w-full flex-1 bg-white" />
+      <iframe key={nonce} title="预览" src={`${base}${path}`} className="mx-2 mb-2 min-h-0 flex-1 rounded-xl bg-white" />
     </div>
   );
 }

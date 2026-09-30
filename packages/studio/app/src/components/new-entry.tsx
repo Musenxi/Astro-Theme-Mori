@@ -56,7 +56,7 @@ export function NewEntryDialog({ open, onOpenChange, kind: initial = 'post' }: {
             <Field label="栏目"><Select value={category || cats[0]?.id} onValueChange={setCategory} options={cats.map((c) => ({ value: c.id, label: c.zh, hint: c.en }))} /></Field>
           )}
           <div className="mt-1 pl-[7.5rem]">
-            <button type="button" onClick={() => setAdv(!adv)} className="text-[12px] text-ink-3 underline decoration-rule-2 underline-offset-4 hover:text-accent">{adv ? '收起' : '地址名'}：{finalId}</button>
+            <button type="button" onClick={() => setAdv(!adv)} className="text-[12px] text-ink-3 transition-colors hover:text-ink">{adv ? '收起' : '地址名'}：{finalId}</button>
           </div>
           {adv && (
             <Field label="地址名" hint={<>网址会是 <span className="mono">/{kind === 'page' ? '' : 'posts/'}{finalId}/</span>{clash && <span className="text-danger">　已经有了，换一个</span>}</>}>

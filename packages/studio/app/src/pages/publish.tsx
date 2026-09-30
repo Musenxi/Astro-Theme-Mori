@@ -9,7 +9,7 @@ import type { PublishConfig } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/components/ui/dialog';
 import { Field, Input } from '@/components/ui/input';
-import { Body, PageHeader, Section } from '@/components/ui/page';
+import { Body, Card, PageHeader, Section } from '@/components/ui/page';
 import { Segmented } from '@/components/ui/segmented';
 
 const TARGETS = { git: 'GitHub 仓库', 'cloudflare-pages': 'Cloudflare Pages', rsync: '自己的服务器', local: '本地文件夹' } as const;
@@ -50,16 +50,16 @@ export default function Publish() {
 
   return (
     <>
-      <PageHeader title="构建与发布" actions={code !== null && <span className={cn('mono text-[11.5px]', code ? 'text-danger' : 'text-ok')}>{code ? `失败（退出码 ${code}）` : '完成'}</span>} />
+      <PageHeader title="构建与发布" actions={code !== null && <span className={cn('rounded-full px-3 py-1 text-[12px]', code ? 'bg-sunk text-danger' : 'bg-sunk text-ink-2')}>{code ? `失败（退出码 ${code}）` : '完成'}</span>} />
       <Body>
-        <Section title="发布到哪里">
+        <Section title="发布到哪里"><Card>
           {!editing && pub ? (
-            <div className="flex items-center gap-4 py-2"><span className="flex-1">{describe(pub)}</span>
-              <Button variant="link" onClick={() => { setForm(pub); setEditing(true); }}>修改</Button>
-              <Button variant="link" onClick={async () => { if (await confirm({ title: '清除发布设置？', description: '不会影响已经发布的站点。', confirmLabel: '清除', danger: true })) void savePublish(null); }}>清除</Button>
+            <div className="flex items-center gap-2"><Send size={16} className="ml-1 text-ink-3" /><span className="ml-1 flex-1 font-medium">{describe(pub)}</span>
+              <Button variant="ghost" size="sm" onClick={() => { setForm(pub); setEditing(true); }}>修改</Button>
+              <Button variant="ghost" size="sm" className="hover:bg-ink/[.06] hover:text-danger" onClick={async () => { if (await confirm({ title: '清除发布设置？', description: '不会影响已经发布的站点。', confirmLabel: '清除', danger: true })) void savePublish(null); }}>清除</Button>
             </div>
           ) : (
-            <div className="pt-1">
+            <div>
               <Segmented value={form.target} onValueChange={(t) => setForm({ target: t })} options={targets.map((k) => ({ value: k, label: TARGETS[k] }))} />
               <div className="mt-3">
                 {form.target === 'git' && <GitForm form={form} set={set} />}
@@ -80,16 +80,16 @@ export default function Publish() {
               <div className="mt-4 flex gap-2 pl-[7.5rem]"><Button variant="primary" onClick={() => savePublish(form)}>保存</Button>{pub && <Button onClick={() => setEditing(false)}>取消</Button>}</div>
             </div>
           )}
-        </Section>
+        </Card></Section>
 
-        <Section title="更新站点">
-          <p className="mb-3 text-[12.5px] leading-relaxed text-ink-3">构建：生成站点文件，检查内容有没有错误。构建并发布：先生成，成功后再发布到上面选的位置。</p>
+        <Section title="更新站点"><Card>
+          <p className="mb-4 text-[12.5px] leading-relaxed text-ink-3">构建：生成站点文件，检查内容有没有错误。构建并发布：先生成，成功后再发布到上面选的位置。</p>
           <div className="flex gap-2">
             <Button variant="primary" disabled={!!busy || !pub} title={pub ? undefined : '先在上面设置发布到哪里'} onClick={() => run('publish')}><Send size={14} />{busy === 'publish' ? '发布中……' : '构建并发布'}</Button>
             <Button disabled={!!busy} onClick={() => run('build')}><Hammer size={14} />{busy === 'build' ? '构建中……' : '只构建'}</Button>
           </div>
-          {log && <pre ref={logRef} className="mono mt-4 max-h-[50vh] overflow-auto whitespace-pre-wrap border border-rule bg-sunk/50 p-3 text-[11.5px] leading-relaxed">{log}</pre>}
-        </Section>
+          {log && <pre ref={logRef} className="mono mt-4 max-h-[50vh] overflow-auto whitespace-pre-wrap rounded-xl bg-[#12141a] p-4 text-[11.5px] leading-relaxed text-[#d5d9e3] ring-1 ring-white/5">{log}</pre>}
+        </Card></Section>
       </Body>
     </>
   );

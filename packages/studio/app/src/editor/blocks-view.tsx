@@ -4,6 +4,8 @@ import { countWords, wan } from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { onCard, Section } from '@/components/ui/page';
+import { cn } from '@/lib/cn';
 import type { Doc, Kind } from '@/lib/types';
 import { allIds, nextId } from './ids';
 import { InlineField } from './inline-field';
@@ -40,27 +42,26 @@ export function BlocksView({ kind, doc, patch, setDoc }: { kind: Kind; doc: Doc;
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="mx-auto max-w-[46rem] px-8 pb-32 pt-8">
-        <Input value={doc.title ?? ''} onChange={(e) => patch({ title: e.target.value })} placeholder="标题" className="serif h-auto border-0 border-b border-rule bg-transparent px-0 pb-2 text-[28px] tracking-[.06em] hover:border-ink-3" />
+      <div className="mx-auto max-w-[46rem] px-8 pb-32 pt-6">
+        <Input value={doc.title ?? ''} onChange={(e) => patch({ title: e.target.value })} placeholder="标题" className="serif h-auto rounded-xl bg-transparent px-3 py-2 text-[30px] font-medium leading-tight hover:bg-ink/[.035] focus:bg-transparent" />
 
         {travel && <TravelHead doc={doc} patch={patch} />}
 
-        <section className="mt-8">
-          <h2 className="mb-3 flex items-baseline gap-3 text-[12px] tracking-[.22em] text-ink-3">正文<span className="mono tracking-normal">{wan(countWords(doc))} 字 · {blocks.length} 个块</span></h2>
+        <Section title="正文" hint={`${wan(countWords(doc))} 字 · ${blocks.length} 个块`} className="mt-8">
           <SortableList items={blocks} getId={(b) => b.id} onReorder={setBlocks}>
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {blocks.map((b) => (
-                <SortableItem key={b.id} id={b.id} className="border border-rule bg-surface/40 transition-colors focus-within:border-rule-2">
+                <SortableItem key={b.id} id={b.id} className={cn('group/block rounded-2xl bg-sunk/50 transition-[background-color,box-shadow] hover:bg-sunk/80 focus-within:bg-sunk/80 focus-within:shadow-[0_0_0_1.5px_color-mix(in_srgb,var(--ink)_16%,transparent)]', onCard)}>
                   {(handle) => (
                     <>
-                      <div className="flex items-center gap-1 border-b border-rule/70 py-0.5 pl-1 pr-1.5">
+                      <div className="flex items-center gap-1.5 px-1.5 pt-1.5">
                         {handle}
-                        <span className="text-[12.5px] text-ink-2">{LABEL[b.type] ?? b.type}</span>
-                        <span className="mono text-[10.5px] text-ink-3">{b.id}</span>
+                        <span className="rounded-full bg-ink/[.06] px-2.5 py-px text-[12px] text-ink-2">{LABEL[b.type] ?? b.type}</span>
+                        <span className="mono text-[10.5px] text-ink-3/80">{b.id}</span>
                         <span className="flex-1" />
-                        <Button variant="ghost" size="icon-sm" aria-label="删除这个块" onClick={() => remove(b)}><Trash2 size={13} /></Button>
+                        <Button variant="ghost" size="icon-sm" aria-label="删除这个块" className="opacity-0 transition-opacity focus-visible:opacity-100 group-focus-within/block:opacity-100 group-hover/block:opacity-100" onClick={() => remove(b)}><Trash2 size={14} /></Button>
                       </div>
-                      <div className="p-3">
+                      <div className="px-3.5 pb-3.5 pt-1.5">
                         {travel ? <TravelBlockBody b={b} patch={(p) => patchBlock(b.id, p)} doc={doc} ids={ids} /> : <PostBlockBody b={b} patch={(p) => patchBlock(b.id, p)} />}
                       </div>
                     </>
@@ -71,9 +72,9 @@ export function BlocksView({ kind, doc, patch, setDoc }: { kind: Kind; doc: Doc;
           </SortableList>
           <div className="mt-4 flex flex-wrap items-center gap-1.5">
             <span className="label mr-1">添加</span>
-            {palette.map((p) => <Button key={p.type} variant="secondary" size="sm" onClick={() => add(p.type)}><Plus size={12} />{p.label}</Button>)}
+            {palette.map((p) => <Button key={p.type} variant="secondary" size="sm" className="rounded-full" onClick={() => add(p.type)}><Plus size={13} />{p.label}</Button>)}
           </div>
-        </section>
+        </Section>
 
         <NotesEditor doc={doc} patch={patch} />
       </div>
@@ -92,18 +93,17 @@ function NotesEditor({ doc, patch }: { doc: Doc; patch: (p: Doc) => void }) {
     put(Object.fromEntries(Object.entries(notes).map(([k, v]) => [k === from ? to : k, v])));
   };
   return (
-    <section className="mt-10 border-t border-ink pt-3">
-      <h2 className="mb-2 flex items-baseline gap-3 text-[12px] tracking-[.22em] text-ink-3">旁注与脚注<span className="mono tracking-normal">正文里写 {'{文字|note:n1}'}（旁注）或 {'{文字|fn:n1}'}（脚注）</span></h2>
+    <Section title="旁注与脚注" hint={<>正文里写 <span className="mono">{'{文字|note:n1}'}</span>（旁注）或 <span className="mono">{'{文字|fn:n1}'}</span>（脚注）</>}>
       <div className="space-y-2">
         {ids.map((id) => (
           <div key={id} className="flex items-start gap-2">
             <Input className="mono w-20" defaultValue={id} onBlur={(e) => rename(id, e.target.value.trim())} />
             <div className="min-w-0 flex-1"><InlineField rows={1} value={notes[id].text} onChange={(v) => put({ ...notes, [id]: { text: v } })} /></div>
-            <Button variant="ghost" size="icon-sm" aria-label="删除" onClick={() => { const { [id]: _drop, ...rest } = notes; put(rest); }}><Trash2 size={13} /></Button>
+            <Button variant="ghost" size="icon-sm" aria-label="删除" onClick={() => { const { [id]: _drop, ...rest } = notes; put(rest); }}><Trash2 size={14} /></Button>
           </div>
         ))}
       </div>
-      <Button variant="link" className="mt-2" onClick={add}><Plus size={13} />添加一条</Button>
-    </section>
+      <Button variant="link" className="mt-2" onClick={add}><Plus size={14} />添加一条</Button>
+    </Section>
   );
 }

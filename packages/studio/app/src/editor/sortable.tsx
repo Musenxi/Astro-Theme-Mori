@@ -24,12 +24,12 @@ export function SortableList<T>({ items, getId, onReorder, children }: { items: 
 export function SortableItem({ id, className, children }: { id: string; className?: string; children: (handle: ReactNode) => ReactNode }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id });
   const handle = (
-    <button ref={setActivatorNodeRef} type="button" aria-label="拖动排序" {...attributes} {...listeners} className="grid h-7 w-6 shrink-0 cursor-grab touch-none place-items-center text-ink-3 transition-colors hover:text-ink active:cursor-grabbing">
+    <button ref={setActivatorNodeRef} type="button" aria-label="拖动排序" {...attributes} {...listeners} className="grid h-8 w-6 shrink-0 cursor-grab touch-none place-items-center rounded-md text-ink-3/70 transition-colors hover:text-ink active:cursor-grabbing">
       <GripVertical size={15} />
     </button>
   );
   return (
-    <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={cn(isDragging && 'relative z-20 bg-paper opacity-90', className)}>
+    <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }} className={cn(isDragging && 'relative z-20 bg-lift opacity-95 shadow-pop', className)}>
       {children(handle)}
     </div>
   );

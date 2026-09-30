@@ -10,7 +10,7 @@ import { assetName, AssetDialog } from '@/components/asset-picker';
 import { SortableItem, SortableList } from '@/editor/sortable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Body, Empty, PageHeader } from '@/components/ui/page';
+import { Body, Empty, onCard, PageHeader } from '@/components/ui/page';
 
 interface Row extends Friend { key: string }
 let seq = 0;
@@ -58,19 +58,19 @@ export default function Friends() {
     <>
       <PageHeader title="友人帐" sub={`${rows.length} 位`} actions={dirty && <><Button variant="ghost" onClick={() => data && setRows(withKeys(data.friends))}>放弃修改</Button><Button variant="primary" onClick={save}>保存</Button></>} />
       <Body>
-        <form className="mb-6 flex gap-2" onSubmit={(e) => { e.preventDefault(); void addByUrl(); }}>
+        <form className="mb-5 flex gap-2" onSubmit={(e) => { e.preventDefault(); void addByUrl(); }}>
           <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="粘贴对方的网址，自动带出站名、简介和头像" disabled={probing === '__new'} />
           <Button type="submit" variant="primary" disabled={!url.trim() || probing === '__new'}>{probing === '__new' ? '读取中……' : '添加'}</Button>
         </form>
         <SortableList items={rows} getId={(r) => r.key} onReorder={setRows}>
-          <div className="border-t border-ink">
+          <div className="space-y-2.5">
             {rows.map((r) => (
-              <SortableItem key={r.key} id={r.key} className="border-b border-rule bg-paper">
+              <SortableItem key={r.key} id={r.key} className={cn('rounded-2xl bg-sunk/70', onCard)}>
                 {(handle) => (
-                  <div className="flex items-start gap-2 py-3">
+                  <div className="flex items-start gap-2 p-3">
                     <div className="pt-1.5">{handle}</div>
-                    <button type="button" aria-label="换头像" onClick={() => setPicking(r.key)} className="mt-0.5 grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full border border-rule-2 bg-sunk text-ink-3 transition-colors hover:border-accent">
-                      {r.avatar ? <img src={avatarSrc(r.avatar)} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }} /> : <span className="serif">{[...(r.name || '?')][0]}</span>}
+                    <button type="button" aria-label="换头像" onClick={() => setPicking(r.key)} className="mt-0.5 grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-lift text-ink-3 shadow-soft transition-shadow hover:ring-2 hover:ring-ink/25">
+                      {r.avatar ? <img src={avatarSrc(r.avatar)} alt="" referrerPolicy="no-referrer" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }} /> : <span className="grid h-full w-full place-items-center bg-ink/[.07] text-[16px] font-medium text-ink-2">{[...(r.name || '?')][0]}</span>}
                     </button>
                     <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-2 gap-y-1.5">
                       <Input value={r.name} placeholder="名字" onChange={(e) => put(r.key, { name: e.target.value })} />
@@ -78,8 +78,8 @@ export default function Friends() {
                       <Input className="col-span-2" value={r.desc ?? ''} placeholder="一句话" onChange={(e) => put(r.key, { desc: e.target.value })} />
                     </div>
                     <div className="flex flex-col">
-                      <Button variant="ghost" size="icon-sm" aria-label="从网址补全" title="从网址补全空着的项" disabled={probing === r.key || !r.url.trim()} onClick={() => refill(r)}><RefreshCw size={13} className={cn(probing === r.key && 'animate-spin')} /></Button>
-                      <Button variant="ghost" size="icon-sm" aria-label="移除" onClick={() => setRows(rows.filter((x) => x.key !== r.key))}><Trash2 size={13} /></Button>
+                      <Button variant="ghost" size="icon-sm" aria-label="从网址补全" title="从网址补全空着的项" disabled={probing === r.key || !r.url.trim()} onClick={() => refill(r)}><RefreshCw size={14} className={cn(probing === r.key && 'animate-spin')} /></Button>
+                      <Button variant="ghost" size="icon-sm" aria-label="移除" onClick={() => setRows(rows.filter((x) => x.key !== r.key))}><Trash2 size={14} /></Button>
                     </div>
                   </div>
                 )}
