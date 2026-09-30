@@ -20,20 +20,10 @@
   :root:not([data-hdir="v"]) .fo-q{text-indent:-1em;font-size:clamp(25px,7.6vw,32px)}
   .fo-cite{grid-template-columns:1fr auto;row-gap:16px}
   .fo-cite dd{font-size:14px}
-  .he-ttl .rn{font-size:40px}
-  .he-ttl em{font-size:20px}
   .f-ed{position:static;margin-bottom:56px}
   .f-en a{grid-template-columns:3.2em 1fr}
   .f-en .dt{grid-column:2}
   .f-en .pn{font-size:28px}
-  .he{--mh:92px;--mw:120px}
-  :root:not([data-hdir="v"]) .he-body{grid-template-columns:1fr}
-  :root:not([data-hdir="v"]) .he-counter{grid-column:1;grid-row:1;position:sticky;top:60px;justify-self:end;font-size:44px;z-index:2}
-  :root:not([data-hdir="v"]) .he-wrap{grid-row:2}
-  :root:not([data-hdir="v"]) .he-axis{grid-row:3}
-  :root:not([data-hdir="v"]) .he-item{left:64px;flex-wrap:wrap;white-space:normal;max-width:calc(100% - 64px);column-gap:10px}
-  :root:not([data-hdir="v"]) .he-item .t{flex-basis:100%}
-  :root:not([data-hdir="v"]) .tick.y i{left:4px;top:-1.5em}
   .prose .n{display:block}
   .prose .n > .ns{margin:-.4em 0 1.4em}
   .prose .n aside{padding-top:.5em}

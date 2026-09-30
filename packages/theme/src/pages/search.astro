@@ -1,5 +1,5 @@
 ---
-import Chevron from '../components/Chevron.astro';
+import BackLink from '../components/BackLink.astro';
 import { t, lang } from '../lib/i18n.ts';
 import config from 'virtual:mori/config';
 import Base from '../layouts/Base.astro';
@@ -8,7 +8,7 @@ import Base from '../layouts/Base.astro';
 <Base title={t('search.title')} direction={config.archive.direction}>
   <main data-page="search" class="wrap g srch">
     <header>
-      <a class="he-back mono" href="/"><Chevron dir="left" />{t('toc.back')}</a>
+      <BackLink />
       <label class="srch-in"><span class="mono lbl">{t('search.title')}</span><input id="q" type="search" autocomplete="off" autofocus /></label>
       <p class="mono lbl" id="srch-note"></p>
     </header>

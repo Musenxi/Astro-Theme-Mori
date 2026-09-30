@@ -1,0 +1,7 @@
+---
+import Chevron from './Chevron.astro';
+import { t } from '../lib/i18n.ts';
+/** 返回目次 */
+---
+
+<a class="mono text-muted-foreground transition-[color] duration-300 hover:text-primary" href="/"><Chevron dir="left" />{t('toc.back')}</a>
