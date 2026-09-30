@@ -1,4 +1,0 @@
-/* 页脚 —— 由 design/style-probe/index.html 还原 */
-footer.foot{padding-top:28px;padding-bottom:90px;color:var(--muted-foreground);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;border-top:1px solid var(--border);margin-top:40px}
-footer.foot a{color:var(--soft-foreground)}
-footer.foot a[aria-current]{color:var(--primary)}

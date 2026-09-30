@@ -19,7 +19,6 @@
 @import "./lightbox.css" layer(components);
 @import "./comments.css" layer(components);
 @import "./search.css" layer(components);
-@import "./footer.css" layer(components);
 @import "./transitions.css" layer(components);
 @import "./responsive.css" layer(components);
 @import "./polish.css" layer(components);

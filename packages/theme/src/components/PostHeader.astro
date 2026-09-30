@@ -1,0 +1,17 @@
+---
+/** 文章、页面、文章目录共用的页头：小字（分类 · 日期）、标题、篇幅信息、副题 */
+interface Props {
+  title: string;
+  kicker?: string;
+  meta?: string;
+  sub?: string;
+}
+const { title, kicker, meta, sub } = Astro.props;
+---
+
+<header class="wrap g pt-[clamp(40px,8vw,112px)] pb-[clamp(36px,5vw,64px)] *:col-[3/11]">
+  {kicker && <div class="kicker mono mb-[18px] text-muted-foreground">{kicker}</div>}
+  <h1 class="w-fit text-[clamp(34px,4.6vw,60px)] leading-[1.2] font-normal tracking-[.06em] [view-transition-name:title-post]">{title}</h1>
+  {meta && <div class="mono mt-[22px] text-muted-foreground">{meta}</div>}
+  {sub && <div class="mt-3.5 font-display text-[clamp(18px,2vw,24px)] font-light tracking-[.02em] text-muted-foreground italic">{sub}</div>}
+</header>

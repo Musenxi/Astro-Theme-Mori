@@ -1,7 +1,7 @@
 /* 窄屏与减少动态效果 —— 由 design/style-probe/index.html 还原（首页、文章部分；游记、归档随各自页面加入） */
 @media (max-width:760px){
   body{font-size:16px}
-  .g > *,.prose > *,.post-h > *{grid-column:1/-1!important}
+  .g > *,.prose > *{grid-column:1/-1!important}
   .fo-side{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin-bottom:28px;padding:0}
   .fo-side .k{margin:0}
   .fo-side b{font-size:24px;margin:0}
@@ -50,7 +50,6 @@
   .loc .where .mono{display:none}
   .itin li{grid-template-columns:2.2em 4.6em 1fr}
   .itin li .co{display:none}
-  .post-end a{grid-column:1/-1!important;text-align:left!important;align-items:flex-start!important;margin-bottom:18px}
 }
 @media (prefers-reduced-motion:reduce){
   *,::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important;transition:none!important}

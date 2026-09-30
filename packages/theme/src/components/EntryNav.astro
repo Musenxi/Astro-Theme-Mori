@@ -7,9 +7,10 @@ interface Props {
   newer?: Entry;
 }
 const { older, newer } = Astro.props;
+const link = 'col-[span_6] flex flex-col gap-1 text-[19px] narrow:mb-[18px] narrow:items-start! narrow:text-left!';
 ---
 
-<nav class="wrap g post-end" aria-label={t('post.nav')}>
-  {older ? <a href={older.href}><span class="mono lbl"><Chevron dir="left" />{t('post.prev')}</span><span class="ul">{older.data.title}</span></a> : <span />}
-  {newer ? <a href={newer.href}><span class="mono lbl">{t('post.next')}<Chevron /></span><span class="ul">{newer.data.title}</span></a> : <span />}
+<nav class="wrap g border-t border-t-foreground pt-[18px] pb-[100px]" aria-label={t('post.nav')}>
+  {older ? <a class={link} href={older.href}><span class="mono lbl"><Chevron dir="left" />{t('post.prev')}</span><span class="ul">{older.data.title}</span></a> : <span />}
+  {newer ? <a class={`${link} items-end text-right`} href={newer.href}><span class="mono lbl">{t('post.next')}<Chevron /></span><span class="ul">{newer.data.title}</span></a> : <span />}
 </nav>

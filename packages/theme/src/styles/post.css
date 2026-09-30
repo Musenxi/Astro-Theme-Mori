@@ -1,10 +1,6 @@
 /* 普通文章 —— 由 design/style-probe/index.html 还原 */
 /* ---------- 普通文章 ---------- */
-.post-h{padding-top:clamp(40px,8vw,112px);padding-bottom:clamp(36px,5vw,64px)}
-.post-h > *{grid-column:3/11}
 .kicker{color:var(--muted-foreground);margin-bottom:18px}
-.post-h h1{font-size:clamp(34px,4.6vw,60px);line-height:1.2;font-weight:400;letter-spacing:.06em;width:fit-content;view-transition-name:title-post}
-.post-h .meta{color:var(--muted-foreground);margin-top:22px}
 .prose{padding-bottom:80px}
 .prose > *{grid-column:3/9}
 .prose p{text-align:justify;margin-bottom:1.1em}
@@ -36,7 +32,4 @@
 .prose figure img{width:100%;aspect-ratio:16/9;object-fit:cover}
 figcaption{font-size:13px;color:var(--muted-foreground);margin-top:10px;display:flex;gap:12px;align-items:baseline}
 figcaption .mono{flex:none}
-.post-end{border-top:1px solid var(--foreground);padding-top:18px;padding-bottom:100px}
-.post-end a{grid-column:span 6;display:flex;flex-direction:column;gap:4px;font-size:19px}
-.post-end a:last-child{text-align:right;align-items:flex-end}
 

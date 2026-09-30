@@ -1,6 +1,7 @@
 ---
 import { t } from '../lib/i18n.ts';
 import Base from '../layouts/Base.astro';
+import PostHeader from '../components/PostHeader.astro';
 import PostBody from '../components/PostBody.astro';
 import TravelArticle from '../components/TravelArticle.astro';
 import TravelCorners from '../components/TravelCorners.astro';
@@ -39,11 +40,7 @@ const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | '
     </main>
   ) : (
     <main data-page="post">
-      <header class="wrap g post-h">
-        <div class="kicker mono">{entry.category.zh} · {dotDate(d.date)}</div>
-        <h1>{d.title}</h1>
-        <div class="meta mono">{t('post.meta', { chars: approx, min: Math.max(1, Math.round(chars / 450)) })}</div>
-      </header>
+      <PostHeader title={d.title} kicker={`${entry.category.zh} · ${dotDate(d.date)}`} meta={t('post.meta', { chars: approx, min: Math.max(1, Math.round(chars / 450)) })} />
       <PostBody blocks={p.blocks} notes={p.notes} />
       <Comments entry={`posts/${entry.id}`} />
       <EntryNav older={older} newer={newer} />

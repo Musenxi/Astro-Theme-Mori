@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import PostHeader from '../components/PostHeader.astro';
 import PostBody from '../components/PostBody.astro';
 import Friends from '../components/Friends.astro';
 import Comments from '../components/Comments.astro';
@@ -21,10 +22,7 @@ const d = page.data;
 
 <Base title={d.title} description={d.excerpt || undefined}>
   <main data-page="page">
-    <header class="wrap g post-h">
-      <h1>{d.title}</h1>
-      {d.subtitle && <div class="sub">{d.subtitle}</div>}
-    </header>
+    <PostHeader title={d.title} sub={d.subtitle || undefined} />
     {d.blocks.length > 0 && <PostBody blocks={d.blocks} notes={d.notes} />}
     {d.template === 'friends' && <Friends />}
     {d.comments && <Comments entry={`pages/${page.id}`} />}
