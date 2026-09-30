@@ -39,7 +39,6 @@ export default function PageList() {
     <>
       <PageHeader title="页面" sub={`${pages.length}`} actions={<Button variant="primary" onClick={() => setCompose(true)}><Plus size={14} />新建页面</Button>} />
       <Body wide>
-        <p className="mb-4 max-w-xl text-[12.5px] leading-relaxed text-ink-3">页面是“关于”“留言”“友人帐”这样的独立页，网址是 <span className="mono">/页面名/</span>。想让它出现在网站顶部的玻璃入口里，去「页头入口」设置。</p>
         <div className="space-y-0.5">
           {pages.map((p) => (
             <div key={p.id} className="group grid grid-cols-[minmax(0,1fr)_7rem_7rem_5rem_2rem] items-center gap-x-4 rounded-xl px-4 py-3.5 transition-colors hover:bg-ink/[.045]">
