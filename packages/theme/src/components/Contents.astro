@@ -35,7 +35,7 @@ const sections = config.categories
               <span class="rn">{roman}</span>
               <h3>{c.zh}</h3>
               <em>{c.en}</em>
-              <span class="ct mono">{tn('count', list.length, { n: fmt.num(list.length) })} &gt;</span>
+              <span class="ct mono">{tn('count', list.length, { n: fmt.num(list.length) })}<svg class="chev" viewBox="0 0 8 10" aria-hidden="true"><polyline points="2,1 5.4,5 2,9" /></svg></span>
             </a>
             <ol class="f-en">
               {list.map((e) => (
