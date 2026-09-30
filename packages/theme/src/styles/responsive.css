@@ -2,22 +2,6 @@
 @media (max-width:760px){
   body{font-size:16px}
   .g > *,.prose > *{grid-column:1/-1!important}
-  .prose .n{display:block}
-  .prose .n > .ns{margin:-.4em 0 1.4em}
-  .prose .n aside{padding-top:.5em}
-  .t-hero .mapbox{order:-1}
-  .travel:not([data-mode="h"]) .t-track > *{grid-column:1/-1!important}
-  .travel:not([data-mode="h"]) .b-strip{width:100vw;margin-left:calc(-1*var(--gut))}
-  .travel:not([data-mode="h"]) .b-free .canvas{aspect-ratio:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .travel:not([data-mode="h"]) .fi,.travel:not([data-mode="h"]) .fnote{position:static;width:100%}
-  .travel:not([data-mode="h"]) .fnote{height:9em;justify-self:center}
-  .travel[data-mode="h"]{--ph:min(60vh,116vw)}
-  .corner{bottom:12px}
-  .mc{right:12px}
-  .loc{left:12px}
-  .loc .where .mono{display:none}
-  .itin li{grid-template-columns:2.2em 4.6em 1fr}
-  .itin li .co{display:none}
 }
 @media (prefers-reduced-motion:reduce){
   *,::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important;transition:none!important}

@@ -25,7 +25,7 @@ const sections = config.categories
   </header>
   <div class="g pt-[clamp(32px,6vh,72px)]">
     <aside class="sticky top-[110px] col-[1/5] self-start narrow:static narrow:mb-14 vert:flex vert:flex-row-reverse vert:justify-end vert:gap-10">
-      <h2 class="text-[clamp(56px,6.6vw,108px)] leading-none font-normal tracking-[.12em] vert:[writing-mode:vertical-rl]">{t('toc.title')}{t('toc.sub') && <em class="mt-[.35em] block font-display text-[.3em] font-light tracking-[.01em] text-muted-foreground italic vert:m-0 vert:[margin-block-start:.4em]">{t('toc.sub')}</em>}</h2>
+      <h2 class="text-[clamp(56px,6.6vw,108px)] leading-none font-normal tracking-[.12em] vert:[writing-mode:vertical-rl]">{t('toc.title')}{t('toc.sub') && <em class="mt-[.35em] block font-display text-[.3em] font-light tracking-[.01em] text-muted-foreground italic vert:m-0 vert:mr-[.4em]">{t('toc.sub')}</em>}</h2>
       {config.home.editorNote && <p class="mt-11 max-w-[14.5em] text-[15px] leading-[1.95] text-soft-foreground vert:mt-0 vert:h-[15em] vert:max-w-none vert:[writing-mode:vertical-rl]"><span class="mono mb-2 block text-primary">{t('toc.editor')}</span>{config.home.editorNote}</p>}
     </aside>
     <div class="col-[6/13]">

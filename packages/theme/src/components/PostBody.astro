@@ -14,21 +14,23 @@ const numbers = numberNotes(blocks);
 const html = (spans: Inline) => renderInline(spans, numbers);
 
 let h2 = 0, fig = 0;
+const p = 'mb-[1.1em] text-justify text-pretty';
+const li = "relative [border-bottom:1px_dotted_var(--border)] py-[.35em] pl-[1.6em] text-pretty before:absolute before:top-[1.05em] before:left-0 before:h-px before:w-[.7em] before:bg-muted-foreground before:content-['']";
 const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref]?.text ?? [] }));
 ---
 
-<article class="wrap g prose">
+<article class="wrap g prose pb-20 in-data-[page=page]:pb-6">
   {
     blocks.map((b) => {
       switch (b.type) {
         case 'p': {
           const refs = sideRefs(b.text);
           return refs.length ? (
-            <div class="n">
-              <p data-b={b.id} set:html={html(b.text)} />
-              <div class="ns">
+            <div class="col-[3/12] grid grid-cols-subgrid narrow:block">
+              <p class={`col-[1/7] ${p}`} data-b={b.id} set:html={html(b.text)} />
+              <div class="col-[7/10] flex flex-col gap-[.9em] narrow:mt-[-.4em] narrow:mb-[1.4em]">
                 {refs.map((ref) => (
-                  <aside id={`note-${ref}`}>
+                  <aside class="border-t border-t-border pt-[.35em] text-[13.5px] leading-[1.75] text-muted-foreground narrow:pt-[.5em]" id={`note-${ref}`}>
                     <sup class="nref" data-skip>{numbers.side.get(ref)}</sup>
                     <Fragment set:html={html(notes[ref]?.text ?? [])} />
                   </aside>
@@ -36,34 +38,36 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
               </div>
             </div>
           ) : (
-            <p data-b={b.id} set:html={html(b.text)} />
+            <p class={`col-[3/9] ${p}`} data-b={b.id} set:html={html(b.text)} />
           );
         }
         case 'h': {
-          if (b.level === 3) return <h3 data-b={b.id} set:html={html(b.text)} />;
+          if (b.level === 3) return <h3 class="col-[3/9]" data-b={b.id} set:html={html(b.text)} />;
           h2 += 1;
           return (
-            <h2 data-b={b.id}>
-              <span class="mono" data-skip>{pad2(h2)}</span>
+            <h2 class="col-[3/9] mt-[2.4em] mb-[.8em] flex items-baseline gap-3.5 text-[24px] font-bold tracking-[.08em]" data-b={b.id}>
+              <span class="mono font-normal text-primary" data-skip>{pad2(h2)}</span>
               <Fragment set:html={html(b.text)} />
             </h2>
           );
         }
-        case 'quote':
+        case 'quote': {
+          const vq = b.writing === 'v' && vertical;
           return (
-            <blockquote class:list={[b.writing === 'v' && vertical && 'vq']} data-b={b.id}>
+            <blockquote class:list={['col-[3/9]', vq && 'vq mt-[1.4em] mb-[2.2em] h-[12.5em] justify-self-center border-r border-r-primary pr-[1.1em] text-[21px] leading-[2.1] tracking-[.2em] text-soft-foreground [writing-mode:vertical-rl]']} data-b={b.id}>
               <Fragment set:html={html(b.text)} />
-              {b.cite && <cite data-skip>{b.cite}</cite>}
+              {b.cite && <cite class={vq ? 'block text-end text-[13px] text-muted-foreground not-italic [margin-block-start:.4em]' : undefined} data-skip>{b.cite}</cite>}
             </blockquote>
           );
+        }
         case 'image': {
           fig += 1;
           return (
-            <figure class:list={['rv', b.layout === 'inline' && 'inline']} data-b={b.id}>
-              <Image src={b.src} alt={b.alt} widths={[640, 960, 1280, 1600]} sizes="(max-width: 760px) 100vw, 83vw" />
+            <figure class:list={['rv mt-[2em] mb-[2.4em]', b.layout === 'inline' ? 'inline col-[3/9]' : 'col-[2/12]']} data-b={b.id}>
+              <Image class="aspect-video w-full cursor-zoom-in object-cover" src={b.src} alt={b.alt} widths={[640, 960, 1280, 1600]} sizes="(max-width: 760px) 100vw, 83vw" />
               {b.caption && (
-                <figcaption>
-                  <span class="mono">{t('fig', { n: fig })}</span>
+                <figcaption class="mt-2.5 flex items-baseline gap-3 text-[13px] text-muted-foreground">
+                  <span class="mono flex-none">{t('fig', { n: fig })}</span>
                   {b.caption}
                 </figcaption>
               )}
@@ -73,25 +77,25 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         case 'list': {
           const Tag = b.ordered ? 'ol' : 'ul';
           return (
-            <Tag data-b={b.id}>
-              {b.items.map((item) => <li set:html={html(item)} />)}
+            <Tag class="col-[3/9] mb-[1.2em]" data-b={b.id}>
+              {b.items.map((item) => <li class={li} set:html={html(item)} />)}
             </Tag>
           );
         }
         case 'code':
           return (
-            <pre data-b={b.id} data-lang={b.lang}><code>{b.code}</code></pre>
+            <pre class="col-[3/10] mt-[.4em] mb-[1.6em] overflow-x-auto border-l-2 border-l-muted-foreground bg-muted px-[22px] py-[18px] text-soft-foreground [font:12.5px/1.75_var(--font-mono)]" data-b={b.id} data-lang={b.lang}><code>{b.code}</code></pre>
           );
       }
     })
   }
   {
     footnotes.length > 0 && (
-      <section class="fns" aria-label={t('notes.foot')}>
-        <ol>
+      <section class="fns col-[3/9] mt-[3em] border-t border-t-border pt-[1.2em] text-[14px] leading-[1.8] text-muted-foreground" aria-label={t('notes.foot')}>
+        <ol class="mb-[1.2em]">
           {footnotes.map((f) => (
-            <li id={`fn-${f.ref}`}>
-              <sup class="nref">{f.n}</sup>
+            <li class={`${li} flex gap-[.8em]`} id={`fn-${f.ref}`}>
+              <sup class="nref mr-0">{f.n}</sup>
               <span set:html={html(f.text)} />
             </li>
           ))}

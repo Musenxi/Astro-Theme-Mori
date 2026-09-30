@@ -11,7 +11,7 @@
 @import "./glass.css" layer(components);
 @import "./opening.css" layer(components);
 @import "./cover.css" layer(components);
-@import "./post.css" layer(components);
+@import "./prose.css" layer(components);
 @import "./page.css" layer(components);
 @import "./map.css" layer(components);
 @import "./travel.css" layer(components);
