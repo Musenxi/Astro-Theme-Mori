@@ -3,7 +3,7 @@
  * JSON 是存储，Markdown 只是它的一种“视图”：每次编辑把文本解析成块，再对齐回旧块，
  * 让没动过的块原样保留（包括 tcy 之类 Markdown 表达不了的标注），改动不大的块沿用 id（划词批注靠 id 定位）。
  */
-import { parseBlocks, blocksToMarkdown, parseTravel, travelToMarkdown, travelBlockToMarkdown } from 'astro-mori/markdown';
+import { parseBlocks, blocksToMarkdown, parseTravel, travelToMarkdown, travelItems } from 'astro-mori/markdown';
 
 const ASSET = '../../assets/';
 /** 图片路径在文本里只写文件名，存进 JSON 时补上相对路径 */
@@ -11,17 +11,16 @@ const stripAsset = (src) => (typeof src === 'string' && src.startsWith(ASSET) ? 
 const addAsset = (src) => (typeof src === 'string' && src && !/[/:]/.test(src) ? ASSET + src : src);
 const mapImages = (blocks, fn) => blocks.map((b) => (b.type === 'image' && b.src ? { ...b, src: fn(b.src) } : b));
 
-const isTravel = (doc) => doc.kind === 'travel' || (doc.kind === undefined && Array.isArray(doc.stops));
-/** 游记的图藏在图组、自由排布的条目里：统一改写路径 */
-const mapTravelImages = (blocks, fn) => blocks.map((b) => {
-  if (b.type === 'single' && b.src) return { ...b, src: fn(b.src) };
-  if (Array.isArray(b.images)) return { ...b, images: b.images.map((im) => (im.src ? { ...im, src: fn(im.src) } : im)) };
-  if (b.type === 'free') return { ...b, items: b.items.map((it) => (it.kind === 'image' && it.src ? { ...it, src: fn(it.src) } : it)) };
+/** 游记的图藏在图组、自由排布的条目里：文本里只写文件名 */
+const stripTravelAsset = (b) => {
+  if (b.type === 'single' && b.src) return { ...b, src: stripAsset(b.src) };
+  if (Array.isArray(b.images)) return { ...b, images: b.images.map((im) => (im.src ? { ...im, src: stripAsset(im.src) } : im)) };
+  if (b.type === 'free') return { ...b, items: b.items.map((it) => (it.kind === 'image' && it.src ? { ...it, src: stripAsset(it.src) } : it)) };
   return b;
-});
-
+};
+const isTravel = (doc) => doc.kind === 'travel' || (doc.kind === undefined && Array.isArray(doc.stops));
 export const toMarkdown = (doc) => `# ${doc.title ?? ''}\n\n${isTravel(doc)
-  ? travelToMarkdown({ stops: doc.stops, blocks: mapTravelImages(doc.blocks, stripAsset), notes: doc.notes })
+  ? travelToMarkdown({ stops: doc.stops, blocks: doc.blocks.map(stripTravelAsset), notes: doc.notes })
   : blocksToMarkdown({ blocks: mapImages(doc.blocks, stripAsset), notes: doc.notes })}`;
 
 const one = (b) => blocksToMarkdown({ blocks: [b], notes: {} }).trim();
@@ -113,54 +112,150 @@ export function fromMarkdown(text, doc) {
   return { ...doc, title: parsed.title ?? doc.title, blocks: blocks.length ? blocks : [{ id: 'b01', type: 'p', text: '' }], notes: Object.keys(notes).length ? notes : undefined };
 }
 
-/* ───────────── 游记 ───────────── */
-const TRAVEL_PREFIX = { text: 't', single: 's', pair: 'p', strip: 'st', grid: 'g', free: 'f', map: 'm' };
-const TRAVEL_CARRY = ['y', 'scale', 'head']; // 横滚的位置、缩放这些参数，文本里不写，跟着块走
+/* ───────────── 游记 ─────────────
+ * 文本里只有站名、文字段和图片。保存时把每段文字、每张图对回原来的块：
+ * 没动的原样保留，改过的沿用块和段落 id，版式（图组、自由排布、竖排）、位置、缩放、地图都跟着块走。 */
 
-/** 新解析出的站点对回旧站点：先按站名，再按位置；对上的沿用 id 和文本里没写的经纬度 */
+const inlineKey = (text) => blocksToMarkdown({ blocks: [{ type: 'p', text }], notes: {} }).trim();
+const itemKey = (it) => (it.kind === 'p' ? `p:${inlineKey(it.text)}` : `i:${stripAsset(it.src ?? '')}`);
+
+/** 新旧内容项一一对应：先找没动过的（最长公共子序列），再在空档里按顺序找改动不大的文字 */
+function matchItems(oldItems, newItems) {
+  const ok = oldItems.map(itemKey), nk = newItems.map(itemKey), n = ok.length, m = nk.length;
+  const L = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) L[i][j] = ok[i] === nk[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const match = new Array(m).fill(-1), pairs = [];
+  for (let i = 0, j = 0; i < n && j < m; ) {
+    if (ok[i] === nk[j]) { match[j] = i; pairs.push([i, j]); i++; j++; }
+    else if (L[i + 1][j] >= L[i][j + 1]) i++; else j++;
+  }
+  const bounds = [[-1, -1], ...pairs, [n, m]];
+  for (let k = 0; k < bounds.length - 1; k++) {
+    let p = bounds[k][0] + 1;
+    for (let j = bounds[k][1] + 1; j < bounds[k + 1][1]; j++) {
+      if (newItems[j].kind !== 'p') continue;
+      let best = -1, bestSim = 0.4;
+      for (let q = p; q < bounds[k + 1][0]; q++) {
+        if (oldItems[q].kind !== 'p') continue;
+        const sim = similarity(ok[q], nk[j]);
+        if (sim >= bestSim) { best = q; bestSim = sim; }
+      }
+      if (best >= 0) { match[j] = best; p = best + 1; }
+    }
+  }
+  return match;
+}
+
+/** 新解析出的站点对回旧站点：先按站名，再按位置；对上的沿用 id 和文本里没写的英文名、日期、经纬度 */
 function alignStops(oldStops, parsed) {
   const taken = new Set(), out = new Array(parsed.length).fill(null);
   parsed.forEach((p, i) => { const k = oldStops.findIndex((o, q) => !taken.has(q) && o.name === p.name); if (k >= 0) { taken.add(k); out[i] = oldStops[k]; } });
-  parsed.forEach((p, i) => { if (!out[i] && oldStops[i] && !taken.has(i)) { taken.add(i); out[i] = oldStops[i]; } });
+  parsed.forEach((p, i) => { if (!out[i] && oldStops[i] && !taken.has(i)) { taken.add(i); out[i] = { ...oldStops[i], name: p.name }; } });
   const used = new Set(out.filter(Boolean).map((o) => o.id));
   let n = 0;
   return parsed.map((p, i) => {
-    const o = out[i];
-    let id = o?.id;
-    if (!id) { do id = 's' + ++n; while (used.has(id)); used.add(id); }
-    const lnglat = p.lnglat ?? o?.lnglat ?? [0, 0];
-    return { id, name: p.name, ...(p.en ? { en: p.en } : {}), lnglat, ...(p.date ? { date: p.date } : {}) };
+    if (out[i]) return { ...out[i], name: p.name };
+    let id; do id = 's' + ++n; while (used.has(id));
+    used.add(id);
+    return { id, name: p.name, lnglat: [0, 0] };
   });
 }
 
-/** 文字块的段落 id：先按原文对上，再按位置且相近的沿用，其余取 “块id + p + 序号” */
-function alignParas(oldParas = [], paras, blockId) {
-  const used = new Set(), keyOf = (p) => blocksToMarkdown({ blocks: [{ type: 'p', text: p.text }], notes: {} }).trim();
-  const ok = oldParas.map(keyOf);
-  const pick = paras.map((p) => { const k = ok.findIndex((x, q) => !used.has(q) && x === keyOf(p)); if (k >= 0) used.add(k); return k; });
-  paras.forEach((p, i) => { if (pick[i] < 0 && oldParas[i] && !used.has(i) && similarity(ok[i], keyOf(p)) >= 0.4) { pick[i] = i; used.add(i); } });
-  const ids = new Set(pick.filter((k) => k >= 0).map((k) => oldParas[k].id));
-  let n = 0;
-  return paras.map((p, i) => {
-    let id = pick[i] >= 0 ? oldParas[pick[i]].id : null;
-    if (!id) { do id = `${blockId}p${++n}`; while (ids.has(id)); ids.add(id); }
-    return { id, text: p.text };
-  });
-}
+const patchImage = (im, n) => {
+  const o = { ...im };
+  if ((n.alt ?? '') !== (im.alt ?? '')) o.alt = n.alt ?? '';
+  if ((n.caption ?? '') !== (im.caption ?? '')) { if (n.caption) o.caption = n.caption; else delete o.caption; }
+  return o;
+};
 
 export function fromTravelMarkdown(text, doc) {
   const parsed = parseTravel(text);
   const stops = alignStops(doc.stops ?? [], parsed.stops);
-  const fallback = stops.length ? stops : [{ id: doc.stops?.[0]?.id ?? 's1', name: doc.stops?.[0]?.name ?? '', lnglat: doc.stops?.[0]?.lnglat ?? [0, 0] }];
-  const fresh = mapTravelImages(restoreNoteKinds(parsed.blocks, doc.blocks), addAsset).map((b) => ({ ...b, stop: fallback[b.stop]?.id ?? fallback[0].id }));
-  const key = (b) => `${b.stop}\n${travelBlockToMarkdown(b)}`;
-  // Markdown 里块是按站点归在一起的：旧块也先按同样的顺序排好再对齐，否则挪了位置的块会被当成新块
-  const grouped = [...(doc.stops ?? []).flatMap((s) => doc.blocks.filter((b) => b.stop === s.id)), ...doc.blocks.filter((b) => !(doc.stops ?? []).some((s) => s.id === b.stop))];
-  const blocks = alignBlocks(grouped, fresh, { key, carry: TRAVEL_CARRY, prefix: (b) => TRAVEL_PREFIX[b.type] ?? 'b' }).map((b) => {
-    if (b.type !== 'text') return b;
-    const old = doc.blocks.find((o) => o.id === b.id && o.type === 'text');
-    return { ...b, paras: alignParas(old?.paras, b.paras, b.id) };
+  const first = doc.stops?.[0];
+  const list = stops.length ? stops : [first ?? { id: 's1', name: '', lnglat: [0, 0] }];
+  const stopIds = new Set(list.map((s) => s.id));
+  const oldItems = travelItems(doc);
+  const newItems = parsed.items.map((it) => ({
+    ...it, stopId: list[it.stop]?.id ?? list[0].id,
+    ...(it.kind === 'img' ? { src: addAsset(it.src) } : { text: restoreNoteKinds(it.text, doc.blocks) }),
+  }));
+  const match = matchItems(oldItems, newItems);
+  const oldBlock = new Map(doc.blocks.map((b) => [b.id, b]));
+
+  // 一：按新文本的顺序，把每一项归进块。对上旧项的进旧块；新写的文字接在前一项所在的文字块后面，否则自成一块
+  const entries = [], byOld = new Map(), entryOf = new Array(newItems.length);
+  newItems.forEach((n, i) => {
+    const o = match[i];
+    let e;
+    if (o >= 0) {
+      const bid = oldItems[o].block;
+      e = byOld.get(bid);
+      if (!e) { e = { old: oldBlock.get(bid), type: oldBlock.get(bid).type, stop: n.stopId, slots: [] }; byOld.set(bid, e); entries.push(e); }
+      e.slots.push({ o: oldItems[o], n });
+    } else {
+      const prev = i > 0 && newItems[i - 1].stopId === n.stopId ? entryOf[i - 1] : null;
+      if (n.kind === 'p' && prev?.type === 'text') { e = prev; e.slots.push({ n }); }
+      else { e = { old: null, type: n.kind === 'p' ? 'text' : 'single', stop: n.stopId, slots: [{ n }] }; entries.push(e); }
+    }
+    entryOf[i] = e;
   });
+
+  // 二：文本里没有内容的旧块（地图，只剩小段文字的自由排布……）跟在它原来前一个块的后面
+  const canonical = (doc.stops ?? []).flatMap((s) => doc.blocks.filter((b) => b.stop === s.id));
+  const hasItems = new Set(oldItems.map((it) => it.block));
+  const placed = new Map(byOld);
+  const stopOrder = new Map(list.map((s, i) => [s.id, i]));
+  canonical.forEach((b, ci) => {
+    if (byOld.has(b.id) || !stopIds.has(b.stop)) return;
+    // 文本里的内容被删光了：整块删掉；只有自由排布里的小段文字不在文本里，留着
+    if (hasItems.has(b.id) && !(b.type === 'free' && b.items.some((it) => it.kind === 'text'))) return;
+    const e = { old: b, type: b.type, stop: b.stop, slots: [] };
+    let at = -1;
+    for (let k = ci - 1; k >= 0 && at < 0; k--) { const p = placed.get(canonical[k].id); if (p) at = entries.indexOf(p) + 1; }
+    if (at < 0) { at = entries.findIndex((x) => x.stop === b.stop); }
+    if (at < 0) { let last = -1; entries.forEach((x, k) => { if (stopOrder.get(x.stop) < stopOrder.get(b.stop)) last = k; }); at = last + 1; }
+    entries.splice(at, 0, e);
+    placed.set(b.id, e);
+  });
+
+  // 三：按归好的项重建块
+  const used = new Set(doc.blocks.flatMap((b) => [b.id, ...(b.paras ?? []).map((p) => p.id)]));
+  const max = {};
+  for (const b of doc.blocks) { const x = /^([a-z]+)(\d+)$/.exec(b.id); if (x) max[x[1]] = Math.max(max[x[1]] ?? 0, +x[2]); }
+  const newId = (p) => { let id; do id = p + String((max[p] = (max[p] ?? 0) + 1)).padStart(2, '0'); while (used.has(id)); used.add(id); return id; };
+  const newParaId = (bid) => { let k = 0, id; do id = `${bid}p${++k}`; while (used.has(id)); used.add(id); return id; };
+
+  const blocks = entries.map((e) => {
+    const { old, stop, slots } = e;
+    if (!old) {
+      if (e.type === 'single') { const n = slots[0].n; return { id: newId('s'), type: 'single', stop, src: n.src, alt: n.alt ?? '', ...(n.caption ? { caption: n.caption } : {}), layout: 'full' }; }
+      const id = newId('t');
+      return { id, type: 'text', stop, paras: slots.map((s) => ({ id: newParaId(id), text: s.n.text })) };
+    }
+    if (!slots.length) return old.type === 'free' && hasItems.has(old.id) ? { ...old, stop, items: old.items.filter((it) => it.kind === 'text') } : { ...old, stop };
+    switch (old.type) {
+      case 'text': return { ...old, stop, paras: slots.map((s) => {
+        if (!s.o) return { id: newParaId(old.id), text: s.n.text };
+        const op = old.paras[s.o.k];
+        return itemKey(s.o) === itemKey(s.n) ? op : { ...op, text: s.n.text };
+      }) };
+      case 'single': return { ...old, ...patchImage(old, slots[0].n), stop };
+      case 'free': {
+        const alive = new Map(slots.map((s) => [s.o.k, s.n]));
+        const items = old.items.flatMap((it, k) => (it.kind !== 'image' ? [it] : alive.has(k) ? [patchImage(it, alive.get(k))] : []));
+        return items.length ? { ...old, stop, items } : null;
+      }
+      default: { // pair / strip / grid
+        const images = slots.map((s) => patchImage(old.images[s.o.k], s.n));
+        if ((old.type === 'pair' && images.length === 2) || (old.type !== 'pair' && images.length >= 2)) return { ...old, stop, images };
+        // 删得只剩一张：退成单图
+        const { images: _drop, ...rest } = old;
+        return { ...rest, type: 'single', stop, layout: 'full', src: images[0].src, alt: images[0].alt ?? '', ...(images[0].caption ? { caption: images[0].caption } : {}) };
+      }
+    }
+  }).filter(Boolean);
+  const orphans = doc.blocks.filter((b) => !(doc.stops ?? []).some((s) => s.id === b.stop)); // 不属于任何站点的旧块：原样留着，别悄悄丢
+
   const notes = alignNotes(doc.notes, restoreNoteKinds(parsed.notes, doc.blocks));
-  return { ...doc, title: parsed.title ?? doc.title, stops: fallback, blocks, notes: Object.keys(notes).length ? notes : undefined };
+  return { ...doc, title: parsed.title ?? doc.title, stops: list, blocks: [...blocks, ...orphans], notes: Object.keys(notes).length ? notes : undefined };
 }

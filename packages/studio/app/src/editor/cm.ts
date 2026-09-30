@@ -2,7 +2,7 @@
  * Markdown 编辑器（CodeMirror 6）。弱渲染：标题变大、粗体变粗、斜体变斜，Markdown 符号变淡但不消失——文字始终是源码。
  */
 import { EditorSelection, EditorState } from '@codemirror/state';
-import { Decoration, EditorView, MatchDecorator, ViewPlugin, keymap, placeholder as cmPlaceholder, type DecorationSet, type ViewUpdate } from '@codemirror/view';
+import { EditorView, keymap, placeholder as cmPlaceholder } from '@codemirror/view';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { markdown } from '@codemirror/lang-markdown';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
@@ -22,19 +22,7 @@ const style = HighlightStyle.define([
   { tag: t.contentSeparator, color: 'var(--ink-3)' },
 ]);
 
-/** 游记的写法里，行尾的 {…} 参数和 ::: 围栏行只是排版指令：淡化成小号等宽字，别抢正文的风头 */
-const directives = new MatchDecorator({
-  regexp: /(\{[A-Za-z]+=[^{}\n]*\})|(^:::.*$)/gm,
-  decoration: Decoration.mark({ class: 'cm-directive' }),
-});
-const directivePlugin = ViewPlugin.fromClass(class {
-  deco: DecorationSet;
-  constructor(view: EditorView) { this.deco = directives.createDeco(view); }
-  update(u: ViewUpdate) { this.deco = directives.updateDeco(u, this.deco); }
-}, { decorations: (v) => v.deco });
-
 const theme = EditorView.theme({
-  '.cm-directive': { fontFamily: 'var(--font-mono)', fontSize: '12.5px', fontWeight: '400', letterSpacing: '0', color: 'var(--ink-3)' },
   '&': { height: '100%', background: 'transparent', color: 'var(--ink)', fontSize: '16.5px' },
   '&.cm-focused': { outline: 'none' },
   '.cm-scroller': { fontFamily: 'var(--font-serif)', lineHeight: '2', overflow: 'auto' },
@@ -110,7 +98,7 @@ export function createEditor({ parent, doc, placeholder, cursor = 'start', onCha
       doc,
       selection: { anchor: cursor === 'end' ? doc.length : 0 },
       extensions: [
-        history(), markdown(), syntaxHighlighting(style), theme, directivePlugin, EditorView.lineWrapping,
+        history(), markdown(), syntaxHighlighting(style), theme, EditorView.lineWrapping,
         placeholder ? cmPlaceholder(placeholder) : [],
         keymap.of([
           { key: 'Mod-b', run: (v) => wrap(v, '**') },

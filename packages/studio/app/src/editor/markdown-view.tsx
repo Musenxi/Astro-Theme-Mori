@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Bold, Code, Heading2, Heading3, ImageIcon, Italic, LayoutTemplate, Link2, List, MessageSquareQuote, Quote } from 'lucide-react';
+import { Bold, Code, Heading2, Heading3, ImageIcon, Italic, Link2, List, MessageSquareQuote, Quote } from 'lucide-react';
 import { api } from '@/lib/api';
 import { countWords, wan } from '@/lib/format';
 import { useRefresh } from '@/lib/hooks';
 import { fromMarkdown, toMarkdown } from '@/lib/mdsync.js';
 import type { Doc } from '@/lib/types';
 import { AssetDialog } from '@/components/asset-picker';
-import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/dropdown';
 import { Tip } from '@/components/ui/tooltip';
 import { createEditor, type MdCommand, type MdEditor } from './cm';
 
@@ -23,19 +22,8 @@ const TOOLS: Array<{ cmd: MdCommand | 'image' | 'note'; label: string; icon: typ
   { cmd: 'note', label: '旁注', icon: MessageSquareQuote },
 ];
 
-/** 游记里能用的工具：二级标题就是“新的一站”，没有小标题、引用、列表 */
+/** 游记里能用的工具：二级标题就是“新的一站”；小标题、引用、列表在游记里没有对应的块 */
 const TRAVEL_TOOLS = TOOLS.filter((t) => !['h3', 'quote', 'list', 'code'].includes(t.cmd)).map((t) => (t.cmd === 'h2' ? { ...t, label: '新的一站', gap: false } : t));
-
-/** 游记的版式：插入一段围栏，图用空的 ![]() 占位，写完路径或从图库选 */
-const LAYOUTS: Array<{ label: string; text: string }> = [
-  { label: '竖排文字', text: ':::v\n在这里写……\n:::' },
-  { label: '双图', text: ':::pair\n![]()\n![]()\n:::' },
-  { label: '图组（可缩放错开）', text: ':::strip\n![]()\n![]()\n:::' },
-  { label: '网格', text: ':::grid\n![]()\n![]()\n:::' },
-  { label: '自由排布', text: ':::free ar=1.6\n![]() {x=0.05 y=0.05 w=0.5}\n:::' },
-  { label: '地图：全程', text: ':::map' },
-  { label: '地图：这一站', text: ':::map stop' },
-];
 
 /** 用 Markdown 写：一个大文本框，标题是第一行 `# 标题`；停笔 250ms 后解析成块，并保住没改动的块（和它们的划词批注） */
 export function MarkdownView({ doc, setDoc, travel }: { doc: Doc; setDoc: (fn: (d: Doc) => Doc) => void; travel?: boolean }) {
@@ -81,12 +69,6 @@ export function MarkdownView({ doc, setDoc, travel }: { doc: Doc; setDoc: (fn: (
             </Tip>
           </span>
         ))}
-        {travel && (
-          <Menu>
-            <MenuTrigger asChild><button type="button" onMouseDown={(e) => e.preventDefault()} className="ml-3 flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] text-ink-2 transition-colors hover:bg-lift hover:text-ink hover:shadow-soft data-[state=open]:bg-lift"><LayoutTemplate size={14} />版式</button></MenuTrigger>
-            <MenuContent align="start">{LAYOUTS.map((l) => <MenuItem key={l.label} onSelect={() => { ed.current?.insertBlock(l.text); }}>{l.label}</MenuItem>)}</MenuContent>
-          </Menu>
-        )}
         <span className="mono ml-auto pr-2 text-[11px] text-ink-3">{wan(words)} 字 · {travel ? `${doc.stops?.length ?? 0} 站` : `${doc.blocks?.length ?? 0} 块`}</span>
       </div>
       <div ref={host} className="min-h-0 flex-1" />

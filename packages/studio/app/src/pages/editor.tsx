@@ -33,7 +33,7 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
   const { data: project } = useProject();
   const refresh = useRefresh();
   const kind: Kind = routeKind === 'page' ? 'page' : initial.kind === 'travel' || (initial.kind === undefined && Array.isArray(initial.stops)) ? 'travel' : 'post';
-  const modes = useMemo<Array<{ value: Mode; label: string }>>(() => [{ value: 'md', label: 'Markdown' }, { value: 'blocks', label: '块' }, { value: 'raw', label: '源码' }], []);
+  const modes = useMemo<Array<{ value: Mode; label: string }>>(() => [{ value: 'md', label: 'Markdown' }, { value: 'blocks', label: kind === 'travel' ? '排版' : '块' }, { value: 'raw', label: '源码' }], [kind]);
   const [mode, setModeState] = useState<Mode>(() => { try { const m = localStorage.getItem(MODE_KEY) as Mode | null; if (m && modes.some((x) => x.value === m)) return m; } catch { /* 存不了就用默认 */ } return modes[0].value; });
   const setMode = (m: Mode) => { setModeState(m); if (m !== 'raw') try { localStorage.setItem(MODE_KEY, m); } catch { /* 无所谓 */ } };
   const [panel, setPanel] = useState<'info' | 'preview' | null>(null);
