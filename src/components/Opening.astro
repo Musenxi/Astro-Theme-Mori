@@ -24,7 +24,7 @@ const ld = latest.data.date;
 const slides = pinned.map((e) => {
   const d = e.data, pin = d.pin;
   const own = (pin?.quote ?? []).filter((l) => l.trim());
-  const lines = own.length ? own : [d.excerpt].filter((l) => l.trim()); // 置顶没写引言就用摘要，摘要也没有就没有引文
+  const lines = own.length ? own : (d.excerpt.match(/[^。！？]+[。！？]?/g) ?? []).filter((l) => l.trim()); // 置顶没写引言就用摘要（按句断成几行，字号才不会被整句压小），摘要也没有就没有引文
   let i = 0;
   const quote = lines.map((l, n) => [...((n === 0 ? '「' : '') + l + (n === lines.length - 1 ? '」' : ''))].map((ch) => ({ ch, i: i++ })));
   return {
