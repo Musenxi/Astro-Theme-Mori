@@ -10,16 +10,18 @@ interface Props {
   sub?: string;
   cover?: ImageMetadata;
   coverAlt?: string;
+  /** 标题、副题、附属信息居中（独立页面用） */
+  center?: boolean;
 }
-const { title, meta = [], sub, cover, coverAlt = '' } = Astro.props;
+const { title, meta = [], sub, cover, coverAlt = '', center = false } = Astro.props;
 ---
 
 <header class="wrap g pt-[clamp(48px,9vw,120px)] pb-[clamp(40px,5.5vw,72px)] *:col-[3/11]">
-  <h1 class="w-fit text-title leading-[1.25] font-normal tracking-[.06em] [view-transition-name:title-post]">{title}</h1>
-  {sub && <p class="mt-3 text-item leading-[1.6] tracking-[.04em] text-soft-foreground">{sub}</p>}
+  <h1 class:list={[center ? 'text-center' : 'w-fit', 'text-title leading-[1.25] font-normal tracking-[.06em] [view-transition-name:title-post]']}>{title}</h1>
+  {sub && <p class:list={['mt-3 text-item leading-[1.6] tracking-[.04em] text-soft-foreground', center && 'text-center']}>{sub}</p>}
   {
     meta.length > 0 && (
-      <p class="meta mt-5 flex flex-wrap items-baseline gap-x-2.5">
+      <p class:list={['meta mt-5 flex flex-wrap items-baseline gap-x-2.5', center && 'justify-center']}>
         {meta.map((m, i) => (
           <>
             {i > 0 && <span aria-hidden="true">·</span>}
