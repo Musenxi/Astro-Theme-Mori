@@ -30,7 +30,7 @@ const stopData = stops.map((s) => ({ id: s.id, name: s.name, date: s.date ?? '' 
 <div class="glass fixed bottom-[18px] left-[18px] z-20 flex items-center gap-2.5 rounded-[4px] py-1.5 pr-3 pl-2 opacity-0 pointer-events-none [transform:translateY(12px)] [transition:transform_.6s_var(--ease-mori),opacity_.4s] narrow:bottom-3 narrow:left-3 [&.on]:pointer-events-auto [&.on]:opacity-100 [&.on]:[transform:none]" id="loc" data-stops={JSON.stringify(stopData)}>
   <RouteMap variant="mini" stops={stops} track={track} />
   <div class="leading-[1.35] whitespace-nowrap">
-    <span class="mono text-[11.5px] text-muted-foreground narrow:hidden" id="rb-n">01 / {String(stops.length).padStart(2, '0')}</span>
+    <span class="mono text-muted-foreground narrow:hidden" id="rb-n">01 / {String(stops.length).padStart(2, '0')}</span>
     <b class="block text-[15px] font-normal" id="rb-name">{stops[0].name}</b>
   </div>
 </div>

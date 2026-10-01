@@ -11,6 +11,7 @@ const cats = config.categories.map((c) => ({ ...c, n: entries.filter((e) => e.ca
 
 <Base title={t('search.title')} direction={config.archive.direction}>
   <main data-page="search" class="wrap g content-start pt-[clamp(48px,9vw,120px)] pb-24">
+    <h1 class="sr-only">{t('search.title')}</h1>
     <header class="col-[3/11]">
       <label class="flex items-center gap-4 border-b border-b-foreground pb-3">
         <svg class="size-[22px] flex-none text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m15.5 15.5 5 5"></path></svg>

@@ -13,6 +13,7 @@ const latest = entries[0];
 
 <Base direction={config.home.direction}>
   <main data-page="home" data-home>
+    <h1 class="sr-only">{config.title}</h1>
     {latest ? (
       <>
         {config.home.style === 'cover' ? <Cover feature={pinnedOf(entries)[0]} entries={entries} latest={latest} /> : <Opening pinned={pinnedOf(entries)} latest={latest} />}

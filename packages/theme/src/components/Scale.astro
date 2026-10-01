@@ -57,7 +57,7 @@ const posOf = (e: Entry) => {
         {
           ticks.map((t) => (
             <>
-              <span class:list={[tick, t.yearTop ? tickY : 'horiz:w-3 vert:h-3 horiz:border-t-muted-foreground vert:border-l-muted-foreground']} style={{ '--p': t.k }}>{t.yearTop && <i class:list={[tickI, 'text-[13px] tracking-[.08em] text-foreground horiz:left-[52px] horiz:top-[-.5em] horiz:narrow:left-1 horiz:narrow:top-[-1.5em] vert:left-1.5 vert:top-0']}>{t.y}</i>}</span>
+              <span class:list={[tick, t.yearTop ? tickY : 'horiz:w-3 vert:h-3 horiz:border-t-muted-foreground vert:border-l-muted-foreground']} style={{ '--p': t.k }}>{t.yearTop && <i class:list={[tickI, 'text-[13px] tracking-[.08em] text-foreground horiz:left-[52px] horiz:top-[-.5em] horiz:narrow:left-1 horiz:narrow:top-[-1.5em] vert:left-1.5 vert:top-0', t.k === 0 && 'vert:max-[900px]:right-1.5 vert:max-[900px]:left-auto']}>{t.y}</i>}</span>
               <span class:list={[tick, 'border-0! horiz:w-3 vert:h-3']} style={{ '--p': t.k }}><i class:list={[tickI, 'text-muted-foreground horiz:left-5 horiz:top-[calc(var(--mh)/2_-_.5em)] vert:top-[-4px] vert:right-[calc(var(--mw)/2_-_1em)] vert:left-auto']}>{pad2(t.m)}</i></span>
             </>
           ))
@@ -71,7 +71,7 @@ const posOf = (e: Entry) => {
           ))
         }
       </div>
-      <div class="pointer-events-none font-display text-[clamp(56px,8.5vw,136px)] leading-none font-light tracking-[.01em] whitespace-nowrap text-muted-foreground [font-feature-settings:'lnum'] horiz:sticky horiz:top-[34vh] horiz:col-2 horiz:row-2 horiz:self-start horiz:narrow:top-[60px] horiz:narrow:z-2 horiz:narrow:col-1 horiz:narrow:row-1 horiz:narrow:justify-self-end horiz:narrow:text-[44px] vert:absolute vert:bottom-[8vh] vert:left-(--edge) vert:[direction:ltr]" id="he-counter" aria-hidden="true">
+      <div class="pointer-events-none font-display text-[clamp(56px,8.5vw,136px)] leading-none font-light tracking-[.01em] whitespace-nowrap text-muted-foreground [font-feature-settings:'lnum'] horiz:sticky horiz:top-[34vh] horiz:col-2 horiz:row-2 horiz:self-start horiz:narrow:hidden vert:absolute vert:bottom-[8vh] vert:left-(--edge) vert:[direction:ltr]" id="he-counter" aria-hidden="true">
         {
           [0, 0, 0, 0, '.', 0, 0].map((d) =>
             d === '.' ? (

@@ -94,7 +94,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
       <section class="fns col-[3/9] mt-[3.2em] text-[14px] leading-[1.8] text-muted-foreground before:mb-[1.1em] before:block before:h-px before:w-12 before:bg-border before:content-['']" aria-label={t('notes.foot')}>
         <ol class="grid gap-[.5em]">
           {footnotes.map((f) => (
-            <li class="flex gap-[.7em] text-pretty" id={`fn-${f.ref}`}>
+            <li class="flex items-baseline gap-[.7em] text-pretty" id={`fn-${f.ref}`}>
               <sup class="nref mr-0">{f.n}</sup>
               <span set:html={html(f.text)} />
             </li>
