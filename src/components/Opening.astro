@@ -20,10 +20,11 @@ const many = pinned.length > 1;
 const catName = (c: { zh: string; en?: string }) => [...new Set([c.zh, c.en].filter(Boolean))].join(' · ');
 const ld = latest.data.date;
 
-/** 每篇置顶要有：封面、引文、图注、三条信息；缺哪样就用文章自己的字段顶上。引文是空的就不放引文，封面也不做渐隐 */
+/** 每篇置顶要有：封面、引文、图注、三条信息；缺哪样就用文章自己的字段顶上。引文和摘要都没有就不放引文，封面也不做渐隐 */
 const slides = pinned.map((e) => {
   const d = e.data, pin = d.pin;
-  const lines = (pin?.quote ?? [d.excerpt]).filter((l) => l.trim());
+  const own = (pin?.quote ?? []).filter((l) => l.trim());
+  const lines = own.length ? own : [d.excerpt].filter((l) => l.trim()); // 置顶没写引言就用摘要，摘要也没有就没有引文
   let i = 0;
   const quote = lines.map((l, n) => [...((n === 0 ? '「' : '') + l + (n === lines.length - 1 ? '」' : ''))].map((ch) => ({ ch, i: i++ })));
   return {
