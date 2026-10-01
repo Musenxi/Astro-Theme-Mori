@@ -30,8 +30,8 @@
   color-scheme: light;
 
   @variant dark {
-    --background: #151412;
-    --muted: #1f1d1a;
+    --background: #000000;
+    --muted: #151412;
     --foreground: #e8e3d9;
     --soft-foreground: #b2ab9f;
     --muted-foreground: #857f74;
