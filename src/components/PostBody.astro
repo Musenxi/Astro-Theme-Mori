@@ -53,9 +53,9 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         case 'quote': {
           const vq = b.writing === 'v' && vertical;
           return (
-            <blockquote class:list={[main, vq && 'mt-[1.4em] mb-[2.2em] h-[12.5em] justify-self-center border-r border-r-primary pr-[1.1em] text-heading leading-[2.1] tracking-[.2em] text-soft-foreground [writing-mode:vertical-rl]']} data-b={b.id}>
+            <blockquote class:list={[main, !vq && "relative my-[1.6em] px-[4.2em] py-[.3em] text-center text-heading leading-[2.1] text-foreground before:absolute before:top-[-.1em] before:left-0 before:w-[.5em] before:text-[6em] before:leading-none before:text-foreground/20 before:[font-family:'Special_Elite',Georgia,serif] before:content-['“'] narrow:px-[1.6em] narrow:before:text-[2.6em]", vq && 'mt-[1.4em] mb-[2.2em] h-[12.5em] justify-self-center border-r border-r-primary pr-[1.1em] text-heading leading-[2.1] tracking-[.2em] text-soft-foreground [writing-mode:vertical-rl]']} data-b={b.id}>
               <Fragment set:html={html(b.text)} />
-              {b.cite && <cite class={vq ? 'block text-end text-meta text-muted-foreground  [margin-block-start:.4em]' : undefined} data-skip>{b.cite}</cite>}
+              {b.cite && <cite class={vq ? 'block text-end text-meta text-muted-foreground  [margin-block-start:.4em]' : 'mt-[.6em] block text-center text-meta text-muted-foreground'} data-skip>{b.cite}</cite>}
             </blockquote>
           );
         }
