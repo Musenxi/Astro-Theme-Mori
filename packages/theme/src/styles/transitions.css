@@ -16,24 +16,6 @@ html.vt-mode::view-transition-old(root){animation:.28s ease both vt-out}
 html.vt-mode::view-transition-new(root){animation:.5s ease both vt-fade}
 @keyframes vt-fade{from{opacity:0}}
 
-/* 阅读进度：页面最上沿一根 1px 的主题色线，随滚动从左到右。文章页才有；游记横滚时滚动方向不同，不加 */
-@supports (animation-timeline: scroll()) {
-  :root:has(main[data-page="post"]) body::before {
-    content: "";
-    position: fixed; inset: 0 0 auto 0; height: 1px; z-index: 60;
-    background: var(--primary);
-    transform-origin: 0 50%;
-    transform: scaleX(0);
-    animation: read-progress linear both;
-    animation-timeline: scroll(root block);
-    pointer-events: none;
-  }
-}
-@keyframes read-progress { to { transform: scaleX(1); } }
-
-@media (prefers-reduced-motion: reduce) {
-  body::before { animation: none !important; transform: none !important; opacity: 0; }
-}
 @media (prefers-reduced-motion:reduce){
   *,::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important;transition:none!important}
   .rv img{clip-path:none;transform:none;opacity:1}

@@ -42,10 +42,10 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
           );
         }
         case 'h': {
-          if (b.level === 3) return <h3 class="col-[3/9]" data-b={b.id} set:html={html(b.text)} />;
+          if (b.level === 3) return <h3 class="col-[3/9] scroll-mt-(--toc-top)" id={b.id} data-b={b.id} set:html={html(b.text)} />;
           h2 += 1;
           return (
-            <h2 class="col-[3/9] mt-[2.6em] mb-[.9em] flex items-baseline gap-4 text-chapter leading-[1.5] font-bold tracking-[.08em]" data-b={b.id}>
+            <h2 class="col-[3/9] mt-[2.6em] mb-[.9em] flex scroll-mt-(--toc-top) items-baseline gap-4 text-chapter leading-[1.5] font-bold tracking-[.08em]" id={b.id} data-b={b.id}>
               <span class="font-display text-chapter leading-none font-light tracking-normal text-muted-foreground [font-feature-settings:'lnum']" data-skip>{pad2(h2)}</span>
               <Fragment set:html={html(b.text)} />
             </h2>

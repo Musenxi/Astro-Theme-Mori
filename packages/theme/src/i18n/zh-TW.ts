@@ -8,7 +8,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'season.spring': '春', 'season.summer': '夏', 'season.autumn': '秋', 'season.winter': '冬',
   'home.feature': '本期特稿', 'home.region': '本期收錄', 'home.title': '篇名', 'home.date': '日期', 'home.readMore': '閱讀全文', 'home.empty': '還沒有文章。把 JSON 放進 src/content/posts 或 src/content/travels。',
   'count.one': '{n}篇', 'count.other': '{n}篇',
-  'post.prev': '上一篇', 'post.next': '下一篇', 'post.nav': '上一篇 / 下一篇', 'post.meta': '{chars} 字 · {min} 分鐘',
+  'post.prev': '上一篇', 'post.next': '下一篇', 'post.toc': '目錄', 'post.nav': '上一篇 / 下一篇', 'post.meta': '{chars} 字 · {min} 分鐘',
   'fig': '圖 {n}', 'notes.foot': '腳註', 'notes.all': '註',
   'kind.travel': '遊記', 'travel.stop': '第{n}站', 'travel.stops': '站點', 'travel.itinerary': '行程', 'travel.total': '全程', 'travel.fallbackStat': '{n} 站',
   'travel.endNote': '回到起點。繼續向下捲動，是整段行程。', 'travel.left': '向左', 'travel.right': '向右', 'travel.readingGroup': '閱讀方式',
