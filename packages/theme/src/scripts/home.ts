@@ -4,7 +4,6 @@
  */
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
-let played = false;
 
 /** 目次的行为（引文版和封面版都有目次） */
 function initContents() {
@@ -74,9 +73,12 @@ function init() {
     more.querySelectorAll('button')[k].focus();
   });
 
-  // 进场（第一次打开）：图从上往下展开，引文逐字洇开，细线画开，最后出现篇名等信息
-  if (!reduce && !played) fo.classList.add('play');
-  played = true;
+  // 进场动画（样式见 opening.css）：封面图解码好了再放行，等太久（1.5 秒）也放行
+  const root = document.documentElement;
+  if (root.classList.contains('intro') && !root.classList.contains('intro-go')) {
+    const img = fo.querySelector<HTMLImageElement>('.fo-slide.on img');
+    Promise.race([img ? img.decode().catch(() => {}) : Promise.resolve(), new Promise((r) => setTimeout(r, 1500))]).then(() => root.classList.add('intro-go'));
+  }
 }
 
 document.addEventListener('astro:page-load', init);

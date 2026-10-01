@@ -74,6 +74,15 @@ const canonical = config.site ? new URL(Astro.url.pathname, config.site).href : 
         addEventListener('resize', apply);
       })();
     </script>
+    <!-- 首页整页第一次打开时播进场动画：先于首次绘制加上 intro，初始状态由 CSS 接手，不会先闪一下成品；intro-go 由 home.ts 在封面图解码后加上，脚本没跑起来时 2.5 秒后兜底放行 -->
+    <script is:inline>
+      (() => {
+        const el = document.documentElement;
+        if (location.pathname !== '/' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        el.classList.add('intro');
+        setTimeout(() => el.classList.add('intro-go'), 2500);
+      })();
+    </script>
     <script type="application/json" id="mori-i18n" is:inline set:html={clientJson} />
     <ClientRouter />
   </head>
