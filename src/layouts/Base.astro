@@ -5,6 +5,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { lang, clientJson } from '../lib/i18n.ts';
 import Lightbox from '../components/Lightbox.astro';
+import SearchPanel from '../components/SearchPanel.astro';
 
 import '../../fonts/EBGaramond/font.css';
 import '../../fonts/STD/light/font.css';
@@ -88,9 +89,11 @@ const canonical = config.site ? new URL(Astro.url.pathname, config.site).href : 
     <slot />
     <Footer />
     <Lightbox />
+    <SearchPanel />
     <script>
       import '../scripts/chrome.ts';
       import '../scripts/lightbox.ts';
+      import '../scripts/search.ts';
     </script>
   </body>
 </html>
