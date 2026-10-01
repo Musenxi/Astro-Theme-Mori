@@ -1,5 +1,5 @@
 /**
- * 文章目录（PostToc.astro）：滚动时标出当前读到的那一节；跨栏大图经过目录所在的位置时，目录先隐去，免得叠在图上。
+ * 文章目录（PostToc.astro）：滚动时标出当前读到的那一节；跨栏大图、旁注经过目录所在的位置时，目录先隐去，免得叠在上面。
  * 点目录平滑滚到小标题（小标题的 scroll-margin 和目录的 top 相同，滚到后两者齐平）。
  */
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -13,7 +13,7 @@ function init() {
   if (!toc || !list) return;
   const links = [...list.querySelectorAll<HTMLAnchorElement>('a')];
   const heads = links.map((a) => document.getElementById(decodeURIComponent(a.hash.slice(1))));
-  const figs = [...document.querySelectorAll<HTMLElement>('article figure:not(.inline)')];
+  const blocks = [...document.querySelectorAll<HTMLElement>('article figure:not(.inline), article aside')];
 
   let raf = 0;
   const update = () => {
@@ -25,7 +25,7 @@ function init() {
     heads.forEach((h, i) => { if (h && h.getBoundingClientRect().top <= line) cur = i; });
     if (innerHeight + scrollY >= document.documentElement.scrollHeight - 2 && heads.at(-1)!.getBoundingClientRect().top < innerHeight) cur = heads.length - 1;
     links.forEach((a, i) => (i === cur ? a.setAttribute('aria-current', 'location') : a.removeAttribute('aria-current')));
-    list.classList.toggle('off', figs.some((f) => { const b = f.getBoundingClientRect(); return b.top < r.bottom + 24 && b.bottom > r.top - 24; }));
+    list.classList.toggle('off', blocks.some((f) => { const b = f.getBoundingClientRect(); return b.top < r.bottom + 24 && b.bottom > r.top - 24; }));
   };
   const onScroll = () => { raf ||= requestAnimationFrame(update); };
   const onClick = (e: MouseEvent) => {
