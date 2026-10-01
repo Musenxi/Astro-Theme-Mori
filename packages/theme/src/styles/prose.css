@@ -1,8 +1,8 @@
 /* 文章正文里的行内内容：上标编号、行内代码、链接。块级版式在 PostBody.astro 里 */
 .prose sup{font-family:var(--font-mono);font-size:var(--text-meta);color:var(--primary);margin-right:4px}
 .b-text sup.nref{font-size:var(--text-meta)}
-/* 正文里的强调不用斜体，用着重号（横排在字下，竖排在字右） */
-.prose em,.b-text em{text-emphasis:filled dot;text-emphasis-position:under right}
+/* 作者在正文里标的斜体照样是斜体（中文字体没有斜体字形，由浏览器倾斜） */
+.prose em,.b-text em{font-style:italic}
 .prose .nref a{color:inherit}
 .prose code,.b-text code{font-family:var(--font-mono);font-size:.82em;background:var(--muted);padding:.1em .35em;border-radius:2px}
 .prose pre .c{color:var(--muted-foreground)}

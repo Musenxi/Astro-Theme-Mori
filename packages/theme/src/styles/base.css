@@ -54,7 +54,7 @@
   margin: 0;
   padding: 0;
 }
-/* 全站不用斜体：这几个元素浏览器默认是斜的；也不让浏览器把正体歪成假斜体 */
+/* 主题设计里不用斜体：这几个元素浏览器默认是斜的。正文里作者标的斜体在 prose.css 里恢复 */
 em,
 i,
 cite,
@@ -62,9 +62,6 @@ var,
 dfn,
 address {
   font-style: normal;
-}
-html {
-  font-synthesis-style: none;
 }
 html,
 body {
