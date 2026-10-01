@@ -12,9 +12,17 @@ export interface MoriCategory {
   empty?: string;
 }
 
+/** 页头右侧的一个操作：昼夜切换（文字“昼/夜”或太阳月亮图标），或者一个链接（设了 icon 就是图标钮，比如搜索） */
+export type MoriAction =
+  | { type: 'theme'; style?: 'text' | 'icon' }
+  | { type: 'link'; label: string; href: string; icon?: string };
+
 export interface MoriNavItem {
+  /** 文字；设了 icon 时只作为悬停提示和读屏名 */
   label: string;
   href: string;
+  /** Lucide 图标名（如 'house'、'book-open'）；设了就用图标代替文字 */
+  icon?: string;
 }
 
 /**
@@ -52,6 +60,8 @@ export interface MoriUserConfig {
   accentDark?: string;
   categories: MoriCategory[];
   nav?: MoriNavItem[];
+  /** 页头右侧并排的操作，默认只有昼夜切换。写 [] 是一个都不要 */
+  actions?: MoriAction[];
   home?: {
     /** 首页版式：quote 引文开篇（默认）/ cover 封面版（墨色封面 + 满版刊名，往下滚时刊名缩进页头） */
     style?: 'quote' | 'cover';
@@ -83,6 +93,7 @@ export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'acc
   archive: { direction: 'h' | 'v' };
   /** nav 是用户在配置里设定的（false 时页头在内置入口后面自动接上所有页面） */
   navCustom: boolean;
+  actions: MoriAction[];
   feed: { content: 'excerpt' | 'full' };
 }
 
@@ -109,6 +120,7 @@ export function resolveConfig(c: MoriUserConfig): MoriConfig {
     home: { style: c.home?.style ?? 'quote', direction: dir(c.home?.direction), editorNote: c.home?.editorNote ?? '' },
     archive: { direction: dir(c.archive?.direction ?? c.home?.direction) },
     navCustom: !!c.nav,
+    actions: c.actions ?? [{ type: 'theme' }],
     feed: { content: c.feed?.content === 'full' ? 'full' : 'excerpt' },
   };
 }

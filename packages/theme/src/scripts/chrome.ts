@@ -14,13 +14,25 @@ const store = {
 
 /* ───────────── 昼夜 ───────────── */
 const isDark = () => (root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches);
-const syncTheme = () => { $('#theme').textContent = isDark() ? t('js.theme.toLight') : t('js.theme.toDark'); };
+const themeBtn = document.querySelector<HTMLElement>('#theme'); // 右侧的操作里没有昼夜切换时页头里没有这颗钮
+const syncTheme = () => {
+  if (!themeBtn) return;
+  if (themeBtn.dataset.mode === 'icon') {
+    for (const s of themeBtn.querySelectorAll<HTMLElement>('[data-when]')) {
+      const off = (s.dataset.when === 'dark') !== isDark();
+      s.classList.toggle('hidden', off);
+      s.classList.toggle('grid', !off);
+    }
+    return;
+  }
+  themeBtn.textContent = isDark() ? t('js.theme.toLight') : t('js.theme.toDark');
+};
 const flipTheme = () => {
   root.dataset.theme = isDark() ? 'light' : 'dark';
   store.set('mori-theme', root.dataset.theme);
   syncTheme();
 };
-$('#theme').addEventListener('click', () => {
+themeBtn?.addEventListener('click', () => {
   // 整页交叉淡入：页头、正文、页脚在同一刻、用同一条曲线变色（各元素自己过渡的话，写了 transition 的和没写的会错开）
   if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return flipTheme();
   root.classList.add('vt-theme');
@@ -154,13 +166,14 @@ function lgFilter(id: string, el: HTMLElement) {
     <feDisplacementMap in="SourceGraphic" in2="m" scale="${scale}" xChannelSelector="R" yChannelSelector="G"/></filter>`;
 }
 
-const glassEls = [nav, $('#theme')];
+const actionsBox = document.querySelector<HTMLElement>('#lg-actions'); // 右侧的操作一个都没有时不存在
+const glassEls = [nav, actionsBox].filter((e): e is HTMLElement => !!e);
 function lgRefract() {
   for (const el of glassEls) {
     if (el.offsetWidth) el.style.setProperty('--lg-spec', `url(${lgSpec(Math.round(el.offsetWidth), Math.round(el.offsetHeight))})`);
   }
   if (!root.classList.contains('lg-refract')) return;
-  $('#lg-defs').innerHTML = lgFilter('lg-f-nav', nav) + lgFilter('lg-f-btn', $('#theme'));
+  $('#lg-defs').innerHTML = lgFilter('lg-f-nav', nav) + (actionsBox ? lgFilter('lg-f-btn', actionsBox) : '');
 }
 
 // backdrop-filter:url() 只有 Chromium 支持；其他浏览器退回轻模糊 + 高光，边缘不弯

@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import sharp from 'sharp';
 import { avatarTemplate } from 'astro-mori/avatar';
-import { RESERVED_SLUGS, assetUsage, trashAsset, loadConfig, setConfigValue, setCategories, setPublish, setNav, listPages, readFriends, writeFriends, renameCategoryInEntries, renameTag, countPages, listEntries, readEntry, writeEntry, entryExists, skeleton, trashEntry, listAssets, saveAsset, isId, KINDS, IMAGE_EXT } from './project.mjs';
+import { RESERVED_SLUGS, assetUsage, trashAsset, loadConfig, setConfigValue, setCategories, setPublish, setNav, setActions, listPages, readFriends, writeFriends, renameCategoryInEntries, renameTag, countPages, listEntries, readEntry, writeEntry, entryExists, skeleton, trashEntry, listAssets, saveAsset, isId, KINDS, IMAGE_EXT } from './project.mjs';
 import { validateEntry } from 'astro-mori/validate';
 import { locate } from 'astro-mori/anchor';
 import { probeSite } from './probe.mjs';
@@ -200,7 +200,7 @@ export async function startStudio({ root, port = 4400, dev = false }) {
         const cn = await commentNumbers(); // 侧栏上的未读数量；评论服务连不上就当 0
         const pending = cn?.unread ?? 0;
         return send(res, 200, {
-          root, configPath, config: { title: config.title ?? 'MORI', description: config.description ?? '', accent: config.accent ?? '#002fa7', accentDark: config.accentDark, categories: config.categories ?? [], home: config.home, archive: config.archive, feed: config.feed, comments: config.comments?.provider === 'mori' ? { avatar: config.comments.avatar } : undefined, nav: config.nav ?? null, lang: config.lang ?? 'zh-CN' },
+          root, configPath, config: { title: config.title ?? 'MORI', description: config.description ?? '', accent: config.accent ?? '#002fa7', accentDark: config.accentDark, categories: config.categories ?? [], home: config.home, archive: config.archive, feed: config.feed, comments: config.comments?.provider === 'mori' ? { avatar: config.comments.avatar } : undefined, nav: config.nav ?? null, actions: config.actions ?? null, lang: config.lang ?? 'zh-CN' },
           entries: listEntries(root), pages: listPages(root), assets: listAssets(root), dev, preview: { port: preview.port, url: await previewUrl(preview.port) }, publish: config.publish ?? null, comments: { provider: config.comments?.provider ?? null, avatar: avatarTemplate(config.comments?.avatar), endpoint: commentsEndpoint(), hasToken: !!adminToken(), pending },
         });
       }
@@ -254,10 +254,14 @@ export async function startStudio({ root, port = 4400, dev = false }) {
       /* ── 页头入口：nav 为 null 是恢复默认（内置入口 + 所有页面） ── */
       if (p === '/api/nav' && req.method === 'PUT') {
         const wasUp = await isUp(preview.port);
-        try { setNav(configPath, (await readJson(req)).nav ?? null); } catch (e) { return send(res, 400, { error: e.message }); }
+        try {
+          const body = await readJson(req);
+          if ('nav' in body) setNav(configPath, body.nav ?? null);
+          if ('actions' in body) setActions(configPath, body.actions ?? null);
+        } catch (e) { return send(res, 400, { error: e.message }); }
         config = (await loadConfig(root)).config;
         await restartPreview(wasUp, true);
-        return send(res, 200, { ok: true, nav: config.nav ?? null });
+        return send(res, 200, { ok: true, nav: config.nav ?? null, actions: config.actions ?? null });
       }
 
       /* ── 标签：改名 / 合并 / 删除 ── */

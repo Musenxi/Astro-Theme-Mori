@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { checkFriends, writeFriends, readFriends, setNav, listPages } from '../src/project.mjs';
+import { checkFriends, writeFriends, readFriends, setNav, setActions, listPages } from '../src/project.mjs';
 import { parseSiteHtml, isPrivateAddress } from '../src/probe.mjs';
 
 test('友人帐：整理并校验（补 id、去重、网址规范化、order 按先后）', () => {
@@ -51,6 +51,32 @@ test('页头入口：新增、替换、恢复默认；校验', () => {
   assert.match(s, /categories: \[\],/);
   assert.throws(() => setNav(f, [{ label: '', href: '/x/' }]), /名字/);
   assert.throws(() => setNav(f, [{ label: 'x', href: 'javascript:1' }]), /地址/);
+});
+
+test('页头入口：图标和昼夜切换', () => {
+  const f = cfg();
+  setNav(f, [{ label: '文章', href: '/posts/', icon: 'book-open' }, { label: '归档', href: '/archive/' }]);
+  let s = readFileSync(f, 'utf8');
+  assert.match(s, /\{ label: '文章', href: '\/posts\/', icon: 'book-open' \},\n    \{ label: '归档', href: '\/archive\/' \},/);
+  assert.throws(() => setNav(f, [{ label: 'x', href: '/x/', icon: "a'b" }]), /图标/);
+});
+
+test('页头右侧的操作', () => {
+  const f = cfg();
+  setActions(f, [{ type: 'link', label: '搜索', href: '/search/', icon: 'search' }, { type: 'theme', style: 'icon' }]);
+  let s = readFileSync(f, 'utf8');
+  assert.match(s, /actions: \[\n    \{ type: 'link', label: '搜索', href: '\/search\/', icon: 'search' \},\n    \{ type: 'theme', style: 'icon' \},\n  \],\n  title/);
+  setActions(f, [{ type: 'theme' }]);
+  s = readFileSync(f, 'utf8');
+  assert.equal(s.match(/actions:/g).length, 1);
+  assert.match(s, /\{ type: 'theme' \},/);
+  setActions(f, []);
+  assert.match(readFileSync(f, 'utf8'), /actions: \[\],/);
+  setActions(f, null);
+  assert.doesNotMatch(readFileSync(f, 'utf8'), /actions/);
+  assert.throws(() => setActions(f, [{ type: 'theme' }, { type: 'theme' }]), /只能有一个/);
+  assert.throws(() => setActions(f, [{ type: 'x' }]), /类型/);
+  assert.throws(() => setActions(f, [{ type: 'link', label: '', href: '/' }]), /名字/);
 });
 
 test('页面列表', () => {

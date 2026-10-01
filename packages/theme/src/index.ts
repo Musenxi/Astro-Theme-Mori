@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { resolveConfig, type MoriUserConfig } from './config.ts';
 
 export { defineMoriConfig } from './config.ts';
-export type { MoriUserConfig, MoriCategory, MoriNavItem, MoriPublish, MoriComments } from './config.ts';
+export type { MoriUserConfig, MoriCategory, MoriNavItem, MoriAction, MoriPublish, MoriComments } from './config.ts';
 
 const VIRTUAL = 'virtual:mori/config';
 

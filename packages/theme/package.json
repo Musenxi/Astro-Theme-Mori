@@ -24,7 +24,8 @@
     "./config": "./src/config.ts",
     "./anchor": "./src/lib/anchor-text.ts",
     "./markdown": "./src/lib/markdown.mjs",
-    "./avatar": "./src/lib/avatar.mjs"
+    "./avatar": "./src/lib/avatar.mjs",
+    "./lucide": "./src/lib/lucide.ts"
   },
   "files": [
     "src",
@@ -39,6 +40,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "d3-geo": "^3.1.1",
     "d3-shape": "^3.2.0",
+    "lucide": "^1.49.0",
     "tailwindcss": "^4.3.3",
     "topojson-client": "^3.1.0",
     "world-atlas": "^2.0.2"

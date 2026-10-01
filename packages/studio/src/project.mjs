@@ -350,33 +350,58 @@ export function writeFriends(root, list) {
   return clean;
 }
 
-/* ───────────── 页头入口：mori.config.ts 里的 nav ───────────── */
+/* ───────────── 页头入口：mori.config.ts 里的 nav 和 actions ───────────── */
 
-/** nav 为 null 是恢复默认（内置入口 + 所有页面）；否则整个数组重写 */
-export function setNav(configPath, nav) {
+const ICON_NAME = /^[A-Za-z0-9-]+$/;
+const HREF = /^(\/|https?:\/\/)/;
+
+/** 把 `key: [ … ]` 整个重写；rows 为 null 是删掉这一项（恢复默认）。rows 是已经写好的一行行源码 */
+function writeList(configPath, key, rows) {
   const src = readFileSync(configPath, 'utf8');
-  const open = src.match(/^([ \t]*)nav[ \t]*:[ \t]*\[/m);
-  if (nav === null) {
+  const open = src.match(new RegExp(`^([ \\t]*)${key}[ \\t]*:[ \\t]*\\[`, 'm'));
+  if (rows === null) {
     if (!open) return;
     const end = closeOf(src, open.index + open[0].length, '[', ']');
     writeFileSync(configPath, src.slice(0, open.index) + src.slice(end).replace(/^[ \t]*,?[ \t]*\n?/, ''));
     return;
   }
-  if (!Array.isArray(nav) || nav.length > 10) throw new Error('页头入口最多 10 个');
-  for (const n of nav) {
-    if (!String(n?.label ?? '').trim()) throw new Error('每个入口都要有名字');
-    if (!/^(\/|https?:\/\/)/.test(String(n?.href ?? ''))) throw new Error(`「${n.label}」的地址要以 / 或 http(s):// 开头`);
-  }
-  const rows = nav.map((n) => `{ label: ${q(String(n.label).trim())}, href: ${q(n.href)} }`);
+  const body = (ind) => (rows.length ? `[\n${rows.map((r) => `${ind}  ${r},`).join('\n')}\n${ind}]` : '[]');
   if (open) {
     const end = closeOf(src, open.index + open[0].length, '[', ']');
-    const ind = open[1];
-    writeFileSync(configPath, src.slice(0, open.index) + `${ind}nav: [\n${rows.map((r) => `${ind}  ${r},`).join('\n')}\n${ind}]` + src.slice(end));
+    writeFileSync(configPath, src.slice(0, open.index) + `${open[1]}${key}: ${body(open[1])}` + src.slice(end));
     return;
   }
   const top = src.match(/(defineMoriConfig\(\{|export default \{)[ \t]*\n/);
-  if (!top) throw new Error('没在 mori.config.ts 里找到配置对象的开头，请手动添加 nav。');
-  writeFileSync(configPath, src.replace(top[0], `${top[0]}  nav: [\n${rows.map((r) => `    ${r},`).join('\n')}\n  ],\n`));
+  if (!top) throw new Error(`没在 mori.config.ts 里找到配置对象的开头，请手动添加 ${key}。`);
+  writeFileSync(configPath, src.replace(top[0], `${top[0]}  ${key}: ${body('  ')},\n`));
+}
+
+/** 一个带名字、地址、可选图标的链接；入口和右侧操作共用这套校验 */
+function checkLink(n) {
+  const label = String(n?.label ?? '').trim();
+  if (!label) throw new Error('每个入口都要有名字');
+  if (!HREF.test(String(n?.href ?? ''))) throw new Error(`「${label}」的地址要以 / 或 http(s):// 开头`);
+  if (n.icon != null && n.icon !== '' && !ICON_NAME.test(String(n.icon))) throw new Error(`「${label}」的图标名不对`);
+  return `label: ${q(label)}, href: ${q(n.href)}${n.icon ? `, icon: ${q(n.icon)}` : ''}`;
+}
+
+/** nav 为 null 是恢复默认（内置入口 + 所有页面）；否则整个数组重写 */
+export function setNav(configPath, nav) {
+  if (nav === null) return writeList(configPath, 'nav', null);
+  if (!Array.isArray(nav) || nav.length > 10) throw new Error('页头入口最多 10 个');
+  writeList(configPath, 'nav', nav.map((n) => `{ ${checkLink(n)} }`));
+}
+
+/** 页头右侧的操作：昼夜切换、搜索之类的图标钮，也可以是任意链接。null 是恢复默认（只有昼夜切换），[] 是一个都不要 */
+export function setActions(configPath, actions) {
+  if (actions === null) return writeList(configPath, 'actions', null);
+  if (!Array.isArray(actions) || actions.length > 6) throw new Error('右侧操作最多 6 个');
+  if (actions.filter((a) => a?.type === 'theme').length > 1) throw new Error('昼夜切换只能有一个');
+  writeList(configPath, 'actions', actions.map((a) => {
+    if (a?.type === 'theme') return `{ type: 'theme'${a.style === 'icon' ? ", style: 'icon'" : ''} }`;
+    if (a?.type === 'link') return `{ type: 'link', ${checkLink(a)} }`;
+    throw new Error('不认识的操作类型');
+  }));
 }
 
 /* ───────────── 文件（src/assets 里的图片）：谁在用它、删除 ───────────── */
