@@ -8,7 +8,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'season.spring': '春', 'season.summer': '夏', 'season.autumn': '秋', 'season.winter': '冬',
   'home.feature': '特集', 'home.region': '今号の収録', 'home.title': '題', 'home.date': '日付', 'home.readMore': '全文を読む', 'home.empty': 'まだ記事がありません。src/content/posts か src/content/travels に JSON を置いてください。',
   'count.one': '{n}篇', 'count.other': '{n}篇',
-  'post.prev': '前の記事', 'post.next': '次の記事', 'post.nav': '前の記事 / 次の記事', 'post.meta': '約{chars}字 · {min}分',
+  'post.prev': '前の記事', 'post.next': '次の記事', 'post.nav': '前の記事 / 次の記事', 'post.meta': '{chars}字 · {min}分',
   'fig': '図 {n}', 'notes.foot': '脚注', 'notes.all': '注',
   'kind.travel': '旅行記', 'travel.stop': '第{n}地点', 'travel.stops': '地点', 'travel.itinerary': '行程', 'travel.total': '総距離', 'travel.fallbackStat': '{n}地点',
   'travel.endNote': '出発点に戻りました。このまま下へ進むと行程の一覧です。', 'travel.left': '左へ', 'travel.right': '右へ', 'travel.readingGroup': '読み方',

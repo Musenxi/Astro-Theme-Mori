@@ -7,7 +7,7 @@ export default {
   'season.spring': '春', 'season.summer': '夏', 'season.autumn': '秋', 'season.winter': '冬',
   'home.feature': '本期特稿', 'home.region': '本期收录', 'home.title': '篇名', 'home.date': '日期', 'home.readMore': '阅读全文', 'home.empty': '还没有文章。把 JSON 放进 src/content/posts 或 src/content/travels。',
   'count.one': '{n}篇', 'count.other': '{n}篇',
-  'post.prev': '上一篇', 'post.next': '下一篇', 'post.nav': '上一篇 / 下一篇', 'post.meta': '约 {chars} 字 · {min} 分钟',
+  'post.prev': '上一篇', 'post.next': '下一篇', 'post.nav': '上一篇 / 下一篇', 'post.meta': '{chars} 字 · {min} 分钟',
   'fig': '图 {n}', 'notes.foot': '脚注', 'notes.all': '注',
   'kind.travel': '游记', 'travel.stop': '第{n}站', 'travel.stops': '站点', 'travel.itinerary': '行程', 'travel.total': '全程', 'travel.fallbackStat': '{n} 站',
   'travel.endNote': '回到起点。继续向下滚动，是整段行程。', 'travel.left': '向左', 'travel.right': '向右', 'travel.readingGroup': '阅读方式',

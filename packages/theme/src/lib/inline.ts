@@ -1,4 +1,4 @@
-import type { Inline, Mark } from '../content/schema.ts';
+import type { Inline, Mark, Span } from '../content/schema.ts';
 
 const escapeHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -59,12 +59,22 @@ export function sideRefs(spans: Inline): string[] {
 /** 纯文字（摘要、alt、字数统计用） */
 export const plainText = (spans: Inline) => spans.map((s) => s.t).join('');
 
-/** 正文字数：数所有 span 的文字（代码块不算） */
-export function countChars(node: unknown): number {
-  if (Array.isArray(node)) return node.reduce((n: number, v) => n + countChars(v), 0);
-  if (node && typeof node === 'object') {
-    const o = node as Record<string, unknown>;
-    return (typeof o.t === 'string' ? o.t.length : 0) + Object.values(o).reduce((n: number, v) => n + (typeof v === 'object' ? countChars(v) : 0), 0);
-  }
-  return 0;
+const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/gu;
+const WORD = /[\p{L}\p{N}]+(?:['’.\-][\p{L}\p{N}]+)*/gu;
+
+/** 正文字数：数所有 span 的文字（代码块不算）。汉字、假名一字算一个，英文单词和数字一串算一个，空格和标点不算 */
+export function countChars(node: unknown): { cjk: number; words: number } {
+  const parts: string[] = [];
+  const collect = (v: unknown) => {
+    if (Array.isArray(v)) {
+      // 一段行内文字：span 之间直接相连（一个词可能被标注拆成几个 span）
+      if (v.length && v.every((x) => typeof x?.t === 'string')) parts.push((v as Span[]).map((s) => s.t).join(''));
+      else v.forEach(collect);
+    } else if (v && typeof v === 'object') for (const x of Object.values(v)) if (typeof x === 'object') collect(x);
+  };
+  collect(node);
+  const text = parts.join(' ');
+  const cjk = text.match(CJK)?.length ?? 0;
+  const words = text.replace(CJK, ' ').match(WORD)?.length ?? 0;
+  return { cjk, words };
 }

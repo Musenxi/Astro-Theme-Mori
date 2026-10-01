@@ -8,7 +8,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'season.spring': 'Spring', 'season.summer': 'Summer', 'season.autumn': 'Autumn', 'season.winter': 'Winter',
   'home.feature': 'Feature', 'home.region': 'In this issue', 'home.title': 'Title', 'home.date': 'Date', 'home.readMore': 'Read', 'home.empty': 'Nothing here yet. Put JSON files in src/content/posts or src/content/travels.',
   'count.one': '{n} piece', 'count.other': '{n} pieces',
-  'post.prev': 'Previous', 'post.next': 'Next', 'post.nav': 'Previous / next', 'post.meta': '~{chars} characters · {min} min',
+  'post.prev': 'Previous', 'post.next': 'Next', 'post.nav': 'Previous / next', 'post.meta': '{chars} words · {min} min',
   'fig': 'Fig. {n}', 'notes.foot': 'Footnotes', 'notes.all': 'Notes',
   'kind.travel': 'Journey', 'travel.stop': 'Stop {n}', 'travel.stops': 'Stops', 'travel.itinerary': 'Itinerary', 'travel.total': 'Total', 'travel.fallbackStat': '{n} stops',
   'travel.endNote': 'Back where we started. Keep scrolling for the whole itinerary.', 'travel.left': 'Left', 'travel.right': 'Right', 'travel.readingGroup': 'Reading mode',

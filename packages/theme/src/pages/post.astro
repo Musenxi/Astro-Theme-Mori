@@ -25,8 +25,9 @@ const travel = entry.kind === 'travel';
 const d = entry.data;
 const p = d as PostData;
 const tv = d as TravelData;
-const chars = travel ? 0 : countChars(p.blocks);
-const approx = chars >= 1000 ? chars.toLocaleString('en-US').replace(/\d{2}$/, '00') : String(Math.round(chars / 10) * 10);
+const count = travel ? { cjk: 0, words: 0 } : countChars(p.blocks);
+const chars = count.cjk + count.words;
+const minutes = Math.max(1, Math.round(count.cjk / 450 + count.words / 220));
 const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | 'm';
 ---
 
@@ -40,7 +41,7 @@ const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | '
     </main>
   ) : (
     <main data-page="post">
-      <PostHeader title={d.title} meta={[{ label: entry.category.zh, href: `/category/${entry.category.id}/` }, dotDate(d.date), ...t('post.meta', { chars: approx, min: Math.max(1, Math.round(chars / 450)) }).split(' · ')]} />
+      <PostHeader title={d.title} meta={[{ label: entry.category.zh, href: `/category/${entry.category.id}/` }, dotDate(d.date), ...t('post.meta', { chars: chars.toLocaleString('en-US'), min: minutes }).split(' · ')]} />
       <PostBody blocks={p.blocks} notes={p.notes} />
       <Comments entry={`posts/${entry.id}`} />
       <EntryNav older={older} newer={newer} />
