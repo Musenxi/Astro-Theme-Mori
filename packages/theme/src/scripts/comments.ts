@@ -69,7 +69,7 @@ function init() {
       avatar(c),
       h('div', { class: 'cmt-main' },
         h('div', { class: 'cmt-meta' }, byline(c), h('time', { class: 'cmt-date' }, dotDate(c.createdAt)),
-          !c.parentId ? h('button', { class: 'cmt-reply', type: 'button', onclick: (ev: Event) => toggleReply(li, c, ev.currentTarget as HTMLElement) }, t('js.cmt.reply')) : null),
+          h('button', { class: 'cmt-reply', type: 'button', onclick: (ev: Event) => toggleReply(li, c, ev.currentTarget as HTMLElement) }, t('js.cmt.reply'))),
         c.block && c.quote ? quote(c) : null,
         h('div', { class: 'cmt-text' }, c.body),
         kids.length ? h('ol', { class: 'cmt-replies' }, ...kids.map((k) => item(k, []))) : null));
@@ -143,7 +143,9 @@ function form(cfg: MoriCommentsConfig & { entry: string }, parent: MoriComment |
     e.preventDefault();
     btn.disabled = true; msg.textContent = t('js.cmt.sending'); msg.classList.remove('bad');
     try {
-      const r = await sendComment(cfg, { entry: cfg.entry, name: name.value, email: email.value, url: url.value, body: text.value, website: trap.value, parentId: parent?.id, turnstile: widget?.token() });
+      // 回复的是一条回复时，评论服务把它挂在最上面那条下面（只有一层），正文开头点名，读的人才知道在回谁
+      const mention = parent?.parentId ? `@${parent.name} ` : '';
+      const r = await sendComment(cfg, { entry: cfg.entry, name: name.value, email: email.value, url: url.value, body: mention + text.value, website: trap.value, parentId: parent?.id, turnstile: widget?.token() });
       remember.set('mori-cmt-name', name.value); remember.set('mori-cmt-email', email.value); remember.set('mori-cmt-url', url.value);
       text.value = '';
       widget?.reset();
