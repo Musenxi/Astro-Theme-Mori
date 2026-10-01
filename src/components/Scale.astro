@@ -28,7 +28,7 @@ const oldest = Math.min(...all.map((e) => ym(e.data.date)));
 const months = Math.max(6, newest - oldest + 1);
 const ny = Math.floor(newest / 12), nm = (newest % 12) + 1;
 
-const tick = 'pointer-events-none absolute horiz:left-0 horiz:top-[calc(var(--p)*var(--mh))] horiz:border-t vert:top-[calc(30vh_-_12px)] vert:right-[calc(var(--edge)_+_var(--p)*var(--mw))] vert:border-l';
+const tick = 'pointer-events-none absolute horiz:left-0 horiz:top-[calc(var(--p)*var(--mh)_+_var(--s,0px))] horiz:border-t vert:top-[calc(30vh_-_12px)] vert:right-[calc(var(--edge)_+_var(--p)*var(--mw)_+_var(--s,0px))] vert:border-l';
 const tickY = 'horiz:w-10 vert:top-[calc(30vh_-_40px)] vert:h-10 horiz:border-t-foreground vert:border-l-foreground';
 const tickI = 'absolute text-meta leading-none whitespace-nowrap ';
 const ticks = Array.from({ length: months }, (_, k) => {
@@ -53,12 +53,12 @@ const posOf = (e: Entry) => {
 <section class="he pt-[clamp(20px,4vh,48px)] pb-10 [--mh:112px] [--mw:150px] narrow:[--mh:92px] narrow:[--mw:120px]" data-ny={ny} data-nm={nm} data-months={months}>
   <div class="horiz:mx-auto horiz:grid horiz:max-w-(--maxw) horiz:grid-cols-[minmax(0,1fr)_auto] horiz:gap-x-(--gap) horiz:px-(--gut) horiz:narrow:grid-cols-1" id="he-body">
     <div class="horiz:contents vert:sticky vert:top-0 vert:h-screen vert:overflow-hidden vert:[direction:rtl]">
-      <div class="relative horiz:col-1 horiz:row-2 horiz:h-[calc(var(--months)*var(--mh))] horiz:border-l horiz:border-l-foreground horiz:narrow:row-3 vert:h-full vert:w-[calc(var(--months)*var(--mw)_+_2*var(--edge))] vert:will-change-transform vert:[direction:ltr] vert:before:absolute vert:before:top-[30vh] vert:before:right-(--edge) vert:before:left-(--edge) vert:before:border-t vert:before:border-t-foreground vert:before:content-['']" id="he-axis" style={{ '--months': months }}>
+      <div class="relative horiz:col-1 horiz:row-2 horiz:h-[calc(var(--months)*var(--mh)_+_var(--extra,0px))] horiz:border-l horiz:border-l-foreground horiz:narrow:row-3 vert:h-full vert:w-[calc(var(--months)*var(--mw)_+_2*var(--edge)_+_var(--extra,0px))] vert:will-change-transform vert:[direction:ltr] vert:before:absolute vert:before:top-[30vh] vert:before:right-(--edge) vert:before:left-(--edge) vert:before:border-t vert:before:border-t-foreground vert:before:content-['']" id="he-axis" style={{ '--months': months }}>
         {
           ticks.map((t) => (
             <>
-              <span class:list={[tick, t.yearTop ? tickY : 'horiz:w-3 vert:h-3 horiz:border-t-muted-foreground vert:border-l-muted-foreground']} style={{ '--p': t.k }}>{t.yearTop && <i class:list={[tickI, 'text-meta tracking-[.08em] text-foreground horiz:left-[52px] horiz:top-[-.5em] horiz:narrow:left-1 horiz:narrow:top-[-1.5em] vert:left-1.5 vert:top-0', t.k === 0 && 'vert:max-[900px]:right-1.5 vert:max-[900px]:left-auto']}>{t.y}</i>}</span>
-              <span class:list={[tick, 'border-0! horiz:w-3 vert:h-3']} style={{ '--p': t.k }}><i class:list={[tickI, 'text-muted-foreground horiz:left-5 horiz:top-[calc(var(--mh)/2_-_.5em)] vert:top-[-4px] vert:right-[calc(var(--mw)/2_-_1em)] vert:left-auto']}>{pad2(t.m)}</i></span>
+              <span class:list={[tick, t.yearTop ? tickY : 'horiz:w-3 vert:h-3 horiz:border-t-muted-foreground vert:border-l-muted-foreground']} style={{ '--p': t.k }} data-k={t.k}>{t.yearTop && <i class:list={[tickI, 'text-meta tracking-[.08em] text-foreground horiz:left-[52px] horiz:top-[-.5em] horiz:narrow:left-1 horiz:narrow:top-[-1.5em] vert:left-1.5 vert:top-0', t.k === 0 && 'vert:max-[900px]:right-1.5 vert:max-[900px]:left-auto']}>{t.y}</i>}</span>
+              <span class:list={[tick, 'border-0! horiz:w-3 vert:h-3']} style={{ '--p': t.k }} data-k={t.k}><i class:list={[tickI, 'text-muted-foreground horiz:left-5 horiz:top-[calc(var(--mh)/2_-_.5em)] vert:top-[-4px] vert:right-[calc(var(--mw)/2_-_1em)] vert:left-auto']}>{pad2(t.m)}</i></span>
             </>
           ))
         }

@@ -1,5 +1,5 @@
 /**
- * E 刻度的行为：日期挨得太近的几篇按实际占的高度（竖排时是宽度）依次让开；
+ * E 刻度的行为：日期挨得太近的几篇按实际占的高度（竖排时是宽度）依次让开，轴随之拉长，月份刻度跟着往后挪；
  * 竖排时页面竖向滚动驱动时间轴横移（手卷，从右往左）；大号年月按当前位置逐位翻动。
  */
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -24,9 +24,13 @@ function init() {
   const vertical = () => root.dataset.hdir === 'v';
   const unit = (name: '--mh' | '--mw') => parseFloat(getComputedStyle(he).getPropertyValue(name));
   let month = -1;
+  const ticks = [...he.querySelectorAll<HTMLElement>('[data-k]')];
+  let extra = 0; // 轴因为文章挤开而多出来的长度（像素）
+  let shift: number[] = []; // 每个月份刻度因为前面挤开的文章而往后挪了多少（像素）
 
-  function setCounter(k: number) {
-    k = clamp(Math.floor(k), 0, MONTHS - 1);
+  function setCounter(pos: number, u: number) {
+    let k = 0;
+    while (k + 1 < MONTHS && (k + 1) * u + (shift[k + 1] ?? 0) <= pos) k++;
     if (k === month) return;
     month = k;
     const tm = NY * 12 + NM - 1 - k;
@@ -37,20 +41,34 @@ function init() {
   function declutter() {
     const v = vertical(), u = unit(v ? '--mw' : '--mh');
     let end = -Infinity;
+    const push: number[] = [];
     for (const it of items) {
       it.style.removeProperty('--q');
       const size = v ? it.offsetWidth : it.offsetHeight;
-      const c = Math.max(parseFloat(it.style.getPropertyValue('--p')) * u, end + size / 2 + 10);
+      const p = parseFloat(it.style.getPropertyValue('--p')) * u;
+      const c = Math.max(p, end + size / 2 + 10);
       it.style.setProperty('--q', c + 'px');
+      push.push(c - p);
       end = c + size / 2;
     }
+    // 月份刻度跟着挪：每个刻度取它前面最后一篇被挤开的距离，且只增不减（顺序不能乱）
+    shift = [];
+    let j = 0, cur = 0;
+    for (let k = 0; k < MONTHS; k++) {
+      while (j < items.length && parseFloat(items[j].style.getPropertyValue('--p')) <= k) cur = Math.max(cur, push[j++]);
+      shift.push(cur);
+    }
+    ticks.forEach((t) => t.style.setProperty('--s', shift[+t.dataset.k!] + 'px'));
+    // 轴要放得下被挤到最后面的文章
+    extra = Math.max(0, end - MONTHS * u, cur);
+    axis.style.setProperty('--extra', extra + 'px');
   }
 
   function layout() {
     axis.style.transform = ''; axis._x = null;
-    body.style.height = vertical() ? Math.max(innerHeight, axis.offsetWidth - vw() + innerHeight) + 'px' : '';
     month = -1;
     declutter();
+    body.style.height = vertical() ? Math.max(innerHeight, axis.offsetWidth - vw() + innerHeight) + 'px' : '';
   }
   onResize = () => he.isConnected && layout();
 
@@ -64,10 +82,10 @@ function init() {
       x = reduce ? target : x + (target - x) * 0.14;
       if (Math.abs(target - x) < 0.25) x = target;
       if (x !== axis._x) { axis._x = x; axis.style.transform = `translate3d(${x}px,0,0)`; }
-      const mw = unit('--mw'), edge = (axis.offsetWidth - MONTHS * mw) / 2;
-      setCounter((x + vw() * 0.5 - edge) / mw);
+      const mw = unit('--mw'), edge = (axis.offsetWidth - extra - MONTHS * mw) / 2;
+      setCounter(x + vw() * 0.5 - edge, mw);
     } else {
-      setCounter((innerHeight * 0.42 - axis.getBoundingClientRect().top) / unit('--mh'));
+      setCounter(innerHeight * 0.42 - axis.getBoundingClientRect().top, unit('--mh'));
     }
     requestAnimationFrame(tick);
   }
