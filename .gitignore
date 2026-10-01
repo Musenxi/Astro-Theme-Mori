@@ -10,3 +10,6 @@ dist
 *.db
 *.db-shm
 *.db-wal
+
+# 示例站（作者自己的站点内容与配置）不进 git
+examples/demo/
