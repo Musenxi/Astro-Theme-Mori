@@ -92,10 +92,10 @@ const dt = 'mb-1 text-[12.5px] leading-[1.6] tracking-[.12em] text-muted-foregro
                     </p>
                   </a>
                 </div>
-                <dl class="fo-cite mt-[clamp(22px,4vh,44px)] grid grid-cols-[1.3fr_1fr_1fr_1.4fr_auto] items-end gap-x-(--gap) bg-[linear-gradient(var(--foreground),var(--foreground))] bg-[position:0_0] bg-[size:100%_1px] bg-no-repeat pt-4 narrow:grid-cols-[1fr_auto] narrow:gap-y-4 narrow:bg-[position:var(--gut)_0] narrow:bg-[size:calc(100%_-_2*var(--gut))_1px] narrow:px-(--gut)">
-                  <div><dt class={dt}>{t('home.title')}</dt><dd class="w-fit text-[23px] leading-[1.3] tracking-[.06em]">{s.e.data.title}</dd></div>
-                  {s.meta.map((m) => <div class="narrow:hidden"><dt class={dt}>{m.label}</dt><dd class="text-[15px] leading-[1.6] narrow:text-[14px]">{m.value}</dd></div>)}
-                  <a class="pb-0.5 text-[15px] whitespace-nowrap [&_.chev]:text-primary [&_.chev]:[transition:transform_.5s_var(--ease-mori)] hover:[&_.chev]:[transform:translateX(5px)]" href={s.e.href}>{t('home.readMore')}<Chevron /></a>
+                <dl class="fo-cite mt-[clamp(22px,4vh,44px)] grid grid-flow-col grid-cols-[1.3fr_1fr_1fr_1.4fr_auto] grid-rows-[auto_auto] items-start gap-x-(--gap) gap-y-1 bg-[linear-gradient(var(--foreground),var(--foreground))] bg-[position:0_0] bg-[size:100%_1px] bg-no-repeat pt-4 narrow:grid-cols-[1fr_auto] narrow:bg-[position:var(--gut)_0] narrow:bg-[size:calc(100%_-_2*var(--gut))_1px] narrow:px-(--gut)">
+                  <div class="contents"><dt class={dt}>{t('home.title')}</dt><dd class="w-fit self-baseline text-[23px] leading-[1.3] tracking-[.06em]">{s.e.data.title}</dd></div>
+                  {s.meta.map((m) => <div class="contents narrow:hidden"><dt class={dt}>{m.label}</dt><dd class="self-baseline text-[15px] leading-[1.6]">{m.value}</dd></div>)}
+                  <a class="row-span-2 self-end pb-0.5 text-[15px] whitespace-nowrap [&_.chev]:text-primary [&_.chev]:[transition:transform_.5s_var(--ease-mori)] hover:[&_.chev]:[transform:translateX(5px)]" href={s.e.href}>{t('home.readMore')}<Chevron /></a>
                 </dl>
               </article>
             ))

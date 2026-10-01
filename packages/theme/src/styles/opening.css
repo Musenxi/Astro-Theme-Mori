@@ -13,7 +13,7 @@
 @keyframes ink{from{opacity:0;filter:blur(7px)}}
 .fo.play .fo-slide.on:not(.enter) .fo-cite{animation:cite-rule 1.3s var(--ease-mori) 1.2s both}
 @keyframes cite-rule{from{background-size:0 1px}}
-.fo.play .fo-slide.on:not(.enter) .fo-cite > *,.fo.play .fo-side,.fo.play .fo-slide.on:not(.enter) figcaption{animation:fade .9s ease 1.6s both}
+.fo.play .fo-slide.on:not(.enter) .fo-cite dt,.fo.play .fo-slide.on:not(.enter) .fo-cite dd,.fo.play .fo-slide.on:not(.enter) .fo-cite > a,.fo.play .fo-side,.fo.play .fo-slide.on:not(.enter) figcaption{animation:fade .9s ease 1.6s both}
 @keyframes cover-in{from{clip-path:inset(0 0 100% 0)}}
 @keyframes fade{from{opacity:0}}
 /* 换篇：交叉溶解（参考 velasx.com 精选区）。新旧两篇叠在一起，旧的淡出、新的淡入，同时进行；
