@@ -4,7 +4,7 @@ import Chevron from './Chevron.astro';
  *  东观体的「目」左边自带约 .23em 的空白，横排时往左拉 .21em，让笔画和下面的 Contents 对齐；
  *  竖排时「目」顶上约留 .1em，Contents 往下挪 .28em（它自己的字号）对齐 */
 import config from 'virtual:mori/config';
-import type { Entry } from '../lib/entries.ts';
+import { pinsOf, type Entry } from '../lib/entries.ts';
 import { numDate, pad3 } from '../lib/zh.ts';
 import { t, tn, fmt } from '../lib/i18n.ts';
 
@@ -13,9 +13,11 @@ interface Props {
   latest: Entry;
 }
 const { entries } = Astro.props;
+/** 每个分类里置顶的排在前面（按 pin.order），其余照旧按新到旧 */
+const pinnedFirst = (list: Entry[]) => [...pinsOf(list), ...list.filter((e) => !e.data.pin)];
 const ROMAN = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ', 'Ⅶ', 'Ⅷ', 'Ⅸ', 'Ⅹ'];
 const sections = config.categories
-  .map((c) => ({ c, list: entries.filter((e) => e.category.id === c.id) }))
+  .map((c) => ({ c, list: pinnedFirst(entries.filter((e) => e.category.id === c.id)) }))
   .filter((s) => s.list.length)
   .map((s, i) => ({ ...s, roman: ROMAN[i] ?? String(i + 1) }));
 ---
