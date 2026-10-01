@@ -32,9 +32,7 @@ const slides = pinned.map((e) => {
     image: pin?.image ?? d.cover,
     alt: pin?.alt ?? d.coverAlt ?? '',
     quote,
-    /** 引文的行数、最长一行的字数（含「」）：引文字号按这两个数缩到放得进封面图（opening.css） */
     lines: quote.length,
-    n: Math.max(0, ...quote.map((l) => l.length)),
     caption: pin?.caption ?? `${e.category.zh} · ${dotDate(d.date)}`,
     meta: pin?.meta ?? [{ label: t('home.date'), value: dotDate(d.date) }],
   };
@@ -85,7 +83,7 @@ const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground'
                   </figcaption>
                 </figure>
                 {s.lines > 0 && (
-                  <a class="group/qa relative z-2 col-1 row-1 flex h-(--ph-h) max-w-[min(100%,800px)] items-center self-start justify-self-start pl-[clamp(16px,3vw,48px)] vert:justify-self-end vert:pl-0 vert:pr-[clamp(8px,1.4vw,24px)] narrow:items-end narrow:pt-0! narrow:pr-0! narrow:pb-[46px]! narrow:pl-[1em]!" href={s.e.href} style={{ '--lines': s.lines, '--n': s.n }}>
+                  <a class="group/qa relative z-2 col-1 row-1 flex h-(--ph-h) max-w-[min(100%,800px)] items-center self-start justify-self-start pl-[clamp(16px,3vw,48px)] vert:justify-self-end vert:pl-0 vert:pr-[clamp(8px,1.4vw,24px)] narrow:items-end narrow:pt-0! narrow:pr-0! narrow:pb-[46px]! narrow:pl-[1em]!" href={s.e.href}>
                     <p class="fo-q indent-[-1em] leading-[1.6] font-light tracking-[.05em] transition-[color] duration-500 group-hover/qa:text-soft-foreground vert:leading-[2] vert:[writing-mode:vertical-rl]">
                       {s.quote.map((line, n) => (
                         <Fragment>
