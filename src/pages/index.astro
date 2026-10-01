@@ -1,0 +1,30 @@
+---
+import { t, lang } from '../lib/i18n.ts';
+import config from 'virtual:mori/config';
+import Base from '../layouts/Base.astro';
+import Opening from '../components/Opening.astro';
+import Cover from '../components/Cover.astro';
+import Contents from '../components/Contents.astro';
+import { getEntries, pinnedOf } from '../lib/entries.ts';
+
+const entries = await getEntries();
+const latest = entries[0];
+---
+
+<Base direction={config.home.direction}>
+  <main data-page="home" data-home>
+    <h1 class="sr-only">{config.title}</h1>
+    {latest ? (
+      <>
+        {config.home.style === 'cover' ? <Cover feature={pinnedOf(entries)[0]} entries={entries} latest={latest} /> : <Opening pinned={pinnedOf(entries)} latest={latest} />}
+        <Contents entries={entries} latest={latest} />
+      </>
+    ) : (
+      <section class="wrap g pt-[clamp(48px,9vw,120px)]"><p class="col-[3/11] text-muted-foreground">{t('home.empty')}</p></section>
+    )}
+  </main>
+  <script>
+    import '../scripts/home.ts';
+    import '../scripts/cover.ts';
+  </script>
+</Base>

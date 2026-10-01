@@ -1,0 +1,26 @@
+# {$SITE_DOMAIN} 来自 docker-compose 的环境变量。Caddy 会自动申请和续期 HTTPS 证书（域名要先解析到这台机器）。
+{$SITE_DOMAIN} {
+	encoding zstd gzip
+	root * /srv/site
+
+	# 评论服务放在同一个域名的 /_comments 下：不跨域，站点配置里 endpoint 写 https://你的域名/_comments
+	handle_path /_comments/* {
+		reverse_proxy comments:8787
+	}
+
+	# 带哈希的构建产物可以永久缓存
+	@assets path /_astro/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+
+	# /feed 是没有扩展名的 RSS 文件，明确告诉阅读器和浏览器它是 RSS
+	@feed path /feed /rss.xml
+	header @feed Content-Type "application/rss+xml; charset=utf-8"
+
+	try_files {path} {path}/index.html
+	file_server
+
+	handle_errors {
+		rewrite * /404.html
+		file_server
+	}
+}

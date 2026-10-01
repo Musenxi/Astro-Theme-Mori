@@ -1,0 +1,18 @@
+# Cloudflare Workers + D1 部署评论服务
+#   1) wrangler d1 create mori-comments      （把输出的 database_id 填到下面）
+#   2) wrangler d1 execute mori-comments --file=schema.sql --remote
+#   3) wrangler secret put ADMIN_TOKEN       （管理令牌，Studio 里用它审核评论）
+#      wrangler secret put TURNSTILE_SECRET  （可选：人机验证的密钥）
+#   4) wrangler deploy
+name = "mori-comments"
+main = "src/worker.ts"
+compatibility_date = "2025-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mori-comments"
+database_id = "填 wrangler d1 create 输出的 id"
+
+[vars]
+ALLOW_ORIGIN = "https://你的站点"   # 允许调用评论接口的站点，多个用逗号分隔
+# AUTO_APPROVE = "returning"        # returning 第一次留言先审 / all 全部直接发 / none 全部先审

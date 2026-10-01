@@ -1,0 +1,98 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import config from 'virtual:mori/config';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { lang, clientJson } from '../lib/i18n.ts';
+import Lightbox from '../components/Lightbox.astro';
+
+import '../../fonts/STD/light/font.css';
+import '../../fonts/STD/regular/font.css';
+import '../../fonts/STD/bold/font.css';
+import '@fontsource/cormorant-garamond/300.css';
+import '@fontsource/cormorant-garamond/400.css';
+import '@fontsource/cormorant-garamond/500.css';
+import '../styles/mori.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** 首页 / 归档页的排法（h 横排 / v 竖排）；文章页不设 */
+  direction?: 'h' | 'v';
+  /** 文章页的 og:type 等 */
+  type?: 'website' | 'article';
+}
+const { title, description = config.description, direction, type = 'website' } = Astro.props;
+const fullTitle = title ? `${title} · ${config.title}` : config.title;
+const canonical = config.site ? new URL(Astro.url.pathname, config.site).href : undefined;
+---
+
+<!doctype html>
+<!-- 主题色：写在 <html> 的自定义属性上（base.css 里有默认值），行内样式的优先级最高，不靠谁排在后面 -->
+<html lang={lang} data-hdir={direction} data-hdir-cfg={direction} style={{ '--accent-base': config.accent, '--accent-dark': config.accentDark }}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    {description && <meta name="description" content={description} />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:type" content={type} />
+    {description && <meta property="og:description" content={description} />}
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title={config.title} href="/feed" />
+    <!-- 昼夜：先于首次绘制，避免闪一下；换页时 <html> 的属性会被换掉，所以每次换页后再补上 -->
+    <script is:inline>
+      (() => {
+        const apply = () => {
+          try {
+            const t = localStorage.getItem('mori-theme');
+            if (t) document.documentElement.dataset.theme = t;
+          } catch {}
+        };
+        apply();
+        document.addEventListener('astro:after-swap', apply);
+      })();
+    </script>
+    <!-- 首页 / 归档的排法：设置里可选横排或竖排，但手机（窄屏）上一律横排。
+         data-hdir-cfg 是设置的值，data-hdir 是当前生效的；先于首次绘制，跨过断点（旋转屏幕）和换页后都重新判断 -->
+    <script is:inline>
+      (() => {
+        const mq = matchMedia('(max-width: 760px)');
+        const apply = () => {
+          const el = document.documentElement, cfg = el.dataset.hdirCfg;
+          if (!cfg) return; // 文章页等没有排法设置
+          const want = mq.matches ? 'h' : cfg;
+          if (el.dataset.hdir !== want) el.dataset.hdir = want;
+        };
+        apply();
+        document.addEventListener('astro:after-swap', apply);
+        // 两个都听：媒体查询的 change 事件在有的环境里不可靠，resize 兜底。这段脚本先于页面上其他 resize 处理注册，所以它们看到的已经是新值
+        mq.addEventListener('change', () => { apply(); dispatchEvent(new Event('resize')); });
+        addEventListener('resize', apply);
+      })();
+    </script>
+    <!-- 首页整页第一次打开时播进场动画：先于首次绘制加上 intro，初始状态由 CSS 接手，不会先闪一下成品；intro-go 由 home.ts 在封面图解码后加上，脚本没跑起来时 2.5 秒后兜底放行 -->
+    <script is:inline>
+      (() => {
+        const el = document.documentElement;
+        if (location.pathname !== '/' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        el.classList.add('intro');
+        setTimeout(() => el.classList.add('intro-go'), 2500);
+      })();
+    </script>
+    <script type="application/json" id="mori-i18n" is:inline set:html={clientJson} />
+    <ClientRouter />
+  </head>
+  <body>
+    <Header />
+    <slot />
+    <Footer />
+    <Lightbox />
+    <script>
+      import '../scripts/chrome.ts';
+      import '../scripts/lightbox.ts';
+    </script>
+  </body>
+</html>

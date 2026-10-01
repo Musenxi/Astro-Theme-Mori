@@ -1,0 +1,35 @@
+{
+  "name": "mori-comments",
+  "version": "0.0.1",
+  "description": "MORI 自建评论服务：文末评论 + 划词引用评论。Hono 写一份，同时跑在 Cloudflare Workers（D1）和 Node（SQLite）上。",
+  "license": "GPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./src/app.ts",
+    "./node": "./src/node.ts",
+    "./worker": "./src/worker.ts"
+  },
+  "bin": {
+    "mori-comments": "./bin/mori-comments.mjs"
+  },
+  "files": [
+    "src",
+    "bin",
+    "schema.sql",
+    "wrangler.example.toml"
+  ],
+  "scripts": {
+    "start": "node bin/mori-comments.mjs",
+    "test": "node --test test/*.test.ts",
+    "check": "tsc -p .",
+    "dev": "ADMIN_TOKEN=${ADMIN_TOKEN:-dev-token} DB_PATH=.data/comments.db NODE_NO_WARNINGS=1 node bin/mori-comments.mjs"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.3",
+    "hono": "^4.13.11"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "typescript": "^6.0.3"
+  }
+}

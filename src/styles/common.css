@@ -1,0 +1,17 @@
+/* 全站通用的几个类：版心、12 栏网格、等宽小字、箭头、下划线 */
+.wrap{@apply mx-auto max-w-(--maxw) px-(--gut)}
+.g{@apply grid grid-cols-12 gap-x-(--gap)}
+.mono{@apply font-mono text-meta leading-[1.6] tracking-[.04em] [font-feature-settings:"tnum"]}
+/* 附属信息（日期、分类、篇幅、计数）：正文的宋体，小一号，不用等宽 */
+.meta{@apply text-meta leading-[1.6] tracking-[.06em] text-muted-foreground [font-feature-settings:"tnum"]}
+.lbl{@apply text-muted-foreground}
+/* 箭头：一个画出来的 >，两臂夹角约 100°，比字体里的 > 开得大；颜色跟着文字。.l 是镜像的 < */
+.chev{width:.6em;height:.75em;margin-left:.55em;vertical-align:-.06em;overflow:visible;fill:none;stroke:currentColor;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}
+.chev.l{margin-left:0;margin-right:.55em;transform:scaleX(-1)}
+.ul{background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .5s var(--ease-mori)}
+a:hover .ul,a.ul:hover{background-size:100% 1px}
+.tcy{text-combine-upright:all}
+/* 窄屏：所有网格的直接子元素都占满一行（用 !important 压过各处写的栏位） */
+@media (max-width:760px){
+  .g > *,.prose > *{grid-column:1/-1!important}
+}

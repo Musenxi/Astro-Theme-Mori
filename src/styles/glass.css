@@ -1,0 +1,29 @@
+/* 液态玻璃（页头的胶囊和圆钮、游记角落控件、看大图的说明）。页头本身的版式在 Header.astro 里 */
+.glass{background:var(--grain),var(--glass);-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);border:1px solid var(--glass-line);box-shadow:inset 0 1px 0 var(--glass-hi),0 12px 32px -20px rgba(0,0,0,.4)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.glass,.lb::before{background:var(--background)!important}.lg{background:color-mix(in srgb,var(--background) 88%,transparent)!important}}
+
+/* 液态玻璃（做法参考 kube.io/blog/liquid-glass-css-svg）：轻模糊 + 提饱和；边缘一圈按 squircle 斜面和斯涅尔定律算出折射位移（SVG 位移贴图），
+   再叠一张按边的朝向算出的高光贴图。backdrop-filter:url() 只有 Chromium 支持，其余浏览器退回轻模糊 + 高光，边缘不弯。 */
+:root{
+  --lg-tint:rgba(255,255,255,.2);--lg-spec-o:1;--lg-rim:rgba(255,255,255,.95);--lg-rim-2:rgba(60,45,30,.16);--lg-glow:rgba(255,255,255,.55);--lg-drop:rgba(60,45,30,.3);--lg-lens:rgba(255,255,255,.62);--lg-lens-rim:rgba(255,255,255,1);--lg-fg:var(--soft-foreground);--lg-fg-on:var(--foreground);
+  @variant dark{--lg-tint:rgba(24,22,20,.3);--lg-spec-o:.7;--lg-rim:rgba(255,255,255,.34);--lg-rim-2:rgba(255,255,255,.12);--lg-glow:rgba(255,255,255,.05);--lg-drop:rgba(0,0,0,.55);--lg-lens:rgba(255,255,255,.12);--lg-lens-rim:rgba(255,255,255,.3)}
+}
+.lg{position:relative;border-radius:999px;background:var(--lg-tint);
+  -webkit-backdrop-filter:blur(5px) saturate(1.7) brightness(1.05);backdrop-filter:blur(5px) saturate(1.7) brightness(1.05);
+  box-shadow:inset 0 0 0 .5px var(--lg-rim-2),inset 0 0 14px var(--lg-glow),0 8px 24px -10px var(--lg-drop),0 1px 2px var(--lg-drop);
+  transition:background-color .4s,box-shadow .4s}
+:root.lg-refract .lg-nav{-webkit-backdrop-filter:url(#lg-f-nav) blur(4px) saturate(1.7) brightness(1.05);backdrop-filter:url(#lg-f-nav) blur(4px) saturate(1.7) brightness(1.05)}
+:root.lg-refract .lg-btn{-webkit-backdrop-filter:url(#lg-f-btn) blur(4px) saturate(1.7) brightness(1.05);backdrop-filter:url(#lg-f-btn) blur(4px) saturate(1.7) brightness(1.05)}
+/* 高光：JS 按元素尺寸画好的一张贴图（lgSpec），盖在玻璃最上层 */
+.lg::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:var(--lg-spec,none) 0 0/100% 100% no-repeat;opacity:var(--lg-spec-o)}
+/* 选中透镜：一颗更亮的小玻璃，跟着当前栏目，悬停时弹过去，松开回到当前栏目 */
+.lg-lens{position:absolute;top:4px;bottom:4px;left:0;width:var(--w,0);transform:translateX(var(--x,0));border-radius:999px;background:var(--lg-lens);opacity:0;
+  box-shadow:inset 0 0 0 .5px var(--lg-rim-2),inset 1px 1px 1px -.5px var(--lg-lens-rim),inset -1px -1px 1px -.5px var(--lg-rim-2),0 2px 8px -3px var(--lg-drop);
+  transition:transform .55s cubic-bezier(.34,1.45,.5,1),width .55s cubic-bezier(.34,1.45,.5,1),opacity .3s}
+.lg-lens.on{opacity:1}
+.lg-lens.snap{transition:none}
+/* 封面底色和页面相反，玻璃直接借用另一套主题的参数 */
+.site.on-cover{
+  --lg-fg:color-mix(in srgb,var(--background) 72%,transparent);--lg-fg-on:var(--background);--lg-tint:rgba(24,22,20,.3);--lg-spec-o:.7;--lg-rim:rgba(255,255,255,.34);--lg-rim-2:rgba(255,255,255,.12);--lg-glow:rgba(255,255,255,.05);--lg-drop:rgba(0,0,0,.55);--lg-lens:rgba(255,255,255,.12);--lg-lens-rim:rgba(255,255,255,.3);
+  @variant dark{--lg-tint:rgba(255,255,255,.3);--lg-rim:rgba(255,255,255,.95);--lg-rim-2:rgba(255,255,255,.4);--lg-glow:rgba(255,255,255,.35);--lg-drop:rgba(60,45,30,.2);--lg-lens:rgba(255,255,255,.62);--lg-lens-rim:rgba(255,255,255,1)}
+}

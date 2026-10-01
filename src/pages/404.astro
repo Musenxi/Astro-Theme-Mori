@@ -1,0 +1,14 @@
+---
+import Chevron from '../components/Chevron.astro';
+import { t, lang } from '../lib/i18n.ts';
+import config from 'virtual:mori/config';
+import Base from '../layouts/Base.astro';
+---
+
+<Base title={t('notfound.title')} direction={config.home.direction}>
+  <main data-page="404" class="wrap py-[clamp(80px,18vh,200px)]">
+    <p class="meta">404</p>
+    <h1 class="mt-[18px] mb-8 text-title leading-[1.5] font-light tracking-[.08em]">{t('notfound.h')}</h1>
+    <a class="ul" href="/">{t('notfound.back')}<Chevron /></a>
+  </main>
+</Base>

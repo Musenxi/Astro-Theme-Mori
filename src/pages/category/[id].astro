@@ -1,0 +1,19 @@
+---
+import config from 'virtual:mori/config';
+import Base from '../../layouts/Base.astro';
+import Scale from '../../components/Scale.astro';
+import { getEntries } from '../../lib/entries.ts';
+
+export function getStaticPaths() {
+  return config.categories.map((c) => ({ params: { id: c.id }, props: { category: c } }));
+}
+const { category } = Astro.props;
+const all = await getEntries();
+const entries = all.filter((e) => e.category.id === category.id);
+---
+
+<Base title={category.zh} direction={config.archive.direction}>
+  <main data-page="category">
+    <Scale title={category.zh} en={category.en} hideCategory entries={entries} all={all} />
+  </main>
+</Base>

@@ -1,0 +1,5 @@
+# Cloudflare Pages 读这个文件。/feed 没有扩展名，明确告诉阅读器和浏览器它是 RSS。
+/feed
+  Content-Type: application/rss+xml; charset=utf-8
+/rss.xml
+  Content-Type: application/rss+xml; charset=utf-8

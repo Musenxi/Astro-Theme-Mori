@@ -1,0 +1,59 @@
+{
+  "name": "astro-mori",
+  "private": true,
+  "version": "0.0.1",
+  "description": "MORI — a quiet, editorial Astro blog theme with vertical text and travel journals.",
+  "license": "GPL-3.0-only",
+  "type": "module",
+  "packageManager": "pnpm@10.30.1",
+  "exports": {
+    ".": "./src/integration.ts",
+    "./content": "./src/schema/index.ts",
+    "./schema": "./src/schema/schema.ts",
+    "./validate": "./src/schema/validate.ts",
+    "./config": "./src/config.ts",
+    "./anchor": "./src/lib/anchor-text.ts",
+    "./markdown": "./src/lib/markdown.mjs",
+    "./avatar": "./src/lib/avatar.mjs",
+    "./lucide": "./src/lib/lucide.ts"
+  },
+  "bin": {
+    "mori-md": "./bin/mori-md.mjs"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "dev:all": "pnpm --parallel --include-workspace-root --filter astro-mori --filter mori-comments --filter mori-studio run dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "studio": "node packages/studio/bin/mori-studio.mjs",
+    "comments": "pnpm --filter mori-comments dev",
+    "check": "astro sync && tsc -p . && pnpm -r --if-present check",
+    "test": "node --test test/*.test.ts && pnpm -r --if-present test",
+    "lint": "eslint src && pnpm -r --if-present lint",
+    "theme:update": "node scripts/update-theme.mjs"
+  },
+  "dependencies": {
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.3.5",
+    "d3-geo": "^3.1.1",
+    "d3-shape": "^3.2.0",
+    "lucide": "^1.49.0",
+    "tailwindcss": "^4.3.3",
+    "topojson-client": "^3.1.0",
+    "world-atlas": "^2.0.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@shadcn/lint": "^0.2.0",
+    "@types/d3-geo": "^3.1.1",
+    "@types/d3-shape": "^3.2.0",
+    "@types/topojson-client": "^3.1.5",
+    "@types/topojson-specification": "^1.0.5",
+    "@typescript-eslint/parser": "^8.71.0",
+    "astro-eslint-parser": "^3.2.0",
+    "eslint": "^10.11.0",
+    "sharp": "^0.35.5",
+    "typescript": "^6.0.3"
+  }
+}

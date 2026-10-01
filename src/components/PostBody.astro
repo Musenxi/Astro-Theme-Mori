@@ -1,0 +1,108 @@
+---
+import { Image } from 'astro:assets';
+import type { Inline, PostData } from '../schema/schema.ts';
+import { numberNotes, renderInline, sideRefs } from '../lib/inline.ts';
+import { pad2 } from '../lib/zh.ts';
+import { t, vertical } from '../lib/i18n.ts';
+
+interface Props {
+  blocks: PostData['blocks'];
+  notes: PostData['notes'];
+}
+const { blocks, notes } = Astro.props;
+const numbers = numberNotes(blocks);
+const html = (spans: Inline) => renderInline(spans, numbers);
+
+let h2 = 0, fig = 0;
+/** 正文栏：第 3–8 栏，右边再放出三个字宽（窄屏占满一行，不放） */
+const main = 'col-[3/9] -mr-(--main-plus) narrow:mr-0';
+const p = 'mb-[1.1em] text-justify text-pretty';
+const li = "relative py-[.2em] pl-[1.6em] text-pretty before:absolute before:top-[1.12em] before:left-[.1em] before:h-px before:w-[.6em] before:bg-muted-foreground before:content-['']";
+const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref]?.text ?? [] }));
+---
+
+<article class="wrap g prose pb-20 in-data-[page=page]:pb-6">
+  {
+    blocks.map((b) => {
+      switch (b.type) {
+        case 'p': {
+          const refs = sideRefs(b.text);
+          return refs.length ? (
+            <div class="col-[3/13] grid grid-cols-subgrid narrow:block">
+              <p class={`col-[1/7] -mr-(--main-plus) narrow:mr-0 ${p}`} data-b={b.id} set:html={html(b.text)} />
+              <div class="col-[8/11] flex flex-col gap-[.9em] narrow:mt-[-.4em] narrow:mb-[1.4em]">
+                {refs.map((ref) => (
+                  <aside class="border-t border-t-border pt-[.35em] text-meta leading-[1.75] text-muted-foreground narrow:pt-[.5em]" id={`note-${ref}`}>
+                    <sup class="nref" data-skip>{numbers.side.get(ref)}</sup>
+                    <Fragment set:html={html(notes[ref]?.text ?? [])} />
+                  </aside>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p class={`${main} ${p}`} data-b={b.id} set:html={html(b.text)} />
+          );
+        }
+        case 'h': {
+          if (b.level === 3) return <h3 class={`${main} scroll-mt-(--toc-top)`} id={b.id} data-b={b.id} set:html={html(b.text)} />;
+          h2 += 1;
+          return (
+            <h2 class={`${main} mt-[2.6em] mb-[.9em] flex scroll-mt-(--toc-top) items-baseline gap-4 text-chapter leading-[1.5] font-bold tracking-[.08em]`} id={b.id} data-b={b.id}>
+              <span class="font-display text-chapter leading-none font-light tracking-normal text-muted-foreground [font-feature-settings:'lnum']" data-skip>{pad2(h2)}</span>
+              <Fragment set:html={html(b.text)} />
+            </h2>
+          );
+        }
+        case 'quote': {
+          const vq = b.writing === 'v' && vertical;
+          return (
+            <blockquote class:list={[main, vq && 'mt-[1.4em] mb-[2.2em] h-[12.5em] justify-self-center border-r border-r-primary pr-[1.1em] text-heading leading-[2.1] tracking-[.2em] text-soft-foreground [writing-mode:vertical-rl]']} data-b={b.id}>
+              <Fragment set:html={html(b.text)} />
+              {b.cite && <cite class={vq ? 'block text-end text-meta text-muted-foreground  [margin-block-start:.4em]' : undefined} data-skip>{b.cite}</cite>}
+            </blockquote>
+          );
+        }
+        case 'image': {
+          fig += 1;
+          return (
+            <figure class:list={['rv mt-[2em] mb-[2.4em]', b.layout === 'inline' ? `inline ${main}` : 'col-[2/12]']} data-b={b.id}>
+              <Image class="aspect-video w-full cursor-zoom-in object-cover" src={b.src} alt={b.alt} widths={[640, 960, 1280, 1600]} sizes="(max-width: 760px) 100vw, 83vw" />
+              {b.caption && (
+                <figcaption class="mt-2.5 flex items-baseline gap-3 text-meta text-muted-foreground">
+                  <span class="mono flex-none">{t('fig', { n: fig })}</span>
+                  {b.caption}
+                </figcaption>
+              )}
+            </figure>
+          );
+        }
+        case 'list': {
+          const Tag = b.ordered ? 'ol' : 'ul';
+          return (
+            <Tag class={`${main} mb-[1.2em]`} data-b={b.id}>
+              {b.items.map((item) => <li class={li} set:html={html(item)} />)}
+            </Tag>
+          );
+        }
+        case 'code':
+          return (
+            <pre class={`${main} mt-[.4em] mb-[1.6em] overflow-x-auto rounded-[6px] bg-muted px-[22px] py-[18px] text-soft-foreground [font:13px/1.8_var(--font-mono)]`} data-b={b.id} data-lang={b.lang}><code>{b.code}</code></pre>
+          );
+      }
+    })
+  }
+  {
+    footnotes.length > 0 && (
+      <section class={`fns ${main} mt-[3.2em] text-aux leading-[1.8] text-muted-foreground before:mb-[1.1em] before:block before:h-px before:w-12 before:bg-border before:content-['']`} aria-label={t('notes.foot')}>
+        <ol class="grid gap-[.5em]">
+          {footnotes.map((f) => (
+            <li class="flex items-baseline gap-[.7em] text-pretty" id={`fn-${f.ref}`}>
+              <sup class="nref mr-0">{f.n}</sup>
+              <span set:html={html(f.text)} />
+            </li>
+          ))}
+        </ol>
+      </section>
+    )
+  }
+</article>

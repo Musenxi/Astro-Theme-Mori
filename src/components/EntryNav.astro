@@ -1,0 +1,19 @@
+---
+import Chevron from './Chevron.astro';
+import { t } from '../lib/i18n.ts';
+import type { Entry } from '../lib/entries.ts';
+interface Props {
+  older?: Entry;
+  newer?: Entry;
+}
+const { older, newer } = Astro.props;
+const link = 'group flex flex-col gap-1.5 py-6 narrow:py-4';
+const title = 'text-item leading-[1.55] tracking-[.05em] transition-[color] duration-300 group-hover:text-primary';
+---
+
+<nav class="wrap g pb-[clamp(64px,9vw,112px)]" aria-label={t('post.nav')}>
+  <div class="col-[3/11] grid grid-cols-2 gap-x-(--gap) border-t border-t-border narrow:grid-cols-1">
+    {older ? <a class={link} href={older.href}><span class="meta"><Chevron dir="left" />{t('post.prev')}</span><span class={title}>{older.data.title}</span></a> : <span />}
+    {newer ? <a class={`${link} items-end text-right narrow:items-start narrow:text-left narrow:border-t narrow:border-t-border`} href={newer.href}><span class="meta">{t('post.next')}<Chevron /></span><span class={title}>{newer.data.title}</span></a> : <span />}
+  </div>
+</nav>

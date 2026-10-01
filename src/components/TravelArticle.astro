@@ -1,0 +1,35 @@
+---
+/** 游记的正文部分：封面（标题、事实、地图）+ 各块。由统一的文章页（pages/post.astro）在 kind 为 travel 时使用 */
+import { t, vertical } from '../lib/i18n.ts';
+import TravelBody from './TravelBody.astro';
+import RouteMap from './RouteMap.astro';
+import type { Entry } from '../lib/entries.ts';
+import type { TravelData } from '../schema/schema.ts';
+import { dotDate } from '../lib/zh.ts';
+
+interface Props { entry: Entry }
+const { entry } = Astro.props;
+const d = entry.data as TravelData;
+// 内容里叫 v / h / mix，样式和脚本里混合读法叫 m
+const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | 'm';
+const allowed = d.reading.allowed.map(short);
+const initial = allowed.includes(short(d.reading.default)) ? short(d.reading.default) : allowed[0];
+---
+
+<article class="travel" data-mode={initial} data-dir={vertical ? d.reading.direction : 'ltr'}>
+  <header class="t-hero wrap g items-center gap-y-8 pt-[clamp(28px,5vw,72px)] pb-[clamp(48px,7vw,96px)]">
+    <div class="col-[1/6]">
+      <h1 class="w-fit text-display leading-[1.15] font-normal tracking-[.06em] [view-transition-name:title-is]">{d.title}</h1>
+      <p class="meta mt-5 flex flex-wrap items-baseline gap-x-2"><a class="transition-[color] duration-300 hover:text-primary" href={`/category/${entry.category.id}/`}>{entry.category.zh}</a><span aria-hidden="true">·</span><span>{dotDate(d.date)}</span></p>
+      <p class="ex mt-6 mb-8 max-w-[24em] text-soft-foreground">{d.excerpt}</p>
+      {d.facts.length > 0 && (
+        <dl class="grid grid-cols-[auto_1fr] items-baseline gap-x-6 gap-y-2.5 border-t border-t-border pt-5">
+          {d.facts.map((f) => <><dt class="meta">{f.label}</dt><dd class="text-body tracking-[.04em] [font-feature-settings:'tnum','lnum']">{f.value}</dd></>)}
+          <dt class="meta">{t('travel.stops')}</dt><dd class="text-body tracking-[.04em] [font-feature-settings:'tnum','lnum']">{d.stops.length}</dd>
+        </dl>
+      )}
+    </div>
+    <div class="col-[6/13] narrow:-order-1"><RouteMap variant="hero" stops={d.stops} track={d.track} /></div>
+  </header>
+  <TravelBody travel={d} />
+</article>

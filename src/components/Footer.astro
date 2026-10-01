@@ -1,0 +1,10 @@
+---
+import { t } from '../lib/i18n.ts';
+import config from 'virtual:mori/config';
+const year = new Date().getFullYear();
+---
+
+<footer class="wrap meta mt-10 flex flex-wrap justify-between gap-5 border-t border-t-border pt-7 pb-[90px]">
+  <span>© {year} {config.title} · <a class="text-soft-foreground transition-[color] duration-300 hover:text-primary aria-[current]:text-primary" href="/search/">{t('footer.search')}</a> · <a class="text-soft-foreground transition-[color] duration-300 hover:text-primary aria-[current]:text-primary" href="/feed">{t('footer.rss')}</a></span>
+  <span>Astro · MORI</span>
+</footer>

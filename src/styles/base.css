@@ -1,0 +1,142 @@
+/* 令牌 / 重置 —— 令牌用 shadcn 的语义命名，值是站点原来的纸、墨、细线。@layer base 里的规则在工具类之下 */
+:root {
+  --background: #f3f0e9;
+  --muted: #e9e5db;
+  --foreground: #1d1b18;
+  --soft-foreground: #55504a;
+  --muted-foreground: #726b60;
+  --border: #d7d0c3;
+  --destructive: #b0442b;
+  /* 主题色：作者在编辑器里改，默认克莱因蓝。亮色下压暗、暗色下提亮到可读的亮度，色相和饱和度不变 */
+  --accent-base: #002fa7;
+  --primary: oklch(from var(--accent-base) min(l, 0.52) c h);
+  --primary-foreground: var(--background);
+  --ring: var(--primary);
+  --land: #e0d9cb;
+  --land-edge: #c8bfae;
+  --gut: clamp(16px, 4vw, 56px);
+  --maxw: 1360px;
+  --gap: clamp(12px, 2vw, 28px);
+  /* 文章目录停住的高度；点目录滚到的小标题也停在这里 */
+  --toc-top: clamp(96px, 14vh, 140px);
+  /* 文章正文栏比第 3–8 栏再宽出的部分：三个正文字（字号 × 1.02 的字距） */
+  --main-plus: calc(3 * 1.02 * var(--text-body));
+  --edge: max(var(--gut), calc((100vw - var(--maxw)) / 2 + var(--gut)));
+  /* 磨砂玻璃：半透明纸色 + 模糊 + 细颗粒 */
+  --glass: color-mix(in srgb, var(--background) 64%, transparent);
+  --glass-line: color-mix(in srgb, var(--foreground) 11%, transparent);
+  --glass-hi: rgba(255, 255, 255, 0.5);
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .14 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  color-scheme: light;
+
+  @variant dark {
+    --background: #151412;
+    --muted: #1f1d1a;
+    --foreground: #e8e3d9;
+    --soft-foreground: #b2ab9f;
+    --muted-foreground: #857f74;
+    --border: #34302b;
+    --primary: var(--accent-dark, oklch(from var(--accent-base) max(l, 0.7) min(c, 0.18) h));
+    --land: #2a2723;
+    --land-edge: #3d3832;
+    --glass: color-mix(in srgb, var(--background) 56%, transparent);
+    --glass-hi: rgba(255, 255, 255, 0.07);
+    color-scheme: dark;
+  }
+}
+
+:root[data-font="fs"] {
+  --font-serif: "ZhuqueFS", "Songti SC", serif;
+}
+/* 朱雀仿宋只有常规体，不让浏览器伪造粗体 */
+:root[data-font="fs"] body {
+  font-synthesis-weight: none;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+/* 主题设计里不用斜体：这几个元素浏览器默认是斜的。正文里作者标的斜体在 prose.css 里恢复 */
+em,
+i,
+cite,
+var,
+dfn,
+address {
+  font-style: normal;
+}
+html,
+body {
+  overflow-x: clip;
+}
+html {
+  background: var(--background);
+}
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font: 400 var(--text-body)/1.9 var(--font-serif);
+  letter-spacing: 0.02em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 0.4s, color 0.4s;
+  /* 页面不够高时，页脚也贴着窗口底部 */
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+body > main {
+  flex: 1 0 auto;
+}
+/* 版心（.wrap）靠左右 auto 外边距居中，放进 flex 列里不撑满就会缩成内容那么宽 */
+body > main,
+body > footer {
+  width: 100%;
+}
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  letter-spacing: inherit;
+}
+ol,
+ul {
+  list-style: none;
+}
+[hidden] {
+  display: none !important;
+}
+::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+:focus-visible {
+  outline: 1px solid var(--ring);
+  outline-offset: 3px;
+}
+
+/* 标题、引文、图注的断行更均匀 */
+h1,
+h2,
+h3,
+blockquote,
+figcaption,
+.ex {
+  text-wrap: balance;
+}
+@media (max-width:760px){
+  :root{--text-body:16px}
+}

@@ -1,0 +1,18 @@
+node_modules
+dist
+.astro
+.DS_Store
+*.log
+
+.claude/
+.mori-studio.json
+.data/
+*.db
+*.db-shm
+*.db-wal
+
+# 本机自己的站点内容（开发用），不进 git
+examples/
+
+# 给 Claude 的本地规则，不进 git
+CLAUDE.md

@@ -1,0 +1,90 @@
+/* 游记：三种读法（竖向 / 混合 / 横向）的版式、图片块、进场显现。由 <div.travel data-mode> 的属性驱动，所以留在 CSS 里；文字、封面、行程表、角落控件的样式在各自的组件里 */
+.t-body,.t-vp,.t-track,.blk{position:relative}
+
+.blk img{background:var(--muted);object-fit:cover;cursor:zoom-in}
+.rv img{clip-path:inset(5% 0 5% 0);transform:scale(1.035);opacity:0;transition:clip-path 1.1s var(--ease-mori),transform 1.4s var(--ease-mori),opacity .8s ease}
+.rv.in img{clip-path:inset(0);transform:none;opacity:1}
+.b-free.rv img{transition-delay:calc(var(--i,0)*120ms)}
+
+/* 自由排布：每张图的 x / y / 宽度 由作者指定（占画布的比例） */
+.canvas{position:relative}
+.fi{position:absolute;left:calc(var(--x)*100%);top:calc(var(--y)*100%);width:calc(var(--w)*100%);height:auto;z-index:var(--z,1)}
+.fnote{position:absolute;left:calc(var(--x)*100%);top:calc(var(--y)*100%);writing-mode:vertical-rl;font-size:var(--text-aux);letter-spacing:.26em;line-height:1.9;color:var(--soft-foreground);z-index:3}
+
+.strip-track{display:flex;align-items:flex-start;gap:clamp(8px,1vw,14px);width:max-content}
+.strip-track img{width:auto;max-width:none;height:calc(var(--sh)*var(--s,1));margin-top:calc(var(--sh)*var(--o,0))}
+.strip-ctl{margin-left:auto;display:flex;gap:4px}
+.strip-ctl button{width:28px;height:24px;border:1px solid var(--border);border-radius:2px;color:var(--soft-foreground);display:grid;place-items:center}
+.strip-ctl .chev{margin:0;vertical-align:baseline}
+.strip-ctl button:hover{border-color:var(--muted-foreground);color:var(--foreground)}
+
+/* ---------- 竖向 + 混合 ---------- */
+.travel:not([data-mode="h"]) .t-track{max-width:var(--maxw);margin:0 auto;padding:0 var(--gut);display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gap);row-gap:clamp(56px,9vw,128px)}
+.travel:not([data-mode="h"]) .b-text{grid-column:3/9}
+.travel:not([data-mode="h"]) .b-text.v{grid-column:2/10;justify-self:end;height:min(21em,64vh);max-width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+.travel:not([data-mode="h"]) .b-single{grid-column:1/-1}
+.travel:not([data-mode="h"]) .b-single.inset{grid-column:3/11}
+.travel:not([data-mode="h"]) .b-single img{width:100%}
+.travel:not([data-mode="h"]) .b-pair{grid-column:2/12}
+.travel:not([data-mode="h"]) .b-pair .imgs{display:grid;grid-template-columns:1fr 1fr;gap:clamp(8px,1.2vw,16px)}
+.travel:not([data-mode="h"]) .b-pair img{width:100%}
+.travel:not([data-mode="h"]) .b-grid{grid-column:1/-1}
+.travel:not([data-mode="h"]) .b-grid .imgs{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(6px,.9vw,12px)}
+.travel:not([data-mode="h"]) .b-grid img{width:100%;height:100%;aspect-ratio:4/3}
+.travel:not([data-mode="h"]) .b-grid img:first-child{grid-column:span 2;grid-row:span 2}
+.travel:not([data-mode="h"]) .b-free{grid-column:1/-1}
+.travel:not([data-mode="h"]) .b-free .canvas{width:100%;aspect-ratio:var(--ar)}
+.travel:not([data-mode="h"]) .b-strip{grid-column:1/-1;width:100vw;margin-left:calc(50% - 50vw)}
+.travel:not([data-mode="h"]) .b-strip figcaption{max-width:var(--maxw);margin:10px auto 0;padding:0 var(--gut)}
+.travel:not([data-mode="h"]) .strip-track{padding:0 var(--edge)}
+.travel[data-mode="v"] .b-strip{--sh:min(58vh,70vw)}
+.travel[data-mode="v"] .strip-sc{overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:var(--border) transparent;overscroll-behavior-x:contain}
+.travel[data-mode="v"] .strip-track img{scroll-snap-align:center}
+.travel[data-mode="m"] .b-strip{--sh:min(66vh,70vw)}
+.travel[data-mode="m"] .strip-vp{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
+.travel[data-mode="m"] .strip-track{will-change:transform}
+.travel[data-mode="m"] .b-strip figcaption{max-width:none;margin:12px 0 0;padding:0 var(--edge)}
+.travel[data-mode="m"] .strip-ctl,.travel[data-mode="h"] .strip-ctl{display:none}
+
+/* ---------- 横向 ---------- */
+.travel[data-mode="h"]{--ph:min(66vh,64vw)}
+.travel[data-mode="h"] .t-vp{position:sticky;top:0;height:100vh;overflow:hidden}
+.travel[data-mode="h"] .t-track{display:flex;align-items:flex-start;height:100%;width:max-content;gap:clamp(40px,6vw,104px);padding:8vh var(--edge) 13vh;will-change:transform}
+/* --y：块在上下方向的位置（0 顶 / 1 底），--s：缩放。默认居中、原尺寸 */
+.travel[data-mode="h"] .blk{flex:none;top:calc(var(--y,.5)*100%);transform:translateY(calc(var(--y,.5)*-100%))}
+.travel[data-mode="h"] .b-text:not(.v){width:min(23em,84vw)}
+.travel[data-mode="h"] .b-text.v{height:calc(var(--ph)*.92*var(--s,1))}
+.travel[data-mode="h"] .b-single img{height:calc(var(--ph)*var(--s,1));width:auto}
+.travel[data-mode="h"] .b-pair .imgs{display:flex;gap:14px}
+.travel[data-mode="h"] .b-pair img{height:calc(var(--ph)*var(--s,1));width:auto}
+.travel[data-mode="h"] .b-grid .imgs{display:grid;grid-template-rows:repeat(2,calc(var(--ph)*var(--s,1)/2 - 5px));grid-auto-flow:column;grid-auto-columns:calc((var(--ph)*var(--s,1)/2 - 5px)*4/3);gap:10px}
+.travel[data-mode="h"] .b-grid img{width:100%;height:100%}
+.travel[data-mode="h"] .b-grid img:first-child{grid-row:span 2;grid-column:span 2}
+.travel[data-mode="h"] .b-grid img:last-child{grid-row:span 2}
+.travel[data-mode="h"] .b-free .canvas{height:calc(var(--ph)*1.04*var(--s,1));width:calc(var(--ph)*1.04*var(--s,1)*var(--ar))}
+.travel[data-mode="h"] .b-strip{--sh:calc(var(--ph)*var(--s,1))}
+.travel[data-mode="h"] .b-strip figcaption{margin:12px 0 0}
+.b-endcard{display:none}
+.travel[data-mode="h"] .b-endcard{display:flex;flex-direction:column;justify-content:center;width:min(18em,70vw);gap:10px;color:var(--soft-foreground)}
+.h-progress{display:none}
+.travel[data-mode="h"] .h-progress{display:block;position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--border)}
+.h-progress i{position:absolute;inset:0;background:var(--primary);transform-origin:0 50%;transform:scaleX(0)}
+
+/* ---------- 横滚方向：右→左（作者按篇设置） ---------- */
+.travel[data-dir="rtl"][data-mode="h"] .t-vp{direction:rtl}
+.travel[data-dir="rtl"][data-mode="h"] .t-track > *{direction:ltr}
+.travel[data-dir="rtl"] .strip-sc,.travel[data-dir="rtl"][data-mode="m"] .strip-vp{direction:rtl}
+.travel[data-dir="rtl"] .b-strip figcaption{direction:ltr}
+.travel[data-dir="rtl"] .h-progress i{transform-origin:100% 50%}
+
+/* —— 以下是主题包自己加的 —— */
+.travel:not([data-mode="h"]) .b-map{grid-column:2/12}
+.travel[data-mode="h"] .b-map{width:min(78vh,60vw)}
+@media (max-width:760px){
+  .travel:not([data-mode="h"]) .t-track > *{grid-column:1/-1!important}
+  .travel:not([data-mode="h"]) .b-strip{width:100vw;margin-left:calc(-1*var(--gut))}
+  .travel:not([data-mode="h"]) .b-free .canvas{aspect-ratio:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .travel:not([data-mode="h"]) .fi,.travel:not([data-mode="h"]) .fnote{position:static;width:100%}
+  .travel:not([data-mode="h"]) .fnote{height:9em;justify-self:center}
+  .travel[data-mode="h"]{--ph:min(60vh,116vw)}
+}

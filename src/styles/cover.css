@@ -1,0 +1,11 @@
+/* 首页封面版：进场动画。版式在 Cover.astro 里 */
+/* 进场：刊名自下而上露出，细线从左画开，小点依次落下 */
+.fc.play .f-mast span{animation:mast-in 1.2s var(--ease-mori) calc(var(--i)*80ms) both}
+@keyframes mast-in{from{clip-path:inset(100% 0 0 0);transform:translateY(.1em)}to{clip-path:inset(-10% 0 -10% 0)}}
+.fc.play .f-rule{animation:rule-in 1.3s var(--ease-mori) .3s both}
+@keyframes rule-in{from{transform:scaleX(0)}}
+.fc.play .f-strap,.fc.play .f-cover{animation:rise .9s var(--ease-mori) .55s both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}}
+.fc.play .f-ruler{animation:rule-in 1.2s var(--ease-mori) .8s both}
+.fc.play .f-ruler .pt{animation:pt-in .5s var(--ease-mori) calc(1.2s + var(--i)*55ms) both}
+@keyframes pt-in{from{transform:scale(0)}}

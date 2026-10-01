@@ -1,0 +1,73 @@
+---
+/**
+ * 剪影地图：构建时算好几何，输出纯 SVG（spec §3.2）。
+ *  - hero：游记封面里的大图，同时把陆地轮廓放进 <symbol id="map-land">，同页的其他地图直接引用
+ *  - block：正文里的地图块（route 全程 / stop 只看这一站附近）
+ *  - mini：左下角“当前位置”里的小地图，只有轮廓、路线和一个当前位置标记
+ */
+import type { TravelData } from '../schema/schema.ts';
+import { buildMap, W, H } from '../lib/map.ts';
+import { t, lang } from '../lib/i18n.ts';
+
+interface Props {
+  variant: 'hero' | 'block' | 'mini';
+  stops: TravelData['stops'];
+  track?: TravelData['track'];
+  /** block 用：route 全程，stop 只看某一站 */
+  scope?: 'route' | 'stop';
+  stopId?: string;
+}
+const { variant, stops, track, scope = 'route', stopId } = Astro.props;
+
+const own = variant === 'block' && scope === 'stop'; // 只看一站：取景不同，陆地单独画
+const list = own ? stops.filter((s) => s.id === stopId) : stops;
+const m = await buildMap(list, own ? undefined : track, own ? { minSpan: 4 } : {});
+const mini = variant === 'mini';
+const full = !mini;
+// 陆地、比例尺文字、站点圆点的样式：SVG 里的元素也用工具类
+const land = 'fill-land stroke-land-edge stroke-1 transition-[fill] duration-400 [vector-effect:non-scaling-stroke]';
+const meta = 'fill-muted-foreground font-mono text-aux tracking-[.08em]';
+const dot = 'stroke-primary stroke-2 [vector-effect:non-scaling-stroke]';
+const label = t('map.route', { list: stops.map((s) => s.name).join(lang === 'en' ? ', ' : '、') });
+---
+
+{
+  variant === 'hero' && (
+    <svg class="absolute" width="0" height="0" aria-hidden="true">
+      <symbol id="map-land" viewBox={`0 0 ${W} ${H}`}><path class={land} d={m.land} /></symbol>
+    </svg>
+  )
+}
+<svg class:list={['map block h-auto overflow-visible', mini ? 'w-[60px] flex-none' : 'w-full']} viewBox={`0 0 ${W} ${H}`} data-map={variant} data-stops={mini ? JSON.stringify(m.stops.map((s) => ({ x: s.x, y: s.y }))) : undefined} role="img" aria-label={label}>
+  {own ? <path class={land} d={m.land} /> : <use href="#map-land" width={W} height={H} />}
+  {full && m.parallels.map((p) => (
+    <>
+      <path d={p.d} fill="none" class="stroke-muted-foreground stroke-1 opacity-70 [stroke-dasharray:6_5] [vector-effect:non-scaling-stroke]" />
+      <text x={W - 15} y={p.y - 8} class={meta} text-anchor="end">{p.label}</text>
+    </>
+  ))}
+  {full && (
+    <g transform={`translate(40 ${H - 30})`}>
+      <path d={`M0,-6V0H${m.scale.px}V-6M${m.scale.px / 2},0V-4`} class="stroke-soft-foreground stroke-1 [vector-effect:non-scaling-stroke]" fill="none" />
+      <text x={m.scale.px + 10} y="0" class={meta}>{m.scale.label}</text>
+    </g>
+  )}
+  {m.route && <path d={m.route} fill="none" class="stroke-muted-foreground stroke-1 opacity-60 [stroke-dasharray:2_4] [vector-effect:non-scaling-stroke]" />}
+  {m.route && <path d={m.route} fill="none" class:list={['stroke-primary [stroke-linecap:round] [stroke-linejoin:round] [vector-effect:non-scaling-stroke]', mini ? 'route-p stroke-[1.5] [transition:stroke-dashoffset_.9s_var(--ease-mori)]' : 'stroke-2']} data-route />}
+  {mini ? (
+    <g class="here [transform:translate(var(--x),var(--y))] [transition:transform_.9s_var(--ease-mori)]" style={{ '--x': `${m.stops[0].x}px`, '--y': `${m.stops[0].y}px` }}>
+      <circle cx="0" cy="0" r="120" fill="var(--primary)" opacity=".12" />
+      <circle cx="0" cy="0" r="52" class={`dot ${dot} fill-primary`} />
+    </g>
+  ) : (
+    <>
+      {m.stops.map((s, i) => <circle cx={s.x} cy={s.y} r="7" class:list={['dot', dot, i === 0 ? 'fill-primary' : 'fill-background']} data-t={s.t} />)}
+      {m.stops.map((s) => (
+        <g class="lab [transform-box:fill-box]" data-t={s.t}>
+          <text x={s.label.x} y={s.label.y} text-anchor={s.label.anchor} class="fill-foreground font-serif text-heading">{s.name}</text>
+          {s.en && <text x={s.label.x} y={s.label.y + 18} text-anchor={s.label.anchor} class="fill-muted-foreground font-mono text-aux tracking-[.05em]">{s.en}</text>}
+        </g>
+      ))}
+    </>
+  )}
+</svg>

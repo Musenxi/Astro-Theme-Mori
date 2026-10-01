@@ -1,0 +1,36 @@
+---
+/**
+ * 游记的两个角落控件（玻璃）：右下角读法切换（竖 / 横 / 混），左下角当前位置。
+ * 读者选读法并被记住；作者只决定默认值和允许哪几种（reading.default / allowed）。
+ */
+import type { TravelData } from '../schema/schema.ts';
+import RouteMap from './RouteMap.astro';
+import { t } from '../lib/i18n.ts';
+
+interface Props {
+  allowed: Array<'v' | 'h' | 'm'>;
+  stops: TravelData['stops'];
+  track?: TravelData['track'];
+}
+const { allowed, stops, track } = Astro.props;
+const LABEL = { v: [t('travel.mode.v'), t('travel.modeLabel.v')], h: [t('travel.mode.h'), t('travel.modeLabel.h')], m: [t('travel.mode.m'), t('travel.modeLabel.m')] } as const;
+const stopData = stops.map((s) => ({ id: s.id, name: s.name, date: s.date ?? '' }));
+---
+
+{
+  allowed.length > 1 && (
+    <div class="glass group/mc fixed right-[18px] bottom-[18px] z-20 flex flex-col rounded-[4px] p-0.5 [transition:transform_.6s_var(--ease-mori),opacity_.4s] narrow:right-3 narrow:bottom-3" id="mc" role="group" aria-label={t('travel.readingGroup')} data-modes={allowed.join(',')}>
+      <i class="absolute top-0.5 left-0.5 size-[30px] rounded-[2px] bg-foreground [transform:translateY(calc(var(--i,0)*30px))] [transition:transform_.55s_var(--ease-mori)]" />
+      {allowed.map((m) => <button class="relative z-1 size-[30px] text-aux text-muted-foreground transition-[color] duration-400 hover:text-foreground aria-pressed:text-background" type="button" data-m={m} aria-label={LABEL[m][1]}>{LABEL[m][0]}</button>)}
+      <span class="pointer-events-none absolute right-[calc(100%_+_10px)] bottom-1 text-meta whitespace-nowrap text-muted-foreground opacity-0 [transform:translateX(6px)] [transition:opacity_.3s,transform_.4s_var(--ease-mori)] group-hover/mc:opacity-100 group-hover/mc:[transform:none]" id="mc-tip">{t('travel.readingGroup')}</span>
+    </div>
+  )
+}
+
+<div class="glass fixed bottom-[18px] left-[18px] z-20 flex items-center gap-2.5 rounded-[4px] py-1.5 pr-3 pl-2 opacity-0 pointer-events-none [transform:translateY(12px)] [transition:transform_.6s_var(--ease-mori),opacity_.4s] narrow:bottom-3 narrow:left-3 [&.on]:pointer-events-auto [&.on]:opacity-100 [&.on]:[transform:none]" id="loc" data-stops={JSON.stringify(stopData)}>
+  <RouteMap variant="mini" stops={stops} track={track} />
+  <div class="leading-[1.35] whitespace-nowrap">
+    <span class="mono text-muted-foreground narrow:hidden" id="rb-n">01 / {String(stops.length).padStart(2, '0')}</span>
+    <b class="block text-aux font-normal" id="rb-name">{stops[0].name}</b>
+  </div>
+</div>

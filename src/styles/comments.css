@@ -1,0 +1,88 @@
+/* 评论区：上面一个细线框写评论，下面是列表。头像一栏，名字、日期、回复在一行，回复缩进到正文那一栏。没有卡片和阴影 */
+.cmt-none{color:var(--muted-foreground);font-size:var(--text-aux);padding:26px 0 8px}
+.cmt-list,.cmt-replies{list-style:none}
+.cmt-list{margin-top:12px}
+.cmt-item{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;padding:24px 0 22px}
+.cmt-list > .cmt-item + .cmt-item{border-top:1px solid color-mix(in srgb,var(--border) 70%,transparent)}
+.cmt-main{grid-column:2;min-width:0}
+.cmt-item > .cmt-main:first-child{grid-column:1/-1}
+.cmt-av{width:36px;height:36px;border-radius:50%;flex:none;background:var(--muted);object-fit:cover;display:grid;place-items:center;font-size:var(--text-aux);line-height:1;color:var(--soft-foreground)}
+.cmt-replies .cmt-av{width:28px;height:28px;font-size:var(--text-meta)}
+.cmt-meta{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:12px;line-height:1.5;min-height:36px;padding-top:6px}
+.cmt-replies .cmt-meta{min-height:28px;padding-top:2px}
+.cmt-meta b{color:var(--foreground);font-weight:400;font-size:var(--text-aux);letter-spacing:.04em}
+.cmt-by{color:inherit;text-decoration:none;background:linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat;transition:background-size .5s var(--ease-mori)}
+.cmt-by:hover{background-size:100% 1px}
+.cmt-date{font-size:var(--text-meta);letter-spacing:.06em;color:var(--muted-foreground);font-feature-settings:"tnum","lnum"}
+.cmt-reply{margin-left:auto;font-size:var(--text-meta);letter-spacing:.08em;color:var(--muted-foreground);transition:color .3s}
+.cmt-reply:hover{color:var(--primary)}
+.cmt-text{white-space:pre-line;overflow-wrap:anywhere;margin-top:2px;font-size:var(--text-body);line-height:1.85}
+.cmt-replies{margin-top:14px}
+.cmt-replies .cmt-item{padding:12px 0 4px;column-gap:12px}
+.cmt-replies .cmt-text{font-size:var(--text-aux)}
+/* 引用评论引用的原文：细线引用样式，过长截断 */
+.cmt-quote{margin:10px 0 4px;padding:2px 0 2px 12px;border-left:2px solid color-mix(in srgb,var(--primary) 55%,transparent);color:var(--soft-foreground);font-size:var(--text-aux);line-height:1.75;cursor:pointer;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;transition:color .3s,border-color .3s}
+.cmt-quote:hover{color:var(--foreground);border-left-color:var(--primary)}
+.cmt-quote.gone{cursor:default}
+.cmt-quote.gone::after{content:"　（原文已修改）";color:var(--muted-foreground);font-size:var(--text-meta)}
+.linkbtn{color:inherit;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--border);transition:color .3s}
+.linkbtn:hover{color:var(--primary)}
+
+/* 写评论的框：细线、微微压暗的底，聚焦时线加深 */
+.cmt-form{margin:8px 0 4px}
+.cmt-main > .cmt-form{margin:14px 0 6px}
+.cmt-box{border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--muted) 45%,transparent);transition:border-color .3s,background-color .3s}
+.cmt-box:focus-within{border-color:color-mix(in srgb,var(--foreground) 32%,transparent);background:color-mix(in srgb,var(--muted) 25%,transparent)}
+.cmt-form textarea{display:block;width:100%;min-height:7.2em;font:inherit;font-size:var(--text-body);line-height:1.85;color:inherit;background:none;border:0;outline:0;resize:none;field-sizing:content;max-height:60vh;padding:14px 18px 10px}
+.cmt-main > .cmt-form textarea{min-height:4.6em}
+.cmt-row{display:flex;align-items:center;border-top:1px solid var(--border)}
+.cmt-row input{flex:1 1 0;min-width:0;font:inherit;font-size:var(--text-aux);letter-spacing:.04em;color:inherit;background:none;border:0;outline:0;padding:11px 18px}
+.cmt-row input + input{border-left:1px solid var(--border)}
+.cmt-form ::placeholder{color:var(--muted-foreground)}
+.cmt-trap{position:absolute!important;left:-9999px;width:1px;height:1px;opacity:0}
+.cmt-ts:not(:empty){margin-top:10px}
+.cmt-msg{margin-top:8px;font-size:var(--text-meta);color:var(--muted-foreground)}
+.cmt-msg:empty{display:none}
+.cmt-msg.bad{color:var(--destructive)}
+.cmt-send{flex:none;align-self:stretch;padding:0 20px;border-left:1px solid var(--border);font-size:var(--text-aux);letter-spacing:.12em;color:var(--foreground);border-radius:0 0 10px 0;transition:color .3s,background-color .3s}
+.cmt-send:hover{color:var(--primary);background:color-mix(in srgb,var(--muted) 70%,transparent)}
+.cmt-send[disabled]{opacity:.5;cursor:default}
+@media (max-width:760px){
+  .cmt-row{flex-wrap:wrap}
+  .cmt-row input{flex:1 1 50%}
+  .cmt-row input[name=url]{flex-basis:100%;border-left:0;border-top:1px solid var(--border);order:3}
+  .cmt-send{order:4;flex:1 1 100%;border-left:0;border-top:1px solid var(--border);padding:11px 0;border-radius:0 0 10px 10px}
+}
+
+/* ───────── 划词引用评论：小玻璃按钮、输入框、回到正文时的临时高亮 ───────── */
+.anno-btn{position:fixed;z-index:40;padding:5px 14px;border-radius:999px;font-size:var(--text-meta);letter-spacing:.14em;color:var(--foreground);cursor:pointer;animation:anno-in .35s var(--ease-mori) both}
+.anno-btn:hover{color:var(--primary)}
+@keyframes anno-in{from{opacity:0;transform:translateY(4px) scale(.96)}}
+.anno-seen{position:fixed;z-index:40;width:min(320px,calc(100vw - 16px));max-height:min(40vh,300px);overflow-y:auto;padding:10px 14px;border-radius:6px;font-size:var(--text-meta);line-height:1.7;animation:anno-in .35s var(--ease-mori) both}
+.anno-seen-i + .anno-seen-i{margin-top:10px;padding-top:10px;border-top:1px solid var(--glass-line)}
+.anno-seen b{font-weight:400;font-size:var(--text-meta);color:var(--muted-foreground)}
+.anno-seen-t{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.anno-seen-r{margin:4px 0 0 .8em;padding-left:.8em;border-left:1px solid var(--glass-line);color:var(--soft-foreground);font-size:var(--text-meta);white-space:pre-wrap;overflow-wrap:anywhere}
+.anno-pop{position:fixed;z-index:41;width:min(340px,calc(100vw - 24px));padding:12px 14px 10px;border-radius:6px;animation:anno-in .35s var(--ease-mori) both}
+.anno-q{margin:0 0 10px;padding-left:10px;border-left:1px solid var(--primary);color:var(--soft-foreground);font-size:var(--text-meta);line-height:1.7;max-height:5.2em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.anno-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.anno-pop > input[name=url]{margin-top:4px}
+.anno-pop input:not(.cmt-trap),.anno-pop textarea{width:100%;font:inherit;font-size:var(--text-aux);color:inherit;background:none;border:0;border-bottom:1px solid var(--glass-line);padding:6px 0;outline:0}
+.anno-pop textarea{resize:none;line-height:1.7;margin-top:4px}
+.anno-pop input:focus,.anno-pop textarea:focus{border-bottom-color:var(--foreground)}
+.anno-foot{display:flex;align-items:center;gap:12px;margin-top:8px}
+.anno-msg{flex:1;font-size:var(--text-meta);color:var(--muted-foreground)}
+.anno-msg.bad{color:var(--destructive)}
+.anno-cancel{font-size:var(--text-meta);color:var(--muted-foreground)}
+.anno-send{font-size:var(--text-aux);letter-spacing:.06em}
+.anno-send .chev{color:var(--primary)}
+.anno-send[disabled]{opacity:.5}
+.anno-toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:42;padding:7px 16px;border-radius:999px;color:var(--soft-foreground);animation:anno-in .4s var(--ease-mori) both;transition:opacity .5s}
+.anno-toast.out{opacity:0}
+::highlight(mori-anno){background-color:color-mix(in srgb,var(--primary) 26%,transparent);color:inherit}
+::highlight(mori-anno-fade){background-color:color-mix(in srgb,var(--primary) 11%,transparent);color:inherit}
+@media (max-width:760px){
+  /* 手机上输入框从底部弹出 */
+  .anno-pop{left:0!important;right:0;top:auto!important;bottom:0;width:100%;border-radius:12px 12px 0 0;padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+}
+

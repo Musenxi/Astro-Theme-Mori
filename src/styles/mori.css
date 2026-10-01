@@ -1,0 +1,87 @@
+/* 主题样式入口：Tailwind v4（不用 preflight，重置在 base.css）+ shadcn 语义令牌。
+   层的顺序：theme < base < components < utilities。自己写的样式都在 components 层里，工具类总是盖得过它们。 */
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@source "../";
+
+@import "./base.css" layer(base);
+@import "./common.css" layer(components);
+@import "./glass.css" layer(components);
+@import "./opening.css" layer(components);
+@import "./cover.css" layer(components);
+@import "./prose.css" layer(components);
+@import "./travel.css" layer(components);
+@import "./comments.css" layer(components);
+@import "./transitions.css" layer(components);
+/* 第三方评论框自己的样式是不进层的，改写它们的规则也不能进层，否则会被压过 */
+@import "./embed.css";
+@import "./vt-chrome.css";
+
+/* 昼夜：<html data-theme> 手动切换优先；没有手动选择时跟系统 */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
+/* 首页 / 归档的排法：<html data-hdir="v"> 竖排，其余横排 */
+@custom-variant vert (:root[data-hdir="v"] &);
+@custom-variant horiz (:root:not([data-hdir="v"]) &);
+/* 窄屏（手机） */
+@custom-variant narrow (@media (max-width: 760px));
+@custom-variant phone (@media (max-width: 560px));
+
+@theme static {
+  --font-serif: "STDongGuanTi", "ZhuqueFS", "Songti SC", "Noto Serif SC", serif;
+  /* 等宽只管西文和数字；中文落回正文的宋体，不掉到系统黑体上 */
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, "STDongGuanTi", "ZhuqueFS", "Songti SC", monospace;
+  --font-display: "Cormorant Garamond", "Cormorant", Georgia, serif;
+  /* 字号：以正文 17px 为基准，全站只用这些，不再写 text-[Npx]。最小 14px，没有更小的字。
+     em 写的相对字号（行内 code、注号、游记里的 h3/引注）跟着所在段落走，不算在内。 */
+  --text-meta: 14px; /* 附属：日期、分类、计数、图注、引注、刻度、坐标、编号 */
+  --text-aux: 15.5px; /* 辅文：摘要、脚注、导航、表单、回复 */
+  --text-body: 17px; /* 正文（窄屏 16px，见 base.css） */
+  --text-item: 19px; /* 条目：列表里的篇名、人名、副题 */
+  --text-heading: 24px; /* 区块标题：评论、行程、目次分类 */
+  --text-chapter: 28px; /* 文章小标题、游记章节、搜索框 */
+  --text-num: 38px; /* 大数字：期号、卷次、里程 */
+  /* 随屏宽变化的几级 */
+  --text-lead: clamp(19px, 1.8vw, 25px); /* 目次、归档里的篇名，封面副题 */
+  --text-title: clamp(30px, 3.8vw, 50px); /* 页面标题 */
+  --text-display: clamp(40px, 5.6vw, 76px); /* 游记标题、封面特稿 */
+  --text-giant: clamp(56px, 7.2vw, 116px); /* “目次”、归档的年份 */
+  --text-quote: clamp(32px, 4vw, 66px); /* 首页引文 */
+  --text-quote-v: clamp(30px, 3.2vw, 52px);
+  --text-quote-sm: clamp(25px, 7.6vw, 32px);
+  --ease-mori: cubic-bezier(0.2, 0.75, 0.15, 1);
+  --default-transition-timing-function: ease;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-soft-foreground: var(--soft-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive: var(--destructive);
+  --color-ring: var(--ring);
+  --color-land: var(--land);
+  --color-land-edge: var(--land-edge);
+  --color-border-soft: color-mix(in srgb, var(--border) 60%, transparent);
+  --color-lightbox: color-mix(in srgb, var(--background) 52%, transparent);
+  /* 首页封面版：封面是反色的，这几个值由 .fc 自己定义 */
+  --color-on: var(--on);
+  --color-on-2: var(--on-2);
+  --color-on-3: var(--on-3);
+  --color-on-line: var(--on-line);
+  --color-acc: var(--acc);
+}

@@ -1,0 +1,37 @@
+---
+/** 友人帐：一位一行，头像、名字、一句话；点整行去对方的站点 */
+import { Image } from 'astro:assets';
+import { getFriends } from '../lib/pages.ts';
+
+const friends = await getFriends();
+const host = (u: string) => new URL(u).host.replace(/^www\./, '');
+---
+
+{
+  friends.length > 0 && (
+    <div class="wrap g pb-24">
+    <ul class="col-[3/11] grid grid-cols-2 gap-x-[clamp(28px,5vw,72px)] pt-2 narrow:grid-cols-1">
+      {friends.map((f) => (
+        <li class="border-t border-t-border last:border-b last:border-b-border [&:nth-last-child(2):nth-child(odd)]:border-b [&:nth-last-child(2):nth-child(odd)]:border-b-border narrow:[&:nth-last-child(2):nth-child(odd)]:border-b-0">
+          <a class="group grid grid-cols-[52px_minmax(0,1fr)] items-center gap-[18px] py-[22px]" href={f.data.url} target="_blank" rel="noopener">
+            <span class="grid size-[52px] flex-none place-items-center overflow-hidden rounded-[50%] bg-muted [transition:transform_.5s_var(--ease-mori)] group-hover:[transform:scale(1.06)] [&_img]:h-full [&_img]:w-full [&_img]:object-cover [&_img]:[filter:grayscale(.35)_contrast(.95)] [&_img]:transition-[filter] [&_img]:duration-400 group-hover:[&_img]:[filter:none]" aria-hidden="true">
+              {typeof f.data.avatar === 'string' ? (
+                <img src={f.data.avatar} alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+              ) : f.data.avatar ? (
+                <Image src={f.data.avatar} alt="" width={96} height={96} />
+              ) : (
+                <b class="text-item font-normal text-muted-foreground">{[...f.data.name][0]}</b>
+              )}
+            </span>
+            <span class="grid min-w-0 gap-[3px]">
+              <span class="w-fit bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-[size:0_1px] bg-no-repeat text-item tracking-[.06em] [transition:background-size_.5s_var(--ease-mori),color_.3s] group-hover:bg-[size:100%_1px] group-hover:text-primary">{f.data.name}</span>
+              {f.data.desc && <span class="line-clamp-2 overflow-hidden text-aux leading-[1.7] text-ellipsis text-soft-foreground">{f.data.desc}</span>}
+              <span class="mono text-muted-foreground">{host(f.data.url)}</span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+    </div>
+  )
+}

@@ -1,0 +1,25 @@
+/* 文章正文里的行内内容：上标编号、行内代码、链接。块级版式在 PostBody.astro 里 */
+.prose sup{font-family:var(--font-mono);font-size:var(--text-meta);color:var(--primary);margin-right:4px}
+.b-text sup.nref{font-size:var(--text-meta)}
+/* 作者在正文里标的斜体照样是斜体（中文字体没有斜体字形，由浏览器倾斜） */
+.prose em,.b-text em{font-style:italic}
+.prose .nref a{color:inherit}
+.prose code,.b-text code{font-family:var(--font-mono);font-size:.82em;background:var(--muted);padding:.1em .35em;border-radius:2px}
+.prose pre .c{color:var(--muted-foreground)}
+.prose pre .k{color:var(--foreground)}
+.prose pre .s{color:var(--primary)}
+.prose pre code,.b-text pre code{background:none;padding:0;font-size:1em}
+
+/* 正文里的链接：主题色 + 一根细下划线，悬停时下划线加深（原来完全看不出哪里是链接） */
+.prose a:not(.nref a):not([data-skip]) {
+  color: var(--primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .24em;
+  text-decoration-color: color-mix(in srgb, var(--primary) 40%, transparent);
+  transition: text-decoration-color .3s var(--ease-mori), color .3s;
+}
+.prose a:not(.nref a):not([data-skip]):hover { text-decoration-color: var(--primary); }
+
+/* 旁注编号跳转时，别被玻璃页头盖住 */
+.prose [id], .fns [id] { scroll-margin-top: 96px; }

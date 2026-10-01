@@ -1,0 +1,60 @@
+---
+import { t } from '../../lib/i18n.ts';
+import Base from '../../layouts/Base.astro';
+import PostHeader from '../../components/PostHeader.astro';
+import PostBody from '../../components/PostBody.astro';
+import PostToc from '../../components/PostToc.astro';
+import TravelArticle from '../../components/TravelArticle.astro';
+import TravelCorners from '../../components/TravelCorners.astro';
+import Comments from '../../components/Comments.astro';
+import EntryNav from '../../components/EntryNav.astro';
+import { getEntries } from '../../lib/entries.ts';
+import type { Entry } from '../../lib/entries.ts';
+import type { PostData, TravelData } from '../../schema/schema.ts';
+import { countChars } from '../../lib/inline.ts';
+import { dotDate } from '../../lib/zh.ts';
+
+// 普通文章和游记都在 /posts/<id>/，靠 entry.kind 决定用哪种版式
+export async function getStaticPaths() {
+  const entries = await getEntries();
+  // entries 是新→旧：上一篇是更早的一篇，下一篇是更新的一篇
+  return entries.map((e, i) => ({ params: { slug: e.id }, props: { entry: e, older: entries[i + 1], newer: entries[i - 1] } }));
+}
+
+const { entry, older, newer } = Astro.props as { entry: Entry; older?: Entry; newer?: Entry };
+const travel = entry.kind === 'travel';
+const d = entry.data;
+const p = d as PostData;
+const tv = d as TravelData;
+const count = travel ? { cjk: 0, words: 0 } : countChars(p.blocks);
+const chars = count.cjk + count.words;
+const minutes = Math.max(1, Math.round(count.cjk / 450 + count.words / 220));
+const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | 'm';
+---
+
+<Base title={d.title} description={d.excerpt} type="article">
+  {travel ? (
+    <main data-page="travel">
+      <TravelArticle entry={entry} />
+      <Comments entry={`posts/${entry.id}`} />
+      <EntryNav older={older} newer={newer} />
+      <TravelCorners allowed={tv.reading.allowed.map(short)} stops={tv.stops} track={tv.track} />
+    </main>
+  ) : (
+    <main data-page="post">
+      <PostHeader title={d.title} meta={[{ label: entry.category.zh, href: `/category/${entry.category.id}/` }, dotDate(d.date), ...t('post.meta', { chars: chars.toLocaleString('en-US'), min: minutes }).split(' · ')]} />
+      <div class="relative">
+        <PostToc blocks={p.blocks} />
+        <PostBody blocks={p.blocks} notes={p.notes} />
+      </div>
+      <Comments entry={`posts/${entry.id}`} />
+      <EntryNav older={older} newer={newer} />
+    </main>
+  )}
+  <script>
+    import '../../scripts/reveal.ts';
+    import '../../scripts/toc.ts';
+    import '../../scripts/travel.ts';
+    import '../../scripts/map.ts';
+  </script>
+</Base>
