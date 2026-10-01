@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { useProject, useRefresh } from '@/lib/hooks';
 import { Field } from '@/components/field';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Body, Card, PageHeader, Section } from '@/components/page';
 import { Segmented } from '@/components/segmented';
@@ -25,46 +26,65 @@ export default function Settings() {
   const [accentDark, setAccentDark] = useState('');
   const [override, setOverride] = useState(false);
   const [auto, setAuto] = useState(String(autosaveSeconds()));
+  const [edits, setEdits] = useState<Record<string, string>>({}); // 还没保存的、用选项改的设定（键是配置路径）
+  const [busy, setBusy] = useState(false);
   useEffect(() => { if (cfg) { setTitle(cfg.title); setDescription(cfg.description ?? ''); setAccent(cfg.accent); setAccentDark(cfg.accentDark ?? ''); setOverride(!!cfg.accentDark); } }, [cfg?.title, cfg?.description, cfg?.accent, cfg?.accentDark]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!cfg) return null;
   const rawAvatar = cfg.comments?.avatar;
   const avatarKey = rawAvatar == null || rawAvatar === '' ? 'cravatar' : rawAvatar; // 配置里是自定义地址时，三个选项都不亮
 
-  const save = async (key: string, value: string | null) => {
-    try { await api.setConfig(key, value); await refresh(); toast.success('已保存'); } catch (e) { toast.error((e as Error).message); }
+  const put = (key: string, value: string) => setEdits((e) => ({ ...e, [key]: value }));
+  const autoN = Math.min(3600, Math.max(1, Math.round(Number(auto)) || 60));
+  const accentDarkNow = override ? accentDark : '';
+  const dirty = (title && title !== cfg.title) || description !== (cfg.description ?? '') || accent !== cfg.accent || accentDarkNow !== (cfg.accentDark ?? '') || Object.keys(edits).length > 0 || autoN !== autosaveSeconds();
+
+  const save = async () => {
+    setBusy(true);
+    try {
+      if (title && title !== cfg.title) await api.setConfig('title', title);
+      if (description !== (cfg.description ?? '')) await api.setConfig('description', description);
+      if (accent !== cfg.accent) await api.setConfig('accent', accent);
+      if (accentDarkNow !== (cfg.accentDark ?? '')) await api.setConfig('accentDark', accentDarkNow || null);
+      for (const [k, v] of Object.entries(edits)) await api.setConfig(k, v);
+      setAutosaveSeconds(autoN); setAuto(String(autoN));
+      setEdits({});
+      await refresh();
+      toast.success('已保存');
+    } catch (e) { toast.error((e as Error).message); }
+    setBusy(false);
   };
 
   return (
     <>
-      <PageHeader title="设定" />
+      <PageHeader title="设定" actions={<Button variant="default" onClick={() => void save()} disabled={busy || !dirty}>保存</Button>} />
       <Body>
         <Section title="刊名与简介"><Card>
-          <Field label="刊名"><Input value={title} onChange={(e) => setTitle(e.target.value)} onBlur={() => title && title !== cfg.title && save('title', title)} /></Field>
-          <Field label="简介"><Input value={description} onChange={(e) => setDescription(e.target.value)} onBlur={() => description !== (cfg.description ?? '') && save('description', description)} /></Field>
+          <Field label="刊名"><Input value={title} onChange={(e) => setTitle(e.target.value)} /></Field>
+          <Field label="简介"><Input value={description} onChange={(e) => setDescription(e.target.value)} /></Field>
         </Card></Section>
 
         <Section title="首页与归档"><Card>
           <Field label="版式">
-            <Segmented value={cfg.home?.style ?? 'quote'} onValueChange={(v) => save('home.style', v)} options={[{ value: 'quote', label: '引文版' }, { value: 'cover', label: '封面版' }]} />
+            <Segmented value={edits['home.style'] ?? cfg.home?.style ?? 'quote'} onValueChange={(v) => put('home.style', v)} options={[{ value: 'quote', label: '引文版' }, { value: 'cover', label: '封面版' }]} />
           </Field>
           <Field label="首页排法">
-            <Segmented value={cfg.home?.direction ?? 'h'} onValueChange={(v) => save('home.direction', v)} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />
+            <Segmented value={edits['home.direction'] ?? cfg.home?.direction ?? 'h'} onValueChange={(v) => put('home.direction', v)} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />
           </Field>
           <Field label="归档排法">
-            <Segmented value={cfg.archive?.direction ?? cfg.home?.direction ?? 'h'} onValueChange={(v) => save('archive.direction', v)} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />
+            <Segmented value={edits['archive.direction'] ?? cfg.archive?.direction ?? cfg.home?.direction ?? 'h'} onValueChange={(v) => put('archive.direction', v)} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />
           </Field>
         </Card></Section>
 
         <Section title="订阅"><Card>
           <Field label="订阅内容">
-            <Segmented value={cfg.feed?.content ?? 'excerpt'} onValueChange={(v) => save('feed.content', v)} options={[{ value: 'excerpt', label: '只放摘要' }, { value: 'full', label: '放全文' }]} />
+            <Segmented value={edits['feed.content'] ?? cfg.feed?.content ?? 'excerpt'} onValueChange={(v) => put('feed.content', v)} options={[{ value: 'excerpt', label: '只放摘要' }, { value: 'full', label: '放全文' }]} />
           </Field>
         </Card></Section>
 
         {project?.comments.provider === 'mori' && (
           <Section title="评论"><Card>
             <Field label="头像服务">
-              <Segmented value={avatarKey} onValueChange={(v) => save('comments.avatar', v)} options={[{ value: 'cravatar', label: 'Cravatar' }, { value: 'gravatar', label: 'Gravatar' }, { value: 'none', label: '不显示' }]} />
+              <Segmented value={edits['comments.avatar'] ?? avatarKey} onValueChange={(v) => put('comments.avatar', v)} options={[{ value: 'cravatar', label: 'Cravatar' }, { value: 'gravatar', label: 'Gravatar' }, { value: 'none', label: '不显示' }]} />
             </Field>
           </Card></Section>
         )}
@@ -72,7 +92,7 @@ export default function Settings() {
         <Section title="编辑器"><Card>
           <Field label="自动保存间隔">
             <div className="flex items-center gap-2">
-              <Input type="number" min={1} max={3600} className="w-24" value={auto} onChange={(e) => setAuto(e.target.value)} onBlur={() => { const n = Math.min(3600, Math.max(1, Math.round(Number(auto)) || 60)); setAuto(String(n)); setAutosaveSeconds(n); }} />
+              <Input type="number" min={1} max={3600} className="w-24" value={auto} onChange={(e) => setAuto(e.target.value)} />
               <span className="text-soft-foreground">秒</span>
             </div>
           </Field>
@@ -81,9 +101,9 @@ export default function Settings() {
         <Section title="主题色"><Card>
           <div className="flex items-center gap-2.5 pb-3">
             {PRESETS.map(([c, n]) => (
-              <button key={c} type="button" title={n} aria-label={n} onClick={() => { setAccent(c); void save('accent', c); }} style={{ '--c': c }} className={cn('h-7 w-7 rounded-full bg-(--c) outline-offset-2 transition-[outline-color,transform] hover:scale-110', accent === c ? 'outline outline-2 outline-foreground' : 'outline outline-1 outline-transparent hover:outline-muted-foreground')} />
+              <button key={c} type="button" title={n} aria-label={n} onClick={() => setAccent(c)} style={{ '--c': c }} className={cn('h-7 w-7 rounded-full bg-(--c) outline-offset-2 transition-[outline-color,transform] hover:scale-110', accent === c ? 'outline outline-2 outline-foreground' : 'outline outline-1 outline-transparent hover:outline-muted-foreground')} />
             ))}
-            <input type="color" value={accent} aria-label="自选颜色" onChange={(e) => setAccent(e.target.value)} onBlur={(e) => e.target.value !== cfg.accent && save('accent', e.target.value)} className="ml-1 h-8 w-10 cursor-pointer rounded-md border-0 bg-transparent p-0" />
+            <input type="color" value={accent} aria-label="自选颜色" onChange={(e) => setAccent(e.target.value)} className="ml-1 h-8 w-10 cursor-pointer rounded-md border-0 bg-transparent p-0" />
             <span className="mono text-muted-foreground">{accent}</span>
           </div>
           <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
@@ -91,8 +111,8 @@ export default function Settings() {
             <Swatch bg={override && accentDark ? accentDark : dark(accent)} paper="#151412" ink="#e8e3d9" label="暗色" />
           </div>
           <div className="mt-4 flex items-center gap-3">
-            <SwitchField checked={override} label="手动指定暗色版本" onCheckedChange={(v) => { setOverride(v); if (!v) { setAccentDark(''); if (cfg.accentDark) void save('accentDark', null); } else if (!accentDark) setAccentDark('#7f9bff'); }} />
-            {override && <input type="color" value={accentDark || '#7f9bff'} aria-label="暗色版本" onChange={(e) => setAccentDark(e.target.value)} onBlur={(e) => save('accentDark', e.target.value)} className="h-8 w-10 cursor-pointer rounded-md border-0 bg-transparent p-0" />}
+            <SwitchField checked={override} label="手动指定暗色版本" onCheckedChange={(v) => { setOverride(v); if (v && !accentDark) setAccentDark('#7f9bff'); }} />
+            {override && <input type="color" value={accentDark || '#7f9bff'} aria-label="暗色版本" onChange={(e) => setAccentDark(e.target.value)} className="h-8 w-10 cursor-pointer rounded-md border-0 bg-transparent p-0" />}
           </div>
         </Card></Section>
       </Body>
