@@ -2,7 +2,6 @@
 import { Image } from 'astro:assets';
 import type { Inline, PostData } from '../schema/schema.ts';
 import { numberNotes, renderInline, sideRefs } from '../lib/inline.ts';
-import { pad2 } from '../lib/zh.ts';
 import { t, vertical } from '../lib/i18n.ts';
 
 interface Props {
@@ -13,7 +12,7 @@ const { blocks, notes } = Astro.props;
 const numbers = numberNotes(blocks);
 const html = (spans: Inline) => renderInline(spans, numbers);
 
-let h2 = 0, fig = 0;
+let fig = 0;
 /** 正文栏：第 3–8 栏，右边再放出三个字宽（窄屏占满一行，不放） */
 const main = 'col-[3/9] -mr-(--main-plus) narrow:mr-0';
 const p = 'mb-[1.1em] text-justify text-pretty';
@@ -45,10 +44,8 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         }
         case 'h': {
           if (b.level === 3) return <h3 class={`${main} scroll-mt-(--toc-top)`} id={b.id} data-b={b.id} set:html={html(b.text)} />;
-          h2 += 1;
           return (
-            <h2 class={`${main} mt-[2.6em] mb-[.9em] flex scroll-mt-(--toc-top) items-baseline gap-4 text-chapter leading-[1.5] font-bold tracking-[.08em]`} id={b.id} data-b={b.id}>
-              <span class="text-chapter leading-none font-light tracking-normal text-muted-foreground" data-skip>{pad2(h2)}</span>
+            <h2 class={`${main} mt-[2.6em] mb-[.9em] scroll-mt-(--toc-top) text-chapter leading-[1.5] font-bold tracking-[.08em]`} id={b.id} data-b={b.id}>
               <Fragment set:html={html(b.text)} />
             </h2>
           );

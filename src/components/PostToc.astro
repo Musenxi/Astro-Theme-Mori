@@ -5,7 +5,6 @@
  */
 import type { PostData } from '../schema/schema.ts';
 import { plainText } from '../lib/inline.ts';
-import { pad2 } from '../lib/zh.ts';
 import { t } from '../lib/i18n.ts';
 
 interface Props {
@@ -13,8 +12,7 @@ interface Props {
 }
 const { blocks } = Astro.props;
 
-let h2 = 0;
-const items = blocks.flatMap((b) => (b.type === 'h' ? [{ id: b.id, level: b.level, n: b.level === 2 ? ++h2 : 0, text: plainText(b.text) }] : []));
+const items = blocks.flatMap((b) => (b.type === 'h' ? [{ id: b.id, level: b.level, text: plainText(b.text) }] : []));
 ---
 
 {
@@ -26,12 +24,11 @@ const items = blocks.flatMap((b) => (b.type === 'h' ? [{ id: b.id, level: b.leve
             <li>
               <a
                 class:list={[
-                  '-ml-px flex items-baseline gap-2 border-l border-l-transparent py-[.3em] pr-2 text-meta leading-[1.6] tracking-[.04em] text-muted-foreground [transition:color_.3s,border-color_.3s] hover:text-foreground aria-[current=location]:border-l-primary aria-[current=location]:text-foreground',
+                  '-ml-px block border-l border-l-transparent py-[.3em] pr-2 text-meta leading-[1.6] tracking-[.04em] text-muted-foreground [transition:color_.3s,border-color_.3s] hover:text-foreground aria-[current=location]:border-l-primary aria-[current=location]:text-foreground',
                   it.level === 2 ? 'pl-3.5' : 'pl-7',
                 ]}
                 href={`#${it.id}`}
               >
-                {it.level === 2 && <span class="leading-none">{pad2(it.n)}</span>}
                 {it.text}
               </a>
             </li>
