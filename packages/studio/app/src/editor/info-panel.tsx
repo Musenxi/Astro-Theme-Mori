@@ -21,6 +21,9 @@ const Group = ({ title, children, action }: { title: string; children: React.Rea
   </section>
 );
 
+const VISIBILITY = [{ value: 'public', label: '公开' }, { value: 'hidden', label: '隐藏' }, { value: 'draft', label: '草稿' }];
+const visibilityOf = (doc: Doc) => (doc.draft ? 'draft' : doc.hidden ? 'hidden' : 'public');
+
 /** 右侧“信息”面板：正文以外的一切——分类、日期、摘要、封面、置顶…… */
 export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; set: (patch: Doc) => void; setDoc: (fn: (d: Doc) => Doc) => void }) {
   const { data: project } = useProject();
@@ -38,7 +41,7 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
             <OptionSelect value={doc.template ?? 'default'} onValueChange={(v) => set({ template: v })} options={[{ value: 'default', label: '普通页面' }, { value: 'friends', label: '友人帐' }]} />
           </Field>
           <Field label="评论"><SwitchField checked={!!doc.comments} onCheckedChange={(v) => set({ comments: v || undefined })} label="页面底部开放评论" /></Field>
-          <Field label="隐藏"><SwitchField checked={!!doc.hidden} onCheckedChange={(v) => set({ hidden: v || undefined })} /></Field>
+          <Field label="公开度"><Segmented value={visibilityOf(doc)} onValueChange={(v) => set({ draft: v === 'draft' ? true : undefined, hidden: v === 'hidden' ? true : undefined })} options={VISIBILITY} /></Field>
         </Group>
       </div>
     );
@@ -60,7 +63,7 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
           <Segmented value={kind === 'travel' ? 'travel' : 'post'} onValueChange={(v) => void switchTemplate(v)} options={[{ value: 'post', label: '普通' }, { value: 'travel', label: '游记' }]} />
         </Field>
         <Field label="副标题"><Input value={doc.subtitle ?? ''} onChange={(e) => set({ subtitle: e.target.value || undefined })} /></Field>
-        <Field label="隐藏"><SwitchField checked={!!doc.hidden} onCheckedChange={(v) => set({ hidden: v || undefined })} /></Field>
+        <Field label="公开度"><Segmented value={visibilityOf(doc)} onValueChange={(v) => set({ draft: v === 'draft' ? true : undefined, hidden: v === 'hidden' ? true : undefined })} options={VISIBILITY} /></Field>
         <Field label="日期"><Input type="date" value={String(doc.date ?? '').slice(0, 10)} onChange={(e) => set({ date: e.target.value })} /></Field>
         <Field label="分类">
           <OptionSelect value={doc.category || undefined} onValueChange={(v) => set({ category: v })} placeholder="选择分类"
