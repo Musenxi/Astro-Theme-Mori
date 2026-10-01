@@ -55,7 +55,7 @@
   --text-title: clamp(30px, 3.8vw, 50px); /* 页面标题 */
   --text-display: clamp(40px, 5.6vw, 76px); /* 游记标题、封面特稿 */
   --text-giant: clamp(56px, 7.2vw, 116px); /* “目次”、归档的年份 */
-  --text-quote: 29px; /* 首页引文 */
+  --text-quote: clamp(34px, 3.4vw, 54px); /* 首页引文 */
   --text-quote-v: 29px;
   --text-quote-sm: 29px;
   --ease-mori: cubic-bezier(0.2, 0.75, 0.15, 1);

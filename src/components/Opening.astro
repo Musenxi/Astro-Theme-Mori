@@ -24,7 +24,8 @@ const ld = latest.data.date;
 const slides = pinned.map((e) => {
   const d = e.data, pin = d.pin;
   const own = (pin?.quote ?? []).filter((l) => l.trim());
-  const lines = own.length ? own : (d.excerpt.match(/[^。！？]+[。！？]?/g) ?? []).filter((l) => l.trim()); // 置顶没写引言就用摘要（按句断成几行，字号才不会被整句压小），摘要也没有就没有引文
+  // 置顶没写引言就用摘要，摘要也没有就没有引文；每一句单独一行，一行行错开
+  const lines = (own.length ? own : [d.excerpt]).flatMap((l) => l.match(/[^。！？]+[。！？]?/g) ?? []).filter((l) => l.trim());
   let i = 0;
   const quote = lines.map((l, n) => [...((n === 0 ? '「' : '') + l + (n === lines.length - 1 ? '」' : ''))].map((ch) => ({ ch, i: i++ })));
   return {
@@ -84,7 +85,7 @@ const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground'
                 </figure>
                 {s.lines > 0 && (
                   <a class="group/qa relative z-2 col-1 row-1 flex h-(--ph-h) max-w-[min(100%,800px)] items-center self-start justify-self-start pl-[clamp(16px,3vw,48px)] vert:justify-self-end vert:pl-0 vert:pr-[clamp(8px,1.4vw,24px)] narrow:items-end narrow:pt-0! narrow:pr-0! narrow:pb-[46px]! narrow:pl-[1em]!" href={s.e.href}>
-                    <p class="fo-q indent-[-1em] leading-[1.6] font-light tracking-[.05em] transition-[color] duration-500 group-hover/qa:text-soft-foreground vert:leading-[2] vert:[writing-mode:vertical-rl]">
+                    <p class="fo-q leading-[1.6] font-light tracking-[.05em] transition-[color] duration-500 group-hover/qa:text-soft-foreground vert:leading-[2] vert:[writing-mode:vertical-rl]">
                       {s.quote.map((line, n) => (
                         <Fragment>
                           {n > 0 && <br />}
