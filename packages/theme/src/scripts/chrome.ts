@@ -164,7 +164,11 @@ function lgRefract() {
 }
 
 // backdrop-filter:url() 只有 Chromium 支持；其他浏览器退回轻模糊 + 高光，边缘不弯
-if ((navigator as any).userAgentData && CSS.supports('backdrop-filter', 'url(#a)')) root.classList.add('lg-refract');
+const refractOk = !!(navigator as any).userAgentData && CSS.supports('backdrop-filter', 'url(#a)');
+// 换页时 <html> 的 class 会被新页面的换掉，折射的开关每次换页后都要补回去
+const markRefract = () => { if (refractOk) root.classList.add('lg-refract'); };
+markRefract();
+document.addEventListener('astro:after-swap', markRefract);
 
 const refresh = () => { lgRefract(); lgLens(); };
 addEventListener('resize', refresh);
