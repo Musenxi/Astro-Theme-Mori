@@ -48,7 +48,21 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
     return next;
   }), []);
 
-  const { state } = useAutosave(kind, id, doc, () => { void refresh(); setTimeout(() => setPreviewKey((k) => k + 1), 700); });
+  const { state, flush } = useAutosave(kind, id, doc, () => { void refresh(); setTimeout(() => setPreviewKey((k) => k + 1), 700); });
+
+  const [busy, setBusy] = useState(false);
+  const save = async (next?: Doc, done?: string) => {
+    setBusy(true);
+    if (next) setDocState(next);
+    const r = await flush(next);
+    setBusy(false);
+    if (r) toast.success(done ?? '已保存');
+  };
+  const setDraft = (draft: boolean) => {
+    const next = { ...doc };
+    if (draft) next.draft = true; else delete next.draft;
+    void save(next, draft ? '已转为草稿' : '已发布');
+  };
 
   const path = routeKind === 'page' ? `/${id}/` : `/posts/${id}/`;
   useEffect(() => { document.title = `${doc.title || id} · MORI Studio`; return () => { document.title = 'MORI Studio'; }; }, [doc.title, id]);
@@ -64,6 +78,8 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
           <i className={cn('h-1.5 w-1.5 rounded-full', state.status === 'saved' ? 'bg-muted-foreground/60' : state.status === 'error' ? 'bg-destructive' : 'animate-pulse bg-soft-foreground')} />{status}
         </span>
         <Segmented size="sm" value={mode} onValueChange={setMode} options={modes} />
+        <Button size="sm" onClick={() => void save()} disabled={busy}>保存</Button>
+        {doc.draft ? <Button size="sm" variant="default" onClick={() => setDraft(false)} disabled={busy}>发布</Button> : <Button size="sm" onClick={() => setDraft(true)} disabled={busy}>转为草稿</Button>}
         <Button size="sm" active={panel === 'info'} onClick={() => setPanel(panel === 'info' ? null : 'info')}><PanelRight size={14} />信息</Button>
         <Button size="sm" active={panel === 'preview'} onClick={() => setPanel(panel === 'preview' ? null : 'preview')}><Eye size={14} />预览</Button>
       </header>

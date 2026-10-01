@@ -79,8 +79,8 @@ export const entryExists = (root, kind, id) => existsSync(fileOf(root, kind, id)
 
 /** 新建：给一个能通过校验的最小骨架 */
 export function skeleton(kind, { title, category }) {
-  if (kind === 'page') return { title, excerpt: '', template: 'default', blocks: [{ id: 'b01', type: 'p', text: '' }] };
-  const base = { title, date: new Date().toISOString().slice(0, 10), category, excerpt: '' };
+  if (kind === 'page') return { title, excerpt: '', template: 'default', draft: true, blocks: [{ id: 'b01', type: 'p', text: '' }] };
+  const base = { title, date: new Date().toISOString().slice(0, 10), category, excerpt: '', draft: true };
   if (kind === 'post') return { kind: 'article', ...base, blocks: [{ id: 'b01', type: 'p', text: '' }] };
   return {
     kind: 'travel',

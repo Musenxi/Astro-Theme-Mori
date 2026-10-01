@@ -25,8 +25,10 @@ export function useAutosave(kind: Kind, id: string, doc: Doc | null, onSaved?: (
   cb.current = onSaved;
   latest.current = doc;
 
-  const flush = useCallback(async () => {
+  /** 传了 next 就按它立刻保存（发布 / 转草稿时，状态还没来得及更新） */
+  const flush = useCallback(async (next?: Doc) => {
     clearTimeout(timer.current);
+    if (next) { latest.current = next; dirty.current = true; }
     if (!dirty.current || !latest.current) return;
     dirty.current = false;
     const seq = ++inflight.current;
@@ -36,10 +38,12 @@ export function useAutosave(kind: Kind, id: string, doc: Doc | null, onSaved?: (
       if (seq !== inflight.current) return;
       setState({ status: dirty.current ? 'dirty' : 'saved', errors: r.errors ?? [], warnings: r.annotationWarnings ?? [], savedAt: Date.now() });
       cb.current?.();
+      return r;
     } catch (e) {
       if (seq !== inflight.current) return;
       dirty.current = true;
       setState((s) => ({ ...s, status: 'error', message: (e as Error).message }));
+      return undefined;
     }
   }, [kind, id]);
 

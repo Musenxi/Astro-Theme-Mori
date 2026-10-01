@@ -38,7 +38,6 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
             <OptionSelect value={doc.template ?? 'default'} onValueChange={(v) => set({ template: v })} options={[{ value: 'default', label: '普通页面' }, { value: 'friends', label: '友人帐' }]} />
           </Field>
           <Field label="评论"><SwitchField checked={!!doc.comments} onCheckedChange={(v) => set({ comments: v || undefined })} label="页面底部开放评论" /></Field>
-          <Field label="草稿"><SwitchField checked={!!doc.draft} onCheckedChange={(v) => set({ draft: v || undefined })} /></Field>
         </Group>
       </div>
     );
@@ -69,7 +68,6 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
         <Field label="摘要"><Textarea rows={2} value={doc.excerpt ?? ''} onChange={(e) => set({ excerpt: e.target.value })} /></Field>
         <Field label="封面"><ImageField value={doc.cover} onChange={(v) => set({ cover: v })} /></Field>
         {doc.cover && <Field label="封面说明"><Input value={doc.coverAlt ?? ''} onChange={(e) => set({ coverAlt: e.target.value || undefined })} /></Field>}
-        <Field label="草稿"><SwitchField checked={!!doc.draft} onCheckedChange={(v) => set({ draft: v || undefined })} /></Field>
       </Group>
 
       {kind === 'travel' ? <TravelExtras doc={doc} set={set} /> : null}
