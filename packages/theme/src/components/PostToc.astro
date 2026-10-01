@@ -1,7 +1,7 @@
 ---
 /**
  * 文章目录：宽屏时放在正文右边，跟着滚动停在上方；当前读到的那一节用主题色标出（scripts/toc.ts）。
- * 叠在正文上面的一层同样的 12 栏网格，占第 10–12 栏（和旁注栏有重叠，旁注经过时目录隐去）；小标题少于两个、或窄屏时不出现。
+ * 叠在正文上面的一层同样的 12 栏网格，占第 9–12 栏，和旁注左边对齐（旁注、代码块经过时目录隐去）；小标题少于两个、或窄屏时不出现。
  */
 import type { PostData } from '../content/schema.ts';
 import { plainText } from '../lib/inline.ts';
@@ -20,7 +20,7 @@ const items = blocks.flatMap((b) => (b.type === 'h' ? [{ id: b.id, level: b.leve
 {
   items.length >= 2 && (
     <div class="wrap g pointer-events-none absolute inset-0 max-lg:hidden" data-toc>
-      <nav class="col-[10/13]" aria-label={t('post.toc')}>
+      <nav class="col-[9/13]" aria-label={t('post.toc')}>
         <ol class="pointer-events-auto sticky top-(--toc-top) border-l border-l-border transition-opacity duration-300 [&.off]:pointer-events-none [&.off]:opacity-0">
           {items.map((it) => (
             <li>
