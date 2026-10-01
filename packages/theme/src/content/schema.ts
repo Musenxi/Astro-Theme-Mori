@@ -55,8 +55,6 @@ export const pinSchema = (image: ImageFn) =>
     /** 封面图；不写就用文章自己的 cover */
     image: image().optional(),
     alt: z.string().optional(),
-    /** 封面图朝引文一侧淡出的强度，0 不淡出，1 淡到全透明。默认 0.5 */
-    fade: z.number().min(0).max(1).optional(),
   });
 
 const metaBase = (image: ImageFn) => ({

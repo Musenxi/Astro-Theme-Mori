@@ -35,8 +35,6 @@ const slides = pinned.map((e) => {
     fit: { '--lines': quote.length, '--n': Math.max(...quote.map((l) => l.length)) },
     caption: pin?.caption ?? `${e.category.zh} · ${dotDate(d.date)}`,
     meta: pin?.meta ?? [{ label: t('home.date'), value: dotDate(d.date) }],
-    /** 0.5 是默认的淡出强度（k=1）；0 不淡出，1 淡得更多 */
-    fade: pin?.fade,
   };
 });
 const first = slides[0];
@@ -75,7 +73,7 @@ const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground'
           {
             slides.map((s, k) => (
               <article class:list={['fo-slide col-1 row-[1/4] grid min-w-0 grid-rows-subgrid', k === 0 && 'on']} data-no={pad3(s.e.n)} inert={k !== 0}>
-                <figure class="fo-cover col-1 row-[1/3] grid grid-rows-subgrid" style={s.fade !== undefined ? { '--k': s.fade * 2 } : undefined}>
+                <figure class="fo-cover col-1 row-[1/3] grid grid-rows-subgrid">
                   <div class="ph">
                     {s.image && <Image class="absolute inset-0 size-full object-cover [filter:saturate(.9)] dark:[filter:saturate(.9)_brightness(.8)]" src={s.image} alt={s.alt} widths={[800, 1200, 1600, 2000]} sizes="(max-width: 760px) 100vw, 83vw" loading={k === 0 ? 'eager' : 'lazy'} fetchpriority={k === 0 ? 'high' : 'auto'} />}
                   </div>

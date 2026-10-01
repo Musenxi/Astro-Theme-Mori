@@ -94,12 +94,6 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
             </Field>
             <Field label="封面图"><ImageField value={pin.image} onChange={(v) => setPin({ image: v })} /></Field>
             <Field label="图片说明"><Input value={pin.alt ?? ''} onChange={(e) => setPin({ alt: e.target.value || undefined })} /></Field>
-            <Field label="淡出强度">
-              <div className="flex items-center gap-3">
-                <input type="range" min={0} max={1} step={0.05} value={pin.fade ?? 0.5} onChange={(e) => setPin({ fade: +e.target.value })} className="h-1 flex-1 accent-[var(--ink)]" />
-                <span className="mono w-8 text-right text-ink-3">{(pin.fade ?? 0.5).toFixed(2)}</span>
-              </div>
-            </Field>
           </>
         )}
       </Group>
