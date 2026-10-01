@@ -63,6 +63,23 @@ nav.addEventListener('pointerleave', () => lgLens());
 nav.addEventListener('focusin', (e) => lgLens((e.target as Element).closest('a')));
 nav.addEventListener('focusout', () => lgLens());
 
+// 页头跨页保留，但换页时它会被重新插入文档，进行到一半的透镜滑动因此被取消、直接跳到终点。换页前记下透镜当前的位置，换页后从那里接着滑
+let lensAt: { x: number; w: number } | null = null;
+document.addEventListener('astro:before-swap', () => {
+  if (!lens.classList.contains('on')) { lensAt = null; return; }
+  const l = lens.getBoundingClientRect(), n = nav.getBoundingClientRect();
+  lensAt = { x: l.left - n.left - nav.clientLeft, w: l.width };
+});
+document.addEventListener('astro:after-swap', () => {
+  if (!lensAt || !lens.classList.contains('on')) return;
+  lens.classList.add('snap');
+  lens.style.setProperty('--x', lensAt.x + 'px');
+  lens.style.setProperty('--w', lensAt.w + 'px');
+  void lens.offsetWidth;
+  lens.classList.remove('snap');
+  lensAt = null;
+});
+
 /* ───────────── 液态玻璃的物理 ─────────────
    玻璃边缘是一个凸的 squircle 斜面（离边 x∈[0,1] 处高度 (1-(1-x)^4)^(1/4)），
    垂直入射的光线在斜面上按斯涅尔定律折射（空气 1 → 玻璃 1.5），落到背景平面上的横向偏移就是该处的位移量。
