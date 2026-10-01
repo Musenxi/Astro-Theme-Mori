@@ -72,6 +72,8 @@ const metaBase = (image: ImageFn) => ({
   cover: image().optional(),
   coverAlt: z.string().optional(),
   draft: z.boolean().default(false),
+  /** 隐藏：已发布、知道地址能打开，但不进列表、搜索、订阅和站点地图 */
+  hidden: z.boolean().default(false),
   pin: pinSchema(image).optional(),
 });
 
@@ -267,6 +269,7 @@ export const pageSchema = ({ image }: SchemaContext) =>
       subtitle: z.string().optional(),
       excerpt: z.string().default(''),
       draft: z.boolean().default(false),
+      hidden: z.boolean().default(false),
       template: z.enum(['default', 'friends']).default('default'),
       /** 页面底部是否开放评论 */
       comments: z.boolean().default(false),

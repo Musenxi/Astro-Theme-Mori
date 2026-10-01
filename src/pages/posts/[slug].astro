@@ -17,8 +17,9 @@ import { dotDate } from '../../lib/zh.ts';
 // 普通文章和游记都在 /posts/<id>/，靠 entry.kind 决定用哪种版式
 export async function getStaticPaths() {
   const entries = await getEntries();
-  // entries 是新→旧：上一篇是更早的一篇，下一篇是更新的一篇
-  return entries.map((e, i) => ({ params: { slug: e.id }, props: { entry: e, older: entries[i + 1], newer: entries[i - 1] } }));
+  // entries 是新→旧：上一篇是更早的一篇，下一篇是更新的一篇。隐藏的文章有自己的页面，但不接进上下篇
+  const hidden = (await getEntries({ hidden: true })).filter((e) => e.data.hidden).map((e) => ({ params: { slug: e.id }, props: { entry: e } }));
+  return [...entries.map((e, i) => ({ params: { slug: e.id }, props: { entry: e, older: entries[i + 1], newer: entries[i - 1] } })), ...hidden];
 }
 
 const { entry, older, newer } = Astro.props as { entry: Entry; older?: Entry; newer?: Entry };

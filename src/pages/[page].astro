@@ -10,7 +10,7 @@ import { RESERVED_SLUGS } from '../schema/schema.ts';
 
 // 页面的网址是 /<文件名>/。和站点自带的地址重名的要提前报错，别悄悄被盖掉
 export async function getStaticPaths() {
-  return (await getPages()).map((p) => {
+  return (await getPages({ hidden: true })).map((p) => {
     if (RESERVED_SLUGS.includes(p.id)) throw new Error(`页面“${p.data.title}”的文件名 “${p.id}” 和站点自带的地址重名，请改一个名字（不能用：${RESERVED_SLUGS.join('、')}）`);
     return { params: { page: p.id }, props: { page: p } };
   });

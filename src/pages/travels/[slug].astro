@@ -3,7 +3,7 @@
 import { getEntries } from '../../lib/entries.ts';
 
 export async function getStaticPaths() {
-  return (await getEntries()).filter((e) => e.kind === 'travel').map((e) => ({ params: { slug: e.id } }));
+  return (await getEntries({ hidden: true })).filter((e) => e.kind === 'travel').map((e) => ({ params: { slug: e.id } }));
 }
 const { slug } = Astro.params;
 return Astro.redirect(`/posts/${slug}/`, 301);

@@ -20,24 +20,26 @@ export interface Entry {
 
 const categories = new Map(config.categories.map((c) => [c.id, c]));
 
-/** 最新的排最前 */
-export async function getEntries(): Promise<Entry[]> {
+/** 最新的排最前。隐藏的文章默认不在里面；生成文章页自己的地址时传 { hidden: true } */
+export async function getEntries({ hidden = false } = {}): Promise<Entry[]> {
   // 普通文章和游记同在 posts 里，靠 data.kind 区分
   const list = (await getCollection('posts'))
     .map((raw) => ({ kind: (raw.data.kind === 'travel' ? 'travel' : 'post') as 'post' | 'travel', raw }))
     .filter(({ raw }) => import.meta.env.DEV || !raw.data.draft)
     .sort((a, b) => a.raw.data.date.getTime() - b.raw.data.date.getTime() || a.raw.id.localeCompare(b.raw.id));
 
+  let n = 0;
   return list
-    .map(({ kind, raw }, i): Entry => {
+    .map(({ kind, raw }): Entry => {
       const category = categories.get(raw.data.category);
       if (!category) {
         throw new Error(
           `《${raw.data.title}》的分类 “${raw.data.category}” 没有在 mori.config.ts 的 categories 里定义（已有：${[...categories.keys()].join('、')}）`,
         );
       }
-      return { kind, id: raw.id, href: `/posts/${raw.id}/`, n: i + 1, category, data: raw.data, raw };
+      return { kind, id: raw.id, href: `/posts/${raw.id}/`, n: raw.data.hidden ? 0 : ++n, category, data: raw.data, raw };
     })
+    .filter((e) => hidden || !e.data.hidden)
     .reverse();
 }
 
