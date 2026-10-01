@@ -12,7 +12,8 @@ packages/theme     主题包 astro-mori（Astro 集成：注入页面、样式�
 packages/studio    Studio：本地写作与排版编辑器（读写项目里的内容文件）
 packages/comments  自建评论服务（Hono；Node + SQLite / Cloudflare Workers + D1）
 deploy             VPS 的 Docker Compose + Caddy 模板、GitHub Actions 模板
-examples/demo      示例站：只有内容（src/content）和配置（mori.config.ts）
+examples/          本地站点放这里（不进 git）：只有内容（src/content）和配置（mori.config.ts）
+scripts/site.mjs   找到本地站点，开发命令都通过它定位站点
 design/style-probe 风格试样（所有视觉决定的实物参照）
 docs               需求草案、写作指南
 ```
@@ -22,10 +23,10 @@ docs               需求草案、写作指南
 需要 Node ≥ 22.12 和 pnpm。
 
 ```bash
-pnpm install
-pnpm dev        # 开发模式：示例站 http://localhost:4321 + 本地评论服务 http://127.0.0.1:8787 + Studio http://127.0.0.1:4400（一起启动）
-pnpm site       # 只跑示例站
-pnpm build      # 静态构建到 examples/demo/dist
+pnpm install    # 先在 examples/ 下放一个站点项目（依赖 astro-mori、有 mori.config.ts）；放在别处就设环境变量 MORI_SITE
+pnpm dev        # 开发模式：站点 http://localhost:4321 + 本地评论服务 http://127.0.0.1:8787 + Studio http://127.0.0.1:4400（一起启动）
+pnpm site       # 只跑站点
+pnpm build      # 静态构建到站点的 dist/
 pnpm studio     # 只跑 Studio（正常模式），http://127.0.0.1:4400
 pnpm comments   # 只跑评论服务（开发用管理令牌是 dev-token，数据库在 packages/comments/.data/）
 pnpm check      # 主题包的 TypeScript 检查

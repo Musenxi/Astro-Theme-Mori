@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { findSite } from '../../../scripts/site.mjs';
 import { spansToText, textToSpans, compact } from '../app/src/lib/inline.js';
 
 const roundTrip = (spans) => textToSpans(spansToText(spans));
@@ -26,9 +26,10 @@ test('解析', () => {
   assert.equal(compact(textToSpans('纯文字')), '纯文字');
 });
 
-test('示例站里所有真实的行内文字都能无损往返', () => {
-  const dir = fileURLToPath(new URL('../../../examples/demo/src/content/', import.meta.url));
-  if (!existsSync(dir)) return;
+test('本地站点里所有真实的行内文字都能无损往返', (t) => {
+  let dir;
+  try { dir = findSite().dir + '/src/content/'; } catch { return t.skip('没有本地站点'); }
+  if (!existsSync(dir)) return t.skip('站点里没有 src/content');
   let n = 0;
   const walk = (v) => {
     if (Array.isArray(v)) {

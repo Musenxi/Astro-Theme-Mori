@@ -4,14 +4,14 @@
   "version": "0.0.0",
   "packageManager": "pnpm@10.30.1",
   "scripts": {
-    "dev": "pnpm --parallel --filter demo --filter mori-comments --filter mori-studio dev",
-    "build": "pnpm --filter demo build",
-    "preview": "pnpm --filter demo preview",
-    "check": "pnpm --filter demo exec astro sync && pnpm -r --if-present check",
-    "studio": "pnpm --filter demo studio",
+    "dev": "node scripts/site.mjs pnpm --parallel --filter {site} --filter mori-comments --filter mori-studio dev",
+    "build": "node scripts/site.mjs pnpm --filter {site} build",
+    "preview": "node scripts/site.mjs pnpm --filter {site} preview",
+    "check": "node scripts/site.mjs pnpm --filter {site} exec astro sync && pnpm -r --if-present check",
+    "studio": "node scripts/site.mjs pnpm --filter {site} studio",
     "test": "pnpm -r --if-present test",
     "comments": "pnpm --filter mori-comments dev",
-    "site": "pnpm --filter demo dev",
+    "site": "node scripts/site.mjs pnpm --filter {site} dev",
     "lint": "pnpm -r --if-present lint"
   }
 }

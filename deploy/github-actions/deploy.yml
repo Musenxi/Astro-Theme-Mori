@@ -19,7 +19,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - uses: actions/upload-artifact@v4
-        with: { name: dist, path: examples/demo/dist }   # 站点项目里改成自己的 dist 路径
+        with: { name: dist, path: dist }
 
   # 二选一：把不用的那个 job 删掉
   cloudflare-pages:

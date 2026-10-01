@@ -15,7 +15,7 @@
   "scripts": {
     "start": "node bin/mori-studio.mjs",
     "test": "node --test test/*.test.mjs",
-    "dev": "node bin/mori-studio.mjs --dev --root ../../examples/demo",
+    "dev": "node ../../scripts/site.mjs node bin/mori-studio.mjs --dev --root {dir}",
     "dev:ui": "vite --config app/vite.config.ts",
     "build:ui": "vite build --config app/vite.config.ts",
     "check:ui": "tsc -p app",

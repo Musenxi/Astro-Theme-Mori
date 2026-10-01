@@ -19,7 +19,7 @@
   "include": [
     "src/**/*.ts",
     "src/virtual.d.ts",
-    "../../examples/demo/.astro/types.d.ts"
+    ".site-types.d.ts"
   ],
   "exclude": [
     "node_modules"

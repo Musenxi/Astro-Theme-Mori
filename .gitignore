@@ -13,3 +13,8 @@ dist
 
 # 示例站（作者自己的站点内容与配置）不进 git
 examples/demo/
+# 主题类型检查接站点内容类型用的，由 scripts/site.mjs 按本机站点生成
+packages/theme/.site-types.d.ts
+
+# 给 Claude 的本地规则，不进 git
+CLAUDE.md
