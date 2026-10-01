@@ -19,6 +19,8 @@
   --gap: clamp(12px, 2vw, 28px);
   /* 文章目录停住的高度；点目录滚到的小标题也停在这里 */
   --toc-top: clamp(96px, 14vh, 140px);
+  /* 文章正文栏比第 3–8 栏再宽出的部分：三个正文字（字号 × 1.02 的字距） */
+  --main-plus: calc(3 * 1.02 * var(--text-body));
   --edge: max(var(--gut), calc((100vw - var(--maxw)) / 2 + var(--gut)));
   /* 磨砂玻璃：半透明纸色 + 模糊 + 细颗粒 */
   --glass: color-mix(in srgb, var(--background) 64%, transparent);
