@@ -32,7 +32,7 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
     return (
       <div className="p-6">
         <Group title="页面">
-          <Field label="英文副题"><Input value={doc.subtitle ?? ''} onChange={(e) => set({ subtitle: e.target.value || undefined })} /></Field>
+          <Field label="副标题"><Input value={doc.subtitle ?? ''} onChange={(e) => set({ subtitle: e.target.value || undefined })} /></Field>
           <Field label="摘要"><Textarea rows={2} value={doc.excerpt ?? ''} onChange={(e) => set({ excerpt: e.target.value })} /></Field>
           <Field label="版式">
             <OptionSelect value={doc.template ?? 'default'} onValueChange={(v) => set({ template: v })} options={[{ value: 'default', label: '普通页面' }, { value: 'friends', label: '友人帐' }]} />
@@ -59,7 +59,7 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
         <Field label="模版">
           <Segmented value={kind === 'travel' ? 'travel' : 'post'} onValueChange={(v) => void switchTemplate(v)} options={[{ value: 'post', label: '普通' }, { value: 'travel', label: '游记' }]} />
         </Field>
-        <Field label="英文副题"><Input value={doc.subtitle ?? ''} onChange={(e) => set({ subtitle: e.target.value || undefined })} /></Field>
+        <Field label="副标题"><Input value={doc.subtitle ?? ''} onChange={(e) => set({ subtitle: e.target.value || undefined })} /></Field>
         <Field label="日期"><Input type="date" value={String(doc.date ?? '').slice(0, 10)} onChange={(e) => set({ date: e.target.value })} /></Field>
         <Field label="分类">
           <OptionSelect value={doc.category || undefined} onValueChange={(v) => set({ category: v })} placeholder="选择分类"

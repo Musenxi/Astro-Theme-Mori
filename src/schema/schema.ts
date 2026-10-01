@@ -59,7 +59,7 @@ export const pinSchema = (image: ImageFn) =>
 
 const metaBase = (image: ImageFn) => ({
   title: z.string(),
-  /** 英文副题（斜体细体），可选 */
+  /** 副标题，可选 */
   subtitle: z.string().optional(),
   date: z.coerce.date(),
   updated: z.coerce.date().optional(),

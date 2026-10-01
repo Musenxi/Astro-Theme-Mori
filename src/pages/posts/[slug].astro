@@ -42,7 +42,7 @@ const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | '
     </main>
   ) : (
     <main data-page="post">
-      <PostHeader title={d.title} meta={[{ label: entry.category.zh, href: `/category/${entry.category.id}/` }, dotDate(d.date), ...t('post.meta', { chars: chars.toLocaleString('en-US'), min: minutes }).split(' · ')]} />
+      <PostHeader title={d.title} sub={d.subtitle || undefined} meta={[{ label: entry.category.zh, href: `/category/${entry.category.id}/` }, dotDate(d.date), ...t('post.meta', { chars: chars.toLocaleString('en-US'), min: minutes }).split(' · ')]} />
       <div class="relative">
         <PostToc blocks={p.blocks} />
         <PostBody blocks={p.blocks} notes={p.notes} />
