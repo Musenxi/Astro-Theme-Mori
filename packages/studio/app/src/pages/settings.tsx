@@ -8,6 +8,7 @@ import { Body, Card, PageHeader, Section } from '@/components/page';
 import { Segmented } from '@/components/segmented';
 import { SwitchField } from '@/components/switch-field';
 import { cn } from '@/lib/cn';
+import { autosaveSeconds, setAutosaveSeconds } from '@/lib/prefs';
 
 const PRESETS: Array<[string, string]> = [['#002fa7', '克莱因蓝'], ['#b0442b', '朱'], ['#3f6b4f', '松绿'], ['#5b3f8c', '紫']];
 // 和主题里的推导一致：亮色下亮度封顶，暗色下亮度托底（都在 OKLCH 里，色相和饱和度不变）
@@ -23,6 +24,7 @@ export default function Settings() {
   const [accent, setAccent] = useState('#002fa7');
   const [accentDark, setAccentDark] = useState('');
   const [override, setOverride] = useState(false);
+  const [auto, setAuto] = useState(String(autosaveSeconds()));
   useEffect(() => { if (cfg) { setTitle(cfg.title); setDescription(cfg.description ?? ''); setAccent(cfg.accent); setAccentDark(cfg.accentDark ?? ''); setOverride(!!cfg.accentDark); } }, [cfg?.title, cfg?.description, cfg?.accent, cfg?.accentDark]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!cfg) return null;
   const rawAvatar = cfg.comments?.avatar;
@@ -66,6 +68,15 @@ export default function Settings() {
             </Field>
           </Card></Section>
         )}
+
+        <Section title="编辑器"><Card>
+          <Field label="自动保存间隔">
+            <div className="flex items-center gap-2">
+              <Input type="number" min={1} max={3600} className="w-24" value={auto} onChange={(e) => setAuto(e.target.value)} onBlur={() => { const n = Math.min(3600, Math.max(1, Math.round(Number(auto)) || 60)); setAuto(String(n)); setAutosaveSeconds(n); }} />
+              <span className="text-soft-foreground">秒</span>
+            </div>
+          </Field>
+        </Card></Section>
 
         <Section title="主题色"><Card>
           <div className="flex items-center gap-2.5 pb-3">

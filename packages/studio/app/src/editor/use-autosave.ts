@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, type SaveResult } from '@/lib/api';
 import type { Doc, Kind } from '@/lib/types';
+import { autosaveSeconds } from '@/lib/prefs';
 
 export interface SaveState {
   status: 'saved' | 'dirty' | 'saving' | 'error';
@@ -11,7 +12,7 @@ export interface SaveState {
 }
 
 /**
- * 自动保存：内容变了 700ms 后写回。校验问题不阻止保存（写作过程中难免不完整），只在界面上提示。
+ * 自动保存：内容变了之后隔一段时间写回（间隔在设定里改，默认一分钟）。校验问题不阻止保存（写作过程中难免不完整），只在界面上提示。
  * 离开页面前会把还没写的部分立刻写掉。
  */
 export function useAutosave(kind: Kind, id: string, doc: Doc | null, onSaved?: (sent: Doc, manual: boolean) => void, strip?: (d: Doc) => Doc) {
@@ -63,7 +64,7 @@ export function useAutosave(kind: Kind, id: string, doc: Doc | null, onSaved?: (
     dirty.current = true;
     setState((s) => (s.status === 'saving' ? s : { ...s, status: 'dirty' }));
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => void flush(), 700);
+    timer.current = setTimeout(() => void flush(), autosaveSeconds() * 1000);
     return () => clearTimeout(timer.current);
   }, [doc, flush]);
 
