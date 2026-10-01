@@ -43,6 +43,7 @@ export interface Project {
     comments?: { avatar?: string };
     nav: NavItem[] | null;
     actions: Action[] | null;
+    actionsLayout: 'merged' | 'split';
   };
   entries: EntrySummary[];
   pages: PageSummary[];

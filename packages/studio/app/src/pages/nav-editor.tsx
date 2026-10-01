@@ -60,7 +60,10 @@ export default function NavEditor() {
   useEffect(() => { setActs(withKeys(effectiveActions)); }, [JSON.stringify(effectiveActions)]); // eslint-disable-line react-hooks/exhaustive-deps
   const navDirty = JSON.stringify(plainNav(rows)) !== JSON.stringify(effective);
   const actsDirty = JSON.stringify(plainActions(acts)) !== JSON.stringify(effectiveActions);
-  const dirty = navDirty || actsDirty;
+  const [layout, setLayout] = useState<'merged' | 'split'>('merged');
+  useEffect(() => { setLayout(project?.config.actionsLayout ?? 'merged'); }, [project?.config.actionsLayout]);
+  const layoutDirty = layout !== (project?.config.actionsLayout ?? 'merged');
+  const dirty = navDirty || actsDirty || layoutDirty;
 
   const candidates = useMemo(() => [
     { group: '内置', label: '文章', href: '/posts/' }, { group: '内置', label: '归档', href: '/archive/' }, { group: '内置', label: '搜索', href: '/search/' },
@@ -79,13 +82,13 @@ export default function NavEditor() {
 
   const save = async () => {
     if (rows.some((r) => !r.label.trim()) || acts.some((a) => a.type === 'link' && !a.label.trim())) return toast.error('每个入口都要有名字');
-    try { await api.setNav({ ...(navDirty ? { nav: plainNav(rows) } : {}), ...(actsDirty ? { actions: plainActions(acts) } : {}) }); await refresh(); toast.success('已保存'); } catch (e) { toast.error((e as Error).message); }
+    try { if (layoutDirty) await api.setConfig('actionsLayout', layout); await api.setNav({ ...(navDirty ? { nav: plainNav(rows) } : {}), ...(actsDirty ? { actions: plainActions(acts) } : {}) }); await refresh(); toast.success('已保存'); } catch (e) { toast.error((e as Error).message); }
   };
   const reset = async () => {
     if (!(await confirm({ title: '恢复默认？', description: '页头会回到“文章、归档，再加上所有已发布的页面”，右侧只留昼夜切换。', confirmLabel: '恢复默认' }))) return;
     try { await api.setNav({ nav: null, actions: null }); await refresh(); toast.success('已恢复默认'); } catch (e) { toast.error((e as Error).message); }
   };
-  const discard = () => { setRows(withKeys(effective)); setActs(withKeys(effectiveActions)); };
+  const discard = () => { setLayout(project?.config.actionsLayout ?? 'merged'); setRows(withKeys(effective)); setActs(withKeys(effectiveActions)); };
 
   return (
     <>
@@ -100,9 +103,9 @@ export default function NavEditor() {
             {rows.length ? rows.map((r, i) => <span key={r.key} className={cn('grid place-items-center rounded-full px-4 py-1.5 text-13', i === 0 ? 'bg-foreground/[.07]' : 'text-soft-foreground')}>{r.icon ? <Glyph name={r.icon} size={16} /> : r.label || '·'}</span>) : <span className="px-4 py-1.5 text-muted-foreground">空</span>}
           </div>
           {acts.length > 0 && (
-            <div className="flex items-center rounded-full bg-popover/80 shadow-pop backdrop-blur">
+            <div className={cn('flex items-center', layout === 'split' ? 'gap-1.5' : 'rounded-full bg-popover/80 shadow-pop backdrop-blur')}>
               {acts.map((a) => (
-                <span key={a.key} className="grid h-9 min-w-9 place-items-center px-1 text-13 text-soft-foreground">
+                <span key={a.key} className={cn('grid h-9 min-w-9 place-items-center px-1 text-13 text-soft-foreground', layout === 'split' && 'rounded-full bg-popover/80 shadow-pop backdrop-blur')}>
                   {a.type === 'theme' ? (a.style === 'icon' ? <Moon size={16} /> : '夜') : a.icon ? <Glyph name={a.icon} size={16} /> : <span className="px-2">{a.label || '·'}</span>}
                 </span>
               ))}
@@ -140,6 +143,7 @@ export default function NavEditor() {
         </Section>
 
         <Section title="右侧操作">
+          <div className="pb-3"><Segmented size="sm" value={layout} onValueChange={setLayout} options={[{ value: 'merged', label: '合并' }, { value: 'split', label: '分开' }]} /></div>
           <SortableList items={acts} getId={(a) => a.key} onReorder={setActs}>
             <div className="space-y-1.5">
               {acts.map((a) => (

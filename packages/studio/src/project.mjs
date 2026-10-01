@@ -162,7 +162,7 @@ export function saveAsset(root, name, buffer) {
 }
 
 /* ───────────── mori.config.ts 里的单行字符串设置 ───────────── */
-const CONFIG_KEYS = new Set(['title', 'description', 'accent', 'accentDark', 'editorNote']);
+const CONFIG_KEYS = new Set(['title', 'description', 'accent', 'accentDark', 'editorNote', 'actionsLayout']);
 /** 嵌套在 home / archive / feed 块里的设置：'home.style'、'home.direction'、'archive.direction'、'feed.content' */
 const BLOCK_KEYS = { 'home.style': ['quote', 'cover'], 'home.direction': ['h', 'v'], 'archive.direction': ['h', 'v'], 'feed.content': ['excerpt', 'full'], 'comments.avatar': ['cravatar', 'gravatar', 'none'] };
 const quote = (v) => `'${String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n')}'`;

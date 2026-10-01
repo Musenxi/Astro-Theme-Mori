@@ -8,6 +8,7 @@ import { iconSvg } from '../lib/lucide.ts';
 const items = config.navCustom ? config.nav : [...config.nav, ...(await getPages()).map((p) => ({ label: p.data.title, href: `/${p.id}/` }))];
 const glyph = 'size-[19px]';
 const actions = config.actions;
+const split = config.actionsLayout === 'split';
 ---
 
 <!-- 页头跨页保留：透镜可以在栏目之间滑动，折射用的滤镜也不必重画 -->
@@ -24,9 +25,9 @@ const actions = config.actions;
     })}
   </nav>
   {actions.length > 0 && (
-    <div class="lg lg-btn flex justify-self-end" id="lg-actions">
+    <div class:list={['flex justify-self-end', split ? 'gap-2' : 'lg lg-btn']} id="lg-actions">
       {actions.map((a) => {
-        const cls = 'grid h-[39px] min-w-[39px] place-items-center text-meta text-(--lg-fg) [transition:color_.3s,transform_.4s_cubic-bezier(.34,1.45,.5,1)] hover:text-(--lg-fg-on) active:[transform:scale(.92)]';
+        const cls = (split ? 'lg lg-btn ' : '') + 'grid h-[39px] min-w-[39px] place-items-center text-meta text-(--lg-fg) [transition:color_.3s,transform_.4s_cubic-bezier(.34,1.45,.5,1)] hover:text-(--lg-fg-on) active:[transform:scale(.92)]';
         if (a.type === 'theme') {
           const icon = a.style === 'icon';
           return <button class={cls} id="theme" data-mode={icon ? 'icon' : 'text'} type="button" title={t('theme.toggle')} aria-label={t('theme.toggle')}>{icon ? <Fragment><span class="grid place-items-center" data-when="light" set:html={iconSvg('moon', glyph)} /><span class="hidden place-items-center" data-when="dark" set:html={iconSvg('sun', glyph)} /></Fragment> : t('theme.toDark')}</button>;

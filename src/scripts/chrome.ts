@@ -166,14 +166,17 @@ function lgFilter(id: string, el: HTMLElement) {
     <feDisplacementMap in="SourceGraphic" in2="m" scale="${scale}" xChannelSelector="R" yChannelSelector="G"/></filter>`;
 }
 
-const actionsBox = document.querySelector<HTMLElement>('#lg-actions'); // 右侧的操作一个都没有时不存在
-const glassEls = [nav, actionsBox].filter((e): e is HTMLElement => !!e);
+// 右侧的操作：合并时是 #lg-actions 一个胶囊，分开时是它里面每个操作各一个；一个都没有时不存在
+const actionBoxes = [...document.querySelectorAll<HTMLElement>('#lg-actions.lg-btn, #lg-actions > .lg-btn')];
+const glassEls = [nav, ...actionBoxes];
 function lgRefract() {
   for (const el of glassEls) {
     if (el.offsetWidth) el.style.setProperty('--lg-spec', `url(${lgSpec(Math.round(el.offsetWidth), Math.round(el.offsetHeight))})`);
   }
   if (!root.classList.contains('lg-refract')) return;
-  $('#lg-defs').innerHTML = lgFilter('lg-f-nav', nav) + (actionsBox ? lgFilter('lg-f-btn', actionsBox) : '');
+  // 每个胶囊一个折射滤镜（尺寸不同，贴图也不同），id 按顺序编号，写进各自的 --lg-f
+  actionBoxes.forEach((el, i) => el.style.setProperty('--lg-f', `url(#lg-f-btn-${i}) blur(4px) saturate(1.7) brightness(1.05)`));
+  $('#lg-defs').innerHTML = lgFilter('lg-f-nav', nav) + actionBoxes.map((el, i) => lgFilter(`lg-f-btn-${i}`, el)).join('');
 }
 
 // backdrop-filter:url() 只有 Chromium 支持；其他浏览器退回轻模糊 + 高光，边缘不弯

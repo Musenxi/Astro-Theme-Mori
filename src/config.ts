@@ -62,6 +62,8 @@ export interface MoriUserConfig {
   nav?: MoriNavItem[];
   /** 页头右侧并排的操作，默认只有昼夜切换。写 [] 是一个都不要 */
   actions?: MoriAction[];
+  /** 页头右侧的操作：merged 合并成一个胶囊（默认）/ split 每个单独一个胶囊 */
+  actionsLayout?: 'merged' | 'split';
   home?: {
     /** 首页版式：quote 引文开篇（默认）/ cover 封面版（墨色封面 + 满版刊名，往下滚时刊名缩进页头） */
     style?: 'quote' | 'cover';
@@ -94,6 +96,7 @@ export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'acc
   /** nav 是用户在配置里设定的（false 时页头在内置入口后面自动接上所有页面） */
   navCustom: boolean;
   actions: MoriAction[];
+  actionsLayout: 'merged' | 'split';
   feed: { content: 'excerpt' | 'full' };
 }
 
@@ -121,6 +124,7 @@ export function resolveConfig(c: MoriUserConfig): MoriConfig {
     archive: { direction: dir(c.archive?.direction ?? c.home?.direction) },
     navCustom: !!c.nav,
     actions: c.actions ?? [{ type: 'theme' }],
+    actionsLayout: c.actionsLayout === 'split' ? 'split' : 'merged',
     feed: { content: c.feed?.content === 'full' ? 'full' : 'excerpt' },
   };
 }
