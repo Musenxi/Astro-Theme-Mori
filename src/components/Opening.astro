@@ -37,7 +37,7 @@ const slides = pinned.map((e) => {
     quote,
     lines: quote.length,
     caption: pin?.caption ?? `${e.category.zh} · ${dotDate(d.date)}`,
-    meta: pin?.meta ?? [
+    meta: pin?.meta?.length ? pin.meta : [
       { label: t('home.date'), value: dotDate(d.date) },
       { label: t('home.length'), value: t('meta.chars', { n: chars.toLocaleString('en-US') }) },
       { label: t('home.time'), value: t('meta.min', { n: minutes }) },
