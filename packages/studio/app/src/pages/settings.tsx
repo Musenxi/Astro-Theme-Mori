@@ -70,9 +70,6 @@ export default function Settings() {
           <Field label="首页排法">
             <Segmented value={edits['home.direction'] ?? cfg.home?.direction ?? 'h'} onValueChange={(v) => put('home.direction', v)} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />
           </Field>
-          <Field label="归档排法">
-            <Segmented value={edits['archive.direction'] ?? cfg.archive?.direction ?? cfg.home?.direction ?? 'h'} onValueChange={(v) => put('archive.direction', v)} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />
-          </Field>
         </Card></Section>
 
         <Section title="订阅"><Card>

@@ -1,19 +1,26 @@
 ---
+import { t, tn, lang } from '../../lib/i18n.ts';
 import config from 'virtual:mori/config';
 import Base from '../../layouts/Base.astro';
-import Scale from '../../components/Scale.astro';
+import PostHeader from '../../components/PostHeader.astro';
+import EntryList from '../../components/EntryList.astro';
 import { getEntries } from '../../lib/entries.ts';
+import { cnNumber } from '../../lib/zh.ts';
 
 export function getStaticPaths() {
   return config.categories.map((c) => ({ params: { id: c.id }, props: { category: c } }));
 }
 const { category } = Astro.props;
-const all = await getEntries();
-const entries = all.filter((e) => e.category.id === category.id);
+const entries = (await getEntries()).filter((e) => e.category.id === category.id);
+const zh = lang !== 'en';
 ---
 
-<Base title={category.zh} direction={config.archive.direction}>
+<Base title={category.zh}>
   <main data-page="category">
-    <Scale title={category.zh} en={category.en} hideCategory entries={entries} all={all} />
+    <PostHeader title={category.zh} meta={[tn('count', entries.length, { n: zh ? cnNumber(entries.length) : String(entries.length) })]} />
+    <div class="wrap g pb-28">
+      <EntryList entries={entries} hideCategory />
+      {entries.length === 0 && <p class="col-[3/11] text-muted-foreground">{t('empty.all')}</p>}
+    </div>
   </main>
 </Base>

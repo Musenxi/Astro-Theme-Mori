@@ -1,17 +1,16 @@
 ---
 /**
  * 文章目录：所有文章（普通文章和游记），最新的在前，按年份分组。
- * 和“归档”不同：归档是按月份铺开的时间刻度，这里是一页可以直接读下去的目录。
+ * 归档、分类页用同一份列表（components/EntryList.astro）。
  */
 import { t, tn, lang } from '../../lib/i18n.ts';
 import Base from '../../layouts/Base.astro';
 import PostHeader from '../../components/PostHeader.astro';
 import { getEntries } from '../../lib/entries.ts';
-import { cnNumber, cnYear, pad2 } from '../../lib/zh.ts';
+import EntryList from '../../components/EntryList.astro';
+import { cnNumber } from '../../lib/zh.ts';
 
 const entries = await getEntries();
-const years = [...new Set(entries.map((e) => e.data.date.getFullYear()))].sort((a, b) => b - a);
-const byYear = years.map((y) => ({ y, list: entries.filter((e) => e.data.date.getFullYear() === y) }));
 const zh = lang !== 'en';
 ---
 
@@ -19,30 +18,7 @@ const zh = lang !== 'en';
   <main data-page="posts">
     <PostHeader title={t('nav.posts')} meta={[tn('count', entries.length, { n: zh ? cnNumber(entries.length) : String(entries.length) })]} />
     <div class="wrap g pb-28">
-      {/* 所有年份、所有行共用一套列：年份 | 日期 | 篇名 | 分类。分类那一栏按全页最长的分类名定宽，每行的篇名栏一样宽 */}
-      <div class="col-[3/11] grid grid-cols-[calc(4.5rem_+_clamp(16px,3vw,40px)_-_20px)_3.2rem_minmax(0,1fr)_auto] gap-x-5 narrow:grid-cols-[2.8rem_minmax(0,1fr)] narrow:gap-x-3.5">
-        {
-          byYear.map(({ y, list }) => (
-            <section class="col-span-full grid grid-cols-subgrid border-t border-t-border pt-7 pb-6 narrow:pt-6">
-              <h2 class:list={['sticky top-[96px] self-start justify-self-start text-soft-foreground narrow:static narrow:col-span-full narrow:mb-2', zh ? 'text-item leading-none font-normal tracking-[.32em] [writing-mode:vertical-rl] narrow:[writing-mode:horizontal-tb]' : 'text-chapter leading-none font-light']} aria-label={String(y)}>{zh ? cnYear(y) : y}</h2>
-              <ol class="col-[2/-1] grid grid-cols-subgrid narrow:col-span-full">
-                {list.map((e) => (
-                  <li class="col-span-full grid grid-cols-subgrid">
-                    <a class="group col-span-full grid grid-cols-subgrid items-baseline py-[15px]" href={e.href}>
-                      <time class="meta" datetime={e.data.date.toISOString().slice(0, 10)}>{pad2(e.data.date.getMonth() + 1)}.{pad2(e.data.date.getDate())}</time>
-                      <span class="grid min-w-0 gap-1">
-                        <span class="w-fit max-w-full bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-[size:0_1px] bg-no-repeat text-item leading-[1.5] tracking-[.05em] [transition:background-size_.5s_var(--ease-mori),color_.3s] group-hover:bg-[size:100%_1px] group-hover:text-primary">{e.data.title}</span>
-                        {e.data.excerpt && <span class="overflow-hidden text-aux leading-[1.7] tracking-[.03em] text-ellipsis whitespace-nowrap text-muted-foreground narrow:line-clamp-2 narrow:whitespace-normal">{e.data.excerpt}</span>}
-                      </span>
-                      <span class="meta whitespace-nowrap narrow:hidden">{e.category.zh}</span>
-                    </a>
-                  </li>
-                ))}
-              </ol>
-            </section>
-          ))
-        }
-      </div>
+      <EntryList entries={entries} />
       {entries.length === 0 && <p class="col-[3/11] text-muted-foreground">{t('empty.all')}</p>}
     </div>
   </main>

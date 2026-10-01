@@ -1,0 +1,43 @@
+---
+/**
+ * 文章列表：按年份分组，最新的在前，一行一篇（日期 | 篇名 + 摘要 | 分类）。文章目录、归档、分类页共用。
+ * 所有年份、所有行共用一套列；分类那一栏按全页最长的分类名定宽，每行的篇名栏一样宽。
+ */
+import type { Entry } from '../lib/entries.ts';
+import { lang } from '../lib/i18n.ts';
+import { cnYear, pad2 } from '../lib/zh.ts';
+
+interface Props {
+  entries: Entry[];
+  /** 分类页：每一项都在这个分类里，不必再写一遍分类名 */
+  hideCategory?: boolean;
+}
+const { entries, hideCategory = false } = Astro.props;
+const years = [...new Set(entries.map((e) => e.data.date.getFullYear()))].sort((a, b) => b - a);
+const byYear = years.map((y) => ({ y, list: entries.filter((e) => e.data.date.getFullYear() === y) }));
+const zh = lang !== 'en';
+---
+
+<div class:list={['col-[3/11] grid gap-x-5 narrow:grid-cols-[2.8rem_minmax(0,1fr)] narrow:gap-x-3.5', hideCategory ? 'grid-cols-[calc(4.5rem_+_clamp(16px,3vw,40px)_-_20px)_3.2rem_minmax(0,1fr)]' : 'grid-cols-[calc(4.5rem_+_clamp(16px,3vw,40px)_-_20px)_3.2rem_minmax(0,1fr)_auto]']}>
+  {
+    byYear.map(({ y, list }) => (
+      <section class="col-span-full grid grid-cols-subgrid border-t border-t-border pt-7 pb-6 narrow:pt-6">
+        <h2 class:list={['sticky top-[96px] self-start justify-self-start text-soft-foreground narrow:static narrow:col-span-full narrow:mb-2', zh ? 'text-item leading-none font-normal tracking-[.32em] [writing-mode:vertical-rl] narrow:[writing-mode:horizontal-tb]' : 'text-chapter leading-none font-light']} aria-label={String(y)}>{zh ? cnYear(y) : y}</h2>
+        <ol class="col-[2/-1] grid grid-cols-subgrid narrow:col-span-full">
+          {list.map((e) => (
+            <li class="col-span-full grid grid-cols-subgrid">
+              <a class="group col-span-full grid grid-cols-subgrid items-baseline py-[15px]" href={e.href}>
+                <time class="meta" datetime={e.data.date.toISOString().slice(0, 10)}>{pad2(e.data.date.getMonth() + 1)}.{pad2(e.data.date.getDate())}</time>
+                <span class="grid min-w-0 gap-1">
+                  <span class="w-fit max-w-full bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-[size:0_1px] bg-no-repeat text-item leading-[1.5] tracking-[.05em] [transition:background-size_.5s_var(--ease-mori),color_.3s] group-hover:bg-[size:100%_1px] group-hover:text-primary">{e.data.title}</span>
+                  {e.data.excerpt && <span class="overflow-hidden text-aux leading-[1.7] tracking-[.03em] text-ellipsis whitespace-nowrap text-muted-foreground narrow:line-clamp-2 narrow:whitespace-normal">{e.data.excerpt}</span>}
+                </span>
+                {!hideCategory && <span class="meta whitespace-nowrap narrow:hidden">{e.category.zh}</span>}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))
+  }
+</div>

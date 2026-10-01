@@ -1,15 +1,21 @@
 ---
-import { t } from '../lib/i18n.ts';
-import config from 'virtual:mori/config';
+import { t, tn, lang } from '../lib/i18n.ts';
 import Base from '../layouts/Base.astro';
-import Scale from '../components/Scale.astro';
+import PostHeader from '../components/PostHeader.astro';
+import EntryList from '../components/EntryList.astro';
 import { getEntries } from '../lib/entries.ts';
+import { cnNumber } from '../lib/zh.ts';
 
 const entries = await getEntries();
+const zh = lang !== 'en';
 ---
 
-<Base title={t('nav.archive')} direction={config.archive.direction}>
+<Base title={t('nav.archive')}>
   <main data-page="archive">
-    <Scale title={t('archive.title')} entries={entries} all={entries} />
+    <PostHeader title={t('archive.title')} meta={[tn('count', entries.length, { n: zh ? cnNumber(entries.length) : String(entries.length) })]} />
+    <div class="wrap g pb-28">
+      <EntryList entries={entries} />
+      {entries.length === 0 && <p class="col-[3/11] text-muted-foreground">{t('empty.all')}</p>}
+    </div>
   </main>
 </Base>
