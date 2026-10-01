@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Dialog as D } from 'radix-ui';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { BookOpenText, CornerDownLeft, FileText, Files, Gauge, MessageSquare, PanelTop, Paperclip, PenLine, Search, Send, SlidersHorizontal, Tag, Users } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { useProject } from '@/lib/hooks';
@@ -63,32 +63,29 @@ export function CommandPalette({ open, onOpenChange, onCompose }: { open: boolea
   };
 
   return (
-    <D.Root open={open} onOpenChange={onOpenChange}>
-      <D.Portal>
-        <D.Overlay className="fixed inset-0 z-40 bg-scrim backdrop-blur-[3px] data-[state=open]:animate-fade-in" />
-        <D.Content aria-describedby={undefined} className="fixed left-1/2 top-[14vh] z-50 w-[min(34rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-2xl bg-lift shadow-pop outline-none data-[state=open]:animate-pop">
-          <D.Title className="sr-only">搜索</D.Title>
-          <div className="flex items-center gap-3 border-b border-rule px-5">
-            <Search size={16} className="text-ink-3" />
-            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey} placeholder="跳到文章、页面或功能……" className="h-14 flex-1 bg-transparent text-[15px] outline-none placeholder:text-ink-3/70" />
-            <kbd className="mono rounded-xs bg-ink/[.06] px-1.5 py-px text-[10.5px] text-ink-3">esc</kbd>
-          </div>
-          <div ref={list} className="max-h-[52vh] overflow-y-auto p-2">
-            {shown.length === 0 && <p className="px-3 py-8 text-center text-ink-3">没有匹配的。</p>}
-            {shown.map((it, i) => (
-              <div key={it.key}>
-                {(i === 0 || shown[i - 1].group !== it.group) && <div className="px-3 pb-1.5 pt-3 text-[11.5px] font-medium text-ink-3">{it.group}</div>}
-                <button type="button" data-active={i === active} onMouseMove={() => setActive(i)} onClick={it.run} className={cn('flex h-10 w-full items-center gap-3 rounded-lg px-2.5 text-left transition-colors', i === active ? 'bg-ink/[.06] text-ink' : 'text-ink-2')}>
-                  <span className={cn('grid h-6 w-6 shrink-0 place-items-center rounded-md transition-colors', i === active ? 'bg-ink/[.08] text-ink' : 'bg-ink/[.04] text-ink-3')}><it.icon size={14} /></span>
-                  <span className="flex-1 truncate">{it.label}</span>
-                  {it.hint && <span className="mono shrink-0 text-[11px] text-ink-3">{it.hint}</span>}
-                  {i === active && <CornerDownLeft size={13} className="shrink-0 text-ink-3" />}
-                </button>
-              </div>
-            ))}
-          </div>
-        </D.Content>
-      </D.Portal>
-    </D.Root>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent showCloseButton={false} aria-describedby={undefined} flush className="top-[14vh] max-h-none overflow-hidden">
+        <DialogTitle className="sr-only">搜索</DialogTitle>
+        <div className="flex items-center gap-3 border-b border-border px-5">
+          <Search size={16} className="text-muted-foreground" />
+          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey} placeholder="跳到文章、页面或功能……" className="h-14 flex-1 bg-transparent text-15 outline-none placeholder:text-muted-foreground/70" />
+          <kbd className="mono rounded-xs bg-foreground/[.06] px-1.5 py-px text-10-5 text-muted-foreground">esc</kbd>
+        </div>
+        <div ref={list} className="max-h-[52vh] overflow-y-auto p-2">
+          {shown.length === 0 && <p className="px-3 py-8 text-center text-muted-foreground">没有匹配的。</p>}
+          {shown.map((it, i) => (
+            <div key={it.key}>
+              {(i === 0 || shown[i - 1].group !== it.group) && <div className="px-3 pb-1.5 pt-3 text-11-5 font-medium text-muted-foreground">{it.group}</div>}
+              <button type="button" data-active={i === active} onMouseMove={() => setActive(i)} onClick={it.run} className={cn('flex h-10 w-full items-center gap-3 rounded-lg px-2.5 text-left transition-colors', i === active ? 'bg-foreground/[.06] text-foreground' : 'text-soft-foreground')}>
+                <span className={cn('grid h-6 w-6 shrink-0 place-items-center rounded-md transition-colors', i === active ? 'bg-foreground/[.08] text-foreground' : 'bg-foreground/[.04] text-muted-foreground')}><it.icon size={14} /></span>
+                <span className="flex-1 truncate">{it.label}</span>
+                {it.hint && <span className="mono shrink-0 text-11 text-muted-foreground">{it.hint}</span>}
+                {i === active && <CornerDownLeft size={13} className="shrink-0 text-muted-foreground" />}
+              </button>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -8,9 +8,9 @@ import { useProject, useRefresh } from '@/lib/hooks';
 import type { PageSummary } from '@/lib/types';
 import { NewEntryDialog } from '@/components/new-entry';
 import { Button } from '@/components/ui/button';
-import { useConfirm } from '@/components/ui/dialog';
-import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from '@/components/ui/dropdown';
-import { Body, Empty, PageHeader } from '@/components/ui/page';
+import { useConfirm } from '@/components/confirm';
+import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from '@/components/action-menu';
+import { Body, Empty, PageHeader } from '@/components/page';
 
 export default function PageList() {
   const { data: project } = useProject();
@@ -37,20 +37,20 @@ export default function PageList() {
 
   return (
     <>
-      <PageHeader title="页面" sub={`${pages.length}`} actions={<Button variant="primary" onClick={() => setCompose(true)}><Plus size={14} />新建页面</Button>} />
+      <PageHeader title="页面" sub={`${pages.length}`} actions={<Button variant="default" onClick={() => setCompose(true)}><Plus size={14} />新建页面</Button>} />
       <Body wide>
         <div className="space-y-0.5">
           {pages.map((p) => (
-            <div key={p.id} className="group grid grid-cols-[minmax(0,1fr)_7rem_7rem_5rem_2rem] items-center gap-x-4 rounded-xl px-4 py-3.5 transition-colors hover:bg-ink/[.045]">
-              <Link to={`/pages/${p.id}`} className={cn('flex min-w-0 items-baseline gap-2', p.draft && 'text-ink-3')}>
+            <div key={p.id} className="group grid grid-cols-[minmax(0,1fr)_7rem_7rem_5rem_2rem] items-center gap-x-4 rounded-xl px-4 py-3.5 transition-colors hover:bg-foreground/[.045]">
+              <Link to={`/pages/${p.id}`} className={cn('flex min-w-0 items-baseline gap-2', p.draft && 'text-muted-foreground')}>
                 <span className="truncate font-medium">{p.title}</span>
-                <span className="mono shrink-0 text-[11px] text-ink-3">/{p.id}/</span>
+                <span className="mono shrink-0 text-11 text-muted-foreground">/{p.id}/</span>
               </Link>
-              <span className="text-ink-2">{p.template === 'friends' ? '友人帐版式' : '普通页面'}</span>
-              <span className={cn('w-fit rounded-full px-2.5 py-px text-[12px]', inNav(p) ? 'bg-ink/[.07] text-ink-2' : 'bg-ink/[.04] text-ink-3')}>{inNav(p) ? '在页头入口' : '不在页头'}</span>
-              <span className={cn('flex items-center gap-1.5 text-[12.5px]', p.draft ? 'text-ink-2' : 'text-ink-3')}><i className={cn('h-1.5 w-1.5 rounded-full', p.draft ? 'border border-ink-2' : 'bg-ink-3/60')} />{p.draft ? '草稿' : '已发布'}</span>
+              <span className="text-soft-foreground">{p.template === 'friends' ? '友人帐版式' : '普通页面'}</span>
+              <span className={cn('w-fit rounded-full px-2.5 py-px text-12', inNav(p) ? 'bg-foreground/[.07] text-soft-foreground' : 'bg-foreground/[.04] text-muted-foreground')}>{inNav(p) ? '在页头入口' : '不在页头'}</span>
+              <span className={cn('flex items-center gap-1.5 text-12-5', p.draft ? 'text-soft-foreground' : 'text-muted-foreground')}><i className={cn('h-1.5 w-1.5 rounded-full', p.draft ? 'border border-soft-foreground' : 'bg-muted-foreground/60')} />{p.draft ? '草稿' : '已发布'}</span>
               <Menu>
-                <MenuTrigger asChild><button type="button" aria-label="更多" className="grid h-8 w-8 place-items-center rounded-full text-ink-3 opacity-0 transition-[opacity,background-color] hover:bg-ink/[.08] hover:text-ink focus:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100"><MoreHorizontal size={16} /></button></MenuTrigger>
+                <MenuTrigger asChild><button type="button" aria-label="更多" className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground opacity-0 transition-[opacity,background-color] hover:bg-foreground/[.08] hover:text-foreground focus:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100"><MoreHorizontal size={16} /></button></MenuTrigger>
                 <MenuContent>
                   <MenuItem icon={<Pencil size={14} />} onSelect={() => nav(`/pages/${p.id}`)}>编辑</MenuItem>
                   <MenuItem icon={p.draft ? <Send size={14} /> : <FilePen size={14} />} onSelect={() => toggleDraft(p)}>{p.draft ? '发布' : '转为草稿'}</MenuItem>

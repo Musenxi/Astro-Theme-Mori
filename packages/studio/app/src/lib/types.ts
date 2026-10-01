@@ -18,7 +18,9 @@ export interface EntrySummary {
 
 export interface PageSummary { id: string; title: string; template: 'default' | 'friends'; draft: boolean; comments: boolean; words: number; broken?: boolean }
 
-export interface NavItem { label: string; href: string }
+export interface NavItem { label: string; href: string; icon?: string }
+/** 页头右侧的一个操作：昼夜切换，或者一个链接（有 icon 就是图标钮） */
+export type Action = { type: 'theme'; style?: 'text' | 'icon' } | { type: 'link'; label: string; href: string; icon?: string };
 
 export interface PublishConfig {
   target: 'git' | 'cloudflare-pages' | 'rsync' | 'local';
@@ -37,6 +39,7 @@ export interface Project {
     feed?: { content?: 'excerpt' | 'full' };
     comments?: { avatar?: string };
     nav: NavItem[] | null;
+    actions: Action[] | null;
   };
   entries: EntrySummary[];
   pages: PageSummary[];

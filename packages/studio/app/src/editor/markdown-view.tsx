@@ -6,7 +6,7 @@ import { useRefresh } from '@/lib/hooks';
 import { fromMarkdown, toMarkdown } from '@/lib/mdsync.js';
 import type { Doc } from '@/lib/types';
 import { AssetDialog } from '@/components/asset-picker';
-import { Tip } from '@/components/ui/tooltip';
+import { Tip } from '@/components/tip';
 import { createEditor, type MdCommand, type MdEditor } from './cm';
 
 const TOOLS: Array<{ cmd: MdCommand | 'image' | 'note'; label: string; icon: typeof Bold; key?: string; gap?: boolean }> = [
@@ -59,20 +59,20 @@ export function MarkdownView({ doc, setDoc, travel }: { doc: Doc; setDoc: (fn: (
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="mx-5 flex shrink-0 items-center gap-0.5 rounded-full bg-sunk/70 px-2 py-1">
+      <div className="mx-5 flex shrink-0 items-center gap-0.5 rounded-full bg-muted/70 px-2 py-1">
         {TOOLS.map((t) => {
           const label = travel ? travelLabel(t) : t.label;
           return (
             <span key={t.cmd} className={t.gap ? 'ml-3' : ''}>
               <Tip label={t.key ? `${label}　${t.key}` : label}>
-                <button type="button" aria-label={label} onMouseDown={(e) => e.preventDefault()} onClick={() => run(t.cmd)} className="grid h-7 w-7 place-items-center rounded-full text-ink-2 transition-[background-color,color,transform] hover:bg-lift hover:text-ink hover:shadow-soft active:scale-90">
+                <button type="button" aria-label={label} onMouseDown={(e) => e.preventDefault()} onClick={() => run(t.cmd)} className="grid h-7 w-7 place-items-center rounded-full text-soft-foreground transition-[background-color,color,transform] hover:bg-popover hover:text-foreground hover:shadow-soft active:scale-90">
                   <t.icon size={15} />
                 </button>
               </Tip>
             </span>
           );
         })}
-        <span className="mono ml-auto pr-2 text-[11px] text-ink-3">{wan(words)} 字 · {travel ? `${doc.stops?.length ?? 0} 站` : `${doc.blocks?.length ?? 0} 块`}</span>
+        <span className="mono ml-auto pr-2 text-11 text-muted-foreground">{wan(words)} 字 · {travel ? `${doc.stops?.length ?? 0} 站` : `${doc.blocks?.length ?? 0} 块`}</span>
       </div>
       <div ref={host} className="min-h-0 flex-1" />
       <AssetDialog open={lib} onOpenChange={setLib} onPick={(n) => { ed.current?.insertBlock(`![](${n})`); setLib(false); }} />

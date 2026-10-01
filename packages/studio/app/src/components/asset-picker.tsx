@@ -4,9 +4,10 @@ import { toast } from 'sonner';
 import { api, assetUrl } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { useProject, useRefresh } from '@/lib/hooks';
-import { Button } from './ui/button';
-import { Dialog, DialogContent } from './ui/dialog';
-import { Input } from './ui/input';
+import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/ui/dialog';
+import { ModalContent } from '@/components/modal';
+import { Input } from '@/components/ui/input';
 
 /** 内容 JSON 里图片的相对路径 ⇄ 图片文件名 */
 export const assetPath = (name: string) => `../../assets/${name}`;
@@ -38,11 +39,11 @@ export function AssetDialog({ open, onOpenChange, onPick }: { open: boolean; onO
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent wide title="图库" description={`${project?.assets.length ?? 0} 张图片`}>
+      <ModalContent wide title="图库" description={`${project?.assets.length ?? 0} 张图片`}>
         <div
           onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
           onDrop={(e) => { e.preventDefault(); setOver(false); void upload([...e.dataTransfer.files]); }}
-          className={cn('flex items-center gap-3 rounded-xl bg-sunk px-4 py-3 text-[13px] text-ink-3 transition-[background-color,color,box-shadow]', over && 'bg-sunk-2 text-ink ring-2 ring-ink/25')}
+          className={cn('flex items-center gap-3 rounded-xl bg-muted px-4 py-3 text-13 text-muted-foreground transition-[background-color,color,box-shadow]', over && 'bg-muted-hover text-foreground ring-2 ring-foreground/25')}
         >
           <Upload size={16} />
           <span className="flex-1">{busy ? '上传中……' : '把图片拖到这里，或'}</span>
@@ -53,13 +54,13 @@ export function AssetDialog({ open, onOpenChange, onPick }: { open: boolean; onO
         <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-3">
           {assets.map((n) => (
             <button key={n} type="button" onClick={() => onPick(n)} className="group text-left">
-              <img loading="lazy" src={assetUrl(n, 240)} alt="" className="aspect-[4/3] w-full rounded-lg bg-sunk object-cover transition-[box-shadow,transform] duration-200 group-hover:ring-2 group-hover:ring-ink/60 group-active:scale-[.98]" />
-              <span className="mono mt-1 block truncate text-[11px] text-ink-3">{n}</span>
+              <img loading="lazy" src={assetUrl(n, 240)} alt="" className="aspect-[4/3] w-full rounded-lg bg-muted object-cover transition-[box-shadow,transform] duration-200 group-hover:ring-2 group-hover:ring-foreground/60 group-active:scale-98" />
+              <span className="mono mt-1 block truncate text-11 text-muted-foreground">{n}</span>
             </button>
           ))}
         </div>
-        {assets.length === 0 && <p className="py-10 text-center text-ink-3">{project?.assets.length ? '没有匹配的图片。' : '还没有图片。'}</p>}
-      </DialogContent>
+        {assets.length === 0 && <p className="py-10 text-center text-muted-foreground">{project?.assets.length ? '没有匹配的图片。' : '还没有图片。'}</p>}
+      </ModalContent>
     </Dialog>
   );
 }
@@ -70,14 +71,14 @@ export function ImageField({ value, onChange, optional = true }: { value?: strin
   const name = assetName(value);
   return (
     <div className="flex items-center gap-3">
-      <button type="button" onClick={() => setOpen(true)} className="grid h-14 w-[4.5rem] shrink-0 place-items-center overflow-hidden rounded-lg bg-sunk text-ink-3 transition-[box-shadow] hover:ring-2 hover:ring-ink/25">
+      <button type="button" onClick={() => setOpen(true)} className="grid h-14 w-18 shrink-0 place-items-center overflow-hidden rounded-lg bg-muted text-muted-foreground transition-[box-shadow] hover:ring-2 hover:ring-foreground/25">
         {name ? <img src={assetUrl(name, 160)} alt="" className="h-full w-full object-cover" /> : <ImagePlus size={18} />}
       </button>
-      <div className="min-w-0 text-[12.5px]">
-        <div className="mono truncate text-ink-3">{name || '未选择'}</div>
+      <div className="min-w-0 text-12-5">
+        <div className="mono truncate text-muted-foreground">{name || '未选择'}</div>
         <div className="mt-0.5 flex gap-3">
-          <button type="button" className="text-ink underline decoration-ink/25 underline-offset-4 hover:decoration-ink" onClick={() => setOpen(true)}>{name ? '更换' : '选择图片'}</button>
-          {name && optional && <button type="button" className="inline-flex items-center gap-0.5 text-ink-3 hover:text-danger" onClick={() => onChange(undefined)}><X size={12} />清除</button>}
+          <button type="button" className="text-foreground underline decoration-foreground/25 underline-offset-4 hover:decoration-foreground" onClick={() => setOpen(true)}>{name ? '更换' : '选择图片'}</button>
+          {name && optional && <button type="button" className="inline-flex items-center gap-0.5 text-muted-foreground hover:text-destructive" onClick={() => onChange(undefined)}><X size={12} />清除</button>}
         </div>
       </div>
       <AssetDialog open={open} onOpenChange={setOpen} onPick={(n) => { onChange(assetPath(n)); setOpen(false); }} />

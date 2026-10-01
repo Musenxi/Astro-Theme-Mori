@@ -5,10 +5,11 @@ import { api, assetUrl } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { assetName, assetPath, AssetDialog, ImageField } from '@/components/asset-picker';
 import { Button } from '@/components/ui/button';
-import { useConfirm } from '@/components/ui/dialog';
-import { Input, NumInput } from '@/components/ui/input';
-import { onCard, Section } from '@/components/ui/page';
-import { Select } from '@/components/ui/select';
+import { useConfirm } from '@/components/confirm';
+import { Input } from '@/components/ui/input';
+import { NumInput } from '@/components/field';
+import { onCard, Section } from '@/components/page';
+import { OptionSelect } from '@/components/option-select';
 import type { Doc } from '@/lib/types';
 import { asSpans } from '@/lib/inline.js';
 import { InlineField } from './inline-field';
@@ -42,14 +43,14 @@ function convertPara(p: Doc, to: string): Doc {
 }
 
 const Row = ({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) => (
-  <label className="flex items-center gap-2 text-[12px] text-ink-3" title={hint}><span className="shrink-0">{label}</span><span className="min-w-0 flex-1">{children}</span></label>
+  <label className="flex items-center gap-2 text-12 text-muted-foreground" title={hint}><span className="shrink-0">{label}</span><span className="min-w-0 flex-1">{children}</span></label>
 );
 
 /** 每个游记块都有：属于哪一站，以及横滚时的上下位置和缩放 */
 function Place({ b, patch, doc }: { b: Doc; patch: (p: Doc) => void; doc: Doc }) {
   return (
     <div className="mb-3 grid grid-cols-[1.4fr_1fr_1fr] gap-2">
-      <Row label="站点"><Select value={b.stop} onValueChange={(v) => patch({ stop: v })} options={(doc.stops ?? []).map((s: Doc) => ({ value: s.id, label: s.name || s.id }))} /></Row>
+      <Row label="站点"><OptionSelect value={b.stop} onValueChange={(v) => patch({ stop: v })} options={(doc.stops ?? []).map((s: Doc) => ({ value: s.id, label: s.name || s.id }))} /></Row>
       <Row label="y" hint="横滚时的上下位置：0 顶 1 底"><NumInput value={b.y} onChange={(v) => patch({ y: v })} min={0} max={1} /></Row>
       <Row label="缩放" hint="横滚时的缩放"><NumInput value={b.scale} onChange={(v) => patch({ scale: v })} min={0.1} /></Row>
     </div>
@@ -62,7 +63,7 @@ function Images({ b, patch, extra, removable }: { b: Doc; patch: (p: Doc) => voi
   return (
     <>
       {list.map((im, i) => (
-        <div key={i} className="mb-2 space-y-2 rounded-xl bg-ink/[.035] p-3">
+        <div key={i} className="mb-2 space-y-2 rounded-xl bg-foreground/[.035] p-3">
           <ImageField value={im.src} onChange={(v) => put(i, { src: v })} optional={false} />
           <div className="grid grid-cols-2 gap-2">
             <Input placeholder="替代文字" value={im.alt ?? ''} onChange={(e) => put(i, { alt: e.target.value })} />
@@ -84,8 +85,8 @@ export function TravelBlockBody({ b, patch, doc, ids, noPlace }: { b: Doc; patch
         <>
           {place}
           <div className="mb-3 grid grid-cols-2 gap-2">
-            <Select value={b.writing ?? 'h'} onValueChange={(v) => patch({ writing: v })} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />
-            <Select value={b.head === undefined ? 'auto' : String(b.head)} onValueChange={(v) => patch({ head: v === 'auto' ? undefined : v === 'true' })}
+            <OptionSelect value={b.writing ?? 'h'} onValueChange={(v) => patch({ writing: v })} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />
+            <OptionSelect value={b.head === undefined ? 'auto' : String(b.head)} onValueChange={(v) => patch({ head: v === 'auto' ? undefined : v === 'true' })}
               options={[{ value: 'auto', label: '站点标题：自动（这一站第一个文字块）' }, { value: 'true', label: '站点标题：显示' }, { value: 'false', label: '站点标题：不显示' }]} />
           </div>
           {(b.paras as Doc[]).map((p, i) => {
@@ -93,9 +94,9 @@ export function TravelBlockBody({ b, patch, doc, ids, noPlace }: { b: Doc; patch
             const set = (q: Doc) => patch({ paras: b.paras.map((x: Doc, k: number) => (k === i ? q : x)) });
             return (
               <div key={`${p.id}:${type}`} className="mb-2 flex items-start gap-2">
-                <span className="mono w-16 shrink-0 pt-2 text-[10.5px] text-ink-3">{p.id}</span>
+                <span className="mono w-16 shrink-0 pt-2 text-10-5 text-muted-foreground">{p.id}</span>
                 <div className="min-w-0 flex-1 space-y-1.5">
-                  <Select className="w-28" value={type} onValueChange={(t) => set(convertPara(p, t))} options={PARA_TYPES} />
+                  <OptionSelect className="w-28" value={type} onValueChange={(t) => set(convertPara(p, t))} options={PARA_TYPES} />
                   <PostBlockBody travel b={{ ...p, type }} patch={(q) => set({ ...p, ...q })} />
                 </div>
                 {b.paras.length > 1 && <Button variant="ghost" size="icon-sm" aria-label="删除这段" onClick={() => patch({ paras: b.paras.filter((_: unknown, k: number) => k !== i) })}><Trash2 size={14} /></Button>}
@@ -112,7 +113,7 @@ export function TravelBlockBody({ b, patch, doc, ids, noPlace }: { b: Doc; patch
           <ImageField value={b.src} onChange={(v) => patch({ src: v })} optional={false} />
           <div className="mt-2 grid grid-cols-[1fr_9rem] gap-2">
             <Input placeholder="替代文字" value={b.alt ?? ''} onChange={(e) => patch({ alt: e.target.value })} />
-            <Select value={b.layout ?? 'full'} onValueChange={(v) => patch({ layout: v })} options={[{ value: 'full', label: '通栏' }, { value: 'inset', label: '内缩' }]} />
+            <OptionSelect value={b.layout ?? 'full'} onValueChange={(v) => patch({ layout: v })} options={[{ value: 'full', label: '通栏' }, { value: 'inset', label: '内缩' }]} />
           </div>
           <Input className="mt-2" placeholder="图注" value={b.caption ?? ''} onChange={(e) => patch({ caption: e.target.value || undefined })} />
         </>
@@ -135,11 +136,11 @@ export function TravelBlockBody({ b, patch, doc, ids, noPlace }: { b: Doc; patch
         </>
       );
     case 'map':
-      return <>{place}<Select value={b.scope ?? 'route'} onValueChange={(v) => patch({ scope: v })} options={[{ value: 'route', label: '全程路线' }, { value: 'stop', label: '只看这一站附近' }]} /></>;
+      return <>{place}<OptionSelect value={b.scope ?? 'route'} onValueChange={(v) => patch({ scope: v })} options={[{ value: 'route', label: '全程路线' }, { value: 'stop', label: '只看这一站附近' }]} /></>;
     case 'free':
       return <>{place}<FreeCanvas b={b} patch={patch} /></>;
   }
-  return <span className="text-ink-3">不认识的块类型 {String(b.type)}</span>;
+  return <span className="text-muted-foreground">不认识的块类型 {String(b.type)}</span>;
 }
 
 /* ───────────── 自由排布：在画布上直接拖动 ───────────── */
@@ -165,13 +166,13 @@ function FreeCanvas({ b, patch }: { b: Doc; patch: (p: Doc) => void }) {
 
   return (
     <div>
-      <div className="mb-2 flex items-center gap-3"><Row label="画布宽高比"><NumInput className="w-24" value={b.ar} min={0.2} onChange={(v) => v && patch({ ar: v })} /></Row><span className="text-[12px] text-ink-3">拖动图片调整位置；下面调宽度和叠放</span></div>
-      <div ref={box} className="relative w-full touch-none overflow-hidden rounded-xl bg-ink/[.05] ring-1 ring-inset ring-ink/10" style={{ aspectRatio: b.ar }}>
+      <div className="mb-2 flex items-center gap-3"><Row label="画布宽高比"><NumInput className="w-24" value={b.ar} min={0.2} onChange={(v) => v && patch({ ar: v })} /></Row><span className="text-12 text-muted-foreground">拖动图片调整位置；下面调宽度和叠放</span></div>
+      <div ref={box} className="relative w-full touch-none overflow-hidden rounded-xl bg-foreground/[.05] ring-1 ring-inset ring-foreground/10 aspect-(--ar)" style={{ '--ar': b.ar }}>
         {items.map((it, i) => it.kind === 'image' ? (
           <img key={i} src={assetUrl(assetName(it.src), 400)} draggable={false} alt="" onPointerDown={(e) => startDrag(e, i)}
-            className={cn('absolute cursor-move rounded-xs', sel === i ? 'outline outline-2 outline-accent' : 'outline outline-1 outline-ink/15')} style={{ left: `${it.x * 100}%`, top: `${it.y * 100}%`, width: `${it.w * 100}%`, zIndex: it.z ?? 1 }} />
+            className={cn('absolute top-[calc(var(--y)*100%)] left-[calc(var(--x)*100%)] z-(--z) w-[calc(var(--w)*100%)] cursor-move rounded-xs', sel === i ? 'outline outline-2 outline-brand' : 'outline outline-1 outline-foreground/15')} style={{ '--x': it.x, '--y': it.y, '--w': it.w, '--z': it.z ?? 1 }} />
         ) : (
-          <div key={i} onPointerDown={(e) => startDrag(e, i)} className={cn('mono absolute z-[99] cursor-move rounded-xs bg-lift p-0.5 [writing-mode:vertical-rl]', sel === i ? 'outline outline-2 outline-accent' : 'outline outline-1 outline-dashed outline-ink-3')} style={{ left: `${it.x * 100}%`, top: `${it.y * 100}%` }}>文字</div>
+          <div key={i} onPointerDown={(e) => startDrag(e, i)} className={cn('mono absolute top-[calc(var(--y)*100%)] left-[calc(var(--x)*100%)] z-99 cursor-move rounded-xs bg-popover p-0.5 writing-vertical', sel === i ? 'outline outline-2 outline-brand' : 'outline outline-1 outline-dashed outline-muted-foreground')} style={{ '--x': it.x, '--y': it.y }}>文字</div>
         ))}
       </div>
       {s && (
@@ -234,12 +235,12 @@ function StopsEditor({ doc, patch }: { doc: Doc; patch: (p: Doc) => void }) {
           {stops.map((s, i) => {
             const isOpen = open[s.id] || (s.lnglat[0] === 0 && s.lnglat[1] === 0);
             return (
-              <SortableItem key={s.id} id={s.id} className={cn('rounded-xl bg-sunk/50', onCard)}>
+              <SortableItem key={s.id} id={s.id} className={cn('rounded-xl bg-muted/50', onCard)}>
                 {(handle) => (
                   <div className="py-1.5 pl-1 pr-2">
                     <div className="flex items-center gap-1.5">
                       {handle}
-                      <span className="mono w-5 text-[11px] text-ink-3">{String(i + 1).padStart(2, '0')}</span>
+                      <span className="mono w-5 text-11 text-muted-foreground">{String(i + 1).padStart(2, '0')}</span>
                       <Input className="w-40" value={s.name} placeholder="站名" onChange={(e) => put(i, { name: e.target.value })} />
                       <Input value={s.en ?? ''} placeholder="英文名" onChange={(e) => put(i, { en: e.target.value || undefined })} />
                       <Input className="w-24" value={s.date ?? ''} placeholder="日期" onChange={(e) => put(i, { date: e.target.value || undefined })} />
@@ -250,7 +251,7 @@ function StopsEditor({ doc, patch }: { doc: Doc; patch: (p: Doc) => void }) {
                       <div className="mt-1.5 grid grid-cols-3 gap-1.5 pl-[3.4rem] pr-8">
                         <Row label="经度"><NumInput value={s.lnglat[0]} onChange={(v) => put(i, { lnglat: [v ?? 0, s.lnglat[1]] })} /></Row>
                         <Row label="纬度"><NumInput value={s.lnglat[1]} onChange={(v) => put(i, { lnglat: [s.lnglat[0], v ?? 0] })} /></Row>
-                        <Row label="id"><Input className="mono" defaultValue={s.id} onBlur={(e) => rename(i, e.target.value.trim())} /></Row>
+                        <Row label="id"><Input variant="mono" defaultValue={s.id} onBlur={(e) => rename(i, e.target.value.trim())} /></Row>
                       </div>
                     )}
                   </div>
@@ -298,26 +299,26 @@ export function RouteData({ doc, patch }: { doc: Doc; patch: (p: Doc) => void })
 
   return (
     <div>
-      <p className="mb-2 text-[12px] text-ink-3">{track ? `已有轨迹，${track.length} 个点` : '没有轨迹：地图上按站点顺序连线'}</p>
+      <p className="mb-2 text-12 text-muted-foreground">{track ? `已有轨迹，${track.length} 个点` : '没有轨迹：地图上按站点顺序连线'}</p>
       <div className="flex flex-wrap gap-2">
         <input ref={file} type="file" accept=".gpx,application/gpx+xml,text/xml" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void importGpx(f); e.target.value = ''; }} />
         <Button size="sm" onClick={() => file.current?.click()}><Upload size={13} />导入 GPX 轨迹</Button>
         {track && <Button size="sm" variant="ghost" onClick={() => { patch({ track: undefined }); setMsg('已清除轨迹'); }}>清除轨迹</Button>}
         <Button size="sm" onClick={suggest}><Compass size={13} />按照片的拍摄地点建议站点</Button>
       </div>
-      {msg && <p className="mt-2 text-[12px] text-ink-3">{msg}</p>}
+      {msg && <p className="mt-2 text-12 text-muted-foreground">{msg}</p>}
       {sug && sug.stops.length > 0 && (
-        <div className="mt-3 space-y-3 rounded-xl bg-lift p-3 shadow-soft">
+        <div className="mt-3 space-y-3 rounded-xl bg-popover p-3 shadow-soft">
           {sug.stops.map((s, i) => (
             <label key={i} className="block">
               <span className="flex items-center gap-2">
-                <input type="checkbox" checked={!!picked[i]} onChange={(e) => setPicked({ ...picked, [i]: e.target.checked })} className="accent-[var(--ink)]" />
-                <span className="mono text-[11px] text-ink-3">{s.date ?? '无日期'} · {s.count} 张 · {s.lnglat[1].toFixed(2)}, {s.lnglat[0].toFixed(2)}</span>
+                <input type="checkbox" checked={!!picked[i]} onChange={(e) => setPicked({ ...picked, [i]: e.target.checked })} className="accent-foreground" />
+                <span className="mono text-11 text-muted-foreground">{s.date ?? '无日期'} · {s.count} 张 · {s.lnglat[1].toFixed(2)}, {s.lnglat[0].toFixed(2)}</span>
               </span>
               <Input className="mt-1.5" placeholder="站名" value={names[i] ?? ''} onChange={(e) => setNames({ ...names, [i]: e.target.value })} />
             </label>
           ))}
-          <div className="flex gap-2 pt-1"><Button size="sm" variant="primary" onClick={addStops}>把选中的加入站点</Button><Button size="sm" variant="ghost" onClick={() => setSug(null)}>取消</Button></div>
+          <div className="flex gap-2 pt-1"><Button size="sm" variant="default" onClick={addStops}>把选中的加入站点</Button><Button size="sm" variant="ghost" onClick={() => setSug(null)}>取消</Button></div>
         </div>
       )}
     </div>

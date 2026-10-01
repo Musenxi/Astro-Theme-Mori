@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { useProject, useRefresh } from '@/lib/hooks';
-import { Field, Input } from '@/components/ui/input';
-import { Body, Card, PageHeader, Section } from '@/components/ui/page';
-import { Segmented } from '@/components/ui/segmented';
-import { Switch } from '@/components/ui/switch';
+import { Field } from '@/components/field';
+import { Input } from '@/components/ui/input';
+import { Body, Card, PageHeader, Section } from '@/components/page';
+import { Segmented } from '@/components/segmented';
+import { SwitchField } from '@/components/switch-field';
 import { cn } from '@/lib/cn';
 
 const PRESETS: Array<[string, string]> = [['#002fa7', '克莱因蓝'], ['#b0442b', '朱'], ['#3f6b4f', '松绿'], ['#5b3f8c', '紫']];
@@ -69,17 +70,17 @@ export default function Settings() {
         <Section title="主题色"><Card>
           <div className="flex items-center gap-2.5 pb-3">
             {PRESETS.map(([c, n]) => (
-              <button key={c} type="button" title={n} aria-label={n} onClick={() => { setAccent(c); void save('accent', c); }} style={{ background: c }} className={cn('h-7 w-7 rounded-full outline-offset-2 transition-[outline-color,transform] hover:scale-110', accent === c ? 'outline outline-2 outline-ink' : 'outline outline-1 outline-transparent hover:outline-ink-3')} />
+              <button key={c} type="button" title={n} aria-label={n} onClick={() => { setAccent(c); void save('accent', c); }} style={{ '--c': c }} className={cn('h-7 w-7 rounded-full bg-(--c) outline-offset-2 transition-[outline-color,transform] hover:scale-110', accent === c ? 'outline outline-2 outline-foreground' : 'outline outline-1 outline-transparent hover:outline-muted-foreground')} />
             ))}
             <input type="color" value={accent} aria-label="自选颜色" onChange={(e) => setAccent(e.target.value)} onBlur={(e) => e.target.value !== cfg.accent && save('accent', e.target.value)} className="ml-1 h-8 w-10 cursor-pointer rounded-md border-0 bg-transparent p-0" />
-            <span className="mono text-ink-3">{accent}</span>
+            <span className="mono text-muted-foreground">{accent}</span>
           </div>
           <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
             <Swatch bg={light(accent)} paper="#f3f0e8" ink="#1d1b18" label="亮色" />
             <Swatch bg={override && accentDark ? accentDark : dark(accent)} paper="#151412" ink="#e8e3d9" label="暗色" />
           </div>
           <div className="mt-4 flex items-center gap-3">
-            <Switch checked={override} label="手动指定暗色版本" onCheckedChange={(v) => { setOverride(v); if (!v) { setAccentDark(''); if (cfg.accentDark) void save('accentDark', null); } else if (!accentDark) setAccentDark('#7f9bff'); }} />
+            <SwitchField checked={override} label="手动指定暗色版本" onCheckedChange={(v) => { setOverride(v); if (!v) { setAccentDark(''); if (cfg.accentDark) void save('accentDark', null); } else if (!accentDark) setAccentDark('#7f9bff'); }} />
             {override && <input type="color" value={accentDark || '#7f9bff'} aria-label="暗色版本" onChange={(e) => setAccentDark(e.target.value)} onBlur={(e) => save('accentDark', e.target.value)} className="h-8 w-10 cursor-pointer rounded-md border-0 bg-transparent p-0" />}
           </div>
         </Card></Section>
@@ -90,9 +91,9 @@ export default function Settings() {
 
 function Swatch({ bg, paper, ink, label }: { bg: string; paper: string; ink: string; label: string }) {
   return (
-    <div style={{ background: paper, color: ink }} className="rounded-xl p-4 shadow-soft">
-      <div style={{ background: bg }} className="h-8 w-full rounded-lg" />
-      <div className="mt-2 text-[12.5px]">{label}</div>
+    <div style={{ '--paper': paper, '--ink': ink, '--bg': bg }} className="rounded-xl bg-(--paper) p-4 text-(--ink) shadow-soft">
+      <div className="h-8 w-full rounded-lg bg-(--bg)" />
+      <div className="mt-2 text-12-5">{label}</div>
     </div>
   );
 }

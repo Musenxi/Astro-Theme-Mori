@@ -1,4 +1,4 @@
-import type { Doc, Friend, Kind, NavItem, Project, PublishConfig, Stats } from './types';
+import type { Doc, Friend, Kind, NavItem, Project, PublishConfig, Stats, Action } from './types';
 
 export class ApiError extends Error {
   status: number;
@@ -50,7 +50,7 @@ export const api = {
   setConfig: (key: string, value: string | null) => req('PUT', '/api/config', { key, value }),
   setCategories: (categories: unknown[], renames: Record<string, string>) => req<{ ok: true; moved: number }>('PUT', '/api/categories', { categories, renames }),
   renameTag: (from: string, to: string | null) => req<{ ok: true; changed: number }>('POST', '/api/tags/rename', { from, to }),
-  setNav: (nav: NavItem[] | null) => req<{ ok: true }>('PUT', '/api/nav', { nav }),
+  setNav: (body: { nav?: NavItem[] | null; actions?: Action[] | null }) => req<{ ok: true }>('PUT', '/api/nav', body),
 
   friends: () => req<{ friends: Friend[] }>('GET', '/api/friends'),
   saveFriends: (friends: Friend[]) => req<{ ok: true; friends: Friend[] }>('PUT', '/api/friends', { friends }),

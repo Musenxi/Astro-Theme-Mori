@@ -14,23 +14,23 @@ const style = HighlightStyle.define([
   { tag: t.heading3, fontSize: '1.12em', letterSpacing: '.08em' },
   { tag: t.strong, fontWeight: '700' },
   { tag: t.emphasis, fontStyle: 'italic' },
-  { tag: t.monospace, fontFamily: 'var(--font-mono)', fontSize: '.9em', background: 'var(--sunk)' },
-  { tag: t.link, color: 'var(--accent)' },
-  { tag: t.url, color: 'var(--ink-3)' },
-  { tag: t.quote, color: 'var(--ink-2)' },
-  { tag: t.processingInstruction, color: 'var(--ink-3)', fontWeight: '400', fontStyle: 'normal' },
-  { tag: t.contentSeparator, color: 'var(--ink-3)' },
+  { tag: t.monospace, fontFamily: 'var(--font-mono)', fontSize: '.9em', background: 'var(--muted)' },
+  { tag: t.link, color: 'var(--brand)' },
+  { tag: t.url, color: 'var(--muted-foreground)' },
+  { tag: t.quote, color: 'var(--soft-foreground)' },
+  { tag: t.processingInstruction, color: 'var(--muted-foreground)', fontWeight: '400', fontStyle: 'normal' },
+  { tag: t.contentSeparator, color: 'var(--muted-foreground)' },
 ]);
 
 const theme = EditorView.theme({
-  '&': { height: '100%', background: 'transparent', color: 'var(--ink)', fontSize: '16.5px' },
+  '&': { height: '100%', background: 'transparent', color: 'var(--foreground)', fontSize: '16.5px' },
   '&.cm-focused': { outline: 'none' },
   '.cm-scroller': { fontFamily: 'var(--font-serif)', lineHeight: '2', overflow: 'auto' },
-  '.cm-content': { caretColor: 'var(--accent)', padding: '28px 0 45vh', maxWidth: '46rem', margin: '0 auto' },
+  '.cm-content': { caretColor: 'var(--brand)', padding: '28px 0 45vh', maxWidth: '46rem', margin: '0 auto' },
   '.cm-line': { padding: '0 32px' },
-  '.cm-cursor': { borderLeftColor: 'var(--accent)' },
-  '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': { background: 'color-mix(in srgb, var(--accent) 22%, transparent)' },
-  '.cm-placeholder': { color: 'var(--ink-3)' },
+  '.cm-cursor': { borderLeftColor: 'var(--brand)' },
+  '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': { background: 'color-mix(in srgb, var(--brand) 22%, transparent)' },
+  '.cm-placeholder': { color: 'var(--muted-foreground)' },
 });
 
 type View = EditorView;

@@ -6,7 +6,7 @@ import { cn } from '@/lib/cn';
 import { wan } from '@/lib/format';
 import { useProject } from '@/lib/hooks';
 import { Button } from '@/components/ui/button';
-import { Body, PageHeader } from '@/components/ui/page';
+import { Body, PageHeader } from '@/components/page';
 
 const RECENT = 6;
 const when = (t: number) => { const d = new Date(t), p = (n: number) => String(n).padStart(2, '0'); return `${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; };
@@ -40,36 +40,36 @@ export default function Dashboard() {
     <>
       <PageHeader title="仪表盘" actions={<Button variant="ghost" size="sm" onClick={() => { void refetch(); void replies.refetch(); }}><RefreshCw size={14} className={cn(isFetching && 'animate-spin')} />刷新</Button>} />
       <Body wide>
-        {error ? <p className="text-danger">{(error as Error).message}</p> : (
+        {error ? <p className="text-destructive">{(error as Error).message}</p> : (
           <>
             {/* 主角：全站字数，只靠字号说话 */}
             <div className="px-2 pb-8 pt-4">
-              <div className="text-[13px] text-ink-3">全站字数</div>
-              <div className="mt-1 text-[64px] font-semibold leading-none tracking-tighter [font-feature-settings:'tnum']">{s ? wan(s.words) : <span className="text-ink-3/40">·</span>}</div>
-              <p className="mt-4 text-[13px] text-ink-3">
+              <div className="text-13 text-muted-foreground">全站字数</div>
+              <div className="mt-1 text-64 font-semibold leading-none tracking-tighter tnum">{s ? wan(s.words) : <span className="text-muted-foreground/40">·</span>}</div>
+              <p className="mt-4 text-13 text-muted-foreground">
                 共 {entries.length} 篇文章{drafts > 0 && <>，其中 {drafts} 篇还是草稿</>}
               </p>
             </div>
 
             {/* 其余统计：一整块浅色面，数字之间只留白 */}
-            <dl className="grid grid-cols-2 gap-1 rounded-2xl bg-sunk/70 p-2 md:grid-cols-3">
+            <dl className="grid grid-cols-2 gap-1 rounded-2xl bg-muted/70 p-2 md:grid-cols-3">
               {cells.map((cell) => {
                 const inner = (
                   <>
-                    <dt className="flex items-center gap-1.5 text-[13px] text-ink-3">
+                    <dt className="flex items-center gap-1.5 text-13 text-muted-foreground">
                       {cell.label}
-                      {cell.alert && <i aria-label="有新评论" className="h-1.5 w-1.5 rounded-full bg-ink" />}
+                      {cell.alert && <i aria-label="有新评论" className="h-1.5 w-1.5 rounded-full bg-primary" />}
                       {cell.to && <ArrowUpRight size={13} className="ml-auto opacity-0 transition-opacity duration-200 group-hover:opacity-100" />}
                     </dt>
-                    <dd className="mt-3 text-[32px] font-semibold leading-none tracking-tight [font-feature-settings:'tnum']">
-                      {cell.value === undefined ? <span className="text-ink-3/40">·</span> : cell.value === null ? <span className="text-ink-3/50">—</span> : cell.value}
+                    <dd className="mt-3 text-32 font-semibold leading-none tracking-tight tnum">
+                      {cell.value === undefined ? <span className="text-muted-foreground/40">·</span> : cell.value === null ? <span className="text-muted-foreground/50">—</span> : cell.value}
                     </dd>
-                    <p className="mt-2 h-4 text-[11.5px] text-ink-3">{cell.value === null && cell.hint}</p>
+                    <p className="mt-2 h-4 text-11-5 text-muted-foreground">{cell.value === null && cell.hint}</p>
                   </>
                 );
                 const cls = 'group block rounded-xl px-5 py-4 transition-colors duration-150';
                 return cell.to
-                  ? <Link key={cell.label} to={cell.to} className={cn(cls, 'hover:bg-lift')}>{inner}</Link>
+                  ? <Link key={cell.label} to={cell.to} className={cn(cls, 'hover:bg-popover')}>{inner}</Link>
                   : <div key={cell.label} className={cls}>{inner}</div>;
               })}
             </dl>
@@ -77,30 +77,30 @@ export default function Dashboard() {
             {/* 最近：两栏并排，窄屏叠起来 */}
             <div className="mt-6 grid gap-6 md:grid-cols-2">
               <Recent title="最近发布的文章" more={{ to: '/posts', label: '全部文章' }}>
-                {recent.length === 0 && <li className="px-3 py-3 text-[13px] text-ink-3">还没有发布过文章。</li>}
+                {recent.length === 0 && <li className="px-3 py-3 text-13 text-muted-foreground">还没有发布过文章。</li>}
                 {recent.map((e) => (
                   <li key={e.id}>
-                    <Link to={`/posts/${e.id}`} className="flex items-baseline gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-lift">
+                    <Link to={`/posts/${e.id}`} className="flex items-baseline gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-popover">
                       <span className="min-w-0 flex-1 truncate">{e.title || e.id}</span>
-                      <span className="mono shrink-0 text-[11.5px] text-ink-3">{e.date.replaceAll('-', '.')}</span>
+                      <span className="mono shrink-0 text-11-5 text-muted-foreground">{e.date.replaceAll('-', '.')}</span>
                     </Link>
                   </li>
                 ))}
               </Recent>
               <Recent title="最近得到的回复" more={canList ? { to: '/comments', label: '全部评论' } : undefined}>
-                {!canList && <li className="px-3 py-3 text-[13px] text-ink-3">{cm?.provider === 'mori' ? '还没有填评论服务的管理令牌。' : '没有启用自建评论。'}</li>}
-                {canList && replies.error && <li className="px-3 py-3 text-[13px] text-ink-3">评论服务没有连上。</li>}
-                {canList && !replies.error && !replies.isPending && latest.length === 0 && <li className="px-3 py-3 text-[13px] text-ink-3">还没有人留言。</li>}
+                {!canList && <li className="px-3 py-3 text-13 text-muted-foreground">{cm?.provider === 'mori' ? '还没有填评论服务的管理令牌。' : '没有启用自建评论。'}</li>}
+                {canList && replies.error && <li className="px-3 py-3 text-13 text-muted-foreground">评论服务没有连上。</li>}
+                {canList && !replies.error && !replies.isPending && latest.length === 0 && <li className="px-3 py-3 text-13 text-muted-foreground">还没有人留言。</li>}
                 {latest.map((m) => (
                   <li key={m.id}>
-                    <Link to="/comments" className="block rounded-xl px-3 py-2.5 transition-colors hover:bg-lift">
-                      <div className="flex items-baseline gap-2 text-[12.5px] text-ink-3">
-                        <b className="font-medium text-ink">{m.name}</b>
-                        {STATUS[m.status] && <span className="rounded-full bg-ink/[.07] px-2 py-px text-[11px] text-ink-2">{STATUS[m.status]}</span>}
+                    <Link to="/comments" className="block rounded-xl px-3 py-2.5 transition-colors hover:bg-popover">
+                      <div className="flex items-baseline gap-2 text-12-5 text-muted-foreground">
+                        <b className="font-medium text-foreground">{m.name}</b>
+                        {STATUS[m.status] && <span className="rounded-full bg-foreground/[.07] px-2 py-px text-11 text-soft-foreground">{STATUS[m.status]}</span>}
                         <span className="min-w-0 flex-1 truncate">{titleOf(m.entry)}</span>
-                        <span className="mono shrink-0 text-[11.5px]">{when(m.createdAt)}</span>
+                        <span className="mono shrink-0 text-11-5">{when(m.createdAt)}</span>
                       </div>
-                      <p className="mt-0.5 line-clamp-2 break-words text-[13.5px] text-ink-2">{m.body}</p>
+                      <p className="mt-0.5 line-clamp-2 break-words text-13-5 text-soft-foreground">{m.body}</p>
                     </Link>
                   </li>
                 ))}
@@ -115,10 +115,10 @@ export default function Dashboard() {
 
 function Recent({ title, more, children }: { title: string; more?: { to: string; label: string }; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl bg-sunk/70 p-2">
+    <section className="rounded-2xl bg-muted/70 p-2">
       <div className="flex items-center px-3 pb-1 pt-2.5">
-        <h2 className="text-[13px] text-ink-3">{title}</h2>
-        {more && <Link to={more.to} className="ml-auto flex items-center gap-0.5 text-[12px] text-ink-3 transition-colors hover:text-ink">{more.label}<ArrowUpRight size={12} /></Link>}
+        <h2 className="text-13 text-muted-foreground">{title}</h2>
+        {more && <Link to={more.to} className="ml-auto flex items-center gap-0.5 text-12 text-muted-foreground transition-colors hover:text-foreground">{more.label}<ArrowUpRight size={12} /></Link>}
       </div>
       <ul>{children}</ul>
     </section>

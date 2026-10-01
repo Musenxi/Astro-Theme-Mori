@@ -3,7 +3,7 @@ import { Link, useLocation, useMatch, useResolvedPath } from 'react-router';
 import { ChevronRight, Search, Files, FileText, Gauge, MessageSquare, Moon, PanelTop, Paperclip, PenLine, Send, SlidersHorizontal, Sun, Tag, Users, Eye, FilePen, BookOpenText } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { useProject } from '@/lib/hooks';
-import { Tip } from './ui/tooltip';
+import { Tip } from '@/components/tip';
 
 const ICON = 17;
 
@@ -12,15 +12,15 @@ function Row({ to, icon, label, badge, end, child, onClick }: { to?: string; ico
   const resolved = useResolvedPath(to ?? '.');
   const isActive = !!to && !!useMatch({ path: resolved.pathname, end: !!end });
   const cls = cn(
-    'group relative flex h-9 w-full items-center gap-3 rounded-lg px-3 text-left text-[13.5px] transition-[background-color,color,box-shadow] duration-150 max-lg:h-10 max-lg:justify-center max-lg:px-0',
-    child && 'h-8 pl-10 text-[13px] max-lg:h-10 max-lg:pl-0',
-    isActive ? 'bg-lift font-medium text-ink shadow-soft' : 'text-ink-2 hover:bg-ink/[.05] hover:text-ink',
+    'group relative flex h-9 w-full items-center gap-3 rounded-lg px-3 text-left text-13-5 transition-[background-color,color,box-shadow] duration-150 max-lg:h-10 max-lg:justify-center max-lg:px-0',
+    child && 'h-8 pl-10 text-13 max-lg:h-10 max-lg:pl-0',
+    isActive ? 'bg-popover font-medium text-foreground shadow-soft' : 'text-soft-foreground hover:bg-foreground/[.05] hover:text-foreground',
   );
   const inner = (
     <>
-      <span className={cn('grid shrink-0 place-items-center transition-colors', isActive ? 'text-ink' : 'text-ink-3 group-hover:text-ink-2')}>{icon}</span>
+      <span className={cn('grid shrink-0 place-items-center transition-colors', isActive ? 'text-foreground' : 'text-muted-foreground group-hover:text-soft-foreground')}>{icon}</span>
       <span className="flex-1 truncate max-lg:hidden">{label}</span>
-      {badge ? <span className="mono grid h-[18px] min-w-[18px] place-items-center rounded-full bg-ink px-1.5 text-[10.5px] text-surface max-lg:absolute max-lg:right-1.5 max-lg:top-1.5 max-lg:h-4 max-lg:min-w-4 max-lg:px-1">{badge}</span> : null}
+      {badge ? <span className="mono grid h-4.5 min-w-4.5 place-items-center rounded-full bg-primary px-1.5 text-10-5 text-primary-foreground max-lg:absolute max-lg:right-1.5 max-lg:top-1.5 max-lg:h-4 max-lg:min-w-4 max-lg:px-1">{badge}</span> : null}
     </>
   );
   const el = to ? <Link to={to} className={cls} aria-current={isActive ? 'page' : undefined} onClick={onClick}>{inner}</Link> : <button type="button" className={cls} onClick={onClick}>{inner}</button>;
@@ -30,10 +30,10 @@ function Row({ to, icon, label, badge, end, child, onClick }: { to?: string; ico
 function Group({ icon, label, open, onToggle, active, children }: { icon: ReactNode; label: string; open: boolean; onToggle: () => void; active: boolean; children: ReactNode }) {
   return (
     <div>
-      <button type="button" onClick={onToggle} aria-expanded={open} className={cn('group flex h-9 w-full items-center gap-3 rounded-lg px-3 text-[13.5px] transition-colors hover:bg-ink/[.05] max-lg:hidden', active ? 'font-medium text-ink' : 'text-ink-2 hover:text-ink')}>
-        <span className={cn('grid shrink-0 place-items-center transition-colors', active ? 'text-ink' : 'text-ink-3 group-hover:text-ink-2')}>{icon}</span>
+      <button type="button" onClick={onToggle} aria-expanded={open} className={cn('group flex h-9 w-full items-center gap-3 rounded-lg px-3 text-13-5 transition-colors hover:bg-foreground/[.05] max-lg:hidden', active ? 'font-medium text-foreground' : 'text-soft-foreground hover:text-foreground')}>
+        <span className={cn('grid shrink-0 place-items-center transition-colors', active ? 'text-foreground' : 'text-muted-foreground group-hover:text-soft-foreground')}>{icon}</span>
         <span className="flex-1 text-left">{label}</span>
-        <ChevronRight size={14} className={cn('shrink-0 text-ink-3 transition-transform duration-200', open && 'rotate-90')} />
+        <ChevronRight size={14} className={cn('shrink-0 text-muted-foreground transition-transform duration-200', open && 'rotate-90')} />
       </button>
       {/* 窄屏只有图标：子项直接平铺 */}
       <div className={cn('grid transition-[grid-template-rows] duration-200 ease-out', open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]', 'max-lg:grid-rows-[1fr]')}>
@@ -67,16 +67,16 @@ export function Sidebar({ onCompose, onSearch }: { onCompose: () => void; onSear
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col max-lg:w-14">
       <div className="flex items-center gap-3 px-3 pb-4 pt-3 max-lg:justify-center max-lg:px-0">
-        <span className="serif grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-ink text-[16px] text-surface">{[...(project?.config.title ?? 'M')][0]}</span>
+        <span className="serif grid h-9 w-9 shrink-0 place-items-center rounded-11 bg-primary text-16 text-primary-foreground">{[...(project?.config.title ?? 'M')][0]}</span>
         <div className="min-w-0 max-lg:hidden">
-          <div className="truncate text-[14.5px] font-semibold leading-tight tracking-tight" title={project?.root}>{project?.config.title ?? 'MORI'}</div>
-          <div className="mono mt-0.5 text-[10.5px] leading-none text-ink-3">Studio{project?.dev ? ' · dev' : ''}</div>
+          <div className="truncate text-14-5 font-semibold leading-tight tracking-tight" title={project?.root}>{project?.config.title ?? 'MORI'}</div>
+          <div className="mono mt-0.5 text-10-5 leading-none text-muted-foreground">Studio{project?.dev ? ' · dev' : ''}</div>
         </div>
       </div>
       <div className="px-2 pb-3 max-lg:px-1.5">
         <Tip label="搜索文章、页面和功能" side="right">
-          <button type="button" onClick={onSearch} className="flex h-9 w-full items-center gap-2.5 rounded-lg bg-ink/[.05] px-3 text-left text-[13px] text-ink-3 transition-colors hover:bg-ink/[.08] hover:text-ink-2 max-lg:h-10 max-lg:justify-center max-lg:px-0">
-            <Search size={15} /><span className="flex-1 max-lg:hidden">搜索</span><kbd className="mono rounded-xs bg-ink/[.06] px-1.5 py-px text-[10.5px] max-lg:hidden">⌘K</kbd>
+          <button type="button" onClick={onSearch} className="flex h-9 w-full items-center gap-2.5 rounded-lg bg-foreground/[.05] px-3 text-left text-13 text-muted-foreground transition-colors hover:bg-foreground/[.08] hover:text-soft-foreground max-lg:h-10 max-lg:justify-center max-lg:px-0">
+            <Search size={15} /><span className="flex-1 max-lg:hidden">搜索</span><kbd className="mono rounded-xs bg-foreground/[.06] px-1.5 py-px text-10-5 max-lg:hidden">⌘K</kbd>
           </button>
         </Tip>
       </div>

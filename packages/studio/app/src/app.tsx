@@ -1,11 +1,11 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { createBrowserRouter, Outlet, RouterProvider, ScrollRestoration } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from 'sonner';
 import { Sidebar } from '@/components/sidebar';
 import { CommandPalette } from '@/components/command-palette';
 import { NewEntryDialog } from '@/components/new-entry';
-import { ConfirmProvider } from '@/components/ui/dialog';
+import { ConfirmProvider } from '@/components/confirm';
+import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useProject } from '@/lib/hooks';
 
@@ -27,14 +27,14 @@ function Shell() {
   const [palette, setPalette] = useState(false);
 
   // 站点自己的主题色也是 Studio 的强调色
-  useEffect(() => { if (project?.config.accent) document.documentElement.style.setProperty('--accent-base', project.config.accent); }, [project?.config.accent]);
+  useEffect(() => { if (project?.config.accent) document.documentElement.style.setProperty('--brand-base', project.config.accent); }, [project?.config.accent]);
 
-  if (error) return <div className="grid h-full place-items-center px-6 text-center text-ink-3">{(error as Error).message}</div>;
-  if (isPending) return <div className="grid h-full place-items-center text-ink-3">读取项目……</div>;
+  if (error) return <div className="grid h-full place-items-center px-6 text-center text-muted-foreground">{(error as Error).message}</div>;
+  if (isPending) return <div className="grid h-full place-items-center text-muted-foreground">读取项目……</div>;
   return (
     <div className="flex h-full gap-1 p-2">
       <Sidebar onCompose={() => setCompose(true)} onSearch={() => setPalette(true)} />
-      <main className="min-w-0 flex-1 overflow-y-auto rounded-2xl bg-surface shadow-panel">
+      <main className="min-w-0 flex-1 overflow-y-auto rounded-2xl bg-card shadow-panel">
         <Suspense fallback={null}><Outlet context={{ compose: () => setCompose(true) }} /></Suspense>
       </main>
       <NewEntryDialog open={compose} onOpenChange={setCompose} />
@@ -61,7 +61,7 @@ const router = createBrowserRouter([
       { path: '/comments', element: <Comments /> },
       { path: '/publish', element: <Publish /> },
       { path: '/settings', element: <Settings /> },
-      { path: '*', element: <div className="grid h-full place-items-center text-ink-3">没有这个页面。</div> },
+      { path: '*', element: <div className="grid h-full place-items-center text-muted-foreground">没有这个页面。</div> },
     ],
   },
 ]);
@@ -74,7 +74,7 @@ export function App() {
       <TooltipProvider>
         <ConfirmProvider>
           <RouterProvider router={router} />
-          <Toaster position="bottom-center" toastOptions={{ classNames: { toast: '!rounded-xl !border-0 !bg-lift !text-ink !shadow-pop !font-sans !text-[13px]' } }} />
+          <Toaster />
         </ConfirmProvider>
       </TooltipProvider>
     </QueryClientProvider>

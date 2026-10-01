@@ -5,10 +5,12 @@ import { api } from '@/lib/api';
 import { useProject, useRefresh } from '@/lib/hooks';
 import { ID_RE, suggestId } from '@/lib/slug';
 import type { Kind } from '@/lib/types';
-import { Button } from './ui/button';
-import { Dialog, DialogContent } from './ui/dialog';
-import { Field, Input } from './ui/input';
-import { Select } from './ui/select';
+import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/ui/dialog';
+import { ModalContent } from '@/components/modal';
+import { Field } from '@/components/field';
+import { Input } from '@/components/ui/input';
+import { OptionSelect } from '@/components/option-select';
 
 /** 撰写：先起个标题、选个分类，然后进编辑器。地址名默认自动生成，需要时在“高级”里改 */
 export function NewEntryDialog({ open, onOpenChange, kind: initial = 'post' }: { open: boolean; onOpenChange: (o: boolean) => void; kind?: Kind }) {
@@ -43,26 +45,26 @@ export function NewEntryDialog({ open, onOpenChange, kind: initial = 'post' }: {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent title={kind === 'page' ? '新建页面' : '撰写'}>
+      <ModalContent title={kind === 'page' ? '新建页面' : '撰写'}>
         <form onSubmit={(e) => { e.preventDefault(); void submit(); }}>
           <Field label="标题"><Input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="标题" /></Field>
           {kind !== 'page' && (
-            <Field label="分类"><Select value={category || cats[0]?.id} onValueChange={setCategory} options={cats.map((c) => ({ value: c.id, label: c.zh, hint: c.en }))} /></Field>
+            <Field label="分类"><OptionSelect value={category || cats[0]?.id} onValueChange={setCategory} options={cats.map((c) => ({ value: c.id, label: c.zh, hint: c.en }))} /></Field>
           )}
-          <div className="mt-1 pl-[7.5rem]">
-            <button type="button" onClick={() => setAdv(!adv)} className="text-[12px] text-ink-3 transition-colors hover:text-ink">{adv ? '收起' : '地址名'}：{finalId}</button>
+          <div className="mt-1 pl-30">
+            <button type="button" onClick={() => setAdv(!adv)} className="text-12 text-muted-foreground transition-colors hover:text-foreground">{adv ? '收起' : '地址名'}：{finalId}</button>
           </div>
           {adv && (
-            <Field label="地址名" hint={<>网址会是 <span className="mono">/{kind === 'page' ? '' : 'posts/'}{finalId}/</span>{clash && <span className="text-danger">　已经有了，换一个</span>}</>}>
+            <Field label="地址名" hint={<>网址会是 <span className="mono">/{kind === 'page' ? '' : 'posts/'}{finalId}/</span>{clash && <span className="text-destructive">　已经有了，换一个</span>}</>}>
               <Input value={id} onChange={(e) => setId(e.target.value.trim())} placeholder={suggestId(title, taken)} />
             </Field>
           )}
           <div className="mt-6 flex justify-end gap-2">
             <Button onClick={() => onOpenChange(false)}>取消</Button>
-            <Button type="submit" variant="primary" disabled={busy || !title.trim() || clash}>{busy ? '创建中……' : '开始写'}</Button>
+            <Button type="submit" variant="default" disabled={busy || !title.trim() || clash}>{busy ? '创建中……' : '开始写'}</Button>
           </div>
         </form>
-      </DialogContent>
+      </ModalContent>
     </Dialog>
   );
 }

@@ -1,17 +1,28 @@
-import { Tooltip as T } from 'radix-ui';
-import type { ReactNode } from 'react';
+import { Tooltip as TooltipPrimitive } from 'radix-ui';
+import type { ComponentProps } from 'react';
+import { cn } from '@/lib/cn';
 
-export const TooltipProvider = ({ children }: { children: ReactNode }) => <T.Provider delayDuration={350} skipDelayDuration={200}>{children}</T.Provider>;
+function TooltipProvider({ delayDuration = 350, skipDelayDuration = 200, ...props }: ComponentProps<typeof TooltipPrimitive.Provider>) {
+  return <TooltipPrimitive.Provider data-slot="tooltip-provider" delayDuration={delayDuration} skipDelayDuration={skipDelayDuration} {...props} />;
+}
+function Tooltip(props: ComponentProps<typeof TooltipPrimitive.Root>) {
+  return <TooltipPrimitive.Root data-slot="tooltip" {...props} />;
+}
+function TooltipTrigger(props: ComponentProps<typeof TooltipPrimitive.Trigger>) {
+  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />;
+}
 
-export function Tip({ label, children, side = 'top' }: { label: ReactNode; children: ReactNode; side?: 'top' | 'right' | 'bottom' | 'left' }) {
+function TooltipContent({ className, sideOffset = 8, ...props }: ComponentProps<typeof TooltipPrimitive.Content>) {
   return (
-    <T.Root>
-      <T.Trigger asChild>{children}</T.Trigger>
-      <T.Portal>
-        <T.Content side={side} sideOffset={8} className="z-[90] rounded-md bg-ink px-2.5 py-1 text-[12px] text-paper shadow-pop data-[state=delayed-open]:animate-fade-in">
-          {label}
-        </T.Content>
-      </T.Portal>
-    </T.Root>
+    <TooltipPrimitive.Portal>
+      <TooltipPrimitive.Content
+        data-slot="tooltip-content"
+        sideOffset={sideOffset}
+        className={cn('z-90 rounded-md bg-primary px-2.5 py-1 text-12 text-background shadow-pop data-[state=delayed-open]:animate-fade-in', className)}
+        {...props}
+      />
+    </TooltipPrimitive.Portal>
   );
 }
+
+export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };

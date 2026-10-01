@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { asSpans, compact, spansToText, textToSpans } from '@/lib/inline.js';
-import { Textarea } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/cn';
 
 /**
@@ -14,7 +14,8 @@ export function InlineField({ value, onChange, rows = 2, placeholder, className 
   return (
     <Textarea
       ref={ref} rows={rows} value={text} placeholder={placeholder} spellCheck={false}
-      className={cn('resize-none overflow-hidden bg-transparent shadow-none hover:bg-ink/[.04] focus:bg-lift', className)}
+      variant="plain"
+      className={cn('resize-none overflow-hidden', className)}
       onChange={(e) => { setText(e.target.value); onChange(compact(textToSpans(e.target.value))); }}
     />
   );

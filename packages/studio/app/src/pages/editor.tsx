@@ -8,8 +8,8 @@ import { cn } from '@/lib/cn';
 import { useProject, useRefresh } from '@/lib/hooks';
 import type { Doc, Kind } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { onCard } from '@/components/ui/page';
-import { Segmented } from '@/components/ui/segmented';
+import { onCard } from '@/components/page';
+import { Segmented } from '@/components/segmented';
 import { InfoPanel } from '@/editor/info-panel';
 import { Notices } from '@/editor/notices';
 import { RawView } from '@/editor/raw-view';
@@ -25,8 +25,8 @@ type Mode = 'md' | 'blocks' | 'raw';
 export default function Editor({ kind }: { kind: 'post' | 'page' }) {
   const { id = '' } = useParams();
   const { data, error, isPending } = useQuery({ queryKey: ['entry', kind, id], queryFn: () => api.entry(kind, id), staleTime: Infinity, gcTime: 0, refetchOnWindowFocus: false });
-  if (error) return <div className="grid h-full place-items-center px-8 text-center text-ink-3">{(error as Error).message}<Link to={kind === 'page' ? '/pages' : '/posts'} className="mt-3 underline">回到列表</Link></div>;
-  if (isPending) return <div className="grid h-full place-items-center text-ink-3">读取中……</div>;
+  if (error) return <div className="grid h-full place-items-center px-8 text-center text-muted-foreground">{(error as Error).message}<Link to={kind === 'page' ? '/pages' : '/posts'} className="mt-3 underline">回到列表</Link></div>;
+  if (isPending) return <div className="grid h-full place-items-center text-muted-foreground">读取中……</div>;
   return <Session key={`${kind}/${id}`} routeKind={kind} id={id} initial={data} />;
 }
 
@@ -57,31 +57,31 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex min-h-[4rem] shrink-0 items-center gap-3 px-5 py-2">
-        <Link to={routeKind === 'page' ? '/pages' : '/posts'} className="flex h-8 items-center gap-0.5 rounded-full pl-2 pr-3.5 text-ink-2 transition-colors hover:bg-ink/[.06] hover:text-ink"><ChevronLeft size={16} />{routeKind === 'page' ? '页面' : '文章'}</Link>
-        <h1 className="min-w-0 flex-1 truncate text-[17px] font-semibold tracking-tight">{doc.title || id}</h1>
-        <span className={cn('flex items-center gap-2 rounded-full px-3 py-1 text-[12px] transition-colors', state.status === 'error' || state.errors.length ? 'bg-sunk text-danger' : 'bg-ink/[.05] text-ink-3')}>
-          <i className={cn('h-1.5 w-1.5 rounded-full', state.status === 'saved' ? 'bg-ink-3/60' : state.status === 'error' ? 'bg-danger' : 'animate-pulse bg-ink-2')} />{status}
+      <header className="flex min-h-16 shrink-0 items-center gap-3 px-5 py-2">
+        <Link to={routeKind === 'page' ? '/pages' : '/posts'} className="flex h-8 items-center gap-0.5 rounded-full pl-2 pr-3.5 text-soft-foreground transition-colors hover:bg-foreground/[.06] hover:text-foreground"><ChevronLeft size={16} />{routeKind === 'page' ? '页面' : '文章'}</Link>
+        <h1 className="min-w-0 flex-1 truncate text-17 font-semibold tracking-tight">{doc.title || id}</h1>
+        <span className={cn('flex items-center gap-2 rounded-full px-3 py-1 text-12 transition-colors', state.status === 'error' || state.errors.length ? 'bg-muted text-destructive' : 'bg-foreground/[.05] text-muted-foreground')}>
+          <i className={cn('h-1.5 w-1.5 rounded-full', state.status === 'saved' ? 'bg-muted-foreground/60' : state.status === 'error' ? 'bg-destructive' : 'animate-pulse bg-soft-foreground')} />{status}
         </span>
         <Segmented size="sm" value={mode} onValueChange={setMode} options={modes} />
-        <Button size="sm" className={cn(panel === 'info' && 'bg-ink/[.14] hover:bg-ink/[.18]')} onClick={() => setPanel(panel === 'info' ? null : 'info')}><PanelRight size={14} />信息</Button>
-        <Button size="sm" className={cn(panel === 'preview' && 'bg-ink/[.14] hover:bg-ink/[.18]')} onClick={() => setPanel(panel === 'preview' ? null : 'preview')}><Eye size={14} />预览</Button>
+        <Button size="sm" active={panel === 'info'} onClick={() => setPanel(panel === 'info' ? null : 'info')}><PanelRight size={14} />信息</Button>
+        <Button size="sm" active={panel === 'preview'} onClick={() => setPanel(panel === 'preview' ? null : 'preview')}><Eye size={14} />预览</Button>
       </header>
       <Notices state={state} />
-      {state.status === 'error' && <p className="mx-5 mb-2 shrink-0 rounded-xl bg-sunk px-4 py-2.5 text-[12.5px] text-danger">没能保存：{state.message}。内容还在这个页面里，修好之后会自动重试。</p>}
+      {state.status === 'error' && <p className="mx-5 mb-2 shrink-0 rounded-xl bg-muted px-4 py-2.5 text-12-5 text-destructive">没能保存：{state.message}。内容还在这个页面里，修好之后会自动重试。</p>}
       <div className="flex min-h-0 flex-1">
         <div className="min-w-0 flex-1">
-          <Suspense fallback={<div className="grid h-full place-items-center text-ink-3">载入编辑器……</div>}>
+          <Suspense fallback={<div className="grid h-full place-items-center text-muted-foreground">载入编辑器……</div>}>
             {mode === 'md' && <MarkdownView key={kind} doc={doc} setDoc={setDoc} travel={kind === 'travel'} />}
             {mode === 'blocks' && (kind === 'travel' ? <TravelLayout doc={doc} setDoc={setDoc} /> : <BlocksView key={kind} kind={kind} doc={doc} patch={patch} setDoc={setDoc} />)}
             {mode === 'raw' && <RawView doc={doc} setDoc={setDoc} />}
           </Suspense>
         </div>
         {panel === 'info' && (
-          <aside className={cn('mb-2 mr-2 w-[26rem] shrink-0 animate-slide-in overflow-y-auto rounded-2xl bg-sunk/60', onCard)}><InfoPanel kind={kind} doc={doc} set={patch} setDoc={setDoc} /></aside>
+          <aside className={cn('mb-2 mr-2 w-104 shrink-0 animate-slide-in overflow-y-auto rounded-2xl bg-muted/60', onCard)}><InfoPanel kind={kind} doc={doc} set={patch} setDoc={setDoc} /></aside>
         )}
         {panel === 'preview' && project && (
-          <aside className="mb-2 mr-2 w-[46%] min-w-[24rem] shrink-0 animate-slide-in overflow-hidden rounded-2xl bg-sunk/60">
+          <aside className="mb-2 mr-2 w-[46%] min-w-96 shrink-0 animate-slide-in overflow-hidden rounded-2xl bg-muted/60">
             <Preview base={project.preview.url} path={path} nonce={previewKey} onRefresh={() => setPreviewKey((k) => k + 1)} onStarted={() => void refresh()} />
           </aside>
         )}
@@ -105,17 +105,17 @@ function Preview({ base, path, nonce, onRefresh, onStarted }: { base: string | n
     return (
       <div className="grid h-full place-items-center px-8 text-center">
         <div>
-          <Button variant="primary" onClick={start} disabled={starting}>{starting ? '正在启动……' : '启动预览'}</Button>
+          <Button variant="default" onClick={start} disabled={starting}>{starting ? '正在启动……' : '启动预览'}</Button>
         </div>
       </div>
     );
   }
   return (
     <div className="flex h-full flex-col">
-      <div className="mono flex shrink-0 items-center gap-1 px-4 py-2 text-[11.5px] text-ink-3">
-        <span className="flex-1 truncate rounded-full bg-ink/[.06] px-3 py-1">{path}</span>
-        <button type="button" aria-label="刷新" className="grid h-7 w-7 place-items-center rounded-full transition-colors hover:bg-ink/[.08] hover:text-ink" onClick={onRefresh}><RefreshCw size={13} /></button>
-        <a aria-label="在新窗口打开" className="grid h-7 w-7 place-items-center rounded-full transition-colors hover:bg-ink/[.08] hover:text-ink" href={`${base}${path}`} target="_blank" rel="noreferrer"><ExternalLink size={13} /></a>
+      <div className="mono flex shrink-0 items-center gap-1 px-4 py-2 text-11-5 text-muted-foreground">
+        <span className="flex-1 truncate rounded-full bg-foreground/[.06] px-3 py-1">{path}</span>
+        <button type="button" aria-label="刷新" className="grid h-7 w-7 place-items-center rounded-full transition-colors hover:bg-foreground/[.08] hover:text-foreground" onClick={onRefresh}><RefreshCw size={13} /></button>
+        <a aria-label="在新窗口打开" className="grid h-7 w-7 place-items-center rounded-full transition-colors hover:bg-foreground/[.08] hover:text-foreground" href={`${base}${path}`} target="_blank" rel="noreferrer"><ExternalLink size={13} /></a>
       </div>
       <iframe key={nonce} title="预览" src={`${base}${path}`} className="mx-2 mb-2 min-h-0 flex-1 rounded-xl bg-white" />
     </div>

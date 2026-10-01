@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { asSpans, compact, spansToText, textToSpans } from '@/lib/inline.js';
 import { ImageField } from '@/components/asset-picker';
-import { Input, Textarea } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { OptionSelect } from '@/components/option-select';
+import { SwitchField } from '@/components/switch-field';
 import type { Doc } from '@/lib/types';
 import { InlineField } from './inline-field';
 
@@ -27,7 +28,7 @@ export function PostBlockBody({ b, patch, travel }: { b: Doc; patch: (p: Doc) =>
     case 'h':
       return (
         <div className="flex items-start gap-2">
-          {!travel && <Select className="w-24" value={String(b.level ?? 2)} onValueChange={(v) => patch({ level: +v })} options={[{ value: '2', label: '二级' }, { value: '3', label: '三级' }]} />}
+          {!travel && <OptionSelect className="w-24" value={String(b.level ?? 2)} onValueChange={(v) => patch({ level: +v })} options={[{ value: '2', label: '二级' }, { value: '3', label: '三级' }]} />}
           <div className="flex-1"><InlineField rows={1} value={b.text} onChange={(v) => patch({ text: v })} placeholder="标题" /></div>
         </div>
       );
@@ -37,7 +38,7 @@ export function PostBlockBody({ b, patch, travel }: { b: Doc; patch: (p: Doc) =>
           <InlineField rows={2} value={b.text} onChange={(v) => patch({ text: v })} placeholder="引文" />
           <div className={travel ? undefined : 'grid grid-cols-[1fr_8rem] gap-2'}>
             <Input value={b.cite ?? ''} onChange={(e) => patch({ cite: e.target.value || undefined })} placeholder="出处" />
-            {!travel && <Select value={b.writing ?? 'h'} onValueChange={(v) => patch({ writing: v })} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />}
+            {!travel && <OptionSelect value={b.writing ?? 'h'} onValueChange={(v) => patch({ writing: v })} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />}
           </div>
         </div>
       );
@@ -47,7 +48,7 @@ export function PostBlockBody({ b, patch, travel }: { b: Doc; patch: (p: Doc) =>
           <ImageField value={b.src} onChange={(v) => patch({ src: v })} optional={false} />
           <div className="grid grid-cols-[1fr_10rem] gap-2">
             <Input value={b.alt ?? ''} onChange={(e) => patch({ alt: e.target.value })} placeholder="替代文字" />
-            <Select value={b.layout ?? 'wide'} onValueChange={(v) => patch({ layout: v })} options={[{ value: 'wide', label: '跨出正文栏' }, { value: 'inline', label: '与正文同宽' }]} />
+            <OptionSelect value={b.layout ?? 'wide'} onValueChange={(v) => patch({ layout: v })} options={[{ value: 'wide', label: '跨出正文栏' }, { value: 'inline', label: '与正文同宽' }]} />
           </div>
           <Input value={b.caption ?? ''} onChange={(e) => patch({ caption: e.target.value || undefined })} placeholder="图注" />
         </div>
@@ -58,11 +59,11 @@ export function PostBlockBody({ b, patch, travel }: { b: Doc; patch: (p: Doc) =>
       return (
         <div className="space-y-2">
           <Input className="w-40" value={b.lang ?? ''} onChange={(e) => patch({ lang: e.target.value || undefined })} placeholder="语言" />
-          <Textarea rows={6} value={b.code} spellCheck={false} onChange={(e) => patch({ code: e.target.value })} className="font-mono text-[12.5px] leading-[1.65] [tab-size:2] whitespace-pre" />
+          <Textarea rows={6} value={b.code} spellCheck={false} onChange={(e) => patch({ code: e.target.value })} variant="code" className="tab-2 whitespace-pre" />
         </div>
       );
   }
-  return <span className="text-ink-3">不认识的块类型 {String(b.type)}</span>;
+  return <span className="text-muted-foreground">不认识的块类型 {String(b.type)}</span>;
 }
 
 function ListField({ b, patch }: { b: Doc; patch: (p: Doc) => void }) {
@@ -70,7 +71,7 @@ function ListField({ b, patch }: { b: Doc; patch: (p: Doc) => void }) {
   return (
     <div className="space-y-2">
       <Textarea rows={4} value={text} onChange={(e) => { setText(e.target.value); patch({ items: e.target.value.split('\n').map((l) => compact(textToSpans(l))) }); }} />
-      <Switch checked={!!b.ordered} onCheckedChange={(v) => patch({ ordered: v || undefined })} label="有序列表（1. 2. 3.）" />
+      <SwitchField checked={!!b.ordered} onCheckedChange={(v) => patch({ ordered: v || undefined })} label="有序列表（1. 2. 3.）" />
     </div>
   );
 }

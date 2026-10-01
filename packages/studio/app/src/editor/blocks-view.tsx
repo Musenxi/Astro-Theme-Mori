@@ -2,9 +2,9 @@ import { useMemo } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { countWords, wan } from '@/lib/format';
 import { Button } from '@/components/ui/button';
-import { useConfirm } from '@/components/ui/dialog';
+import { useConfirm } from '@/components/confirm';
 import { Input } from '@/components/ui/input';
-import { onCard, Section } from '@/components/ui/page';
+import { onCard, Section } from '@/components/page';
 import { cn } from '@/lib/cn';
 import type { Doc, Kind } from '@/lib/types';
 import { allIds, nextId } from './ids';
@@ -18,7 +18,7 @@ const LABEL: Record<string, string> = { p: '段落', h: '标题', quote: '引用
 /** 块视图：每个块一张卡，能拖动排序。文章、页面、游记共用；游记多站点 / 路线 / 位置参数 */
 export function BlocksView({ kind, doc, patch, setDoc }: { kind: Kind; doc: Doc; patch: (p: Doc) => void; setDoc: (fn: (d: Doc) => Doc) => void }) {
   const confirm = useConfirm();
-  const blocks: Doc[] = doc.blocks ?? [];
+  const blocks: Doc[] = useMemo(() => doc.blocks ?? [], [doc.blocks]);
   const travel = kind === 'travel';
   const palette = travel ? TRAVEL_BLOCKS : POST_BLOCKS;
   const ids = useMemo(() => allIds(blocks), [blocks]);
@@ -42,8 +42,8 @@ export function BlocksView({ kind, doc, patch, setDoc }: { kind: Kind; doc: Doc;
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="mx-auto max-w-[46rem] px-8 pb-32 pt-6">
-        <Input value={doc.title ?? ''} onChange={(e) => patch({ title: e.target.value })} placeholder="标题" className="serif h-auto rounded-xl bg-transparent px-3 py-2 text-[30px] font-medium leading-tight hover:bg-ink/[.035] focus:bg-transparent" />
+      <div className="mx-auto max-w-184 px-8 pb-32 pt-6">
+        <Input value={doc.title ?? ''} onChange={(e) => patch({ title: e.target.value })} placeholder="标题" variant="title" />
 
         {travel && <TravelHead doc={doc} patch={patch} />}
 
@@ -51,15 +51,15 @@ export function BlocksView({ kind, doc, patch, setDoc }: { kind: Kind; doc: Doc;
           <SortableList items={blocks} getId={(b) => b.id} onReorder={setBlocks}>
             <div className="space-y-2">
               {blocks.map((b) => (
-                <SortableItem key={b.id} id={b.id} className={cn('group/block rounded-2xl bg-sunk/50 transition-[background-color,box-shadow] hover:bg-sunk/80 focus-within:bg-sunk/80 focus-within:shadow-[0_0_0_1.5px_color-mix(in_srgb,var(--ink)_16%,transparent)]', onCard)}>
+                <SortableItem key={b.id} id={b.id} className={cn('group/block rounded-2xl bg-muted/50 transition-[background-color,box-shadow] hover:bg-muted/80 focus-within:bg-muted/80 focus-within:shadow-focus-line', onCard)}>
                   {(handle) => (
                     <>
                       <div className="flex items-center gap-1.5 px-1.5 pt-1.5">
                         {handle}
-                        <span className="rounded-full bg-ink/[.06] px-2.5 py-px text-[12px] text-ink-2">{LABEL[b.type] ?? b.type}</span>
-                        <span className="mono text-[10.5px] text-ink-3/80">{b.id}</span>
+                        <span className="rounded-full bg-foreground/[.06] px-2.5 py-px text-12 text-soft-foreground">{LABEL[b.type] ?? b.type}</span>
+                        <span className="mono text-10-5 text-muted-foreground/80">{b.id}</span>
                         <span className="flex-1" />
-                        <Button variant="ghost" size="icon-sm" aria-label="删除这个块" className="opacity-0 transition-opacity focus-visible:opacity-100 group-focus-within/block:opacity-100 group-hover/block:opacity-100" onClick={() => remove(b)}><Trash2 size={14} /></Button>
+                        <Button variant="ghost" size="icon-sm" aria-label="删除这个块" reveal="block" onClick={() => remove(b)}><Trash2 size={14} /></Button>
                       </div>
                       <div className="px-3.5 pb-3.5 pt-1.5">
                         {travel ? <TravelBlockBody b={b} patch={(p) => patchBlock(b.id, p)} doc={doc} ids={ids} /> : <PostBlockBody b={b} patch={(p) => patchBlock(b.id, p)} />}
@@ -71,8 +71,8 @@ export function BlocksView({ kind, doc, patch, setDoc }: { kind: Kind; doc: Doc;
             </div>
           </SortableList>
           <div className="mt-4 flex flex-wrap items-center gap-1.5">
-            <span className="label mr-1">添加</span>
-            {palette.map((p) => <Button key={p.type} variant="secondary" size="sm" className="rounded-full" onClick={() => add(p.type)}><Plus size={13} />{p.label}</Button>)}
+            <span className="mr-1 text-12 text-muted-foreground">添加</span>
+            {palette.map((p) => <Button key={p.type} variant="secondary" size="sm" shape="pill" onClick={() => add(p.type)}><Plus size={13} />{p.label}</Button>)}
           </div>
         </Section>
 
@@ -97,7 +97,7 @@ function NotesEditor({ doc, patch }: { doc: Doc; patch: (p: Doc) => void }) {
       <div className="space-y-2">
         {ids.map((id) => (
           <div key={id} className="flex items-start gap-2">
-            <Input className="mono w-20" defaultValue={id} onBlur={(e) => rename(id, e.target.value.trim())} />
+            <Input variant="mono" className="w-20" defaultValue={id} onBlur={(e) => rename(id, e.target.value.trim())} />
             <div className="min-w-0 flex-1"><InlineField rows={1} value={notes[id].text} onChange={(v) => put({ ...notes, [id]: { text: v } })} /></div>
             <Button variant="ghost" size="icon-sm" aria-label="删除" onClick={() => { const { [id]: _drop, ...rest } = notes; put(rest); }}><Trash2 size={14} /></Button>
           </div>

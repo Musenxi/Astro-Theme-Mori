@@ -7,10 +7,10 @@ import { api, assetUrl, type AssetInfo } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { useRefresh } from '@/lib/hooks';
 import { Button } from '@/components/ui/button';
-import { useConfirm } from '@/components/ui/dialog';
+import { useConfirm } from '@/components/confirm';
 import { Input } from '@/components/ui/input';
-import { Body, Empty, PageHeader } from '@/components/ui/page';
-import { Segmented } from '@/components/ui/segmented';
+import { Body, Empty, PageHeader } from '@/components/page';
+import { Segmented } from '@/components/segmented';
 
 const size = (n: number) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 const href = (r: AssetInfo['usedBy'][number]) => (r.kind === 'page' ? `/pages/${r.id}` : r.kind === 'friends' ? '/friends' : `/posts/${r.id}`);
@@ -24,7 +24,7 @@ export default function Files() {
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
   const input = useRef<HTMLInputElement>(null);
-  const all = data?.assets ?? [];
+  const all = useMemo(() => data?.assets ?? [], [data?.assets]);
   const list = useMemo(() => all.filter((a) => a.name.toLowerCase().includes(q.toLowerCase()) && (view === 'all' || a.usedBy.length === 0)), [all, q, view]);
   const unused = all.filter((a) => a.usedBy.length === 0).length;
 
@@ -45,27 +45,27 @@ export default function Files() {
     <div onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={(e) => { if (e.currentTarget === e.target) setOver(false); }} onDrop={(e) => { e.preventDefault(); setOver(false); void upload([...e.dataTransfer.files]); }} className="min-h-full">
       <PageHeader title="文件" sub={`${all.length} 张 · ${unused} 张没被引用`} actions={<>
         <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => { void upload([...(e.target.files ?? [])]); e.target.value = ''; }} />
-        <Button variant="primary" onClick={() => input.current?.click()} disabled={busy}><Upload size={14} />{busy ? '上传中……' : '上传图片'}</Button>
+        <Button variant="default" onClick={() => input.current?.click()} disabled={busy}><Upload size={14} />{busy ? '上传中……' : '上传图片'}</Button>
       </>} />
-      <Body wide className={cn('rounded-2xl transition-[background-color,box-shadow]', over && 'bg-ink/[.03] ring-2 ring-ink/20')}>
+      <Body wide className={cn('rounded-2xl transition-[background-color,box-shadow]', over && 'bg-foreground/[.03] ring-2 ring-foreground/20')}>
         <div className="mb-5 flex items-center gap-3">
-          <Input className="w-56 rounded-full px-4" value={q} onChange={(e) => setQ(e.target.value)} placeholder="按文件名找" />
+          <Input variant="pill" className="w-56" value={q} onChange={(e) => setQ(e.target.value)} placeholder="按文件名找" />
           <Segmented size="sm" value={view} onValueChange={setView} options={[{ value: 'all', label: '全部' }, { value: 'unused', label: '没被引用' }]} />
-          <span className="ml-auto text-[12px] text-ink-3">{over ? '松手上传' : ''}</span>
+          <span className="ml-auto text-12 text-muted-foreground">{over ? '松手上传' : ''}</span>
         </div>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(11.5rem,1fr))] gap-4">
           {list.map((a) => (
-            <figure key={a.name} className="group rounded-2xl bg-sunk/70 p-2 transition-colors hover:bg-sunk">
-              <div className="relative overflow-hidden rounded-xl bg-sunk-2">
-                <img loading="lazy" src={assetUrl(a.name, 360)} alt="" className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
-                <button type="button" aria-label={`删除 ${a.name}`} onClick={() => remove(a)} className="absolute right-1.5 top-1.5 grid h-8 w-8 place-items-center rounded-full bg-lift/90 text-ink-2 opacity-0 shadow-soft backdrop-blur transition-opacity hover:text-danger focus:opacity-100 group-hover:opacity-100"><Trash2 size={13} /></button>
+            <figure key={a.name} className="group rounded-2xl bg-muted/70 p-2 transition-colors hover:bg-muted">
+              <div className="relative overflow-hidden rounded-xl bg-muted-hover">
+                <img loading="lazy" src={assetUrl(a.name, 360)} alt="" className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-103" />
+                <button type="button" aria-label={`删除 ${a.name}`} onClick={() => remove(a)} className="absolute right-1.5 top-1.5 grid h-8 w-8 place-items-center rounded-full bg-popover/90 text-soft-foreground opacity-0 shadow-soft backdrop-blur transition-opacity hover:text-destructive focus:opacity-100 group-hover:opacity-100"><Trash2 size={13} /></button>
               </div>
               <figcaption className="px-1.5 pb-1 pt-2">
-                <div className="mono truncate text-[11.5px]" title={a.name}>{a.name}</div>
-                <div className="mono text-[10.5px] text-ink-3">{a.width && a.height ? `${a.width}×${a.height} · ` : ''}{size(a.size)}</div>
-                <div className="mt-0.5 text-[12px]">
-                  {a.usedBy.length === 0 ? <span className="text-ink-3">没被引用</span> : (
-                    <span className="text-ink-2">被引用：{a.usedBy.slice(0, 2).map((r, i) => <span key={r.kind + r.id}>{i > 0 && '、'}<Link to={href(r)} className="text-ink underline decoration-ink/20 underline-offset-2 hover:decoration-ink">{r.title}</Link></span>)}{a.usedBy.length > 2 && ` 等 ${a.usedBy.length} 处`}</span>
+                <div className="mono truncate text-11-5" title={a.name}>{a.name}</div>
+                <div className="mono text-10-5 text-muted-foreground">{a.width && a.height ? `${a.width}×${a.height} · ` : ''}{size(a.size)}</div>
+                <div className="mt-0.5 text-12">
+                  {a.usedBy.length === 0 ? <span className="text-muted-foreground">没被引用</span> : (
+                    <span className="text-soft-foreground">被引用：{a.usedBy.slice(0, 2).map((r, i) => <span key={r.kind + r.id}>{i > 0 && '、'}<Link to={href(r)} className="text-foreground underline decoration-foreground/20 underline-offset-2 hover:decoration-foreground">{r.title}</Link></span>)}{a.usedBy.length > 2 && ` 等 ${a.usedBy.length} 处`}</span>
                   )}
                 </div>
               </figcaption>

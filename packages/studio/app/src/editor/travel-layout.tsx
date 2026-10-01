@@ -7,7 +7,7 @@
  * 尺寸比例照着主题的横向读法（styles/travel.css）：视口高 S，图高 0.66S，上下留白 8% / 13%。
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Popover } from 'radix-ui';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ChevronLeft, ChevronRight, ImagePlus, Map as MapIcon, MapPin, Merge, Plus, Redo2, RotateCcw, Settings2, Split, Trash2, Undo2 } from 'lucide-react';
 import { assetUrl } from '@/lib/api';
 import { cn } from '@/lib/cn';
@@ -15,14 +15,18 @@ import type { Doc } from '@/lib/types';
 import * as ops from '@/lib/travel-ops.js';
 import { assetName, assetPath, AssetDialog } from '@/components/asset-picker';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, useConfirm } from '@/components/ui/dialog';
-import { Input, NumInput } from '@/components/ui/input';
-import { Segmented } from '@/components/ui/segmented';
-import { Tip } from '@/components/ui/tooltip';
+import { Dialog } from '@/components/ui/dialog';
+import { ModalContent } from '@/components/modal';
+import { useConfirm } from '@/components/confirm';
+import { Input } from '@/components/ui/input';
+import { NumInput } from '@/components/field';
+import { Segmented } from '@/components/segmented';
+import { Tip } from '@/components/tip';
 import { TravelBlockBody } from './travel-blocks';
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const r2 = (v: number) => Math.round(v * 100) / 100;
+const px = (n: number) => `${n}px`;
 const SCALABLE = new Set(['single', 'pair', 'strip', 'grid', 'free', 'text']);
 const NAMES: Record<string, string> = { text: '文字', single: '单图', pair: '双图', strip: '图组', grid: '网格', free: '自由排布', map: '地图' };
 /** 舞台占可用高度的比例：小一点能一眼看到更多站 */
@@ -59,8 +63,8 @@ export function TravelLayout({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) 
     return () => ro.disconnect();
   }, []);
 
-  const stops: Doc[] = doc.stops ?? [];
-  const blocks: Doc[] = doc.blocks ?? [];
+  const stops: Doc[] = useMemo(() => doc.stops ?? [], [doc.stops]);
+  const blocks: Doc[] = useMemo(() => doc.blocks ?? [], [doc.blocks]);
   const seq = useMemo(() => ops.sequence({ stops, blocks }), [stops, blocks]);
   const selected = blocks.find((b) => b.id === sel) ?? null;
   const firstText = useMemo(() => {
@@ -184,14 +188,14 @@ export function TravelLayout({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) 
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* 上面一条：没选中时是说明和插入，选中后是这一块的版式 */}
-      <div className="mx-5 flex min-h-11 shrink-0 flex-wrap items-center gap-2 rounded-[22px] bg-sunk/70 px-2 py-1">
+      <div className="mx-5 flex min-h-11 shrink-0 flex-wrap items-center gap-2 rounded-22 bg-muted/70 px-2 py-1">
         {selected ? <BlockBar key={selected.id} b={selected} doc={doc} stops={stops} commit={commit} patch={(p) => patchBlock(selected.id, p)} onDetail={() => setDetail(true)} onRemove={() => void remove(selected)} />
           : <span />}
         <span className="ml-auto flex items-center gap-0.5">
           <Segmented size="sm" className="mr-1.5" value={zoom} onValueChange={setZoom} options={[{ value: 's', label: '小' }, { value: 'm', label: '中' }, { value: 'l', label: '大' }]} />
           <ToolBtn label="插入图片" onClick={() => setLib(true)}><ImagePlus size={15} /></ToolBtn>
           <ToolBtn label="插入地图" onClick={() => insert({ type: 'map', scope: 'route' })}><MapIcon size={15} /></ToolBtn>
-          <span className="mx-1 h-4 w-px bg-rule-2" />
+          <span className="mx-1 h-4 w-px bg-border-strong" />
           <ToolBtn label="撤销　⌘Z" disabled={!past.current.length} onClick={undo}><Undo2 size={15} /></ToolBtn>
           <ToolBtn label="重做　⇧⌘Z" disabled={!future.current.length} onClick={redo}><Redo2 size={15} /></ToolBtn>
         </span>
@@ -204,10 +208,9 @@ export function TravelLayout({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) 
           onKeyDown={onKey}
           onWheel={(e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) scroller.current!.scrollLeft += rtl ? -e.deltaY : e.deltaY; }}
           onPointerDown={(e) => { if (e.target === e.currentTarget || e.target === track.current) setSel(null); }}
-          className="absolute inset-0 flex items-center overflow-x-auto overflow-y-hidden rounded-2xl bg-sunk/70 outline-none [scrollbar-width:thin]"
-          style={rtl ? { direction: 'rtl' } : undefined}
+          className={cn('absolute inset-0 flex items-center overflow-x-auto overflow-y-hidden rounded-2xl bg-muted/70 outline-none [scrollbar-width:thin]', rtl && '[direction:rtl]')}
         >
-          <div ref={track} className="relative flex w-max items-start" style={{ height: S, padding: `${g.padT}px ${S * 0.1}px ${g.padB}px`, columnGap: g.gap, direction: 'ltr', flexDirection: rtl ? 'row-reverse' : 'row' }}>
+          <div ref={track} className={cn('relative flex h-(--h) w-max items-start gap-x-(--gap) px-(--px) pt-(--pt) pb-(--pb) [direction:ltr]', rtl ? 'flex-row-reverse' : 'flex-row')} style={{ '--h': px(S), '--pt': px(g.padT), '--pb': px(g.padB), '--px': px(S * 0.1), '--gap': px(g.gap) }}>
             {seq.map((x, i) => x.kind === 'stop' ? (
               <StopMarker key={`s-${x.stop.id}`} stop={x.stop} index={stops.indexOf(x.stop)} count={stops.length} g={g} open={openStop === x.stop.id} onOpen={(o) => setOpenStop(o ? x.stop.id : null)}
                 patch={(p) => patchStop(x.stop.id, p)}
@@ -223,10 +226,10 @@ export function TravelLayout({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) 
               </BlockFrame>
             ))}
             <button type="button" onClick={() => { const r = ops.addStop(doc); commit(r.doc); setOpenStop(r.id); }}
-              className="flex h-7 flex-none items-center gap-1 self-start rounded-full px-3 text-[12px] text-ink-3 transition-colors hover:bg-ink/[.06] hover:text-ink" style={{ marginTop: -g.padT * 0.72 }}>
+              className="mt-(--mt) flex h-7 flex-none items-center gap-1 self-start rounded-full px-3 text-12 text-muted-foreground transition-colors hover:bg-foreground/[.06] hover:text-foreground" style={{ '--mt': px(-g.padT * 0.72) }}>
               <Plus size={13} />站点
             </button>
-            {drag?.line !== undefined && <i className="pointer-events-none absolute w-0.5 rounded-full bg-ink" style={{ left: drag.line - 1, top: g.padT * 0.5, bottom: g.padB * 0.5 }} />}
+            {drag?.line !== undefined && <i className="pointer-events-none absolute top-(--t) bottom-(--b) left-(--l) w-0.5 rounded-full bg-primary" style={{ '--l': px(drag.line - 1), '--t': px(g.padT * 0.5), '--b': px(g.padB * 0.5) }} />}
           </div>
         </div>
       </div>
@@ -234,9 +237,9 @@ export function TravelLayout({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) 
       <AssetDialog open={lib} onOpenChange={setLib} onPick={(n) => { setLib(false); insert({ type: 'single', src: assetPath(n), alt: '', layout: 'full' }); }} />
       <Dialog open={detail && !!selected} onOpenChange={setDetail}>
         {selected && (
-          <DialogContent wide title={`${NAMES[selected.type] ?? '块'}的细节`}>
+          <ModalContent wide title={`${NAMES[selected.type] ?? '块'}的细节`}>
             <div><TravelBlockBody b={selected} doc={doc} ids={blocks.flatMap((b) => [b.id, ...(b.paras ?? []).map((p: Doc) => p.id)])} patch={(p) => patchBlock(selected.id, p, false)} noPlace /></div>
-          </DialogContent>
+          </ModalContent>
         )}
       </Dialog>
     </div>
@@ -253,7 +256,7 @@ function ToolBtn({ label, children, onClick, disabled, active }: { label: string
   return (
     <Tip label={label}>
       <button type="button" aria-label={label} disabled={disabled} onClick={onClick}
-        className={cn('grid h-8 w-8 place-items-center rounded-full text-ink-2 transition-[background-color,color] hover:bg-lift hover:text-ink hover:shadow-soft disabled:pointer-events-none disabled:opacity-35', active && 'bg-lift text-ink shadow-soft')}>
+        className={cn('grid h-8 w-8 place-items-center rounded-full text-soft-foreground transition-[background-color,color] hover:bg-popover hover:text-foreground hover:shadow-soft disabled:pointer-events-none disabled:opacity-35', active && 'bg-popover text-foreground shadow-soft')}>
         {children}
       </button>
     </Tip>
@@ -268,11 +271,11 @@ function BlockBar({ b, doc, stops, commit, patch, onDetail, onRemove }: { b: Doc
   const moved = b.y !== undefined || b.scale !== undefined;
   return (
     <>
-      <span className="flex items-center gap-2 pl-2 pr-1 text-[12.5px]">
+      <span className="flex items-center gap-2 pl-2 pr-1 text-12-5">
         <b className="font-medium">{NAMES[b.type] ?? b.type}</b>
-        <span className="text-ink-3">{stop?.name || '未命名的站'}</span>
+        <span className="text-muted-foreground">{stop?.name || '未命名的站'}</span>
       </span>
-      <span className="h-4 w-px bg-rule-2" />
+      <span className="h-4 w-px bg-border-strong" />
       {b.type === 'single' && <Segmented size="sm" value={b.layout === 'inset' ? 'inset' : 'full'} onValueChange={(v) => patch({ layout: v })} options={[{ value: 'full', label: '通栏' }, { value: 'inset', label: '内缩' }]} />}
       {layouts.length > 0 && (
         <Segmented size="sm" value={b.type} onValueChange={(t) => commit(ops.setLayout(doc, b.id, t))} options={layouts.map((t) => ({ value: t, label: NAMES[t] }))} />
@@ -285,7 +288,7 @@ function BlockBar({ b, doc, stops, commit, patch, onDetail, onRemove }: { b: Doc
       {b.type === 'map' && <Segmented size="sm" value={b.scope === 'stop' ? 'stop' : 'route'} onValueChange={(v) => patch({ scope: v })} options={[{ value: 'route', label: '全程路线' }, { value: 'stop', label: '只看这一站' }]} />}
       {ops.canMergeNext(doc, b.id) &&<Button size="sm" variant="ghost" onClick={() => commit(ops.mergeWithNext(doc, b.id))}><Merge size={14} />和后一块合并</Button>}
       {ops.isImageBlock(b) && b.type !== 'single' && <Button size="sm" variant="ghost" onClick={() => commit(ops.split(doc, b.id))}><Split size={14} />拆成单图</Button>}
-      <span className="mono px-1 text-[11px] text-ink-3">↕ {Math.round((b.y ?? 0.5) * 100)}%{b.type !== 'map' && ` · ${Math.round((b.scale ?? 1) * 100)}%`}</span>
+      <span className="mono px-1 text-11 text-muted-foreground">↕ {Math.round((b.y ?? 0.5) * 100)}%{b.type !== 'map' && ` · ${Math.round((b.scale ?? 1) * 100)}%`}</span>
       {moved && <ToolBtn label="位置和大小复位" onClick={() => patch({ y: undefined, scale: undefined })}><RotateCcw size={14} /></ToolBtn>}
       {b.type !== 'map' && <ToolBtn label="细节：图注、替代文字……" onClick={onDetail}><Settings2 size={15} /></ToolBtn>}
       <ToolBtn label="删除这一块" onClick={onRemove}><Trash2 size={14} /></ToolBtn>
@@ -301,44 +304,41 @@ function StopMarker({ stop, index, count, g, open, onOpen, patch, onMove, onRemo
   const located = stop.lnglat && (stop.lnglat[0] !== 0 || stop.lnglat[1] !== 0);
   return (
     // 没有内容的站点：标签占住自己的宽度，免得被下一站的标签盖住
-    <div data-seq={seq} className="relative flex-none self-stretch" style={{ width: empty ? undefined : 1, marginTop: -g.padT * 0.72, marginBottom: -g.padB * 0.6 }}>
-      <i className={cn('absolute bottom-0 top-8 w-px bg-rule-2', g.rtl ? 'right-0' : 'left-0')} />
-      {empty && <span className={cn('absolute top-10 whitespace-nowrap text-[11.5px] text-ink-3', g.rtl ? 'right-3' : 'left-3')}>这一站还没有内容</span>}
-      <Popover.Root open={open} onOpenChange={onOpen}>
-        <Popover.Trigger asChild>
-          <button type="button" className={cn(empty ? 'relative' : 'absolute', g.rtl ? 'right-0' : 'left-0', 'top-0 flex h-7 items-center gap-2 whitespace-nowrap rounded-full px-3 text-[12.5px] transition-[background-color,box-shadow]', open ? 'bg-sunk-2' : 'bg-sunk hover:bg-sunk-2')}>
-            <span className="mono text-[11px] text-ink-3">{String(index + 1).padStart(2, '0')}</span>
+    <div data-seq={seq} className="relative mt-(--mt) mb-(--mb) w-(--w) flex-none self-stretch" style={{ '--w': empty ? undefined : '1px', '--mt': px(-g.padT * 0.72), '--mb': px(-g.padB * 0.6) }}>
+      <i className={cn('absolute bottom-0 top-8 w-px bg-border-strong', g.rtl ? 'right-0' : 'left-0')} />
+      {empty && <span className={cn('absolute top-10 whitespace-nowrap text-11-5 text-muted-foreground', g.rtl ? 'right-3' : 'left-3')}>这一站还没有内容</span>}
+      <Popover open={open} onOpenChange={onOpen}>
+        <PopoverTrigger asChild>
+          <button type="button" className={cn(empty ? 'relative' : 'absolute', g.rtl ? 'right-0' : 'left-0', 'top-0 flex h-7 items-center gap-2 whitespace-nowrap rounded-full px-3 text-12-5 transition-[background-color,box-shadow]', open ? 'bg-muted-hover' : 'bg-muted hover:bg-muted-hover')}>
+            <span className="mono text-11 text-muted-foreground">{String(index + 1).padStart(2, '0')}</span>
             <span className="font-medium">{stop.name || '未命名'}</span>
-            {!located && <span className="flex items-center gap-0.5 text-[11.5px] text-ink-3"><MapPin size={11} />未定位</span>}
+            {!located && <span className="flex items-center gap-0.5 text-11-5 text-muted-foreground"><MapPin size={11} />未定位</span>}
           </button>
-        </Popover.Trigger>
-        <Popover.Portal>
-          <Popover.Content side="bottom" align={g.rtl ? 'end' : 'start'} sideOffset={8} onOpenAutoFocus={(e) => e.preventDefault()}
-            className="z-[80] w-[19rem] rounded-xl bg-lift p-4 shadow-pop outline-none data-[state=open]:animate-pop">
-            <div className="space-y-2">
-              <Input value={stop.name ?? ''} placeholder="站名" onChange={(e) => patch({ name: e.target.value })} />
-              <div className="grid grid-cols-[1fr_6rem] gap-2">
-                <Input value={stop.en ?? ''} placeholder="英文名" onChange={(e) => patch({ en: e.target.value || undefined })} />
-                <Input value={stop.date ?? ''} placeholder="日期" onChange={(e) => patch({ date: e.target.value || undefined })} />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <label className="text-[11.5px] text-ink-3">经度<NumInput className="mt-1 text-ink" value={stop.lnglat?.[0]} onChange={(v) => patch({ lnglat: [v ?? 0, stop.lnglat?.[1] ?? 0] })} /></label>
-                <label className="text-[11.5px] text-ink-3">纬度<NumInput className="mt-1 text-ink" value={stop.lnglat?.[1]} onChange={(v) => patch({ lnglat: [stop.lnglat?.[0] ?? 0, v ?? 0] })} /></label>
-              </div>
+        </PopoverTrigger>
+        <PopoverContent side="bottom" align={g.rtl ? 'end' : 'start'} onOpenAutoFocus={(e) => e.preventDefault()} className="w-76">
+          <div className="space-y-2">
+            <Input value={stop.name ?? ''} placeholder="站名" onChange={(e) => patch({ name: e.target.value })} />
+            <div className="grid grid-cols-[1fr_6rem] gap-2">
+              <Input value={stop.en ?? ''} placeholder="英文名" onChange={(e) => patch({ en: e.target.value || undefined })} />
+              <Input value={stop.date ?? ''} placeholder="日期" onChange={(e) => patch({ date: e.target.value || undefined })} />
             </div>
-            <div className="mt-3 flex items-center gap-1">
-              {(g.rtl ? [1, -1] : [-1, 1]).map((d) => (
-                <ToolBtn key={d} label={d < 0 ? '整站往前挪' : '整站往后挪'} disabled={d < 0 ? index === 0 : index === count - 1} onClick={() => onMove(d)}>
-                  {(d < 0) === !g.rtl ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}
-                </ToolBtn>
-              ))}
-              <span className="flex-1" />
-              <Button size="sm" variant="danger" disabled={count < 2} onClick={onRemove}><Trash2 size={13} />删除这一站</Button>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="text-11-5 text-muted-foreground">经度<NumInput className="mt-1 text-foreground" value={stop.lnglat?.[0]} onChange={(v) => patch({ lnglat: [v ?? 0, stop.lnglat?.[1] ?? 0] })} /></label>
+              <label className="text-11-5 text-muted-foreground">纬度<NumInput className="mt-1 text-foreground" value={stop.lnglat?.[1]} onChange={(v) => patch({ lnglat: [stop.lnglat?.[0] ?? 0, v ?? 0] })} /></label>
             </div>
-            {count >= 2 && <p className="mt-2 text-[11.5px] text-ink-3">删除后，这一站的内容并到{index === 0 ? '下' : '上'}一站。</p>}
-          </Popover.Content>
-        </Popover.Portal>
-      </Popover.Root>
+          </div>
+          <div className="mt-3 flex items-center gap-1">
+            {(g.rtl ? [1, -1] : [-1, 1]).map((d) => (
+              <ToolBtn key={d} label={d < 0 ? '整站往前挪' : '整站往后挪'} disabled={d < 0 ? index === 0 : index === count - 1} onClick={() => onMove(d)}>
+                {(d < 0) === !g.rtl ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}
+              </ToolBtn>
+            ))}
+            <span className="flex-1" />
+            <Button size="sm" variant="danger" disabled={count < 2} onClick={onRemove}><Trash2 size={13} />删除这一站</Button>
+          </div>
+          {count >= 2 && <p className="mt-2 text-11-5 text-muted-foreground">删除后，这一站的内容并到{index === 0 ? '下' : '上'}一站。</p>}
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }
@@ -358,24 +358,24 @@ function BlockFrame({ b, g, seq, selected, drag, onDown, onScale, onOpen, childr
       data-id={b.id}
       onPointerDown={onDown}
       onDoubleClick={onOpen}
-      className={cn('group relative flex-none touch-none select-none rounded-[3px] outline-offset-[6px]', drag ? 'cursor-grabbing' : 'cursor-grab',
-        selected ? 'outline outline-2 outline-ink' : 'hover:outline hover:outline-1 hover:outline-ink/25', lifting && 'z-10 opacity-90 shadow-pop')}
-      style={{ top: `${y * 100}%`, transform: `translate(${drag?.dx ?? 0}px, ${-y * 100}%)`, transition: drag ? 'none' : 'top .25s var(--ease-out), transform .25s var(--ease-out)' }}
+      className={cn('group relative top-(--top) flex-none touch-none select-none rounded-3 outline-offset-6 [transform:translate(var(--dx),var(--ty))]', drag ? 'cursor-grabbing transition-none' : 'cursor-grab [transition:top_.25s_var(--ease-out),transform_.25s_var(--ease-out)]',
+        selected ? 'outline outline-2 outline-foreground' : 'hover:outline hover:outline-1 hover:outline-foreground/25', lifting && 'z-10 opacity-90 shadow-pop')}
+      style={{ '--top': `${y * 100}%`, '--dx': px(drag?.dx ?? 0), '--ty': `${-y * 100}%` }}
     >
       {children}
       {selected && SCALABLE.has(b.type) && !(b.type === 'text' && b.writing !== 'v') && (
-        <span onPointerDown={onScale} aria-label="拖动改大小" className="absolute -bottom-[11px] -right-[11px] z-20 grid h-[22px] w-[22px] cursor-nwse-resize place-items-center rounded-full bg-lift shadow-pop">
-          <i className="h-2 w-2 rounded-full bg-ink" />
+        <span onPointerDown={onScale} aria-label="拖动改大小" className="absolute -bottom-2.75 -right-2.75 z-20 grid h-5.5 w-5.5 cursor-nwse-resize place-items-center rounded-full bg-popover shadow-pop">
+          <i className="h-2 w-2 rounded-full bg-primary" />
         </span>
       )}
-      {drag?.scale !== undefined && <span className="mono absolute -top-7 right-0 rounded-full bg-ink px-2 py-0.5 text-[11px] text-surface">{Math.round(drag.scale * 100)}%</span>}
+      {drag?.scale !== undefined && <span className="mono absolute -top-7 right-0 rounded-full bg-primary px-2 py-0.5 text-11 text-primary-foreground">{Math.round(drag.scale * 100)}%</span>}
     </div>
   );
 }
 
 function Img({ src, style, className }: { src?: string; style?: React.CSSProperties; className?: string }) {
-  if (!src) return <span className={cn('grid place-items-center bg-sunk text-[11px] text-ink-3', className)} style={{ aspectRatio: '4 / 3', ...style }}>没有图</span>;
-  return <img src={imgSrc(src)} alt="" draggable={false} loading="lazy" className={cn('block max-w-none bg-sunk object-cover', className)} style={style} />;
+  if (!src) return <span className={cn('grid aspect-[4/3] place-items-center bg-muted text-11 text-muted-foreground', className)} style={style}>没有图</span>;
+  return <img src={imgSrc(src)} alt="" draggable={false} loading="lazy" className={cn('block max-w-none bg-muted object-cover', className)} style={style} />;
 }
 
 const caption = (list: Doc[]) => list.map((i) => i.caption).filter(Boolean).join(' / ');
@@ -387,8 +387,8 @@ function Spans({ text }: { text: unknown }) {
     const marks: string[] = (s.marks ?? []).map((m: Doc) => m.type);
     const note = marks.includes('note') || marks.includes('fn');
     return (
-      <span key={i} className={cn(marks.includes('strong') && 'font-bold', marks.includes('em') && 'italic', marks.includes('code') && 'font-mono text-[.9em]', marks.includes('link') && 'underline decoration-ink/30 underline-offset-2')}>
-        {s.t}{note && <sup className="mono text-[.6em] text-ink-3">*</sup>}
+      <span key={i} className={cn(marks.includes('strong') && 'font-bold', marks.includes('em') && 'italic', marks.includes('code') && 'font-mono text-smaller', marks.includes('link') && 'underline decoration-foreground/30 underline-offset-2')}>
+        {s.t}{note && <sup className="mono text-sup text-muted-foreground">*</sup>}
       </span>
     );
   })}</>;
@@ -414,20 +414,20 @@ function useItemDrag<T extends Doc>(list: T[], onPatch: (next: T[]) => void) {
 }
 
 const Knob = ({ onDown }: { onDown: (e: React.PointerEvent) => void }) => (
-  <span onPointerDown={onDown} className="absolute -bottom-[9px] -right-[9px] z-30 grid h-[18px] w-[18px] cursor-nwse-resize place-items-center rounded-full bg-lift shadow-pop"><i className="h-1.5 w-1.5 rounded-full bg-ink" /></span>
+  <span onPointerDown={onDown} className="absolute -bottom-2.25 -right-2.25 z-30 grid h-4.5 w-4.5 cursor-nwse-resize place-items-center rounded-full bg-popover shadow-pop"><i className="h-1.5 w-1.5 rounded-full bg-primary" /></span>
 );
 
 function StripFace({ b, H, fs, rtl, active, onPatch }: { b: Doc; H: number; fs: number; rtl: boolean; active: boolean; onPatch: (p: Doc) => void }) {
   const { items, start } = useItemDrag<Doc>(b.images, (images) => onPatch({ images }));
   const put = (i: number, p: Doc) => items.map((x, k) => (k === i ? { ...x, ...p } : x));
   return (
-    <div className="flex items-start" style={{ gap: fs * 0.7, direction: rtl ? 'rtl' : 'ltr' }}>
+    <div className={cn('flex items-start gap-(--gap)', rtl ? '[direction:rtl]' : '[direction:ltr]')} style={{ '--gap': px(fs * 0.7) }}>
       {items.map((im, i) => {
         const s = im.scale ?? 1, o = im.offset ?? 0;
         return (
-          <span key={i} className={cn('relative block', active && 'cursor-ns-resize outline outline-1 outline-offset-2 outline-ink/20 hover:outline-ink/50')} style={{ marginTop: H * o }}
+          <span key={i} className={cn('relative mt-(--mt) block', active && 'cursor-ns-resize outline outline-1 outline-offset-2 outline-foreground/20 hover:outline-foreground/50')} style={{ '--mt': px(H * o) }}
             onPointerDown={active ? (e) => start(e, (_dx, dy) => put(i, { offset: r2(clamp(o + dy / H, -0.5, 0.5)) })) : undefined}>
-            <Img src={im.src} style={{ height: H * s, width: 'auto' }} />
+            <Img src={im.src} className="h-(--h) w-auto" style={{ '--h': px(H * s) }} />
             {active && <Knob onDown={(e) => { const h0 = H * s; start(e, (_dx, dy) => put(i, { scale: r2(clamp((s * (h0 + dy)) / h0, 0.3, 1.6)) })); }} />}
           </span>
         );
@@ -449,17 +449,17 @@ function FreeFace({ b, h, fs, active, onPatch }: { b: Doc; h: number; fs: number
       : { ...x, w: r2(clamp(it.w + dx / W, 0.08, 1)), z })));
   };
   return (
-    <div ref={box} className={cn('relative', active && 'bg-ink/[.03]')} style={{ height: h, width: W }}>
+    <div ref={box} className={cn('relative h-(--h) w-(--w)', active && 'bg-foreground/[.03]')} style={{ '--h': px(h), '--w': px(W) }}>
       {items.map((it, i) => it.kind === 'image' ? (
-        <span key={i} className={cn('absolute block', active && 'cursor-move outline outline-1 outline-offset-1 outline-ink/20 hover:outline-ink/50')}
-          style={{ left: `${it.x * 100}%`, top: `${it.y * 100}%`, width: `${it.w * 100}%`, zIndex: it.z ?? 1 }}
+        <span key={i} className={cn('absolute top-[calc(var(--y)*100%)] left-[calc(var(--x)*100%)] z-(--z) block w-[calc(var(--w)*100%)]', active && 'cursor-move outline outline-1 outline-offset-1 outline-foreground/20 hover:outline-foreground/50')}
+          style={{ '--x': it.x, '--y': it.y, '--w': it.w, '--z': it.z ?? 1 }}
           onPointerDown={active ? (e) => drag(e, i, 'move') : undefined}>
           <Img src={it.src} className="h-auto w-full" />
           {active && <Knob onDown={(e) => drag(e, i, 'size')} />}
         </span>
       ) : (
-        <p key={i} className={cn('serif absolute text-ink-2', active && 'cursor-move outline outline-1 outline-dashed outline-offset-2 outline-ink/30')}
-          style={{ left: `${it.x * 100}%`, top: `${it.y * 100}%`, writingMode: 'vertical-rl', fontSize: fs * 0.85, letterSpacing: '.26em', lineHeight: 1.9, zIndex: 999 }}
+        <p key={i} className={cn('serif absolute top-[calc(var(--y)*100%)] left-[calc(var(--x)*100%)] z-999 text-(length:--fs) leading-[1.9] tracking-[.26em] text-soft-foreground [writing-mode:vertical-rl]', active && 'cursor-move outline outline-1 outline-dashed outline-offset-2 outline-foreground/30')}
+          style={{ '--x': it.x, '--y': it.y, '--fs': px(fs * 0.85) }}
           onPointerDown={active ? (e) => drag(e, i, 'move') : undefined}><Spans text={it.text} /></p>
       ))}
     </div>
@@ -471,61 +471,62 @@ const paraPlain = (p: Doc) => (p.type === 'list' ? (p.items as unknown[]).map(sp
 
 /** 文字块里的一段：段落、小标题、引用、列表、代码（版式和站点上的读法大致一样，不求逐像素） */
 function Para({ p, v, first }: { p: Doc; v: boolean; first: boolean }) {
-  const gap: React.CSSProperties | undefined = first ? undefined : v ? { marginBlockStart: '.9em' } : { marginTop: '.9em' };
+  // 段与段之间隔开一点；竖排时“块开始”的一侧在右边
+  const gap = first ? '' : v ? '[margin-block-start:.9em]' : 'mt-[.9em]';
   switch (p.type) {
-    case 'h': return <h3 className="font-bold" style={{ ...gap, letterSpacing: '.08em', fontSize: '1.12em', ...(first ? undefined : v ? { marginBlockStart: '1.1em' } : { marginTop: '1.3em' }) }}><Spans text={p.text} /></h3>;
+    case 'h': return <h3 className={cn('text-em-112 font-bold tracking-[.08em]', !first && (v ? '[margin-block-start:1.1em]' : 'mt-[1.3em]'))}><Spans text={p.text} /></h3>;
     case 'quote':
       return (
-        <blockquote className="text-ink-2" style={{ ...gap, ...(v ? { paddingInlineEnd: '1em', borderRight: '1px solid var(--ink-3)' } : { paddingLeft: '1em', borderLeft: '1px solid var(--ink-3)' }) }}>
+        <blockquote className={cn('text-soft-foreground', gap, v ? 'border-r border-r-muted-foreground [padding-inline-end:1em]' : 'border-l border-l-muted-foreground pl-[1em]')}>
           <Spans text={p.text} />
-          {p.cite && <cite className="block not-italic text-ink-3" style={{ fontSize: '.85em', ...(v ? { marginBlockStart: '.4em' } : { marginTop: '.3em' }) }}>{p.cite}</cite>}
+          {p.cite && <cite className={cn('block text-em-85 not-italic text-muted-foreground', v ? '[margin-block-start:.4em]' : 'mt-[.3em]')}>{p.cite}</cite>}
         </blockquote>
       );
     case 'list':
       return (
-        <ul style={gap}>
+        <ul className={gap}>
           {(p.items as unknown[]).map((it, k) => (
-            <li key={k} className="flex" style={{ gap: '.5em' }}><span className="mono text-ink-3">{p.ordered ? k + 1 : '・'}</span><span><Spans text={it} /></span></li>
+            <li key={k} className="flex gap-[.5em]"><span className="mono text-muted-foreground">{p.ordered ? k + 1 : '・'}</span><span><Spans text={it} /></span></li>
           ))}
         </ul>
       );
     case 'code':
-      return <pre className="mono overflow-hidden whitespace-pre-wrap bg-ink/[.05] text-ink-2" style={{ ...gap, fontSize: '.8em', lineHeight: 1.7, padding: '.6em .8em', writingMode: 'horizontal-tb', letterSpacing: 0, ...(v ? { width: '16em' } : undefined) }}>{p.code}</pre>;
-    default: return <p className="text-justify" style={gap}><Spans text={p.text} /></p>;
+      return <pre className={cn('mono overflow-hidden px-[.8em] py-[.6em] text-em-80 leading-1-7 tracking-[0] whitespace-pre-wrap bg-foreground/[.05] text-soft-foreground [writing-mode:horizontal-tb]', !first && 'mt-[.9em]', v && 'w-[16em]')}>{p.code}</pre>;
+    default: return <p className={cn('text-justify', gap)}><Spans text={p.text} /></p>;
   }
 }
 
 function Face({ b, g, scale, stop, stopIndex, stops, head, active, onPatch }: { b: Doc; g: Geo; scale: number; stop?: Doc; stopIndex: number; stops: Doc[]; head: boolean; active: boolean; onPatch: (p: Doc) => void }) {
   const H = g.ph * scale, fs = g.fs;
-  const cap = (text: string) => text && <p className="mt-2 truncate text-ink-3" style={{ fontSize: fs * 0.72, maxWidth: '100%' }}>{text}</p>;
+  const cap = (text: string) => text && <p className="mt-2 max-w-full truncate text-(length:--fs) text-muted-foreground" style={{ '--fs': px(fs * 0.72) }}>{text}</p>;
   switch (b.type) {
     case 'text': {
       const v = b.writing === 'v';
       const no = `${String(stopIndex + 1).padStart(2, '0')}${stop?.date ? ` · ${stop.date}` : ''}`;
       return (
-        <div className="serif text-ink" style={v ? { writingMode: 'vertical-rl', height: g.ph * 0.92 * scale, letterSpacing: '.12em', lineHeight: 2.05, fontSize: fs } : { width: fs * 23, fontSize: fs, lineHeight: 1.9 }}>
+        <div className={cn('serif text-(length:--fs) text-foreground', v ? 'h-(--h) leading-[2.05] tracking-[.12em] [writing-mode:vertical-rl]' : 'w-(--w) leading-[1.9]')} style={{ '--fs': px(fs), '--h': px(g.ph * 0.92 * scale), '--w': px(fs * 23) }}>
           {head && (
-            <header style={v ? { marginBlockEnd: '1.2em' } : { marginBottom: fs * 0.8 }}>
-              <span className="mono block text-ink-3" style={{ fontSize: fs * 0.66, marginBottom: v ? 0 : fs * 0.3 }}>{no}</span>
-              <span style={{ fontSize: fs * (v ? 1.6 : 1.75), letterSpacing: v ? '.18em' : '.08em' }} className={v ? 'block' : ''}>{stop?.name || '未命名'}</span>
-              {stop?.en && <span className="text-ink-3" style={{ fontSize: fs * 0.85, marginLeft: v ? 0 : fs * 0.6 }}>{stop.en}</span>}
+            <header className={v ? '[margin-block-end:1.2em]' : 'mb-(--mb)'} style={{ '--mb': px(fs * 0.8) }}>
+              <span className={cn('mono block text-(length:--fs) text-muted-foreground', v ? 'mb-0' : 'mb-(--mb)')} style={{ '--fs': px(fs * 0.66), '--mb': px(fs * 0.3) }}>{no}</span>
+              <span className={cn('text-(length:--fs)', v ? 'block tracking-[.18em]' : 'tracking-[.08em]')} style={{ '--fs': px(fs * (v ? 1.6 : 1.75)) }}>{stop?.name || '未命名'}</span>
+              {stop?.en && <span className={cn('text-(length:--fs) text-muted-foreground', v ? 'ml-0' : 'ml-(--ml)')} style={{ '--fs': px(fs * 0.85), '--ml': px(fs * 0.6) }}>{stop.en}</span>}
             </header>
           )}
           {(b.paras ?? []).map((p: Doc, i: number) => <Para key={p.id ?? i} p={p} v={v} first={!i} />)}
-          {!(b.paras ?? []).some((p: Doc) => paraPlain(p).trim()) && <p className="text-ink-3">（空的文字块，在 Markdown 里写）</p>}
+          {!(b.paras ?? []).some((p: Doc) => paraPlain(p).trim()) && <p className="text-muted-foreground">（空的文字块，在 Markdown 里写）</p>}
         </div>
       );
     }
     case 'single':
-      return <figure style={{ maxWidth: g.S * 2.2 }}><Img src={b.src} style={{ height: H, width: 'auto' }} />{cap(b.caption)}</figure>;
+      return <figure className="max-w-(--mw)" style={{ '--mw': px(g.S * 2.2), '--h': px(H) }}><Img src={b.src} className="h-(--h) w-auto" />{cap(b.caption)}</figure>;
     case 'pair':
-      return <figure><div className="flex" style={{ gap: fs * 0.8 }}>{b.images.map((im: Doc, i: number) => <Img key={i} src={im.src} style={{ height: H, width: 'auto' }} />)}</div>{cap(caption(b.images))}</figure>;
+      return <figure><div className="flex gap-(--gap)" style={{ '--gap': px(fs * 0.8), '--h': px(H) }}>{b.images.map((im: Doc, i: number) => <Img key={i} src={im.src} className="h-(--h) w-auto" />)}</div>{cap(caption(b.images))}</figure>;
     case 'grid': {
       const cell = H / 2 - 5, n = b.images.length;
       return (
         <figure>
-          <div className="grid" style={{ gridTemplateRows: `repeat(2, ${cell}px)`, gridAutoFlow: 'column', gridAutoColumns: `${(cell * 4) / 3}px`, gap: 10 }}>
-            {b.images.map((im: Doc, i: number) => <Img key={i} src={im.src} className="h-full w-full" style={i === 0 ? { gridRow: 'span 2', gridColumn: 'span 2' } : i === n - 1 && n > 1 ? { gridRow: 'span 2' } : undefined} />)}
+          <div className="grid auto-cols-(--col) grid-flow-col grid-rows-[repeat(2,var(--cell))] gap-2.5" style={{ '--cell': px(cell), '--col': px((cell * 4) / 3) }}>
+            {b.images.map((im: Doc, i: number) => <Img key={i} src={im.src} className={cn('h-full w-full', i === 0 ? 'row-[span_2] col-[span_2]' : i === n - 1 && n > 1 && 'row-[span_2]')} />)}
           </div>
           {cap(caption(b.images))}
         </figure>
@@ -538,7 +539,7 @@ function Face({ b, g, scale, stop, stopIndex, stops, head, active, onPatch }: { 
     case 'map':
       return <MiniMap stops={stops} here={b.scope === 'stop' ? b.stop : undefined} w={g.S * 0.78} h={g.S * 0.52} fs={fs} />;
   }
-  return <div className="text-ink-3">不认识的块</div>;
+  return <div className="text-muted-foreground">不认识的块</div>;
 }
 
 /** 地图块的示意：站点连线。真正的地图在预览里看 */
@@ -549,14 +550,14 @@ function MiniMap({ stops, here, w, h, fs }: { stops: Doc[]; here?: string; w: nu
   const pad = 0.12, sx = (x1 - x0) || 1, sy = (y1 - y0) || 1, k = Math.min((w * (1 - 2 * pad)) / sx, (h * (1 - 2 * pad)) / sy);
   const P = (s: Doc) => [w / 2 + (s.lnglat[0] - (x0 + x1) / 2) * k, h / 2 - (s.lnglat[1] - (y0 + y1) / 2) * k];
   return (
-    <div className="relative overflow-hidden rounded-[3px] bg-ink/[.05]" style={{ width: w, height: h }}>
+    <div className="relative h-(--h) w-(--w) overflow-hidden rounded-3 bg-foreground/[.05]" style={{ '--w': px(w), '--h': px(h) }}>
       {pts.length > 0 ? (
         <svg width={w} height={h} className="absolute inset-0">
-          <polyline points={pts.map((s) => P(s).join(',')).join(' ')} fill="none" stroke="var(--ink-3)" strokeWidth={1.2} strokeLinejoin="round" />
-          {pts.map((s) => { const [x, y] = P(s); const on = s.id === here; return <circle key={s.id} cx={x} cy={y} r={on ? 5 : 3} fill={on ? 'var(--ink)' : 'var(--surface)'} stroke="var(--ink-2)" strokeWidth={1.2} />; })}
+          <polyline points={pts.map((s) => P(s).join(',')).join(' ')} fill="none" stroke="var(--muted-foreground)" strokeWidth={1.2} strokeLinejoin="round" />
+          {pts.map((s) => { const [x, y] = P(s); const on = s.id === here; return <circle key={s.id} cx={x} cy={y} r={on ? 5 : 3} fill={on ? 'var(--foreground)' : 'var(--card)'} stroke="var(--soft-foreground)" strokeWidth={1.2} />; })}
         </svg>
-      ) : <span className="absolute inset-0 grid place-items-center text-ink-3" style={{ fontSize: fs * 0.8 }}>站点还没有经纬度</span>}
-      <span className="mono absolute left-3 top-2 text-ink-3" style={{ fontSize: fs * 0.62 }}>地图 · {here ? '这一站' : '全程'}</span>
+      ) : <span className="absolute inset-0 grid place-items-center text-(length:--fs) text-muted-foreground" style={{ '--fs': px(fs * 0.8) }}>站点还没有经纬度</span>}
+      <span className="mono absolute left-3 top-2 text-(length:--fs) text-muted-foreground" style={{ '--fs': px(fs * 0.62) }}>地图 · {here ? '这一站' : '全程'}</span>
     </div>
   );
 }

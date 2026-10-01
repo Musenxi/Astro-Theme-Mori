@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { X } from 'lucide-react';
+import { fieldVariants } from '@/components/ui/input';
 import { cn } from '@/lib/cn';
 
 /** 标签输入：回车 / 逗号确认，退格删最后一个；已有的标签会作为建议 */
@@ -14,11 +15,11 @@ export function TagsInput({ value, onChange, known = [], placeholder = '输入�
   const suggestions = known.filter((k) => !value.includes(k) && (!text || k.includes(text))).slice(0, 6);
   return (
     <div>
-      <div onClick={() => input.current?.focus()} className={cn('field flex min-h-9 flex-wrap items-center gap-1.5 px-2 py-1')}>
+      <div onClick={() => input.current?.focus()} className={cn(fieldVariants, 'flex min-h-9 flex-wrap items-center gap-1.5 px-2 py-1')}>
         {value.map((t) => (
-          <span key={t} className="inline-flex items-center gap-1 rounded-full bg-lift py-px pl-2.5 pr-1.5 text-[12.5px] shadow-soft">
+          <span key={t} className="inline-flex items-center gap-1 rounded-full bg-popover py-px pl-2.5 pr-1.5 text-12-5 shadow-soft">
             {t}
-            <button type="button" aria-label={`删除标签 ${t}`} onClick={() => onChange(value.filter((x) => x !== t))} className="text-ink-3 hover:text-danger"><X size={11} /></button>
+            <button type="button" aria-label={`删除标签 ${t}`} onClick={() => onChange(value.filter((x) => x !== t))} className="text-muted-foreground hover:text-destructive"><X size={11} /></button>
           </span>
         ))}
         <input
@@ -29,12 +30,12 @@ export function TagsInput({ value, onChange, known = [], placeholder = '输入�
             else if (e.key === 'Backspace' && !text && value.length) onChange(value.slice(0, -1));
           }}
           onBlur={() => add(text)}
-          className="min-w-16 flex-1 bg-transparent px-1 py-0.5 text-[13px] outline-none placeholder:text-ink-3/70"
+          className="min-w-16 flex-1 bg-transparent px-1 py-0.5 text-13 outline-none placeholder:text-muted-foreground/70"
         />
       </div>
       {suggestions.length > 0 && text && (
         <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {suggestions.map((s) => <button key={s} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => add(s)} className="rounded-full bg-ink/[.05] px-2.5 py-px text-[12px] text-ink-3 transition-colors hover:bg-ink/[.1] hover:text-ink">{s}</button>)}
+          {suggestions.map((s) => <button key={s} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => add(s)} className="rounded-full bg-foreground/[.05] px-2.5 py-px text-12 text-muted-foreground transition-colors hover:bg-foreground/[.1] hover:text-foreground">{s}</button>)}
         </div>
       )}
     </div>

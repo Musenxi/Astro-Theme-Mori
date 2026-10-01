@@ -7,9 +7,12 @@ import { ID_RE } from '@/lib/slug';
 import type { Category } from '@/lib/types';
 import { SortableItem, SortableList } from '@/editor/sortable';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, useConfirm } from '@/components/ui/dialog';
-import { Field, Input } from '@/components/ui/input';
-import { Body, Empty, PageHeader, Section } from '@/components/ui/page';
+import { Dialog } from '@/components/ui/dialog';
+import { ModalContent } from '@/components/modal';
+import { useConfirm } from '@/components/confirm';
+import { Field } from '@/components/field';
+import { Input } from '@/components/ui/input';
+import { Body, Empty, PageHeader, Section } from '@/components/page';
 
 interface Row extends Category { key: string; orig: string | null }
 let seq = 0;
@@ -47,7 +50,7 @@ export default function Taxonomy() {
 
   return (
     <>
-      <PageHeader title="分类 / 标签" actions={dirty && <><Button variant="ghost" onClick={() => cats && setRows(toRows(cats))}>放弃修改</Button><Button variant="primary" onClick={save}>保存</Button></>} />
+      <PageHeader title="分类 / 标签" actions={dirty && <><Button variant="ghost" onClick={() => cats && setRows(toRows(cats))}>放弃修改</Button><Button variant="default" onClick={save}>保存</Button></>} />
       <Body>
         <Section title="分类">
           <SortableList items={rows} getId={(r) => r.key} onReorder={setRows}>
@@ -55,12 +58,12 @@ export default function Taxonomy() {
               {rows.map((r) => (
                 <SortableItem key={r.key} id={r.key} className="rounded-xl">
                   {(handle) => (
-                    <div className="flex items-center gap-2 rounded-xl px-1.5 py-1.5 transition-colors hover:bg-ink/[.035]">
+                    <div className="flex items-center gap-2 rounded-xl px-1.5 py-1.5 transition-colors hover:bg-foreground/[.035]">
                       {handle}
                       <Input className="w-36" value={r.zh} placeholder="中文名" onChange={(e) => put(r.key, { zh: e.target.value })} />
                       <Input className="w-40" value={r.en ?? ''} placeholder="English" onChange={(e) => put(r.key, { en: e.target.value })} />
-                      <Input className="mono w-36" value={r.id} title="网址里用的英文名；改它会同时更新用到它的文章" onChange={(e) => put(r.key, { id: e.target.value.trim() })} />
-                      <span className="mono w-14 text-right text-ink-3">{count(r.orig)} 篇</span>
+                      <Input variant="mono" className="w-36" value={r.id} title="网址里用的英文名；改它会同时更新用到它的文章" onChange={(e) => put(r.key, { id: e.target.value.trim() })} />
+                      <span className="mono w-14 text-right text-muted-foreground">{count(r.orig)} 篇</span>
                       <Button variant="ghost" size="icon-sm" aria-label="删除分类" className="ml-auto" onClick={() => remove(r)}><Trash2 size={14} /></Button>
                     </div>
                   )}
@@ -99,22 +102,22 @@ function TagSection() {
       {tags.length === 0 ? <Empty>还没有标签。</Empty> : (
         <div className="space-y-0.5">
           {tags.map(([t, n]) => (
-            <div key={t} className="group flex items-center gap-4 rounded-xl px-3 py-2.5 transition-colors hover:bg-ink/[.045]">
-              <span className="flex-1"><span className="rounded-full bg-ink/[.06] px-3 py-1 text-[13px]">{t}</span></span>
-              <span className="mono text-ink-3">{n} 篇</span>
-              <Button variant="ghost" size="sm" className="opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100" onClick={() => { setEditing(t); setName(t); }}>改名 / 合并</Button>
-              <Button variant="danger" size="sm" className="opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100" onClick={async () => { if (await confirm({ title: `删除标签「${t}」？`, description: `会从 ${n} 篇文章里去掉这个标签。`, confirmLabel: '删除', danger: true })) void rename(t, null); }}>删除</Button>
+            <div key={t} className="group flex items-center gap-4 rounded-xl px-3 py-2.5 transition-colors hover:bg-foreground/[.045]">
+              <span className="flex-1"><span className="rounded-full bg-foreground/[.06] px-3 py-1 text-13">{t}</span></span>
+              <span className="mono text-muted-foreground">{n} 篇</span>
+              <Button variant="ghost" size="sm" reveal="group" onClick={() => { setEditing(t); setName(t); }}>改名 / 合并</Button>
+              <Button variant="danger" size="sm" reveal="group" onClick={async () => { if (await confirm({ title: `删除标签「${t}」？`, description: `会从 ${n} 篇文章里去掉这个标签。`, confirmLabel: '删除', danger: true })) void rename(t, null); }}>删除</Button>
             </div>
           ))}
         </div>
       )}
       <Dialog open={editing !== null} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent title={`改名「${editing}」`}>
+        <ModalContent title={`改名「${editing}」`}>
           <form onSubmit={(e) => { e.preventDefault(); if (editing && name.trim() && name.trim() !== editing) void rename(editing, name); }}>
             <Field label="新名字" hint={merging ? '已有这个标签，将合并' : undefined}><Input autoFocus value={name} onChange={(e) => setName(e.target.value)} /></Field>
-            <div className="mt-5 flex justify-end gap-2"><Button onClick={() => setEditing(null)}>取消</Button><Button type="submit" variant="primary" disabled={!name.trim() || name.trim() === editing}>{merging ? '合并' : '改名'}</Button></div>
+            <div className="mt-5 flex justify-end gap-2"><Button onClick={() => setEditing(null)}>取消</Button><Button type="submit" variant="default" disabled={!name.trim() || name.trim() === editing}>{merging ? '合并' : '改名'}</Button></div>
           </form>
-        </DialogContent>
+        </ModalContent>
       </Dialog>
     </Section>
   );
