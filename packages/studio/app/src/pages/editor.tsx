@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, Eye, ExternalLink, PanelRight, RefreshCw } from 'lucide-react';
@@ -52,13 +52,42 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
     return next;
   }), []);
 
-  const { state, flush, cancel } = useAutosave(kind, id, doc, () => { void refresh(); setTimeout(() => setPreviewKey((k) => k + 1), 700); });
+  // “信息”里的改动不自动保存：记下改了哪些字段，自动保存时这些字段仍写上次保存的值，点保存 / 发布才一起写
+  const docRef = useRef(doc);
+  docRef.current = doc;
+  const held = useRef(new Set<string>());
+  const savedRef = useRef<Doc>(initial);
+  const [heldCount, setHeldCount] = useState(0);
+  const strip = useCallback((d: Doc) => {
+    if (!held.current.size) return d;
+    const out = { ...d };
+    for (const k of held.current) { if (k in savedRef.current) out[k] = savedRef.current[k]; else delete out[k]; }
+    return out;
+  }, []);
+  const infoPatch = useCallback((p: Doc) => {
+    for (const k of Object.keys(p)) held.current.add(k);
+    setHeldCount(held.current.size);
+    patch(p);
+  }, [patch]);
+  const infoSetDoc = useCallback((fn: (d: Doc) => Doc) => {
+    const cur = docRef.current, next = fn(cur);
+    for (const k of new Set([...Object.keys(cur), ...Object.keys(next)])) if (cur[k] !== next[k]) held.current.add(k);
+    setHeldCount(held.current.size);
+    docRef.current = next;
+    setDocState(next);
+  }, []);
+
+  const { state, flush, cancel } = useAutosave(kind, id, doc, (sent, manual) => {
+    savedRef.current = sent;
+    if (manual) { held.current.clear(); setHeldCount(0); }
+    void refresh(); setTimeout(() => setPreviewKey((k) => k + 1), 700);
+  }, strip);
 
   const [busy, setBusy] = useState(false);
   const save = async (next?: Doc, done?: string) => {
     setBusy(true);
     if (next) setDocState(next);
-    const r = await flush(next);
+    const r = await flush(next ?? true);
     setBusy(false);
     if (r) toast.success(done ?? '已保存');
   };
@@ -96,7 +125,8 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
   const path = routeKind === 'page' ? `/${id}/` : `/posts/${id}/`;
   useEffect(() => { document.title = `${doc.title || id} · MORI Studio`; return () => { document.title = 'MORI Studio'; }; }, [doc.title, id]);
 
-  const status = state.status === 'saving' ? '保存中……' : state.status === 'dirty' ? '未保存' : state.status === 'error' ? '保存失败' : state.errors.length ? `已保存 · ${state.errors.length} 处需要检查` : '已保存';
+  const unsaved = state.status === 'dirty' || (state.status === 'saved' && heldCount > 0);
+  const status = state.status === 'saving' ? '保存中……' : unsaved ? '未保存' : state.status === 'error' ? '保存失败' : state.errors.length ? `已保存 · ${state.errors.length} 处需要检查` : '已保存';
 
   return (
     <div className="flex h-full flex-col">
@@ -104,7 +134,7 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
         <Link to={routeKind === 'page' ? '/pages' : '/posts'} className="flex h-8 items-center gap-0.5 rounded-full pl-2 pr-3.5 text-soft-foreground transition-colors hover:bg-foreground/[.06] hover:text-foreground"><ChevronLeft size={16} />{routeKind === 'page' ? '页面' : '文章'}</Link>
         <h1 className="min-w-0 flex-1 truncate text-17 font-semibold tracking-tight">{doc.title || id}</h1>
         <span className={cn('flex items-center gap-2 rounded-full px-3 py-1 text-12 transition-colors', state.status === 'error' || state.errors.length ? 'bg-muted text-destructive' : 'bg-foreground/[.05] text-muted-foreground')}>
-          <i className={cn('h-1.5 w-1.5 rounded-full', state.status === 'saved' ? 'bg-muted-foreground/60' : state.status === 'error' ? 'bg-destructive' : 'animate-pulse bg-soft-foreground')} />{status}
+          <i className={cn('h-1.5 w-1.5 rounded-full', state.status === 'saved' && !unsaved ? 'bg-muted-foreground/60' : state.status === 'error' ? 'bg-destructive' : 'animate-pulse bg-soft-foreground')} />{status}
         </span>
         <Segmented size="sm" value={mode} onValueChange={setMode} options={modes} />
         <Button size="sm" onClick={() => void save()} disabled={busy}>保存</Button>
@@ -124,7 +154,7 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
           </Suspense>
         </div>
         {panel === 'info' && (
-          <aside className={cn('mb-2 mr-2 w-104 shrink-0 animate-slide-in overflow-y-auto rounded-2xl bg-muted/60', onCard)}><InfoPanel kind={kind} doc={doc} set={patch} setDoc={setDoc} /></aside>
+          <aside className={cn('mb-2 mr-2 w-104 shrink-0 animate-slide-in overflow-y-auto rounded-2xl bg-muted/60', onCard)}><InfoPanel kind={kind} doc={doc} set={infoPatch} setDoc={infoSetDoc} /></aside>
         )}
         {panel === 'preview' && project && (
           <aside className="mb-2 mr-2 w-[46%] min-w-96 shrink-0 animate-slide-in overflow-hidden rounded-2xl bg-muted/60">

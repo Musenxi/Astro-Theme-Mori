@@ -14,7 +14,7 @@ export interface SaveState {
  * 自动保存：内容变了 700ms 后写回。校验问题不阻止保存（写作过程中难免不完整），只在界面上提示。
  * 离开页面前会把还没写的部分立刻写掉。
  */
-export function useAutosave(kind: Kind, id: string, doc: Doc | null, onSaved?: () => void) {
+export function useAutosave(kind: Kind, id: string, doc: Doc | null, onSaved?: (sent: Doc, manual: boolean) => void, strip?: (d: Doc) => Doc) {
   const [state, setState] = useState<SaveState>({ status: 'saved', errors: [], warnings: [] });
   const latest = useRef(doc);
   const dirty = useRef(false);
@@ -23,21 +23,28 @@ export function useAutosave(kind: Kind, id: string, doc: Doc | null, onSaved?: (
   const inflight = useRef(0);
   const cb = useRef(onSaved);
   cb.current = onSaved;
+  const stripRef = useRef(strip);
+  stripRef.current = strip;
   latest.current = doc;
 
-  /** 传了 next 就按它立刻保存（发布 / 转草稿时，状态还没来得及更新） */
-  const flush = useCallback(async (next?: Doc) => {
+  /**
+   * 自动保存（不传参数）不写“信息”里还没保存的改动；点保存 / 发布时传 true（或要存的内容，状态还没来得及更新时），整份都写
+   */
+  const flush = useCallback(async (next?: Doc | true) => {
     clearTimeout(timer.current);
-    if (next) { latest.current = next; dirty.current = true; }
+    const manual = next !== undefined;
+    if (next && next !== true) latest.current = next;
+    if (manual) dirty.current = true;
     if (!dirty.current || !latest.current) return;
     dirty.current = false;
     const seq = ++inflight.current;
     setState((s) => ({ ...s, status: 'saving' }));
     try {
-      const r = await api.saveEntry(kind, id, latest.current);
+      const body = manual || !stripRef.current ? latest.current : stripRef.current(latest.current);
+      const r = await api.saveEntry(kind, id, body);
       if (seq !== inflight.current) return;
       setState({ status: dirty.current ? 'dirty' : 'saved', errors: r.errors ?? [], warnings: r.annotationWarnings ?? [], savedAt: Date.now() });
-      cb.current?.();
+      cb.current?.(body, manual);
       return r;
     } catch (e) {
       if (seq !== inflight.current) return;
