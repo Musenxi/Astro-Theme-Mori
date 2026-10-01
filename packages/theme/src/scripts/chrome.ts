@@ -15,10 +15,16 @@ const store = {
 /* ───────────── 昼夜 ───────────── */
 const isDark = () => (root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches);
 const syncTheme = () => { $('#theme').textContent = isDark() ? t('js.theme.toLight') : t('js.theme.toDark'); };
-$('#theme').addEventListener('click', () => {
+const flipTheme = () => {
   root.dataset.theme = isDark() ? 'light' : 'dark';
   store.set('mori-theme', root.dataset.theme);
   syncTheme();
+};
+$('#theme').addEventListener('click', () => {
+  // 整页交叉淡入：页头、正文、页脚在同一刻、用同一条曲线变色（各元素自己过渡的话，写了 transition 的和没写的会错开）
+  if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return flipTheme();
+  root.classList.add('vt-theme');
+  document.startViewTransition(flipTheme).finished.finally(() => root.classList.remove('vt-theme'));
 });
 document.addEventListener('astro:after-swap', syncTheme);
 

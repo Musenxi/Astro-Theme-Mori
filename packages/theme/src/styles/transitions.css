@@ -8,6 +8,10 @@ html.vt-turn::view-transition-old(root){animation:.36s ease both vt-turn-out}
 html.vt-turn::view-transition-new(root){animation:.62s cubic-bezier(.2,.75,.15,1) .06s both vt-turn-in}
 @keyframes vt-turn-out{to{opacity:0;transform:translateX(28px)}}
 @keyframes vt-turn-in{from{opacity:0;transform:translateX(-28px)}}
+/* 昼夜切换：新旧两张整页截图线性交叉淡入（两边不透明度加起来恒为 1，中间不会变暗），不位移。切换期间所有元素自己的 transition 关掉，新的一张才是最终状态 */
+html.vt-theme *,html.vt-theme *::before,html.vt-theme *::after{transition:none!important}
+html.vt-theme::view-transition-old(root){animation:.4s linear both vt-out}
+html.vt-theme::view-transition-new(root){animation:.4s linear both vt-fade}
 html.vt-mode::view-transition-old(root){animation:.28s ease both vt-out}
 html.vt-mode::view-transition-new(root){animation:.5s ease both vt-fade}
 @keyframes vt-fade{from{opacity:0}}
