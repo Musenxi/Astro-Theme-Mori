@@ -24,7 +24,7 @@ const ld = latest.data.date;
 const slides = pinned.map((e) => {
   const d = e.data, pin = d.pin;
   const own = (pin?.quote ?? []).filter((l) => l.trim());
-  // 置顶没写引言就用摘要，摘要也没有就没有引文；每一句单独一行，各自沿中轴线居中（长短不同，自然错开）
+  // 置顶没写引言就用摘要，摘要也没有就没有引文；每一句单独一行，竖排时一列比一列低（右高左低），整体沿中轴线居中
   const lines = (own.length ? own : [d.excerpt]).flatMap((l) => l.match(/[^。！？]+[。！？]?/g) ?? []).filter((l) => l.trim());
   let i = 0;
   const quote = lines.map((l, n) => [...((n === 0 ? '「' : '') + l + (n === lines.length - 1 ? '」' : ''))].map((ch) => ({ ch, i: i++ })));
@@ -40,7 +40,7 @@ const slides = pinned.map((e) => {
 });
 const first = slides[0];
 /** 引文字号各篇统一，按放得下最挤的一篇来定上限：竖排取最长的一列，横排取最多的行数。上下各留边距（opening.css） */
-const need = Math.max(1, ...slides.flatMap((s) => s.quote.map((l) => l.length + (s.quote.length - 1) * 0.75)));
+const need = Math.max(1, ...slides.flatMap((s) => s.quote.map((l) => l.length + (s.quote.length - 1))));
 const rows = Math.max(1, ...slides.map((s) => s.lines));
 const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground';
 ---
@@ -90,7 +90,7 @@ const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground'
                   <a class="group/qa relative z-2 col-1 row-1 flex h-(--ph-h) max-w-[min(100%,800px)] items-center self-start justify-self-start pl-[clamp(16px,3vw,48px)] vert:justify-self-end vert:pl-0 vert:pr-[clamp(8px,1.4vw,24px)] narrow:items-end narrow:pt-0! narrow:pr-0! narrow:pb-[46px]! narrow:pl-[1em]!" href={s.e.href}>
                     <p class="fo-q leading-[1.6] font-light tracking-[.05em] transition-[color] duration-500 group-hover/qa:text-soft-foreground vert:leading-[2] vert:[writing-mode:vertical-rl]">
                       {s.quote.map((line, n) => (
-                        <span class="block text-center whitespace-nowrap vert:translate-y-[calc((var(--k)-var(--c))*.75em)]" style={{ '--k': n, '--c': (s.quote.length - 1) / 2 }}>
+                        <span class="block whitespace-nowrap vert:translate-y-[calc((var(--k)-var(--c))*1em)]" style={{ '--k': n, '--c': (s.quote.length - 1) / 2 }}>
                           {line.map(({ ch, i }) => <span class="ch" style={{ '--i': i }}>{ch}</span>)}
                         </span>
                       ))}
