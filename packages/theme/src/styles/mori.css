@@ -48,8 +48,8 @@
   --text-aux: 15.5px; /* 辅文：摘要、脚注、导航、表单、回复 */
   --text-body: 17px; /* 正文（窄屏 16px，见 base.css） */
   --text-item: 19px; /* 条目：列表里的篇名、人名、副题 */
-  --text-heading: 24px; /* 标题：文章小标题、评论、行程、目次分类 */
-  --text-chapter: 28px; /* 游记章节、搜索框 */
+  --text-heading: 24px; /* 区块标题：评论、行程、目次分类 */
+  --text-chapter: 28px; /* 文章小标题、游记章节、搜索框 */
   --text-num: 38px; /* 大数字：期号、卷次、里程 */
   /* 随屏宽变化的几级 */
   --text-lead: clamp(19px, 1.8vw, 25px); /* 目次、归档里的篇名，封面副题 */
