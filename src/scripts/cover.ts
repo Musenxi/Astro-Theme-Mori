@@ -48,8 +48,8 @@ function init() {
     }
     const mk = mark.getBoundingClientRect();
     const p = clamp(scrollY / (innerHeight * 0.5), 0, 1), e = easeIO(p);
-    // 让刊名的大写字母高度落到页头 MORI 的大写字母高度（Cormorant 大写约 .63em，页头字母约 .7em）
-    const s = (parseFloat(getComputedStyle(mark).fontSize) * 0.7) / (mast0.fs * 0.63);
+    // 让刊名的大写字母高度落到页头 MORI 的大写字母高度：两处是同一种字体，字号一样大写就一样高
+    const s = parseFloat(getComputedStyle(mark).fontSize) / mast0.fs;
     const S = 1 + (s - 1) * e;
     const tx = (mk.left - mast0.L) * e;
     const targetTop = mk.top + mk.height / 2 - (mast0.H * s) / 2;

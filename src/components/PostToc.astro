@@ -31,7 +31,7 @@ const items = blocks.flatMap((b) => (b.type === 'h' ? [{ id: b.id, level: b.leve
                 ]}
                 href={`#${it.id}`}
               >
-                {it.level === 2 && <span class="font-display leading-none [font-feature-settings:'lnum']">{pad2(it.n)}</span>}
+                {it.level === 2 && <span class="leading-none">{pad2(it.n)}</span>}
                 {it.text}
               </a>
             </li>

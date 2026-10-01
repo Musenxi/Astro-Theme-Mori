@@ -126,4 +126,4 @@ pnpm exec mori-md export src/content/posts/某篇.json --out 备份目录
 
 ## 许可
 
-代码：GPL-3.0。地图数据来自 Natural Earth（公有领域）。西文字体 Cormorant Garamond：SIL OFL 1.1。
+代码：GPL-3.0。地图数据来自 Natural Earth（公有领域）。

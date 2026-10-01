@@ -24,7 +24,7 @@ const zh = lang !== 'en';
         {
           byYear.map(({ y, list }) => (
             <section class="col-span-full grid grid-cols-subgrid border-t border-t-border pt-7 pb-6 narrow:pt-6">
-              <h2 class:list={['sticky top-[96px] self-start justify-self-start text-soft-foreground narrow:static narrow:col-span-full narrow:mb-2', zh ? 'text-item leading-none font-normal tracking-[.32em] [writing-mode:vertical-rl] narrow:[writing-mode:horizontal-tb]' : 'font-display text-chapter leading-none font-light']} aria-label={String(y)}>{zh ? cnYear(y) : y}</h2>
+              <h2 class:list={['sticky top-[96px] self-start justify-self-start text-soft-foreground narrow:static narrow:col-span-full narrow:mb-2', zh ? 'text-item leading-none font-normal tracking-[.32em] [writing-mode:vertical-rl] narrow:[writing-mode:horizontal-tb]' : 'text-chapter leading-none font-light']} aria-label={String(y)}>{zh ? cnYear(y) : y}</h2>
               <ol class="col-[2/-1] grid grid-cols-subgrid narrow:col-span-full">
                 {list.map((e) => (
                   <li class="col-span-full grid grid-cols-subgrid">

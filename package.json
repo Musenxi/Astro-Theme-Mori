@@ -33,7 +33,6 @@
     "theme:update": "node scripts/update-theme.mjs"
   },
   "dependencies": {
-    "@fontsource/cormorant-garamond": "^5.3.0",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.3.5",
     "d3-geo": "^3.1.1",

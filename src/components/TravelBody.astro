@@ -53,14 +53,14 @@ const ht = {
   ul: 'my-[.9em] [counter-reset:li]',
   ol: 'my-[.9em] [counter-reset:li]',
   uli: `${li} py-[.2em] pl-[1.6em] before:absolute before:top-[1.05em] before:left-0 before:h-px before:w-[.7em] before:bg-muted-foreground before:content-['']`,
-  oli: `${li} py-[.2em] pl-[1.6em] before:absolute before:top-[.3em] before:left-0 before:font-mono before:text-meta before:leading-[2] before:text-muted-foreground before:content-[counter(li)]`,
+  oli: `${li} py-[.2em] pl-[1.6em] before:absolute before:top-[.3em] before:left-0 before:text-meta before:leading-[2] before:text-muted-foreground before:content-[counter(li)]`,
   pre: 'my-[1em] overflow-x-auto rounded-[6px] bg-muted px-[1.1em] py-[.9em] text-soft-foreground [font:.8em/1.75_var(--font-mono)]',
 };
 const vt = {
   stop: 'm-0 ml-[1.2em]',
   no: 'm-0 ml-[.3em] block font-serif text-meta tracking-[.26em] text-primary',
   h2: 'm-0 block text-chapter font-normal tracking-[.18em]',
-  en: 'mr-[.2em] block font-mono text-meta tracking-[.04em] text-muted-foreground',
+  en: 'mr-[.2em] block text-meta tracking-[.04em] text-muted-foreground',
   p: 'text-justify',
   pp: 'm-0 mr-[.9em]',
   h3: 'm-0 mr-[1.1em] text-[1.12em] font-bold tracking-[.08em]',
@@ -217,7 +217,7 @@ const nextFig = () => pad2(++fig);
       <ol class="max-w-[40em]">
         {endnotes.map((f) => (
           <li class="flex items-baseline gap-[.8em]" id={`fn-${f.ref}`}>
-            <sup class="nref font-mono text-meta text-primary" id={`note-${f.ref}`}>{f.n}</sup>
+            <sup class="nref text-meta text-primary" id={`note-${f.ref}`}>{f.n}</sup>
             <span set:html={html(f.text)} />
           </li>
         ))}
@@ -236,7 +236,7 @@ const nextFig = () => pad2(++fig);
           <a class="contents" href={`#stop-${s.id}`}>
             <span class="meta">{pad2(i + 1)}</span>
             <span class="meta">{s.date ?? ''}</span>
-            <span class="text-item">{s.name}{s.en && <small class="ml-2.5 font-display text-aux text-muted-foreground ">{s.en}</small>}</span>
+            <span class="text-item">{s.name}{s.en && <small class="ml-2.5 text-aux text-muted-foreground ">{s.en}</small>}</span>
             <span class="mono text-muted-foreground narrow:hidden">{coord(s.lnglat)}</span>
           </a>
         </li>

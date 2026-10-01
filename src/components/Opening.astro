@@ -46,7 +46,7 @@ const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground'
   <div class="g">
     <div class="fo-side meta col-[1/3] row-1 flex flex-col gap-[5px] pt-[.5em] text-muted-foreground narrow:row-2 narrow:mt-[26px] narrow:flex-row narrow:flex-wrap narrow:items-baseline narrow:gap-x-3.5 narrow:gap-y-1 narrow:p-0">
       <span class="mb-3 text-primary narrow:m-0">{t('home.feature')}</span>
-      <b class="mb-2.5 font-display text-num leading-none font-light tracking-[0] text-foreground [font-variant-numeric:oldstyle-nums] narrow:m-0 narrow:text-heading" id="fo-no">{pad3(first.e.n)}</b>
+      <b class="mb-2.5 text-num leading-none font-light tracking-[0] text-foreground narrow:m-0 narrow:text-heading" id="fo-no">{pad3(first.e.n)}</b>
       {/* 各篇的分类叠在一格里、只显示当前一篇：占的地方按最长的算，换篇时下面的目录不会因为分类名折行而跳 */}
       <span class="grid" id="fo-cat">{slides.map((s, k) => <span class:list={['[grid-area:1/1]', k !== 0 && 'invisible']}>{catName(s.e.category)}</span>)}</span>
       <span>{fmt.yearSeason(ld)}</span>
@@ -57,7 +57,7 @@ const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground'
               {slides.map((s, k) => (
                 <li class="group/li relative border-t border-t-border after:absolute after:top-[-1px] after:left-0 after:h-px after:w-0 after:bg-primary after:[transition:width_.65s_cubic-bezier(.22,1,.36,1)] after:content-[''] aria-[current]:after:w-full" aria-current={k === 0 ? 'true' : undefined}>
                   <button class="group/btn flex w-full items-baseline gap-3 pt-[13px] pb-3.5 text-left font-serif" type="button" data-i={k}>
-                    <b class="mb-2.5 min-w-[1.7em] flex-none narrow:m-0 font-display text-item leading-none font-light tracking-[0] text-muted-foreground transition-[color] duration-400 [font-variant-numeric:oldstyle-nums] group-hover/btn:text-primary group-aria-[current]/li:text-primary">{pad3(s.e.n)}</b>
+                    <b class="mb-2.5 min-w-[1.7em] flex-none narrow:m-0 text-item leading-none font-light tracking-[0] text-muted-foreground transition-[color] duration-400 group-hover/btn:text-primary group-aria-[current]/li:text-primary">{pad3(s.e.n)}</b>
                     <span class="text-body leading-[1.45] tracking-[.03em] text-muted-foreground transition-[color] duration-400 group-hover/btn:text-foreground group-aria-[current]/li:text-foreground">{s.e.data.title}</span>
                   </button>
                 </li>

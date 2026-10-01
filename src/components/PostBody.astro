@@ -48,7 +48,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
           h2 += 1;
           return (
             <h2 class={`${main} mt-[2.6em] mb-[.9em] flex scroll-mt-(--toc-top) items-baseline gap-4 text-chapter leading-[1.5] font-bold tracking-[.08em]`} id={b.id} data-b={b.id}>
-              <span class="font-display text-chapter leading-none font-light tracking-normal text-muted-foreground [font-feature-settings:'lnum']" data-skip>{pad2(h2)}</span>
+              <span class="text-chapter leading-none font-light tracking-normal text-muted-foreground" data-skip>{pad2(h2)}</span>
               <Fragment set:html={html(b.text)} />
             </h2>
           );

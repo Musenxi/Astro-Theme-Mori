@@ -21,7 +21,7 @@ const sections = config.categories
 <section class="wrap fcon pt-[clamp(56px,11vh,128px)] pb-[clamp(40px,8vh,96px)]">
   <div class="g border-t border-t-border pt-[clamp(40px,7vh,88px)]">
     <aside class="sticky top-[110px] col-[1/5] self-start narrow:static narrow:mb-14 vert:flex vert:flex-row-reverse vert:justify-end vert:gap-10">
-      <h2 class="text-giant leading-none font-normal tracking-[.12em] vert:[writing-mode:vertical-rl]">{t('toc.title')}{t('toc.sub') && <em class="mt-[.35em] block font-display text-[.3em] font-light tracking-[.01em] text-muted-foreground vert:m-0 vert:mr-[.4em]">{t('toc.sub')}</em>}</h2>
+      <h2 class="text-giant leading-none font-normal tracking-[.12em] vert:[writing-mode:vertical-rl]">{t('toc.title')}{t('toc.sub') && <em class="mt-[.35em] block text-[.3em] font-light tracking-[.01em] text-muted-foreground vert:m-0 vert:mr-[.4em]">{t('toc.sub')}</em>}</h2>
       {config.home.editorNote && <p class="mt-11 max-w-[14.5em] text-aux leading-[1.95] text-soft-foreground vert:mt-0 vert:h-[15em] vert:max-w-none vert:[writing-mode:vertical-rl]"><span class="meta mb-2 block text-primary">{t('toc.editor')}</span>{config.home.editorNote}</p>}
     </aside>
     <div class="col-[6/13]">
@@ -29,16 +29,16 @@ const sections = config.categories
         sections.map(({ c, list, roman }) => (
           <section class="f-sec group/sec mb-[clamp(44px,8vh,88px)]">
             <a class="f-sh group/sh flex items-baseline gap-4 bg-[linear-gradient(var(--foreground),var(--foreground))] bg-[position:0_100%] bg-[size:0_1px] bg-no-repeat pb-3 [transition:background-size_1.3s_var(--ease-mori)] group-[.in]/sec:bg-[size:100%_1px]" href={`/category/${c.id}/`}>
-              <span class="min-w-[1.4em] font-display text-num leading-[.9] font-light">{roman}</span>
+              <span class="min-w-[1.4em] text-num leading-[.9] font-light">{roman}</span>
               <h3 class="text-heading font-normal tracking-[.14em] transition-[color] duration-300 group-hover/sh:text-primary">{c.zh}</h3>
-              <em class="font-display text-item font-light text-muted-foreground ">{c.en}</em>
+              <em class="text-item font-light text-muted-foreground ">{c.en}</em>
               <span class="meta ml-auto transition-[color] duration-300 group-hover/sh:text-primary">{tn('count', list.length, { n: fmt.num(list.length) })}<Chevron /></span>
             </a>
             <ol>
               {list.map((e) => (
                 <li>
                   <a class="group/en grid grid-cols-[4.4em_1fr_auto] items-baseline gap-x-[18px] border-b border-b-border pt-[17px] pb-[19px] narrow:grid-cols-[3.2em_1fr]" href={e.href}>
-                    <span class="font-display text-num leading-none font-light transition-[color] duration-300 [font-variant-numeric:oldstyle-nums] group-hover/en:text-primary narrow:text-chapter">{pad3(e.n)}</span>
+                    <span class="text-num leading-none font-light transition-[color] duration-300 group-hover/en:text-primary narrow:text-chapter">{pad3(e.n)}</span>
                     <span class="w-fit bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-[size:0_1px] bg-no-repeat text-lead leading-[1.4] tracking-[.04em] [transition:background-size_.6s_var(--ease-mori)] group-hover/en:bg-[size:100%_1px]">{e.data.title}</span>
                     <span class="meta narrow:col-2">{dotDate(e.data.date)}</span>
                     <span class="ex col-2 mt-1.5 text-aux leading-[1.8] tracking-[.03em] text-muted-foreground">{e.data.excerpt}</span>
