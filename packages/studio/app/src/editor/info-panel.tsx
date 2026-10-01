@@ -80,7 +80,7 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
       <Group title="首页置顶" action={<SwitchField checked={!!pin} onCheckedChange={(v) => set({ pin: v ? { order: 0, quote: [''], caption: '', meta: [] } : undefined })} />}>
         {pin && (
           <>
-            <Field label="顺序"><Input type="number" className="w-24" value={pin.order ?? 0} onChange={(e) => setPin({ order: +e.target.value })} /></Field>
+            <Field label="顺序"><Input type="number" min={0} max={99} step={1} className="w-24" value={pin.order ?? 0} onChange={(e) => setPin({ order: Math.min(99, Math.max(0, Math.round(+e.target.value) || 0)) })} /></Field>
             <Field label="开篇引文">
               <Textarea rows={3} value={(pin.quote ?? []).join('\n')} onChange={(e) => setPin({ quote: e.target.value.split('\n') })} onBlur={(e) => setPin({ quote: e.target.value.split('\n').filter((l) => l.trim()).length ? e.target.value.split('\n').filter((l) => l.trim()) : [''] })} />
             </Field>

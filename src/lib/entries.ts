@@ -43,8 +43,13 @@ export async function getEntries({ hidden = false } = {}): Promise<Entry[]> {
     .reverse();
 }
 
-/** 首页“本期收录”：有 pin 的文章按 pin.order；一篇都没有就退回最新的一篇。最多四篇 */
-export function pinnedOf(entries: Entry[]): Entry[] {
-  const pins = entries.filter((e) => e.data.pin).sort((a, b) => a.data.pin!.order - b.data.pin!.order || b.n - a.n);
-  return (pins.length ? pins : entries.slice(0, 1)).slice(0, 4);
+/** 有 pin 的文章，按 pin.order（同序号新的在前） */
+export function pinsOf(entries: Entry[]): Entry[] {
+  return entries.filter((e) => e.data.pin).sort((a, b) => a.data.pin!.order - b.data.pin!.order || b.n - a.n);
+}
+
+/** 首页放的文章（三种版式共用）：置顶的在前（按 pin.order），不够 count 篇的用最新的补；置顶多于 count 篇就只取前 count 篇 */
+export function homeEntries(entries: Entry[], count: number): Entry[] {
+  const pins = pinsOf(entries);
+  return [...pins, ...entries.filter((e) => !e.data.pin)].slice(0, count);
 }

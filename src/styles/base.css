@@ -45,14 +45,6 @@
   }
 }
 
-:root[data-font="fs"] {
-  --font-serif: "ZhuqueFS", "Songti SC", serif;
-}
-/* 朱雀仿宋只有常规体，不让浏览器伪造粗体 */
-:root[data-font="fs"] body {
-  font-synthesis-weight: none;
-}
-
 * {
   box-sizing: border-box;
   margin: 0;

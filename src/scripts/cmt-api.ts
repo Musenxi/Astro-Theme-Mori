@@ -70,7 +70,7 @@ export const remember = {
   set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch {} },
 };
 
-export const dotDate = (t: number) => {
+export const numDate = (t: number) => {
   const d = new Date(t);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
 };

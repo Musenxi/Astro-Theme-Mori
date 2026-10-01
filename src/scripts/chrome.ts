@@ -45,8 +45,10 @@ const site = $('#site');
 let lastY = scrollY;
 addEventListener('scroll', () => {
   const y = scrollY;
-  if (y > lastY + 4 && y > 160) site.classList.add('hide');
-  else if (y < lastY - 4 || y <= 160) site.classList.remove('hide');
+  // 封面版首页：刊名缩进页头的这一段里页头不收起（cover.ts 设 data-site-keep）
+  const keep = Math.max(160, Number(root.dataset.siteKeep) || 0);
+  if (y > lastY + 4 && y > keep) site.classList.add('hide');
+  else if (y < lastY - 4 || y <= keep) site.classList.remove('hide');
   lastY = y;
 }, { passive: true });
 

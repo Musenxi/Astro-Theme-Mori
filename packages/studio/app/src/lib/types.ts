@@ -37,7 +37,7 @@ export interface Project {
   config: {
     title: string; description: string; accent: string; accentDark?: string; lang: string;
     categories: Category[];
-    home?: { style?: 'quote' | 'cover'; direction?: 'h' | 'v'; editorNote?: string };
+    home?: { style?: 'quote' | 'cover' | 'list'; count?: number; direction?: 'h' | 'v'; tocDirection?: 'h' | 'v'; editorNote?: string };
     archive?: { direction?: 'h' | 'v' };
     feed?: { content?: 'excerpt' | 'full' };
     comments?: { avatar?: string };

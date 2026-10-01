@@ -1,24 +1,23 @@
-/* 首页开篇：换篇的状态（JS 切 on / out / enter）、封面图的渐隐蒙版、进场和换篇的动画。版式在 Opening.astro 里 */
+/* 首页开篇：换篇的状态（JS 切 on / out / enter）、进场和换篇的动画。版式在 Opening.astro 里 */
 .fo-slide{visibility:hidden}
 .fo-slide.on,.fo-slide.out{visibility:visible}
 .fo-slide.on{z-index:2}.fo-slide.out{z-index:1}
-/* 图朝着引文的一侧淡出（纸色），字落在淡出的那一段：横排时引文在左、图淡左缘；竖排时引文在右、图淡右缘。
-   淡出按 smoothstep（3t²−2t³）在 85% 的宽度上取 13 个停点：两端斜率为 0，不会在淡出结束处出现一道亮边；中段不太陡，浅图压深底时不显得突兀；边缘淡到全透明，看不出图的方框 */
 /* 封面图的高度只由屏高决定；引文压在图上、高度也是它，不参与排版，所以换篇时图注和下面的篇名栏不会跟着引文长短上下跳 */
 .fo{--ph-h:clamp(300px,calc(100svh - 330px),620px)}
-.fo-cover .ph{--dir:to right;position:relative;height:var(--ph-h);overflow:hidden;
-  -webkit-mask-image:linear-gradient(var(--dir),transparent 0%,rgb(0 0 0/0.02) 7.1%,rgb(0 0 0/0.074) 14.2%,rgb(0 0 0/0.156) 21.2%,rgb(0 0 0/0.259) 28.3%,rgb(0 0 0/0.376) 35.4%,rgb(0 0 0/0.5) 42.5%,rgb(0 0 0/0.624) 49.6%,rgb(0 0 0/0.741) 56.7%,rgb(0 0 0/0.844) 63.8%,rgb(0 0 0/0.926) 70.8%,rgb(0 0 0/0.98) 77.9%,#000 85%);
-  mask-image:linear-gradient(var(--dir),transparent 0%,rgb(0 0 0/0.02) 7.1%,rgb(0 0 0/0.074) 14.2%,rgb(0 0 0/0.156) 21.2%,rgb(0 0 0/0.259) 28.3%,rgb(0 0 0/0.376) 35.4%,rgb(0 0 0/0.5) 42.5%,rgb(0 0 0/0.624) 49.6%,rgb(0 0 0/0.741) 56.7%,rgb(0 0 0/0.844) 63.8%,rgb(0 0 0/0.926) 70.8%,rgb(0 0 0/0.98) 77.9%,#000 85%)}
-:root[data-hdir="v"] .fo-cover .ph{--dir:to left}
-/* 进场（整页第一次打开首页；<html class="intro"> 由 Base.astro 的内联脚本在首次绘制前加上）：图淡入并从略大处落定，引文一个字一个字像墨一样洇开，细线画开，最后出现篇名等信息。
+/* 首页这一块撑满第一屏（页头占的高度除外，--hv 由 home.ts 量），目次从下一屏开始；内容在这一屏里居中 */
+.fo{display:flex;flex-direction:column;justify-content:center;min-height:calc(100svh - var(--hv,62px))}
+.fo-cover .ph{position:relative;height:var(--ph-h);overflow:hidden}
+/* 进场（整页第一次打开首页；<html class="intro"> 由 Base.astro 的内联脚本在首次绘制前加上）：左侧栏最先淡入，接着图淡入并从略大处落定，引文一个字一个字像墨一样洇开，细线画开，最后出现篇名等信息。
    初始状态由 CSS 接手，所以不会先闪一下成品；等封面图解码好（home.ts 加 intro-go）再开始走，图不会半路蹦出来 */
 html.intro:not(.intro-go) .fo *{animation-play-state:paused!important}
 html.intro .fo .fo-slide.on:not(.enter) .ph{animation:cover-in 1.8s var(--ease-mori) .1s both}
-html.intro .fo .fo-slide.on .fo-q .ch{animation:ink 1s ease calc(.8s + var(--i)*40ms) both}
+html.intro .fo .fo-slide.on .fo-q .ch{animation:ink 1s ease calc(.8s + var(--i)*var(--ink-step,40ms)) both}
 @keyframes ink{from{opacity:0;filter:blur(7px)}}
-html.intro .fo .fo-slide.on:not(.enter) .fo-cite{animation:cite-rule 1.3s var(--ease-mori) 1.6s both}
+html.intro .fo .fo-slide.on:not(.enter) .fo-cite{animation:cite-rule 1.3s var(--ease-mori) var(--rule-at,1.6s) both}
 @keyframes cite-rule{from{background-size:0 1px}}
-html.intro .fo .fo-slide.on:not(.enter) .fo-cite dt,html.intro .fo .fo-slide.on:not(.enter) .fo-cite dd,html.intro .fo .fo-slide.on:not(.enter) .fo-cite > a,html.intro .fo .fo-side,html.intro .fo .fo-slide.on:not(.enter) figcaption{animation:fade .9s ease 2s both}
+html.intro .fo .fo-slide.on:not(.enter) .fo-cite dt,html.intro .fo .fo-slide.on:not(.enter) .fo-cite dd,html.intro .fo .fo-slide.on:not(.enter) .fo-cite > a,html.intro .fo .fo-slide.on:not(.enter) figcaption{animation:fade .9s ease var(--info-at,2s) both}
+html.intro .fo .fo-side{animation:fade .9s ease both}
+html.intro .fo .fo-row{animation:fade .9s ease calc(.3s + var(--r)*.2s) both}
 @keyframes cover-in{from{opacity:0;transform:scale(1.03)}}
 @keyframes fade{from{opacity:0}}
 /* 换篇：交叉溶解（参考 velasx.com 精选区）。新旧两篇叠在一起，旧的淡出、新的淡入，同时进行；
@@ -29,13 +28,10 @@ html.intro .fo .fo-slide.on:not(.enter) .fo-cite dt,html.intro .fo .fo-slide.on:
 @keyframes dissolve-in{from{opacity:0}}
 @keyframes dissolve-out{to{opacity:0}}
 html.intro .fo .fo-slide.on.enter .fo-q .ch{animation:none}
-/* 引文字号：默认的大字，但不超过“图高能放下的”——横排按行数（行高 1.6），竖排按最长一列的字数（字距 .05em），上下各留 32px */
-.fo-q{--m:clamp(28px,6vh,56px);font-size:min(var(--text-quote),(var(--ph-h) - 2 * var(--m)) / (var(--rows) * 1.6))}
-:root[data-hdir="v"] .fo-q{font-size:min(var(--text-quote-v),(var(--ph-h) - 2 * var(--m)) / var(--need))}
+/* 引文字号：横排固定（桌面 / 手机各一档）；竖排是默认的大字，但不超过“图高能放下的”——按最长一列的字数（字距 .05em），上下各留边距 */
+.fo-q{font-size:var(--text-quote)}
+:root[data-hdir="v"] .fo-q{--m:clamp(28px,6vh,56px);font-size:min(var(--text-quote-v),(var(--ph-h) - 2 * var(--m)) / var(--need))}
 @media (max-width:760px){
   .fo{--ph-h:clamp(320px,calc(100svh - 200px),660px)}
-  :root:not([data-hdir="v"]) .fo-q{font-size:min(var(--text-quote-sm),(var(--ph-h) - 2 * var(--m)) / (var(--rows) * 1.6))}
-  .fo-cover .ph{--dir:to left}
-  :root:not([data-hdir="v"]) .fo-cover .ph{-webkit-mask-image:linear-gradient(to bottom,#000 15%,rgb(0 0 0/0.98) 22.1%,rgb(0 0 0/0.926) 29.2%,rgb(0 0 0/0.844) 36.2%,rgb(0 0 0/0.741) 43.3%,rgb(0 0 0/0.624) 50.4%,rgb(0 0 0/0.5) 57.5%,rgb(0 0 0/0.376) 64.6%,rgb(0 0 0/0.259) 71.7%,rgb(0 0 0/0.156) 78.8%,rgb(0 0 0/0.074) 85.8%,rgb(0 0 0/0.02) 92.9%,transparent 100%);mask-image:linear-gradient(to bottom,#000 15%,rgb(0 0 0/0.98) 22.1%,rgb(0 0 0/0.926) 29.2%,rgb(0 0 0/0.844) 36.2%,rgb(0 0 0/0.741) 43.3%,rgb(0 0 0/0.624) 50.4%,rgb(0 0 0/0.5) 57.5%,rgb(0 0 0/0.376) 64.6%,rgb(0 0 0/0.259) 71.7%,rgb(0 0 0/0.156) 78.8%,rgb(0 0 0/0.074) 85.8%,rgb(0 0 0/0.02) 92.9%,transparent 100%)}
+  :root:not([data-hdir="v"]) .fo-q{font-size:var(--text-quote-sm)}
 }
-:root .fo .fo-cover.plain .ph{-webkit-mask-image:none;mask-image:none}

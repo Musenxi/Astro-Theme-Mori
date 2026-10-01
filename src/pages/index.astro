@@ -3,12 +3,19 @@ import { t, lang } from '../lib/i18n.ts';
 import config from 'virtual:mori/config';
 import Base from '../layouts/Base.astro';
 import Opening from '../components/Opening.astro';
+import List from '../components/List.astro';
 import Cover from '../components/Cover.astro';
 import Contents from '../components/Contents.astro';
-import { getEntries, pinnedOf } from '../lib/entries.ts';
+import { getEntries, homeEntries } from '../lib/entries.ts';
 
 const entries = await getEntries();
 const latest = entries[0];
+const { style, count } = config.home;
+const list = homeEntries(entries, count);
+// 引文版里放的第一篇没有置顶、也没有封面图：不摆空图区，改用文章列表
+const plain = list[0] && style !== 'cover' && (style === 'list' || (!list[0].data.pin && !list[0].data.cover));
+// 封面版右侧的标题：放的文章里除头条外的
+const rest = list.slice(1);
 ---
 
 <Base direction={config.home.direction}>
@@ -16,7 +23,7 @@ const latest = entries[0];
     <h1 class="sr-only">{config.title}</h1>
     {latest ? (
       <>
-        {config.home.style === 'cover' ? <Cover feature={pinnedOf(entries)[0]} entries={entries} latest={latest} /> : <Opening pinned={pinnedOf(entries)} latest={latest} />}
+        {config.home.style === 'cover' ? <Cover feature={list[0]} rest={rest} entries={entries} latest={latest} /> : plain ? <List entries={list} /> : <Opening pinned={list} latest={latest} />}
         <Contents entries={entries} latest={latest} />
       </>
     ) : (

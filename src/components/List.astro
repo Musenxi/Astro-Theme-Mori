@@ -1,0 +1,40 @@
+---
+/**
+ * 首页文章列表：选了“列表”版式，或没有置顶、最新一篇也没有封面图时用，不留一块空图区。
+ * 左边窄栏同引文版；右边几篇按期号排开，第一篇篇名放大并带摘要。
+ */
+import type { Entry } from '../lib/entries.ts';
+import { numDate, pad3 } from '../lib/zh.ts';
+import { t, fmt } from '../lib/i18n.ts';
+
+interface Props {
+  /** 要排的文章，已按先后排好 */
+  entries: Entry[];
+}
+const { entries: list } = Astro.props;
+const label = t('home.region');
+const ld = list[0].data.date;
+---
+
+<section class="wrap fo pt-[clamp(36px,8vh,110px)] pb-[clamp(64px,13vh,160px)] narrow:pt-0" id="fo">
+  <div class="g">
+    <div class="fo-side meta col-[1/3] row-1 flex flex-col gap-[5px] pt-[.5em] text-muted-foreground narrow:flex-row narrow:items-baseline narrow:gap-x-3.5 narrow:pt-7">
+      <span class="mb-3 text-primary narrow:m-0">{label}</span>
+      <span>{fmt.yearSeason(ld)}</span>
+    </div>
+    <ol class="col-[3/13] row-1 border-t border-t-border narrow:row-2 narrow:mt-[22px]" aria-label={label}>
+      {
+        list.map((e, k) => (
+          <li class="fo-row" style={{ '--r': k }}>
+            <a class="group/en grid grid-cols-[4.4em_1fr_auto] items-center gap-x-[18px] border-b border-b-border pt-[clamp(18px,3vh,30px)] pb-[clamp(20px,3.4vh,34px)] narrow:grid-cols-[3.2em_1fr]" href={e.href}>
+              <span class="text-heading leading-none font-light transition-[color] duration-300 group-hover/en:text-primary">{pad3(e.n)}</span>
+              <span class:list={['w-fit bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-[size:0_1px] bg-no-repeat leading-[1.3] tracking-[.05em] [transition:background-size_.6s_var(--ease-mori)] group-hover/en:bg-[size:100%_1px]', k === 0 ? 'text-title' : 'text-lead']}>{e.data.title}</span>
+              <span class="meta narrow:col-2">{e.data.pin && <span class="mr-2.5 text-primary">{t('home.pinned')}</span>}{numDate(e.data.date)}</span>
+              {k === 0 && e.data.excerpt && <span class="col-2 mt-3 max-w-[32em] text-aux leading-[1.9] tracking-[.03em] text-muted-foreground">{e.data.excerpt}</span>}
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>

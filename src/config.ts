@@ -65,10 +65,14 @@ export interface MoriUserConfig {
   /** 页头右侧的操作：merged 合并成一个胶囊（默认）/ split 每个单独一个胶囊 */
   actionsLayout?: 'merged' | 'split';
   home?: {
-    /** 首页版式：quote 引文开篇（默认）/ cover 封面版（墨色封面 + 满版刊名，往下滚时刊名缩进页头） */
-    style?: 'quote' | 'cover';
+    /** 首页版式：quote 引文开篇（默认）/ cover 封面版（墨色封面 + 满版刊名，往下滚时刊名缩进页头）/ list 文章列表 */
+    style?: 'quote' | 'cover' | 'list';
+    /** 首页一次展示几篇（1–8，默认 4）：置顶的排在前面（按 pin.order），不够的用最新的补；没有置顶也没有封面图时引文版会退回文章列表 */
+    count?: number;
     /** 首页排法：h 横排 / v 竖排（手机上一律横排） */
     direction?: 'h' | 'v';
+    /** 首页目次的排法：h 横排 / v 竖排（手机上一律横排）；不写就跟首页排法一样 */
+    tocDirection?: 'h' | 'v';
     /** 目次左边的“编者按” */
     editorNote?: string;
   };
@@ -91,7 +95,7 @@ export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'acc
   accentDark?: string;
   comments?: MoriComments;
   description: string;
-  home: { style: 'quote' | 'cover'; direction: 'h' | 'v'; editorNote: string };
+  home: { style: 'quote' | 'cover' | 'list'; count: number; direction: 'h' | 'v'; tocDirection: 'h' | 'v'; editorNote: string };
   archive: { direction: 'h' | 'v' };
   /** nav 是用户在配置里设定的（false 时页头在内置入口后面自动接上所有页面） */
   navCustom: boolean;
@@ -120,7 +124,7 @@ export function resolveConfig(c: MoriUserConfig): MoriConfig {
       { label: t('nav.posts'), href: '/posts/' },
       { label: t('nav.archive'), href: '/archive/' },
     ],
-    home: { style: c.home?.style ?? 'quote', direction: dir(c.home?.direction), editorNote: c.home?.editorNote ?? '' },
+    home: { style: c.home?.style ?? 'quote', count: Math.min(8, Math.max(1, Math.round(c.home?.count ?? 4) || 4)), direction: dir(c.home?.direction), tocDirection: dir(c.home?.tocDirection ?? c.home?.direction), editorNote: c.home?.editorNote ?? '' },
     archive: { direction: dir(c.archive?.direction ?? c.home?.direction) },
     navCustom: !!c.nav,
     actions: c.actions ?? [{ type: 'theme' }],

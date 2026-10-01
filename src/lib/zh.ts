@@ -1,5 +1,6 @@
 /** 中文数字与日期的排法：目次和竖排里用汉字数字（spec §4） */
-const D = '〇一二三四五六七八九';
+// 零写作「○」（U+25CB）：东观体没有「〇」（U+3007），用它会掉到别的字体上
+const D = '○一二三四五六七八九';
 
 /** 三、十、十一、二十、四十八、一百零五、一百一十 …… 用于篇数、期号（到 9999） */
 export function cnNumber(n: number): string {
@@ -12,7 +13,7 @@ export function cnNumber(n: number): string {
   return D[Math.floor(n / u)] + name + tail;
 }
 
-/** 二〇二五 */
+/** 二○二五 */
 export const cnYear = (y: number) => String(y).split('').map((c) => D[+c]).join('');
 
 export const pad2 = (n: number) => String(n).padStart(2, '0');
@@ -24,5 +25,7 @@ export const season = (month: number) => (month >= 3 && month <= 5 ? '春' : mon
 /** 九月十四（竖排里的月日） */
 export const cnMonthDay = (d: Date) => `${cnNumber(d.getMonth() + 1)}月${cnNumber(d.getDate())}`;
 
-/** 2025.09.14 */
-export const dotDate = (d: Date) => `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}`;
+/** 2025/09/14 */
+export const numDate = (d: Date) => `${d.getFullYear()}/${pad2(d.getMonth() + 1)}/${pad2(d.getDate())}`;
+/** 09/30 */
+export const numMonthDay = (d: Date) => `${pad2(d.getMonth() + 1)}/${pad2(d.getDate())}`;

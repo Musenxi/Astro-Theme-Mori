@@ -65,10 +65,19 @@ export default function Settings() {
 
         <Section title="首页与归档"><Card>
           <Field label="版式">
-            <Segmented value={edits['home.style'] ?? cfg.home?.style ?? 'quote'} onValueChange={(v) => put('home.style', v)} options={[{ value: 'quote', label: '引文版' }, { value: 'cover', label: '封面版' }]} />
+            <Segmented value={edits['home.style'] ?? cfg.home?.style ?? 'quote'} onValueChange={(v) => put('home.style', v)} options={[{ value: 'quote', label: '引文版' }, { value: 'cover', label: '封面版' }, { value: 'list', label: '列表' }]} />
+          </Field>
+          <Field label="展示篇数">
+            <div className="flex items-center gap-2">
+              <Input type="number" min={1} max={8} className="w-24" value={edits['home.count'] ?? String(cfg.home?.count ?? 4)} onChange={(e) => put('home.count', e.target.value)} />
+              <span className="text-soft-foreground">篇</span>
+            </div>
           </Field>
           <Field label="首页排法">
             <Segmented value={edits['home.direction'] ?? cfg.home?.direction ?? 'h'} onValueChange={(v) => put('home.direction', v)} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />
+          </Field>
+          <Field label="目次排法">
+            <Segmented value={edits['home.tocDirection'] ?? cfg.home?.tocDirection ?? cfg.home?.direction ?? 'h'} onValueChange={(v) => put('home.tocDirection', v)} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />
           </Field>
         </Card></Section>
 

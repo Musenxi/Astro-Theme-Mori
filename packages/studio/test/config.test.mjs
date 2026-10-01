@@ -53,6 +53,10 @@ test('home / archive 块里的取值：只改各自块里的，同名 key 互不
   assert.equal(readFileSync(f, 'utf8').match(/style:/g).length, 1);
   setConfigValue(f, 'archive.direction', 'v');    // 单行块里改值
   assert.match(readFileSync(f, 'utf8'), /archive: \{ direction: 'v' \}/);
+  setConfigValue(f, 'home.tocDirection', 'v');    // 目次排法：和 direction 各改各的
+  setConfigValue(f, 'home.direction', 'h');
+  assert.match(readFileSync(f, 'utf8'), /tocDirection: 'v',/);
+  assert.match(readFileSync(f, 'utf8'), /\n    direction: 'h',/);
   assert.throws(() => setConfigValue(f, 'home.style', 'grid'), /只能是/);
 
   const g = join(mkdtempSync(join(tmpdir(), 'mori-')), 'c.ts');
@@ -63,6 +67,20 @@ test('home / archive 块里的取值：只改各自块里的，同名 key 互不
   writeFileSync(h, `export default defineMoriConfig({\n  home: { editorNote: 'x' },\n});\n`);
   setConfigValue(h, 'home.style', 'cover');       // 单行块里没有：加在 { 后面
   assert.match(readFileSync(h, 'utf8'), /home: \{ style: 'cover', editorNote: 'x' \}/);
+});
+
+test('home.count：数字不带引号，已有就替换，只接受 1–8 的整数', () => {
+  const f = join(mkdtempSync(join(tmpdir(), 'mori-')), 'c.ts');
+  writeFileSync(f, `export default defineMoriConfig({\n  home: {\n    style: 'list',\n  },\n});\n`);
+  setConfigValue(f, 'home.count', '5');
+  assert.match(readFileSync(f, 'utf8'), /home: \{\n    count: 5,\n    style: 'list',/);
+  setConfigValue(f, 'home.count', '2');
+  assert.equal(readFileSync(f, 'utf8').match(/count/g).length, 1);
+  assert.match(readFileSync(f, 'utf8'), /count: 2,/);
+  assert.throws(() => setConfigValue(f, 'home.count', '9'), /1–8/);
+  assert.throws(() => setConfigValue(f, 'home.count', 'x'), /1–8/);
+  setConfigValue(f, 'home.style', 'quote');       // 改字符串不受数字行影响
+  assert.match(readFileSync(f, 'utf8'), /style: 'quote'/);
 });
 
 test('feed.content：没有 feed 块时新建，有就只改取值；只接受 excerpt / full', () => {

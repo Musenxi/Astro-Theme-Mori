@@ -27,6 +27,10 @@ function init() {
   const fo = document.querySelector<HTMLElement>('#fo');
   if (!fo || fo.dataset.ready) return;
   fo.dataset.ready = '1';
+  // 开篇撑满第一屏：减掉页头占的高度（opening.css 的 --hv），目次从下一屏开始
+  const fit = () => document.documentElement.style.setProperty('--hv', Math.round(fo.getBoundingClientRect().top + scrollY) + 'px');
+  fit();
+  addEventListener('resize', fit);
   const slides = [...fo.querySelectorAll<HTMLElement>('.fo-slide')];
   const items = [...fo.querySelectorAll<HTMLLIElement>('.fo-more li')];
   const no = fo.querySelector<HTMLElement>('#fo-no')!;

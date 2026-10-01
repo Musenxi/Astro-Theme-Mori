@@ -22,8 +22,3 @@
   transition:transform .55s cubic-bezier(.34,1.45,.5,1),width .55s cubic-bezier(.34,1.45,.5,1),opacity .3s}
 .lg-lens.on{opacity:1}
 .lg-lens.snap{transition:none}
-/* 封面底色和页面相反，玻璃直接借用另一套主题的参数 */
-.site.on-cover{
-  --lg-fg:color-mix(in srgb,var(--background) 72%,transparent);--lg-fg-on:var(--background);--lg-tint:rgba(24,22,20,.3);--lg-spec-o:.7;--lg-rim:rgba(255,255,255,.34);--lg-rim-2:rgba(255,255,255,.12);--lg-glow:rgba(255,255,255,.05);--lg-drop:rgba(0,0,0,.55);--lg-lens:rgba(255,255,255,.12);--lg-lens-rim:rgba(255,255,255,.3);
-  @variant dark{--lg-tint:rgba(255,255,255,.3);--lg-rim:rgba(255,255,255,.95);--lg-rim-2:rgba(255,255,255,.4);--lg-glow:rgba(255,255,255,.35);--lg-drop:rgba(60,45,30,.2);--lg-lens:rgba(255,255,255,.62);--lg-lens-rim:rgba(255,255,255,1)}
-}

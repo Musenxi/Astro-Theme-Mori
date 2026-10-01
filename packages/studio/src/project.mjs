@@ -163,8 +163,10 @@ export function saveAsset(root, name, buffer) {
 
 /* ───────────── mori.config.ts 里的单行字符串设置 ───────────── */
 const CONFIG_KEYS = new Set(['title', 'description', 'accent', 'accentDark', 'editorNote', 'actionsLayout']);
-/** 嵌套在 home / archive / feed 块里的设置：'home.style'、'home.direction'、'archive.direction'、'feed.content' */
-const BLOCK_KEYS = { 'home.style': ['quote', 'cover'], 'home.direction': ['h', 'v'], 'archive.direction': ['h', 'v'], 'feed.content': ['excerpt', 'full'], 'comments.avatar': ['cravatar', 'gravatar', 'none'] };
+/** 嵌套在 home / archive / feed 块里的设置：'home.style'、'home.direction'、'home.tocDirection'、'archive.direction'、'feed.content' */
+const BLOCK_KEYS = { 'home.style': ['quote', 'cover', 'list'], 'home.direction': ['h', 'v'], 'home.tocDirection': ['h', 'v'], 'archive.direction': ['h', 'v'], 'feed.content': ['excerpt', 'full'], 'comments.avatar': ['cravatar', 'gravatar', 'none'] };
+/** 数字取值的设置：[最小, 最大]，写进文件时不带引号 */
+const NUM_KEYS = { 'home.count': [1, 8] };
 const quote = (v) => `'${String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n')}'`;
 
 /**
@@ -172,7 +174,7 @@ const quote = (v) => `'${String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'").r
  * key 不在文件里时：顶层的 key 插到配置对象开头；editorNote 这种嵌套的要作者先自己写出来。value 为 null 表示删掉这一行。
  */
 export function setConfigValue(configPath, key, value) {
-  if (key in BLOCK_KEYS) return setBlockValue(configPath, key, value);
+  if (key in BLOCK_KEYS || key in NUM_KEYS) return setBlockValue(configPath, key, value);
   if (!CONFIG_KEYS.has(key)) throw new Error(`不支持修改 ${key}`);
   let src = readFileSync(configPath, 'utf8');
   // 行尾允许有逗号和 // 注释，替换时原样保留
@@ -197,7 +199,15 @@ export function setConfigValue(configPath, key, value) {
  */
 function setBlockValue(configPath, dotted, value) {
   const [block, key] = dotted.split('.');
-  if (!BLOCK_KEYS[dotted].includes(value)) throw new Error(`${dotted} 只能是 ${BLOCK_KEYS[dotted].join(' / ')}`);
+  let lit; // 写进文件的字面量：字符串带引号，数字不带
+  if (dotted in NUM_KEYS) {
+    const [min, max] = NUM_KEYS[dotted], n = Number(value);
+    if (!Number.isInteger(n) || n < min || n > max) throw new Error(`${dotted} 要是 ${min}–${max} 的整数`);
+    lit = String(n);
+  } else {
+    if (!BLOCK_KEYS[dotted].includes(value)) throw new Error(`${dotted} 只能是 ${BLOCK_KEYS[dotted].join(' / ')}`);
+    lit = `'${value}'`;
+  }
   let src = readFileSync(configPath, 'utf8');
   const open = src.match(new RegExp(`^([ \\t]*)${block}[ \\t]*:[ \\t]*\\{`, 'm'));
   // 评论的块自己带着服务地址等设置，不能凭空新建一个只有头像的 comments
@@ -205,7 +215,7 @@ function setBlockValue(configPath, dotted, value) {
   if (!open) {
     const top = src.match(/(defineMoriConfig\(\{|export default \{)[ \t]*\n/);
     if (!top) throw new Error('没在 mori.config.ts 里找到配置对象的开头，请手动添加。');
-    writeFileSync(configPath, src.replace(top[0], `${top[0]}  ${block}: { ${key}: '${value}' },\n`));
+    writeFileSync(configPath, src.replace(top[0], `${top[0]}  ${block}: { ${key}: ${lit} },\n`));
     return;
   }
   // 找这个块的结尾：从 { 之后数括号
@@ -213,11 +223,11 @@ function setBlockValue(configPath, dotted, value) {
   let depth = 1, i = from;
   for (; i < src.length && depth > 0; i++) { if (src[i] === '{') depth++; else if (src[i] === '}') depth--; }
   const end = i - 1, body = src.slice(from, end);
-  const line = new RegExp(`(\\b${key}[ \\t]*:[ \\t]*)(['"\`])(?:\\\\.|(?!\\2).)*\\2`);
+  const line = new RegExp(`(\\b${key}[ \\t]*:[ \\t]*)(?:(['"\`])(?:\\\\.|(?!\\2).)*\\2|\\d+)`);
   let next;
-  if (line.test(body)) next = body.replace(line, (_, k) => `${k}'${value}'`);
-  else if (body.includes('\n')) next = `\n${open[1]}  ${key}: '${value}',${body}`;   // 多行：加在块的开头
-  else next = ` ${key}: '${value}',${body.replace(/^\s*/, ' ')}`;                       // 单行：加在 { 后面
+  if (line.test(body)) next = body.replace(line, (_, k) => `${k}${lit}`);
+  else if (body.includes('\n')) next = `\n${open[1]}  ${key}: ${lit},${body}`;   // 多行：加在块的开头
+  else next = ` ${key}: ${lit},${body.replace(/^\s*/, ' ')}`;                       // 单行：加在 { 后面
   writeFileSync(configPath, src.slice(0, from) + next + src.slice(end));
 }
 

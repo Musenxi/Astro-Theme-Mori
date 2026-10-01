@@ -9,3 +9,14 @@
 .fc.play .f-ruler{animation:rule-in 1.2s var(--ease-mori) .8s both}
 .fc.play .f-ruler .pt{animation:pt-in .5s var(--ease-mori) calc(1.2s + var(--i)*55ms) both}
 @keyframes pt-in{from{transform:scale(0)}}
+/* 往下滚：刊名缩小、移到页头站名的位置，最后一段先淡出、再淡入页头站名：两者字重和字距不同，叠着淡会有重影。
+   跟着滚动条走的动画（animation-timeline），由合成线程按滚动位置直接算，不等 JS，所以不会拖拍、抖动。
+   起止位置和缩放比例由 cover.ts 量好写进变量；不支持的浏览器由 cover.ts 按滚动位置写 --p，动画停在对应的一帧 */
+.fc.anim .f-mast{animation:mast-shrink 1s cubic-bezier(.45,0,.55,1) both;animation-timeline:scroll(root);animation-range:0 var(--mast-end)}
+@keyframes mast-shrink{72%{opacity:1}88%{opacity:0}to{opacity:0;transform:translate(var(--tx),var(--ty)) scale(var(--s))}}
+:root.cover-home .site .mark{animation:mark-in 1s linear both;animation-timeline:scroll(root);animation-range:calc(var(--mast-end) * .88) var(--mast-end)}
+@keyframes mark-in{from{opacity:0}}
+@supports not (animation-timeline:scroll()){
+  .fc.anim .f-mast{animation-play-state:paused;animation-delay:calc(var(--p,0) * -1s)}
+  :root.cover-home .site .mark{animation-play-state:paused;animation-delay:calc(clamp(0,(var(--p,0) - .88) / .12,1) * -1s)}
+}

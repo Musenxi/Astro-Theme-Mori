@@ -1,0 +1,18 @@
+/* EB Garamond（SIL OFL 1.1，见 OFL.txt；文件取自 @fontsource-variable/eb-garamond 的 latin 子集）：西文和数字用它。
+   只认基本拉丁和拉丁补充里的字符；中点 ·、弯引号、破折号、省略号不在内，仍由东观体排，和中文的宽度一致 */
+@font-face {
+  font-family: "EB Garamond";
+  src: url("./eb-garamond-latin-wght-normal.woff2") format("woff2-variations");
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0020-007E, U+00A0-00B6, U+00B8-00FF, U+0131, U+0152-0153, U+2013, U+20AC, U+2122, U+2212;
+}
+@font-face {
+  font-family: "EB Garamond";
+  src: url("./eb-garamond-latin-wght-italic.woff2") format("woff2-variations");
+  font-weight: 400 800;
+  font-style: italic;
+  font-display: swap;
+  unicode-range: U+0020-007E, U+00A0-00B6, U+00B8-00FF, U+0131, U+0152-0153, U+2013, U+20AC, U+2122, U+2212;
+}

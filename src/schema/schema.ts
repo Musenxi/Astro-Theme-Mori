@@ -42,10 +42,10 @@ export type Inline = Span[];
 
 /* ───────────── 元信息（普通文章与游记共用） ───────────── */
 
-/** 置顶：首页“引文开篇”用。有 `pin` 就是置顶，`pin.order` 决定顺序，首页最多四篇 */
+/** 置顶：有 `pin` 就是置顶，首页放文章时排在最前，`pin.order`（0–99 的整数）决定先后 */
 export const pinSchema = (image: ImageFn) =>
   z.object({
-    order: z.number().default(0),
+    order: z.number().int().min(0).max(99).default(0),
     /** 开篇引文，已按句读断好行；首行的「悬挂在版心外，末行自动补」 */
     quote: z.array(z.string()).min(1),
     /** 图注一行：地点 · 日期 · 路线 */
@@ -286,7 +286,7 @@ export const friendSchema = ({ image }: SchemaContext) =>
     desc: z.string().default(''),
     avatar: z.union([z.string().url(), image()]).optional(),
     /** 排序，小的在前；缺省按文件里的先后 */
-    order: z.number().default(0),
+    order: z.number().int().min(0).max(99).default(0),
   });
 
 /**

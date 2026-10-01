@@ -7,7 +7,7 @@ import Chevron from './Chevron.astro';
 import { Image } from 'astro:assets';
 import type { Entry } from '../lib/entries.ts';
 import { readingOf } from '../lib/inline.ts';
-import { dotDate, pad2, pad3 } from '../lib/zh.ts';
+import { numDate, pad2, pad3 } from '../lib/zh.ts';
 import { t, fmt } from '../lib/i18n.ts';
 
 interface Props {
@@ -21,7 +21,7 @@ const many = pinned.length > 1;
 const catName = (c: { zh: string; en?: string }) => [...new Set([c.zh, c.en].filter(Boolean))].join(' · ');
 const ld = latest.data.date;
 
-/** 每篇置顶要有：封面、引文、图注、三条信息；缺哪样就用文章自己的字段顶上。引文和摘要都没有就不放引文，封面也不做渐隐 */
+/** 每篇置顶要有：封面、引文、图注、三条信息；缺哪样就用文章自己的字段顶上。引文和摘要都没有就不放引文 */
 const slides = pinned.map((e) => {
   const d = e.data, pin = d.pin;
   const { chars, minutes } = readingOf(d);
@@ -36,23 +36,27 @@ const slides = pinned.map((e) => {
     alt: pin?.alt ?? d.coverAlt ?? '',
     quote,
     lines: quote.length,
-    caption: pin?.caption ?? `${e.category.zh} · ${dotDate(d.date)}`,
+    caption: pin?.caption ?? `${e.category.zh} · ${numDate(d.date)}`,
     meta: pin?.meta?.length ? pin.meta : [
-      { label: t('home.date'), value: dotDate(d.date) },
+      { label: t('home.date'), value: numDate(d.date) },
       { label: t('home.length'), value: t('meta.chars', { n: chars.toLocaleString('en-US') }) },
       { label: t('home.time'), value: t('meta.min', { n: minutes }) },
     ],
   };
 });
 const first = slides[0];
-/** 引文字号各篇统一，按放得下最挤的一篇来定上限：竖排取最长的一列，横排取最多的行数。上下各留边距（opening.css） */
+/** 竖排引文字号各篇统一，按最长的一列定上限，上下各留边距（opening.css）；横排是固定字号，放在图的左下角 */
 const STEP = 2.5; // 竖排一列比一列低多少个字
 const need = Math.max(1, ...slides.flatMap((s) => s.quote.map((l) => l.length + (s.quote.length - 1) * STEP)));
-const rows = Math.max(1, ...slides.map((s) => s.lines));
+/** 进场只播第一篇：引文逐字洇开的节奏按字数定（字多就加快，最长约 1.5 秒洇完），细线和篇名等信息排在引文洇完之后（opening.css） */
+const nch = first.quote.reduce((n, l) => n + l.length, 0);
+const inkStep = nch ? Math.min(40, 1500 / nch) : 0;
+const quoteEnd = 0.8 + (nch * inkStep) / 1000 + 1;
+const ruleAt = Math.max(1.6, quoteEnd - 0.4);
 const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground';
 ---
 
-<section style={{ '--need': need, '--rows': rows, '--step': STEP }} class="wrap fo pt-[clamp(36px,8vh,110px)] pb-[clamp(64px,13vh,160px)] narrow:pt-0" id="fo">
+<section style={{ '--need': need, '--step': STEP, '--ink-step': `${inkStep}ms`, '--rule-at': `${ruleAt}s`, '--info-at': `${ruleAt + 0.4}s` }} class="wrap fo pt-[clamp(36px,8vh,110px)] pb-[clamp(64px,13vh,160px)] narrow:pt-0" id="fo">
   <div class="g">
     <div class="fo-side meta col-[1/3] row-1 flex flex-col gap-[5px] pt-[.5em] text-muted-foreground narrow:row-2 narrow:mt-[26px] narrow:flex-row narrow:flex-wrap narrow:items-baseline narrow:gap-x-3.5 narrow:gap-y-1 narrow:p-0">
       <span class="mb-3 text-primary narrow:m-0">{t('home.feature')}</span>
@@ -84,7 +88,7 @@ const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground'
           {
             slides.map((s, k) => (
               <article class:list={['fo-slide col-1 row-[1/4] grid min-w-0 grid-rows-subgrid', k === 0 && 'on']} data-no={pad3(s.e.n)} inert={k !== 0}>
-                <figure class:list={['fo-cover col-1 row-[1/3] grid grid-rows-subgrid', s.lines === 0 && 'plain']}>
+                <figure class="fo-cover col-1 row-[1/3] grid grid-rows-subgrid">
                   <div class="ph">
                     {s.image && <Image class="absolute inset-0 size-full object-cover [filter:saturate(.9)] dark:[filter:saturate(.9)_brightness(.8)]" src={s.image} alt={s.alt} widths={[800, 1200, 1600, 2000]} sizes="(max-width: 760px) 100vw, 83vw" loading={k === 0 ? 'eager' : 'lazy'} fetchpriority={k === 0 ? 'high' : 'auto'} />}
                   </div>
@@ -94,7 +98,7 @@ const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground'
                   </figcaption>
                 </figure>
                 {s.lines > 0 && (
-                  <a class="group/qa relative z-2 col-1 row-1 flex h-(--ph-h) max-w-[min(100%,800px)] items-center self-start justify-self-start pl-[clamp(16px,3vw,48px)] vert:justify-self-end vert:pl-0 vert:pr-[clamp(8px,1.4vw,24px)] narrow:items-end narrow:pt-0! narrow:pr-0! narrow:pb-[46px]! narrow:pl-[1em]!" href={s.e.href}>
+                  <a class="group/qa relative z-2 col-1 row-1 flex h-(--ph-h) max-w-[min(100%,800px)] items-center self-start justify-self-start horiz:items-end horiz:pb-[46px] horiz:pl-[1em] vert:justify-self-end vert:pr-[clamp(8px,1.4vw,24px)] narrow:items-end narrow:pt-0! narrow:pr-0! narrow:pb-[46px]! narrow:pl-[1em]!" href={s.e.href}>
                     <p class="fo-q leading-[1.6] font-light tracking-[.05em] transition-[color] duration-500 group-hover/qa:text-soft-foreground vert:leading-[2] vert:[writing-mode:vertical-rl]">
                       {s.quote.map((line, n) => (
                         <span class="block whitespace-nowrap vert:translate-y-[calc((var(--k)-var(--c))*var(--step)*1em)]" style={{ '--k': n, '--c': (s.quote.length - 1) / 2 }}>

@@ -5,7 +5,7 @@
 import { t } from './i18n.ts';
 import { mountEmbed } from './cmt-embed.ts';
 import { avatarUrl } from '../lib/avatar.mjs';
-import { moriConfig, listComments, sendComment, mountTurnstile, remember, dotDate, type MoriComment, type MoriCommentsConfig } from './cmt-api.ts';
+import { moriConfig, listComments, sendComment, mountTurnstile, remember, numDate, type MoriComment, type MoriCommentsConfig } from './cmt-api.ts';
 
 type Child = Node | string | null | false | undefined;
 function h<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, any> = {}, ...kids: Child[]): HTMLElementTagNameMap[K] {
@@ -68,7 +68,7 @@ function init() {
     const li: HTMLLIElement = h('li', { id: `c${c.id}`, class: 'cmt-item' },
       avatar(c),
       h('div', { class: 'cmt-main' },
-        h('div', { class: 'cmt-meta' }, byline(c), h('time', { class: 'cmt-date' }, dotDate(c.createdAt)),
+        h('div', { class: 'cmt-meta' }, byline(c), h('time', { class: 'cmt-date' }, numDate(c.createdAt)),
           h('button', { class: 'cmt-reply', type: 'button', onclick: (ev: Event) => toggleReply(li, c, ev.currentTarget as HTMLElement) }, t('js.cmt.reply'))),
         c.block && c.quote ? quote(c) : null,
         h('div', { class: 'cmt-text' }, c.body),

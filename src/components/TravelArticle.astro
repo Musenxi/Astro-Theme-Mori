@@ -5,7 +5,7 @@ import TravelBody from './TravelBody.astro';
 import RouteMap from './RouteMap.astro';
 import type { Entry } from '../lib/entries.ts';
 import type { TravelData } from '../schema/schema.ts';
-import { dotDate } from '../lib/zh.ts';
+import { numDate } from '../lib/zh.ts';
 
 interface Props { entry: Entry }
 const { entry } = Astro.props;
@@ -20,7 +20,7 @@ const initial = allowed.includes(short(d.reading.default)) ? short(d.reading.def
   <header class="t-hero wrap g items-center gap-y-8 pt-[clamp(28px,5vw,72px)] pb-[clamp(48px,7vw,96px)]">
     <div class="col-[1/6]">
       <h1 class="w-fit text-display leading-[1.15] font-normal tracking-[.06em] [view-transition-name:title-is]">{d.title}</h1>
-      <p class="meta mt-5 flex flex-wrap items-baseline gap-x-2"><a class="transition-[color] duration-300 hover:text-primary" href={`/category/${entry.category.id}/`}>{entry.category.zh}</a><span aria-hidden="true">·</span><span>{dotDate(d.date)}</span></p>
+      <p class="meta mt-5 flex flex-wrap items-baseline gap-x-2"><a class="transition-[color] duration-300 hover:text-primary" href={`/category/${entry.category.id}/`}>{entry.category.zh}</a><span aria-hidden="true">·</span><span>{numDate(d.date)}</span></p>
       <p class="ex mt-6 mb-8 max-w-[24em] text-soft-foreground">{d.excerpt}</p>
       {d.facts.length > 0 && (
         <dl class="grid grid-cols-[auto_1fr] items-baseline gap-x-6 gap-y-2.5 border-t border-t-border pt-5">

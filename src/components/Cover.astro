@@ -1,68 +1,74 @@
 ---
 /**
- * 首页 F·封面版（spec §2，保留备选）：墨色封面，满版刊名（细体），期号条，本期特稿（大标题 + 英文斜体副题 + 导语），
- * 右侧几篇封面标题，底部“刊期”刻度（一格一个月，每篇一个点）。暗色模式下封面反成浅底深字。
- * 往下滚时刊名缩小并移到左上角，变成页头里的 MORI；页头压在封面上时自动反色。
+ * 首页 F·封面版（spec §2，保留备选）：大字刊名（细体），横线下一行分类和篇数，特稿（大标题 + 英文副题 + 导语），
+ * 右侧几篇封面标题，底部时间刻度（每篇一个点，换年处标年份）。颜色跟着昼夜走，和其他页一样。
+ * 往下滚时刊名缩小并移到左上角，变成页头里的站名（cover.ts / cover.css）。
  */
 import config from 'virtual:mori/config';
 import type { Entry } from '../lib/entries.ts';
-import { pad3 } from '../lib/zh.ts';
-import { t, fmt, lang } from '../lib/i18n.ts';
+import { numDate, numMonthDay, pad3 } from '../lib/zh.ts';
+import { fmt } from '../lib/i18n.ts';
 
 interface Props {
-  /** 头条：置顶的第一篇，没有置顶就是最新一篇 */
+  /** 头条：首页放的文章里的第一篇 */
   feature: Entry;
+  /** 右侧几篇封面标题 */
+  rest: Entry[];
   entries: Entry[];
   latest: Entry;
 }
-const { feature, entries, latest } = Astro.props;
+const { feature, rest, entries, latest } = Astro.props;
 
-const ym = (d: Date) => d.getFullYear() * 12 + d.getMonth();
-const oldest = Math.min(...entries.map((e) => ym(e.data.date))), newest = ym(latest.data.date);
-const span = Math.max(6, newest - oldest + 1);
-const first = oldest - Math.max(0, span - (newest - oldest + 1)); // 不足 6 格时往前补空格
-const ticks = Array.from({ length: span }, (_, k) => {
-  const tm = first + k, y = Math.floor(tm / 12), m = (tm % 12) + 1;
-  return { left: ((k / span) * 100).toFixed(3), label: m === 1 ? String(y) : String(m).padStart(2, '0'), year: m === 1 };
+// 刊期：每篇一个点，按日期定位；挨得太近的往后推开，至少隔 gap（点不叠在一起）。换年的地方画一道刻度、标年份
+const order = [...entries].reverse();
+const t0 = order[0].data.date.getTime(), t1 = order[order.length - 1].data.date.getTime();
+const pos = (t: number) => 2 + ((t - t0) / Math.max(1, t1 - t0)) * 96;
+const gap = Math.min(2.5, 80 / order.length);
+const xs = order.map((e) => pos(e.data.date.getTime()));
+for (let i = 1; i < xs.length; i++) xs[i] = Math.max(xs[i], xs[i - 1] + gap);
+for (let i = xs.length - 1; i >= 0; i--) xs[i] = Math.min(xs[i], i === xs.length - 1 ? 98 : xs[i + 1] - gap);
+const points = order.map((e, i) => ({ e, i, left: xs[i].toFixed(3) }));
+const years = order.flatMap((e, i) => {
+  const y = e.data.date.getFullYear();
+  if (i > 0 && y === order[i - 1].data.date.getFullYear()) return [];
+  // 刻度落在一月一日的位置，但不越过前后两个点
+  const x = i === 0 ? 0 : Math.min(xs[i] - gap / 3, Math.max(xs[i - 1] + gap / 3, pos(new Date(y, 0, 1).getTime())));
+  return [{ y, left: x.toFixed(3) }];
 });
-const points = [...entries].reverse().map((e, i) => {
-  const d = e.data.date, x = ((ym(d) - first + (d.getDate() - 1) / 31) / span) * 100;
-  return { e, i, left: x.toFixed(3) };
-});
-const rest = entries.filter((e) => e !== feature).slice(0, 4);
 const mast = [...config.title];
-const strap = 'col-[span_3] last:text-right narrow:col-[span_6] narrow:nth-3:hidden narrow:even:text-right';
-const ld = latest.data.date, firstYear = new Date(Math.min(...entries.map((e) => e.data.date.getTime()))).getFullYear();
+const ld = latest.data.date;
 const fd: any = feature.data;
 ---
 
-<section class="fc flex min-h-svh -mt-(--hh,82px) flex-col bg-foreground pt-(--hh,82px) text-on [--acc:color-mix(in_srgb,var(--primary)_80%,var(--background))] [--on-2:color-mix(in_srgb,var(--background)_66%,transparent)] [--on-3:color-mix(in_srgb,var(--background)_42%,transparent)] [--on-line:color-mix(in_srgb,var(--background)_22%,transparent)] [--on:var(--background)] transition-[background-color] duration-400" id="fc">
+<section class="fc flex min-h-svh -mt-(--hh,82px) flex-col pt-(--hh,82px)" id="fc">
   <div class="wrap flex w-full flex-1 flex-col pb-[clamp(20px,4vh,40px)]">
-    <h1 class="f-mast relative z-30 mt-[clamp(4px,1.6vh,20px)] flex origin-[0_0] justify-between leading-[.8] font-light tracking-[-.01em] whitespace-nowrap will-change-[transform,opacity]" id="f-mast" aria-label={config.title}>{mast.map((ch, i) => <span class="inline-block" style={{ '--i': i }}>{ch}</span>)}</h1>
-    <div class="f-rule mt-[clamp(10px,2vh,20px)] h-px origin-[0_50%] bg-on-line"></div>
-    <div class="f-strap mono grid grid-cols-12 gap-x-(--gap) gap-y-1.5 pt-2.5 text-on-2">
-      <span class={strap}>{t('cover.vol', { v: String(ld.getFullYear() - firstYear + 1).padStart(2, '0'), n: String(latest.n).padStart(2, '0') })}</span>
-      <span class={strap}>{t('cover.seasonIssue', { year: fmt.year(ld.getFullYear()), season: fmt.season(ld.getMonth() + 1) })}</span>
-      <span class={strap}>{config.categories.map((c) => c.zh).join(' · ')}</span>
-      <span class={strap}>{t('cover.since', { year: firstYear })}</span>
-    </div>
-    <div class="g f-cover mt-auto items-end gap-y-10 pt-[clamp(36px,7vh,96px)]">
-      <a class="group/lead col-[1/7] block vert:grid vert:grid-cols-[minmax(0,1fr)_auto] vert:items-end vert:gap-x-[clamp(24px,3vw,48px)]" href={feature.href}>
-        <span class="mono text-acc vert:col-1">{t('cover.kick')} · <em class="text-meta tracking-[0] ">p.</em> {pad3(feature.n)}</span>
-        <h2 class="mt-4 mb-3 w-fit bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-[size:0_1px] bg-no-repeat text-display leading-[1.08] font-normal tracking-[.04em] [transition:background-size_.8s_var(--ease-mori)] group-hover/lead:bg-[size:100%_1px] vert:col-2 vert:row-[1/5] vert:m-0 vert:bg-[position:100%_0] vert:bg-[size:1px_0] vert:text-title vert:[writing-mode:vertical-rl] vert:group-hover/lead:bg-[size:1px_100%]">{fd.title}</h2>
-        {fd.subtitle && <p class="text-lead leading-[1.3] font-light tracking-[.01em] text-on-2 vert:col-1">{fd.subtitle}</p>}
-        <p class="mt-3.5 max-w-[25em] text-aux leading-[1.85] text-on-2 vert:col-1">{fd.excerpt}</p>
+    {/* 刊名：h1 占位，里面的字在滚动时是 fixed 的（cover.ts 定好起止位置），压在页头下面。第一屏多出来的高度按 1:2:2 分在刊名上方、特稿上方和刊期刻度上方，特稿在期号条和刻度之间居中 */}
+    <div class="grow pt-[clamp(16px,4vh,48px)]" aria-hidden="true"></div>
+    <h1 class="relative h-(--mh) text-center leading-[.8]" id="f-mast-box" aria-label={config.title}>
+      <span class="f-mast z-20 inline-flex origin-[0_0] text-[clamp(88px,13vw,200px)] leading-[.8] font-light tracking-[-.01em] whitespace-nowrap [.fc.anim_&]:pointer-events-none [.fc.anim_&]:fixed [.fc.anim_&]:top-(--mt) [.fc.anim_&]:left-(--ml)" id="f-mast" aria-hidden="true">{mast.map((ch, i) => <span class="inline-block" style={{ '--i': i }}>{ch}</span>)}</span>
+    </h1>
+    <div class="f-rule mt-[clamp(32px,5.5vh,64px)] h-px origin-[0_50%] bg-border"></div>
+    {/* 横线下一行：左边最新一篇写于的年份和季节（汉字年份），右边最新一篇的编号 */}
+    <p class="f-strap meta flex justify-between gap-x-(--gap) pt-2.5"><span>{fmt.yearSeason(ld)}</span><span>No. {pad3(latest.n)}</span></p>
+    <div class="grow-[2]" aria-hidden="true"></div>
+    {/* 竖排：版心对半分，特稿在右半、其余几篇在左半，两块都朝中线靠拢、中间留空；都按竖排从右往左读，两块等高 */}
+    <div class="g f-cover items-start gap-y-10 pt-[clamp(36px,7vh,80px)] vert:grid-cols-2 vert:gap-x-[clamp(120px,16vw,280px)] vert:pt-[clamp(28px,4vh,48px)] vert:[--col-h:min(46vh,24em)]">
+      <a class="group/lead col-[1/7] block vert:col-2 vert:row-1 vert:justify-self-start vert:flex vert:h-(--col-h) vert:shrink-0 vert:flex-col vert:gap-[clamp(14px,1.6vw,24px)] vert:[writing-mode:vertical-rl]" href={feature.href}>
+        <span class="meta text-primary">{pad3(feature.n)} · {feature.category.zh} · {numDate(fd.date)}</span>
+        <h2 class="mt-4 mb-3 w-fit bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-[size:0_1px] bg-no-repeat text-title leading-[1.15] font-normal tracking-[.04em] text-balance [transition:background-size_.8s_var(--ease-mori)] group-hover/lead:bg-[size:100%_1px] vert:m-0 vert:bg-[position:0_0] vert:bg-[size:1px_0] vert:group-hover/lead:bg-[size:1px_100%]">{fd.title}</h2>
+        {fd.subtitle && <p class="text-lead leading-[1.3] font-light tracking-[.01em] text-soft-foreground">{fd.subtitle}</p>}
+        <p class="mt-3.5 max-w-[25em] text-aux leading-[1.85] text-soft-foreground vert:mt-0 vert:max-w-none">{fd.excerpt}</p>
       </a>
-      <ol class="col-[8/13] border-t border-t-on-line vert:h-[min(46vh,24em)] vert:max-w-full vert:justify-self-end vert:overflow-x-auto vert:border-t-0 vert:border-r vert:border-r-on-line vert:[scrollbar-width:none] vert:[writing-mode:vertical-rl]">
+      <ol class="col-[8/13] border-t vert:col-1 vert:row-1 vert:justify-self-end vert:max-w-full border-t-border vert:h-(--col-h) vert:min-w-0 vert:overflow-x-auto vert:border-t-0 vert:border-r vert:border-r-border vert:[scrollbar-width:none] vert:[writing-mode:vertical-rl]">
         {rest.map((e) => (
-          <li><a class="group/ln grid grid-cols-[3em_1fr] gap-x-3.5 border-b border-b-on-line pt-[13px] pb-3.5 vert:flex vert:h-full vert:gap-3 vert:border-b-0 vert:border-l vert:border-l-on-line vert:pt-0 vert:pr-3.5 vert:pb-0 vert:pl-3.5" href={e.href}><span class="text-heading leading-[1.1] font-light text-on-3 transition-[color] duration-300 group-hover/ln:text-acc vert:text-heading">{pad3(e.n)}</span><span class="text-item leading-[1.45] tracking-[.04em]">{e.data.title}</span><span class="col-2 text-meta leading-[1.6] tracking-[.08em] text-on-3 vert:[margin-block-start:auto]">{e.category.zh} · {String(e.data.date.getMonth() + 1).padStart(2, '0')}.{String(e.data.date.getDate()).padStart(2, '0')}</span></a></li>
+          <li><a class="group/ln grid grid-cols-[3em_1fr] gap-x-3.5 border-b border-b-border pt-[13px] pb-3.5 vert:flex vert:h-full vert:gap-3 vert:border-b-0 vert:border-l vert:border-l-border vert:pt-0 vert:pr-3.5 vert:pb-0 vert:pl-3.5" href={e.href}><span class="text-heading leading-[1.1] font-light text-muted-foreground transition-[color] duration-300 group-hover/ln:text-primary vert:[text-orientation:upright] vert:tracking-[-.08em]">{pad3(e.n)}</span><span class="text-item leading-[1.45] tracking-[.04em]">{e.data.title}</span><span class="col-2 text-meta leading-[1.6] tracking-[.08em] text-muted-foreground vert:[margin-block-start:auto]">{e.category.zh} · {numMonthDay(e.data.date)}</span></a></li>
         ))}
       </ol>
     </div>
-    <div class="f-ruler relative mt-[clamp(36px,7vh,80px)] h-[46px] border-t border-t-on-line">
-      {ticks.map((k) => <span class:list={['absolute top-0 left-(--l) border-l', k.year ? 'h-3 border-l-on-2' : 'h-[5px] border-l-on-line']} style={{ '--l': `${k.left}%` }}><i class:list={['absolute top-4 left-[5px] block text-meta leading-[normal] tracking-[.06em] whitespace-nowrap text-on-3 ', !k.year && 'narrow:hidden']}>{k.label}</i></span>)}
-      {points.map((p) => <a class:list={['pt absolute -top-1 left-(--l) -ml-[3.5px] size-[7px] rounded-[50%] after:pointer-events-none after:absolute after:bottom-4 after:left-1/2 after:[transform:translate(-50%,4px)] after:whitespace-nowrap after:text-on after:opacity-0 after:[font:14px/1.4_var(--font-serif)] after:tracking-[.04em] after:[transition:opacity_.3s,transform_.4s_var(--ease-mori)] after:content-[attr(data-t)] hover:after:[transform:translate(-50%,0)] hover:after:opacity-100', p.e.kind === 'travel' ? 'bg-acc' : 'bg-on']} href={p.e.href} data-t={p.e.data.title} style={{ '--l': `${p.left}%`, '--i': p.i }} aria-label={p.e.data.title}></a>)}
-      <span class="absolute -top-[22px] right-0 text-meta leading-[normal] tracking-[.06em] text-on-3">{t('cover.ruler')}</span>
+    <div class="grow-[2]" aria-hidden="true"></div>
+    <div class="f-ruler relative mt-[clamp(36px,7vh,80px)] h-[46px] border-t border-t-border">
+      {years.map((k) => <span class="absolute top-0 left-(--l) h-3 border-l border-l-muted-foreground" style={{ '--l': `${k.left}%` }}><i class="absolute top-4 left-[5px] block text-meta leading-[normal] tracking-[.06em] whitespace-nowrap text-muted-foreground">{k.y}</i></span>)}
+      {points.map((p) => <a class:list={['pt absolute -top-1 left-(--l) -ml-[3.5px] size-[7px] rounded-[50%] after:pointer-events-none after:absolute after:bottom-4 after:left-1/2 after:[transform:translate(-50%,4px)] after:whitespace-nowrap after:text-foreground after:opacity-0 after:[font:14px/1.4_var(--font-serif)] after:tracking-[.04em] after:[transition:opacity_.3s,transform_.4s_var(--ease-mori)] after:content-[attr(data-t)] hover:after:[transform:translate(-50%,0)] hover:after:opacity-100', 'bg-foreground']} href={p.e.href} data-t={p.e.data.title} style={{ '--l': `${p.left}%`, '--i': p.i }} aria-label={p.e.data.title}></a>)}
     </div>
   </div>
 </section>

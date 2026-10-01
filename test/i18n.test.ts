@@ -20,7 +20,7 @@ test('每个词条的占位符和母版一致（翻译没有漏掉 {n} 之类）
 test('数字、期号、季节：中日文用汉字数字，英文用阿拉伯数字', () => {
   const zh = makeFmt('zh-CN'), e = makeFmt('en'), j = makeFmt('ja');
   const d = new Date(2025, 8, 14);
-  assert.equal(zh.yearSeason(d), '二〇二五年 · 秋');
+  assert.equal(zh.yearSeason(d), '二○二五年 · 秋');
   assert.equal(e.yearSeason(d), 'Autumn 2025');
   assert.equal(zh.stop(3), '第三站');
   assert.equal(e.stop(3), 'Stop 3');

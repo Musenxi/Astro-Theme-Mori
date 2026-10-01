@@ -65,7 +65,7 @@ export default defineMoriConfig({
     { id: 'journeys', zh: '游记', en: 'Journeys', empty: '没写游记' },
     { id: 'essays', zh: '随笔', en: 'Essays' },
   ],
-  home: { style: 'quote', direction: 'h', editorNote: '……' },   // 首页版式：quote 引文开篇 / cover 封面版；排法：h 横排 / v 竖排；目次旁的编者按
+  home: { style: 'quote', count: 4, direction: 'h', editorNote: '……' },   // 首页版式：quote 引文开篇 / cover 封面版 / list 文章列表；count 展示几篇（1–8），置顶的排前面，不够用最新的补；排法：h 横排 / v 竖排；目次旁的编者按
   archive: { direction: 'h' },                   // 归档 / 分类刻度页的排法
 });
 ```

@@ -12,7 +12,7 @@ import { getEntries } from '../../lib/entries.ts';
 import type { Entry } from '../../lib/entries.ts';
 import type { PostData, TravelData } from '../../schema/schema.ts';
 import { readingOf } from '../../lib/inline.ts';
-import { dotDate } from '../../lib/zh.ts';
+import { numDate } from '../../lib/zh.ts';
 
 // 普通文章和游记都在 /posts/<id>/，靠 entry.kind 决定用哪种版式
 export async function getStaticPaths() {
@@ -41,7 +41,7 @@ const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | '
     </main>
   ) : (
     <main data-page="post">
-      <PostHeader title={d.title} sub={d.subtitle || undefined} meta={[{ label: entry.category.zh, href: `/category/${entry.category.id}/` }, dotDate(d.date), ...t('post.meta', { chars: chars.toLocaleString('en-US'), min: minutes }).split(' · ')]} />
+      <PostHeader title={d.title} sub={d.subtitle || undefined} cover={d.cover} coverAlt={d.coverAlt} meta={[{ label: entry.category.zh, href: `/category/${entry.category.id}/` }, numDate(d.date), ...t('post.meta', { chars: chars.toLocaleString('en-US'), min: minutes }).split(' · ')]} />
       <div class="relative">
         <PostToc blocks={p.blocks} />
         <PostBody blocks={p.blocks} notes={p.notes} />

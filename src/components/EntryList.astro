@@ -5,7 +5,7 @@
  */
 import type { Entry } from '../lib/entries.ts';
 import { lang } from '../lib/i18n.ts';
-import { cnYear, pad2 } from '../lib/zh.ts';
+import { cnYear, numMonthDay } from '../lib/zh.ts';
 
 interface Props {
   entries: Entry[];
@@ -27,7 +27,7 @@ const zh = lang !== 'en';
           {list.map((e) => (
             <li class="col-span-full grid grid-cols-subgrid">
               <a class="group col-span-full grid grid-cols-subgrid items-baseline py-[15px]" href={e.href}>
-                <time class="meta" datetime={e.data.date.toISOString().slice(0, 10)}>{pad2(e.data.date.getMonth() + 1)}.{pad2(e.data.date.getDate())}</time>
+                <time class="meta" datetime={e.data.date.toISOString().slice(0, 10)}>{numMonthDay(e.data.date)}</time>
                 <span class="grid min-w-0 gap-1">
                   <span class="w-fit max-w-full bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-[size:0_1px] bg-no-repeat text-item leading-[1.5] tracking-[.05em] [transition:background-size_.5s_var(--ease-mori),color_.3s] group-hover:bg-[size:100%_1px] group-hover:text-primary">{e.data.title}</span>
                   {e.data.excerpt && <span class="overflow-hidden text-aux leading-[1.7] tracking-[.03em] text-ellipsis whitespace-nowrap text-muted-foreground narrow:line-clamp-2 narrow:whitespace-normal">{e.data.excerpt}</span>}

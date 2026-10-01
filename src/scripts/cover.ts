@@ -1,20 +1,20 @@
 /**
- * 首页封面版：刊名按版心宽度排满；往下滚时刊名缩小并移到页头的位置，变成页头里的 MORI；页头压在封面上时反色。
+ * 首页封面版：刊名太长时缩到版心宽度以内；往下滚时刊名缩小并移到页头的位置，变成页头里的站名（动画在 cover.css）。
+ * 这里只量起止位置：刊名在 h1 里的位置（滚动时它是 fixed 的）、页头站名的位置和字号。
  * 页头是跨页保留的，离开首页时要把它恢复原样。
  */
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
-const easeIO = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
+const timeline = CSS.supports('animation-timeline: scroll()');
 const root = document.documentElement;
 
 let stop: (() => void) | null = null;
 
 function resetHeader() {
-  const site = document.querySelector<HTMLElement>('#site');
-  site?.classList.remove('on-cover');
-  const mark = site?.querySelector<HTMLElement>('.mark');
-  if (mark) mark.style.opacity = '';
+  root.classList.remove('cover-home');
   root.style.removeProperty('--hh');
+  root.style.removeProperty('--mast-end');
+  root.style.removeProperty('--p');
+  delete root.dataset.siteKeep;
 }
 
 function init() {
@@ -22,51 +22,49 @@ function init() {
   const fc = document.querySelector<HTMLElement>('#fc');
   const site = document.querySelector<HTMLElement>('#site');
   if (!fc || !site) { resetHeader(); return; }
+  const box = fc.querySelector<HTMLElement>('#f-mast-box')!;
   const m = fc.querySelector<HTMLElement>('#f-mast')!;
   const mark = site.querySelector<HTMLElement>('.mark')!;
-  let mast0: { L: number; T: number; H: number; fs: number } | null = null;
+  let end = 1;
 
-  // 刊名按版心宽度排满
   function fit() {
-    m.style.transform = ''; m.style.fontSize = '100px'; m.style.width = 'max-content'; m.style.justifyContent = 'flex-start';
-    const pcs = getComputedStyle(m.parentElement!);
-    const w = m.getBoundingClientRect().width, W = m.parentElement!.clientWidth - parseFloat(pcs.paddingLeft) - parseFloat(pcs.paddingRight);
-    m.style.width = ''; m.style.justifyContent = '';
-    m.style.fontSize = ((100 * W) / w * 0.99).toFixed(2) + 'px';
-    mast0 = null;
     root.style.setProperty('--hh', site!.offsetHeight + 'px');
+    // 字号由 CSS 定；站名太长、放不下版心时才缩小
+    m.style.fontSize = '';
+    const fs0 = parseFloat(getComputedStyle(m).fontSize), W = box.clientWidth;
+    const fs = m.offsetWidth > W ? (fs0 * W) / m.offsetWidth * 0.99 : fs0;
+    if (fs !== fs0) m.style.fontSize = fs.toFixed(2) + 'px';
+    const H = m.offsetHeight;
+    box.style.setProperty('--mh', H + 'px');
+    if (reduce) return;
+    // 起点：刊名在 h1 里居中时的位置（视口坐标）；终点：页头站名的位置（页头收起时把收起的位移扣掉）
+    const b = box.getBoundingClientRect(), L = b.left + (box.clientWidth - m.offsetWidth) / 2, T = b.top + scrollY;
+    const mk = mark.getBoundingClientRect(), up = new DOMMatrix(getComputedStyle(site!).transform).m42;
+    const s = parseFloat(getComputedStyle(mark).fontSize) / fs;
+    const ty = mk.top - up + mk.height / 2 - (H * s) / 2 - T;
+    m.style.setProperty('--ml', L + 'px');
+    m.style.setProperty('--mt', T + 'px');
+    m.style.setProperty('--tx', (mk.left - L).toFixed(2) + 'px');
+    m.style.setProperty('--ty', ty.toFixed(2) + 'px');
+    m.style.setProperty('--s', s.toFixed(4));
+    end = Math.round(innerHeight * 0.5);
+    root.style.setProperty('--mast-end', end + 'px');
+    root.dataset.siteKeep = String(end);
+    root.classList.add('cover-home');
+    fc!.classList.add('anim');
     onScroll();
   }
 
   function onScroll() {
-    site!.classList.toggle('on-cover', fc!.getBoundingClientRect().bottom > site!.offsetHeight * 0.6);
-    if (reduce) return;
-    if (!mast0) {
-      m.style.transform = '';
-      const r = m.getBoundingClientRect();
-      mast0 = { L: r.left, T: r.top + scrollY, H: r.height, fs: parseFloat(m.style.fontSize) || 100 };
-    }
-    const mk = mark.getBoundingClientRect();
-    const p = clamp(scrollY / (innerHeight * 0.5), 0, 1), e = easeIO(p);
-    // 让刊名的大写字母高度落到页头 MORI 的大写字母高度：两处是同一种字体，字号一样大写就一样高
-    const s = parseFloat(getComputedStyle(mark).fontSize) / mast0.fs;
-    const S = 1 + (s - 1) * e;
-    const tx = (mk.left - mast0.L) * e;
-    const targetTop = mk.top + mk.height / 2 - (mast0.H * s) / 2;
-    const Y = mast0.T + (targetTop - mast0.T) * e;
-    m.style.transform = `translate(${tx.toFixed(2)}px,${(Y - (mast0.T - scrollY)).toFixed(2)}px) scale(${S.toFixed(4)})`;
-    const f = clamp((p - 0.82) / 0.18, 0, 1);
-    m.style.opacity = String(1 - f);
-    mark.style.opacity = String(f);
+    if (!timeline) root.style.setProperty('--p', Math.min(1, scrollY / end).toFixed(4));
   }
 
   // 进场（第一次打开）：刊名自下而上露出，细线从左画开，小点依次落下
   if (!reduce) { fc.classList.remove('play'); void fc.offsetWidth; fc.classList.add('play'); }
   fit();
-  addEventListener('scroll', onScroll, { passive: true });
+  if (!timeline) addEventListener('scroll', onScroll, { passive: true });
   addEventListener('resize', fit);
   document.fonts?.ready.then(fit);
-  // 西文字体的样式表是异步加载的：有字体加载完成再按实际字宽排满一次
   document.fonts?.addEventListener('loadingdone', fit);
   stop = () => {
     removeEventListener('scroll', onScroll); removeEventListener('resize', fit);
