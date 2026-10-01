@@ -19,27 +19,30 @@ const zh = lang !== 'en';
   <main data-page="posts">
     <PostHeader title={t('nav.posts')} meta={[tn('count', entries.length, { n: zh ? cnNumber(entries.length) : String(entries.length) })]} />
     <div class="wrap g pb-28">
-      {
-        byYear.map(({ y, list }) => (
-          <section class="col-[3/11] grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-[clamp(16px,3vw,40px)] border-t border-t-border pt-7 pb-6 narrow:grid-cols-1 narrow:pt-6">
-            <h2 class:list={['sticky top-[96px] self-start justify-self-start text-soft-foreground narrow:static narrow:mb-2', zh ? 'text-item leading-none font-normal tracking-[.32em] [writing-mode:vertical-rl] narrow:[writing-mode:horizontal-tb]' : 'font-display text-chapter leading-none font-light']} aria-label={String(y)}>{zh ? cnYear(y) : y}</h2>
-            <ol>
-              {list.map((e) => (
-                <li>
-                  <a class="group grid grid-cols-[3.2rem_minmax(0,1fr)_auto] items-baseline gap-x-5 py-[15px] narrow:grid-cols-[2.8rem_minmax(0,1fr)] narrow:gap-x-3.5" href={e.href}>
-                    <time class="meta" datetime={e.data.date.toISOString().slice(0, 10)}>{pad2(e.data.date.getMonth() + 1)}.{pad2(e.data.date.getDate())}</time>
-                    <span class="grid min-w-0 gap-1">
-                      <span class="w-fit max-w-full bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-[size:0_1px] bg-no-repeat text-item leading-[1.5] tracking-[.05em] [transition:background-size_.5s_var(--ease-mori),color_.3s] group-hover:bg-[size:100%_1px] group-hover:text-primary">{e.data.title}</span>
-                      {e.data.excerpt && <span class="overflow-hidden text-aux leading-[1.7] tracking-[.03em] text-ellipsis whitespace-nowrap text-muted-foreground narrow:line-clamp-2 narrow:whitespace-normal">{e.data.excerpt}</span>}
-                    </span>
-                    <span class="meta whitespace-nowrap narrow:hidden">{e.category.zh}</span>
-                  </a>
-                </li>
-              ))}
-            </ol>
-          </section>
-        ))
-      }
+      {/* 所有年份、所有行共用一套列：年份 | 日期 | 篇名 | 分类。分类那一栏按全页最长的分类名定宽，每行的篇名栏一样宽 */}
+      <div class="col-[3/11] grid grid-cols-[calc(4.5rem_+_clamp(16px,3vw,40px)_-_20px)_3.2rem_minmax(0,1fr)_auto] gap-x-5 narrow:grid-cols-[2.8rem_minmax(0,1fr)] narrow:gap-x-3.5">
+        {
+          byYear.map(({ y, list }) => (
+            <section class="col-span-full grid grid-cols-subgrid border-t border-t-border pt-7 pb-6 narrow:pt-6">
+              <h2 class:list={['sticky top-[96px] self-start justify-self-start text-soft-foreground narrow:static narrow:col-span-full narrow:mb-2', zh ? 'text-item leading-none font-normal tracking-[.32em] [writing-mode:vertical-rl] narrow:[writing-mode:horizontal-tb]' : 'font-display text-chapter leading-none font-light']} aria-label={String(y)}>{zh ? cnYear(y) : y}</h2>
+              <ol class="col-[2/-1] grid grid-cols-subgrid narrow:col-span-full">
+                {list.map((e) => (
+                  <li class="col-span-full grid grid-cols-subgrid">
+                    <a class="group col-span-full grid grid-cols-subgrid items-baseline py-[15px]" href={e.href}>
+                      <time class="meta" datetime={e.data.date.toISOString().slice(0, 10)}>{pad2(e.data.date.getMonth() + 1)}.{pad2(e.data.date.getDate())}</time>
+                      <span class="grid min-w-0 gap-1">
+                        <span class="w-fit max-w-full bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-[size:0_1px] bg-no-repeat text-item leading-[1.5] tracking-[.05em] [transition:background-size_.5s_var(--ease-mori),color_.3s] group-hover:bg-[size:100%_1px] group-hover:text-primary">{e.data.title}</span>
+                        {e.data.excerpt && <span class="overflow-hidden text-aux leading-[1.7] tracking-[.03em] text-ellipsis whitespace-nowrap text-muted-foreground narrow:line-clamp-2 narrow:whitespace-normal">{e.data.excerpt}</span>}
+                      </span>
+                      <span class="meta whitespace-nowrap narrow:hidden">{e.category.zh}</span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ))
+        }
+      </div>
       {entries.length === 0 && <p class="col-[3/11] text-muted-foreground">{t('empty.all')}</p>}
     </div>
   </main>
