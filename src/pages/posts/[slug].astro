@@ -11,7 +11,7 @@ import EntryNav from '../../components/EntryNav.astro';
 import { getEntries } from '../../lib/entries.ts';
 import type { Entry } from '../../lib/entries.ts';
 import type { PostData, TravelData } from '../../schema/schema.ts';
-import { countChars } from '../../lib/inline.ts';
+import { readingOf } from '../../lib/inline.ts';
 import { dotDate } from '../../lib/zh.ts';
 
 // 普通文章和游记都在 /posts/<id>/，靠 entry.kind 决定用哪种版式
@@ -27,9 +27,7 @@ const travel = entry.kind === 'travel';
 const d = entry.data;
 const p = d as PostData;
 const tv = d as TravelData;
-const count = travel ? { cjk: 0, words: 0 } : countChars(p.blocks);
-const chars = count.cjk + count.words;
-const minutes = Math.max(1, Math.round(count.cjk / 450 + count.words / 220));
+const { chars, minutes } = travel ? { chars: 0, minutes: 0 } : readingOf(p);
 const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | 'm';
 ---
 

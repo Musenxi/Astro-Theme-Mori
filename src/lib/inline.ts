@@ -78,3 +78,9 @@ export function countChars(node: unknown): { cjk: number; words: number } {
   const words = text.replace(CJK, ' ').match(WORD)?.length ?? 0;
   return { cjk, words };
 }
+
+/** 全文字数和阅读时间（分钟，至少 1）：中文每分钟 450 字，西文每分钟 220 词 */
+export function readingOf(data: { blocks?: unknown }): { chars: number; minutes: number } {
+  const { cjk, words } = countChars(data.blocks);
+  return { chars: cjk + words, minutes: Math.max(1, Math.round(cjk / 450 + words / 220)) };
+}

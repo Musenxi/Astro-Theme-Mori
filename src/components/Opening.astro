@@ -6,6 +6,7 @@ import Chevron from './Chevron.astro';
  */
 import { Image } from 'astro:assets';
 import type { Entry } from '../lib/entries.ts';
+import { readingOf } from '../lib/inline.ts';
 import { dotDate, pad2, pad3 } from '../lib/zh.ts';
 import { t, fmt } from '../lib/i18n.ts';
 
@@ -23,6 +24,7 @@ const ld = latest.data.date;
 /** 每篇置顶要有：封面、引文、图注、三条信息；缺哪样就用文章自己的字段顶上。引文和摘要都没有就不放引文，封面也不做渐隐 */
 const slides = pinned.map((e) => {
   const d = e.data, pin = d.pin;
+  const { chars, minutes } = readingOf(d);
   const own = (pin?.quote ?? []).filter((l) => l.trim());
   // 置顶没写引言就用摘要，摘要也没有就没有引文；每一句单独一行，竖排时一列比一列低（右高左低），整体沿中轴线居中
   const lines = (own.length ? own : [d.excerpt]).flatMap((l) => l.match(/[^。！？]+[。！？]?/g) ?? []).filter((l) => l.trim());
@@ -35,7 +37,11 @@ const slides = pinned.map((e) => {
     quote,
     lines: quote.length,
     caption: pin?.caption ?? `${e.category.zh} · ${dotDate(d.date)}`,
-    meta: pin?.meta ?? [{ label: t('home.date'), value: dotDate(d.date) }],
+    meta: pin?.meta ?? [
+      { label: t('home.date'), value: dotDate(d.date) },
+      { label: t('home.length'), value: t('meta.chars', { n: chars.toLocaleString('en-US') }) },
+      { label: t('home.time'), value: t('meta.min', { n: minutes }) },
+    ],
   };
 });
 const first = slides[0];
