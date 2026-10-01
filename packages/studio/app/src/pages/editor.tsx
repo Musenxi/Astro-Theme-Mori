@@ -58,10 +58,10 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
     setBusy(false);
     if (r) toast.success(done ?? '已保存');
   };
-  const setDraft = (draft: boolean) => {
+  const publish = () => {
     const next = { ...doc };
-    if (draft) next.draft = true; else delete next.draft;
-    void save(next, draft ? '已转为草稿' : '已发布');
+    delete next.draft;
+    void save(next, '已发布');
   };
 
   const path = routeKind === 'page' ? `/${id}/` : `/posts/${id}/`;
@@ -79,7 +79,7 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
         </span>
         <Segmented size="sm" value={mode} onValueChange={setMode} options={modes} />
         <Button size="sm" onClick={() => void save()} disabled={busy}>保存</Button>
-        {doc.draft ? <Button size="sm" variant="default" onClick={() => setDraft(false)} disabled={busy}>发布</Button> : <Button size="sm" onClick={() => setDraft(true)} disabled={busy}>转为草稿</Button>}
+        <Button size="sm" variant="default" onClick={publish} disabled={busy}>发布</Button>
         <Button size="sm" active={panel === 'info'} onClick={() => setPanel(panel === 'info' ? null : 'info')}><PanelRight size={14} />信息</Button>
         <Button size="sm" active={panel === 'preview'} onClick={() => setPanel(panel === 'preview' ? null : 'preview')}><Eye size={14} />预览</Button>
       </header>
