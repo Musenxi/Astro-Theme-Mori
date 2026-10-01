@@ -30,11 +30,11 @@ html.intro .fo .fo-slide.on:not(.enter) .fo-cite dt,html.intro .fo .fo-slide.on:
 @keyframes dissolve-out{to{opacity:0}}
 html.intro .fo .fo-slide.on.enter .fo-q .ch{animation:none}
 /* 引文字号：默认的大字，但不超过“图高能放下的”——横排按行数（行高 1.6），竖排按最长一列的字数（字距 .05em），上下各留 32px */
-.fo-q{font-size:var(--text-quote)}
-:root[data-hdir="v"] .fo-q{font-size:var(--text-quote-v)}
+.fo-q{--m:clamp(28px,6vh,56px);font-size:min(var(--text-quote),(var(--ph-h) - 2 * var(--m)) / (var(--rows) * 1.6))}
+:root[data-hdir="v"] .fo-q{font-size:min(var(--text-quote-v),(var(--ph-h) - 2 * var(--m)) / var(--need))}
 @media (max-width:760px){
   .fo{--ph-h:clamp(320px,calc(100svh - 200px),660px)}
-  :root:not([data-hdir="v"]) .fo-q{font-size:var(--text-quote-sm)}
+  :root:not([data-hdir="v"]) .fo-q{font-size:min(var(--text-quote-sm),(var(--ph-h) - 2 * var(--m)) / (var(--rows) * 1.6))}
   .fo-cover .ph{--dir:to left}
   :root:not([data-hdir="v"]) .fo-cover .ph{-webkit-mask-image:linear-gradient(to bottom,#000 15%,rgb(0 0 0/0.98) 22.1%,rgb(0 0 0/0.926) 29.2%,rgb(0 0 0/0.844) 36.2%,rgb(0 0 0/0.741) 43.3%,rgb(0 0 0/0.624) 50.4%,rgb(0 0 0/0.5) 57.5%,rgb(0 0 0/0.376) 64.6%,rgb(0 0 0/0.259) 71.7%,rgb(0 0 0/0.156) 78.8%,rgb(0 0 0/0.074) 85.8%,rgb(0 0 0/0.02) 92.9%,transparent 100%);mask-image:linear-gradient(to bottom,#000 15%,rgb(0 0 0/0.98) 22.1%,rgb(0 0 0/0.926) 29.2%,rgb(0 0 0/0.844) 36.2%,rgb(0 0 0/0.741) 43.3%,rgb(0 0 0/0.624) 50.4%,rgb(0 0 0/0.5) 57.5%,rgb(0 0 0/0.376) 64.6%,rgb(0 0 0/0.259) 71.7%,rgb(0 0 0/0.156) 78.8%,rgb(0 0 0/0.074) 85.8%,rgb(0 0 0/0.02) 92.9%,transparent 100%)}
 }
