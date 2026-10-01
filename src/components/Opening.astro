@@ -20,10 +20,10 @@ const many = pinned.length > 1;
 const catName = (c: { zh: string; en?: string }) => [...new Set([c.zh, c.en].filter(Boolean))].join(' · ');
 const ld = latest.data.date;
 
-/** 每篇置顶要有：封面、引文、图注、三条信息；缺哪样就用文章自己的字段顶上 */
+/** 每篇置顶要有：封面、引文、图注、三条信息；缺哪样就用文章自己的字段顶上。引文是空的就不放引文，封面也不做渐隐 */
 const slides = pinned.map((e) => {
   const d = e.data, pin = d.pin;
-  const lines = pin?.quote ?? [d.excerpt];
+  const lines = (pin?.quote ?? [d.excerpt]).filter((l) => l.trim());
   let i = 0;
   const quote = lines.map((l, n) => [...((n === 0 ? '「' : '') + l + (n === lines.length - 1 ? '」' : ''))].map((ch) => ({ ch, i: i++ })));
   return {
@@ -33,7 +33,7 @@ const slides = pinned.map((e) => {
     quote,
     /** 引文的行数、最长一行的字数（含「」）：引文字号按这两个数缩到放得进封面图（opening.css） */
     lines: quote.length,
-    n: Math.max(...quote.map((l) => l.length)),
+    n: Math.max(0, ...quote.map((l) => l.length)),
     caption: pin?.caption ?? `${e.category.zh} · ${dotDate(d.date)}`,
     meta: pin?.meta ?? [{ label: t('home.date'), value: dotDate(d.date) }],
   };
@@ -74,7 +74,7 @@ const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground'
           {
             slides.map((s, k) => (
               <article class:list={['fo-slide col-1 row-[1/4] grid min-w-0 grid-rows-subgrid', k === 0 && 'on']} data-no={pad3(s.e.n)} inert={k !== 0}>
-                <figure class="fo-cover col-1 row-[1/3] grid grid-rows-subgrid">
+                <figure class:list={['fo-cover col-1 row-[1/3] grid grid-rows-subgrid', s.lines === 0 && 'plain']}>
                   <div class="ph">
                     {s.image && <Image class="absolute inset-0 size-full object-cover [filter:saturate(.9)] dark:[filter:saturate(.9)_brightness(.8)]" src={s.image} alt={s.alt} widths={[800, 1200, 1600, 2000]} sizes="(max-width: 760px) 100vw, 83vw" loading={k === 0 ? 'eager' : 'lazy'} fetchpriority={k === 0 ? 'high' : 'auto'} />}
                   </div>
@@ -83,16 +83,18 @@ const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground'
                     {many && <span>{pad2(k + 1)} / {pad2(slides.length)}</span>}
                   </figcaption>
                 </figure>
-                <a class="group/qa relative z-2 col-1 row-1 flex h-(--ph-h) max-w-[min(100%,800px)] items-center self-start justify-self-start pl-[clamp(16px,3vw,48px)] vert:justify-self-end vert:pl-0 vert:pr-[clamp(8px,1.4vw,24px)] narrow:items-end narrow:pt-0! narrow:pr-0! narrow:pb-[46px]! narrow:pl-[1em]!" href={s.e.href} style={{ '--lines': s.lines, '--n': s.n }}>
-                  <p class="fo-q indent-[-1em] leading-[1.6] font-light tracking-[.05em] transition-[color] duration-500 group-hover/qa:text-soft-foreground vert:leading-[2] vert:[writing-mode:vertical-rl]">
-                    {s.quote.map((line, n) => (
-                      <Fragment>
-                        {n > 0 && <br />}
-                        {line.map(({ ch, i }) => <span class="ch" style={{ '--i': i }}>{ch}</span>)}
-                      </Fragment>
-                    ))}
-                  </p>
-                </a>
+                {s.lines > 0 && (
+                  <a class="group/qa relative z-2 col-1 row-1 flex h-(--ph-h) max-w-[min(100%,800px)] items-center self-start justify-self-start pl-[clamp(16px,3vw,48px)] vert:justify-self-end vert:pl-0 vert:pr-[clamp(8px,1.4vw,24px)] narrow:items-end narrow:pt-0! narrow:pr-0! narrow:pb-[46px]! narrow:pl-[1em]!" href={s.e.href} style={{ '--lines': s.lines, '--n': s.n }}>
+                    <p class="fo-q indent-[-1em] leading-[1.6] font-light tracking-[.05em] transition-[color] duration-500 group-hover/qa:text-soft-foreground vert:leading-[2] vert:[writing-mode:vertical-rl]">
+                      {s.quote.map((line, n) => (
+                        <Fragment>
+                          {n > 0 && <br />}
+                          {line.map(({ ch, i }) => <span class="ch" style={{ '--i': i }}>{ch}</span>)}
+                        </Fragment>
+                      ))}
+                    </p>
+                  </a>
+                )}
                 <dl class="fo-cite col-1 row-3 mt-[clamp(22px,4vh,44px)] grid content-start grid-flow-col grid-cols-[1.3fr_1fr_1fr_1.4fr_auto] grid-rows-[auto_auto] max-[1000px]:grid-cols-[1.3fr_1fr_auto] items-start gap-x-(--gap) gap-y-1 bg-[linear-gradient(var(--foreground),var(--foreground))] bg-[position:0_0] bg-[size:100%_1px] bg-no-repeat pt-4 narrow:grid-cols-[1fr_auto] narrow:bg-[position:var(--gut)_0] narrow:bg-[size:calc(100%_-_2*var(--gut))_1px] narrow:px-(--gut)">
                   <div class="contents"><dt class={dt}>{t('home.title')}</dt><dd class="w-fit self-baseline text-heading leading-[1.3] tracking-[.06em] text-balance">{s.e.data.title}</dd></div>
                   {s.meta.map((m, i) => <div class:list={['contents narrow:hidden', i > 0 && 'max-[1000px]:hidden']}><dt class={dt}>{m.label}</dt><dd class="self-baseline text-aux leading-[1.6] text-balance">{m.value}</dd></div>)}

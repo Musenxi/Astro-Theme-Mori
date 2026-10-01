@@ -38,3 +38,4 @@ html.intro .fo .fo-slide.on.enter .fo-q .ch{animation:none}
   .fo-cover .ph{--dir:to left}
   :root:not([data-hdir="v"]) .fo-cover .ph{-webkit-mask-image:linear-gradient(to bottom,#000 15%,rgb(0 0 0/0.98) 22.1%,rgb(0 0 0/0.926) 29.2%,rgb(0 0 0/0.844) 36.2%,rgb(0 0 0/0.741) 43.3%,rgb(0 0 0/0.624) 50.4%,rgb(0 0 0/0.5) 57.5%,rgb(0 0 0/0.376) 64.6%,rgb(0 0 0/0.259) 71.7%,rgb(0 0 0/0.156) 78.8%,rgb(0 0 0/0.074) 85.8%,rgb(0 0 0/0.02) 92.9%,transparent 100%);mask-image:linear-gradient(to bottom,#000 15%,rgb(0 0 0/0.98) 22.1%,rgb(0 0 0/0.926) 29.2%,rgb(0 0 0/0.844) 36.2%,rgb(0 0 0/0.741) 43.3%,rgb(0 0 0/0.624) 50.4%,rgb(0 0 0/0.5) 57.5%,rgb(0 0 0/0.376) 64.6%,rgb(0 0 0/0.259) 71.7%,rgb(0 0 0/0.156) 78.8%,rgb(0 0 0/0.074) 85.8%,rgb(0 0 0/0.02) 92.9%,transparent 100%)}
 }
+:root .fo .fo-cover.plain .ph{-webkit-mask-image:none;mask-image:none}
