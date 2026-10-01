@@ -33,14 +33,14 @@ export default function PostList({ view }: { view: 'all' | 'draft' }) {
 
   const cats = useMemo(() => project?.config.categories ?? [], [project?.config.categories]);
   const catName = useCallback((id?: string) => cats.find((c) => c.id === id)?.zh ?? id ?? '', [cats]);
-  const base = useMemo(() => (project?.entries ?? []).filter((e) => (view === 'draft' ? e.draft : true)), [project, view]);
+  const base = useMemo(() => (project?.entries ?? []).filter((e) => (view === 'draft' ? e.draft || e.changed : true)), [project, view]);
   const tags = useMemo(() => [...new Set(base.flatMap((e) => e.tags))].sort((a, b) => a.localeCompare(b, 'zh')), [base]);
   const rows = useMemo(() => {
     const term = q.trim().toLowerCase();
     const list = base.filter((e) =>
       (!term || e.title.toLowerCase().includes(term) || e.id.toLowerCase().includes(term)) &&
       (cat === ALL || e.category === cat) && (tag === ALL || e.tags.includes(tag)) &&
-      (view === 'draft' || status === 'all' || (status === 'draft') === e.draft));
+      (view === 'draft' || status === 'all' || (status === 'draft') === (e.draft || e.changed)));
     const [key, dir] = sort;
     const val = (e: EntrySummary) => (key === 'category' ? catName(e.category) : e[key]);
     return [...list].sort((a, b) => {
@@ -51,12 +51,14 @@ export default function PostList({ view }: { view: 'all' | 'draft' }) {
 
   const toggleDraft = async (e: EntrySummary) => {
     try {
-      const doc = await api.entry(e.kind, e.id);
-      if (e.draft) delete doc.draft; else doc.draft = true;
-      await api.saveEntry(e.kind, e.id, doc);
+      if (e.draft) await api.publishEntry(e.kind, e.id); else await api.unpublishEntry(e.kind, e.id);
       await refresh();
       toast.success(e.draft ? `《${e.title}》已发布` : `《${e.title}》已转为草稿`);
     } catch (x) { toast.error((x as Error).message); }
+  };
+  const discard = async (e: EntrySummary) => {
+    if (!(await confirm({ title: `删除《${e.title}》的草稿？`, description: e.draft ? '这篇还没发布过，整篇会移进回收站。' : '没发布的修改会丢掉，回到上次发布的版本。', confirmLabel: '删除草稿', danger: true }))) return;
+    try { await api.discardDraft(e.kind, e.id); await refresh(); toast.success('已删除草稿'); } catch (x) { toast.error((x as Error).message); }
   };
   const remove = async (e: EntrySummary) => {
     if (!(await confirm({ title: `删除《${e.title}》？`, description: '文件不会彻底删除，会保留在项目的回收站文件夹里。', confirmLabel: '删除', danger: true }))) return;
@@ -98,7 +100,7 @@ export default function PostList({ view }: { view: 'all' | 'draft' }) {
           </div>
           {rows.map((e) => (
             <div key={e.id} className={cn(grid, 'group rounded-xl py-3 transition-colors hover:bg-foreground/[.045]')}>
-              <Link to={`/posts/${e.id}`} className={cn('flex min-w-0 items-baseline gap-2 truncate', e.draft && 'text-muted-foreground')}>
+              <Link to={`/posts/${e.id}`} className={cn('flex min-w-0 items-baseline gap-2 truncate', (e.draft || e.changed) && 'text-muted-foreground')}>
                 <span className="truncate font-medium">{e.title}</span>
                 {e.pinned && <span className="shrink-0 rounded-full bg-foreground/[.07] px-2 py-px text-11 font-normal not-italic text-soft-foreground">置顶</span>}
               </Link>
@@ -106,12 +108,13 @@ export default function PostList({ view }: { view: 'all' | 'draft' }) {
               <span className="max-xl:hidden flex min-w-0 gap-1 overflow-hidden">{e.tags.slice(0, 3).map((t) => <button key={t} type="button" onClick={() => setTag(t)} className="shrink-0 rounded-full bg-foreground/[.06] px-2.5 py-px text-11-5 text-soft-foreground transition-colors hover:bg-foreground/[.12] hover:text-foreground">{t}</button>)}</span>
               <span className="mono text-soft-foreground">{e.date}</span>
               <span className="mono text-right text-soft-foreground">{e.broken ? '' : wan(e.words)}</span>
-              <span className={cn('max-xl:hidden flex items-center gap-1.5 text-12-5', e.draft ? 'text-soft-foreground' : 'text-muted-foreground')}><i className={cn('h-1.5 w-1.5 rounded-full', e.draft ? 'border border-soft-foreground' : 'bg-muted-foreground/60')} />{e.draft ? '草稿' : '已发布'}</span>
+              <span className={cn('max-xl:hidden flex items-center gap-1.5 text-12-5', e.draft || e.changed ? 'text-soft-foreground' : 'text-muted-foreground')}><i className={cn('h-1.5 w-1.5 rounded-full', e.draft || e.changed ? 'border border-soft-foreground' : 'bg-muted-foreground/60')} />{e.draft ? '草稿' : e.changed ? '有草稿' : '已发布'}</span>
               <Menu>
                 <MenuTrigger asChild><button type="button" aria-label="更多" className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground opacity-0 transition-[opacity,background-color] hover:bg-foreground/[.08] hover:text-foreground focus:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100"><MoreHorizontal size={16} /></button></MenuTrigger>
                 <MenuContent>
                   <MenuItem icon={<Pencil size={14} />} onSelect={() => nav(`/posts/${e.id}`)}>编辑</MenuItem>
                   <MenuItem icon={e.draft ? <Send size={14} /> : <FilePen size={14} />} onSelect={() => toggleDraft(e)}>{e.draft ? '发布' : '转为草稿'}</MenuItem>
+                  {(e.draft || e.changed) && <MenuItem icon={<Trash2 size={14} />} onSelect={() => discard(e)}>删除草稿</MenuItem>}
                   {project?.preview.url && <MenuItem icon={<Eye size={14} />} onSelect={() => window.open(`${project.preview.url}/posts/${e.id}/`, '_blank')}>在预览里打开</MenuItem>}
                   <MenuSeparator />
                   <MenuItem danger icon={<Trash2 size={14} />} onSelect={() => remove(e)}>删除</MenuItem>

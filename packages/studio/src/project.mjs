@@ -2,7 +2,7 @@
  * 项目文件的读写：Studio 直接读写站点项目里的内容文件（src/content/posts（普通文章和游记）、src/assets）。
  * 不需要 git；“删除”是移进 .mori-trash/，不会真的删掉。
  */
-import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, statSync, copyFileSync } from 'node:fs';
 import { join, basename, extname } from 'node:path';
 import { loadConfigFromFile } from 'vite';
 
@@ -15,6 +15,21 @@ export const IMAGE_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif', '.g
 export const isId = (s) => typeof s === 'string' && ID.test(s);
 const dirOf = (root, kind) => join(root, 'src/content', KINDS[kind]);
 const fileOf = (root, kind, id) => join(dirOf(root, kind), `${id}.json`);
+/** 已发布的版本：点“发布”时把当前内容复制到这里，构建（astro build）只读这里；src/content 里的是正在写的版本 */
+const pubDirOf = (root, kind) => join(root, 'src/published', KINDS[kind]);
+const pubFileOf = (root, kind, id) => join(pubDirOf(root, kind), `${id}.json`);
+const readJson = (f) => JSON.parse(readFileSync(f, 'utf8'));
+
+/** 状态：有已发布版本就看它和正在写的是否一致；没有就是从没发布过。旧的、没有草稿标记又没有已发布版本的，当作已发布，补一份 */
+function stateOf(root, kind, id, working) {
+  const pf = pubFileOf(root, kind, id);
+  if (!existsSync(pf) && !working.draft) { mkdirSync(pubDirOf(root, kind), { recursive: true }); copyFileSync(fileOf(root, kind, id), pf); }
+  if (!existsSync(pf)) return { draft: true, changed: false };
+  try {
+    const pub = readJson(pf);
+    return { draft: !!pub.draft, changed: JSON.stringify(pub) !== JSON.stringify(working) };
+  } catch { return { draft: false, changed: true }; }
+}
 
 /** mori.config.ts：用 Vite 的配置加载器读（会处理 TypeScript） */
 export async function loadConfig(root) {
@@ -33,7 +48,7 @@ export function listEntries(root) {
       try {
         const d = JSON.parse(readFileSync(join(dir, f), 'utf8'));
         const kind = kindOf(d);
-        out.push({ kind, id, title: d.title ?? id, date: String(d.date ?? '').slice(0, 10), category: d.category, tags: Array.isArray(d.tags) ? d.tags : [], words: wordCount(d), draft: !!d.draft, pinned: !!d.pin });
+        out.push({ kind, id, title: d.title ?? id, date: String(d.date ?? '').slice(0, 10), category: d.category, tags: Array.isArray(d.tags) ? d.tags : [], words: wordCount(d), ...stateOf(root, kind, id, d), pinned: !!d.pin });
       } catch (e) {
         out.push({ kind: 'post', id, title: `${id}（JSON 有语法错误）`, date: '', broken: true });
       }
@@ -96,7 +111,36 @@ export function skeleton(kind, { title, category }) {
 export function trashEntry(root, kind, id) {
   const trash = join(root, '.mori-trash');
   mkdirSync(trash, { recursive: true });
-  renameSync(fileOf(root, kind, id), join(trash, `${Date.now()}-${kind}-${id}.json`));
+  const stamp = Date.now();
+  renameSync(fileOf(root, kind, id), join(trash, `${stamp}-${kind}-${id}.json`));
+  if (existsSync(pubFileOf(root, kind, id))) renameSync(pubFileOf(root, kind, id), join(trash, `${stamp}-${kind}-${id}.published.json`));
+}
+
+/** 发布：取消草稿标记，正在写的版本成为已发布版本 */
+export function publishEntry(root, kind, id) {
+  const d = readEntry(root, kind, id);
+  delete d.draft;
+  writeEntry(root, kind, id, d);
+  mkdirSync(pubDirOf(root, kind), { recursive: true });
+  writeFileSync(pubFileOf(root, kind, id), JSON.stringify(d, null, 2) + '\n');
+  return d;
+}
+
+/** 转为草稿：站上立刻撤下（已发布的版本也标成草稿），正在写的内容不动 */
+export function unpublishEntry(root, kind, id) {
+  const d = readEntry(root, kind, id);
+  d.draft = true;
+  writeEntry(root, kind, id, d);
+  const pf = pubFileOf(root, kind, id);
+  if (existsSync(pf)) writeFileSync(pf, JSON.stringify({ ...readJson(pf), draft: true }, null, 2) + '\n');
+}
+
+/** 删除草稿：有已发布版本就退回去，丢掉没发布的修改；从没发布过的，整篇移进回收站 */
+export function discardDraft(root, kind, id) {
+  const pf = pubFileOf(root, kind, id);
+  if (existsSync(pf)) { copyFileSync(pf, fileOf(root, kind, id)); return { removed: false }; }
+  trashEntry(root, kind, id);
+  return { removed: true };
 }
 
 export function listAssets(root) {
@@ -303,8 +347,8 @@ export function listPages(root) {
     const id = basename(f, '.json');
     try {
       const d = JSON.parse(readFileSync(join(dir, f), 'utf8'));
-      return { id, title: d.title ?? id, template: d.template ?? 'default', draft: !!d.draft, comments: !!d.comments, words: wordCount(d) };
-    } catch { return { id, title: `${id}（JSON 有语法错误）`, template: 'default', draft: false, comments: false, words: 0, broken: true }; }
+      return { id, title: d.title ?? id, template: d.template ?? 'default', ...stateOf(root, 'page', id, d), comments: !!d.comments, words: wordCount(d) };
+    } catch { return { id, title: `${id}（JSON 有语法错误）`, template: 'default', draft: false, changed: false, comments: false, words: 0, broken: true }; }
   }).sort((a, b) => a.id.localeCompare(b.id));
 }
 

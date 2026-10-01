@@ -62,7 +62,7 @@ export function Sidebar({ onCompose, onSearch }: { onCompose: () => void; onSear
   const [open, setOpen] = useState<Record<string, boolean>>({ posts: true, pages: true });
   const inPosts = pathname.startsWith('/posts') || pathname.startsWith('/taxonomy');
   const inPages = pathname.startsWith('/pages') || pathname.startsWith('/nav');
-  const drafts = project?.entries.filter((e) => e.draft).length ?? 0;
+  const drafts = project?.entries.filter((e) => e.draft || e.changed).length ?? 0;
 
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col max-lg:w-14">

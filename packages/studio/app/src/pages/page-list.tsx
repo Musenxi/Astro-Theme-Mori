@@ -24,11 +24,14 @@ export default function PageList() {
 
   const toggleDraft = async (p: PageSummary) => {
     try {
-      const doc = await api.entry('page', p.id);
-      if (p.draft) delete doc.draft; else doc.draft = true;
-      await api.saveEntry('page', p.id, doc); await refresh();
+      if (p.draft) await api.publishEntry('page', p.id); else await api.unpublishEntry('page', p.id);
+      await refresh();
       toast.success(p.draft ? `「${p.title}」已发布` : `「${p.title}」已转为草稿`);
     } catch (x) { toast.error((x as Error).message); }
+  };
+  const discard = async (p: PageSummary) => {
+    if (!(await confirm({ title: `删除「${p.title}」的草稿？`, description: p.draft ? '这个页面还没发布过，整页会移进回收站。' : '没发布的修改会丢掉，回到上次发布的版本。', confirmLabel: '删除草稿', danger: true }))) return;
+    try { await api.discardDraft('page', p.id); await refresh(); toast.success('已删除草稿'); } catch (x) { toast.error((x as Error).message); }
   };
   const remove = async (p: PageSummary) => {
     if (!(await confirm({ title: `删除页面「${p.title}」？`, description: '文件不会彻底删除，会保留在项目的回收站文件夹里。如果页头入口里有它，也请一并去掉。', confirmLabel: '删除', danger: true }))) return;
@@ -48,12 +51,13 @@ export default function PageList() {
               </Link>
               <span className="text-soft-foreground">{p.template === 'friends' ? '友人帐版式' : '普通页面'}</span>
               <span className={cn('w-fit rounded-full px-2.5 py-px text-12', inNav(p) ? 'bg-foreground/[.07] text-soft-foreground' : 'bg-foreground/[.04] text-muted-foreground')}>{inNav(p) ? '在页头入口' : '不在页头'}</span>
-              <span className={cn('flex items-center gap-1.5 text-12-5', p.draft ? 'text-soft-foreground' : 'text-muted-foreground')}><i className={cn('h-1.5 w-1.5 rounded-full', p.draft ? 'border border-soft-foreground' : 'bg-muted-foreground/60')} />{p.draft ? '草稿' : '已发布'}</span>
+              <span className={cn('flex items-center gap-1.5 text-12-5', p.draft || p.changed ? 'text-soft-foreground' : 'text-muted-foreground')}><i className={cn('h-1.5 w-1.5 rounded-full', p.draft || p.changed ? 'border border-soft-foreground' : 'bg-muted-foreground/60')} />{p.draft ? '草稿' : p.changed ? '有草稿' : '已发布'}</span>
               <Menu>
                 <MenuTrigger asChild><button type="button" aria-label="更多" className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground opacity-0 transition-[opacity,background-color] hover:bg-foreground/[.08] hover:text-foreground focus:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100"><MoreHorizontal size={16} /></button></MenuTrigger>
                 <MenuContent>
                   <MenuItem icon={<Pencil size={14} />} onSelect={() => nav(`/pages/${p.id}`)}>编辑</MenuItem>
                   <MenuItem icon={p.draft ? <Send size={14} /> : <FilePen size={14} />} onSelect={() => toggleDraft(p)}>{p.draft ? '发布' : '转为草稿'}</MenuItem>
+                  {(p.draft || p.changed) && <MenuItem icon={<Trash2 size={14} />} onSelect={() => discard(p)}>删除草稿</MenuItem>}
                   {project?.preview.url && <MenuItem icon={<Eye size={14} />} onSelect={() => window.open(`${project.preview.url}/${p.id}/`, '_blank')}>在预览里打开</MenuItem>}
                   <MenuSeparator />
                   <MenuItem danger icon={<Trash2 size={14} />} onSelect={() => remove(p)}>删除</MenuItem>

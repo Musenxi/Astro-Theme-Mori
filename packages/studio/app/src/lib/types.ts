@@ -11,12 +11,15 @@ export interface EntrySummary {
   category?: string;
   tags: string[];
   words: number;
+  /** 从没发布过（或已转为草稿） */
   draft: boolean;
+  /** 已发布，但正在写的内容和已发布的不一样 */
+  changed: boolean;
   pinned?: boolean;
   broken?: boolean;
 }
 
-export interface PageSummary { id: string; title: string; template: 'default' | 'friends'; draft: boolean; comments: boolean; words: number; broken?: boolean }
+export interface PageSummary { id: string; title: string; template: 'default' | 'friends'; draft: boolean; changed: boolean; comments: boolean; words: number; broken?: boolean }
 
 export interface NavItem { label: string; href: string; icon?: string }
 /** 页头右侧的一个操作：昼夜切换，或者一个链接（有 icon 就是图标钮） */

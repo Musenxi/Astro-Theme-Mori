@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import sharp from 'sharp';
 import { avatarTemplate } from 'astro-mori/avatar';
-import { RESERVED_SLUGS, assetUsage, trashAsset, loadConfig, setConfigValue, setCategories, setPublish, setNav, setActions, listPages, readFriends, writeFriends, renameCategoryInEntries, renameTag, countPages, listEntries, readEntry, writeEntry, entryExists, skeleton, trashEntry, listAssets, saveAsset, isId, KINDS, IMAGE_EXT } from './project.mjs';
+import { RESERVED_SLUGS, assetUsage, trashAsset, loadConfig, setConfigValue, setCategories, setPublish, setNav, setActions, listPages, readFriends, writeFriends, renameCategoryInEntries, renameTag, countPages, listEntries, readEntry, writeEntry, entryExists, skeleton, trashEntry, publishEntry, unpublishEntry, discardDraft, listAssets, saveAsset, isId, KINDS, IMAGE_EXT } from './project.mjs';
 import { validateEntry } from 'astro-mori/validate';
 import { locate } from 'astro-mori/anchor';
 import { probeSite } from './probe.mjs';
@@ -300,6 +300,13 @@ export async function startStudio({ root, port = 4400, dev = false }) {
       }
 
       /* ── 文章 ── */
+      if (req.method === 'POST' && (mm = m(/^\/api\/entry\/(post|travel|page)\/([^/]+)\/(publish|unpublish|discard)$/))) {
+        const [, kind, id, act] = mm;
+        if (!isId(id) || !entryExists(root, kind, id)) return send(res, 404, { error: '没有这篇' });
+        if (act === 'publish') return send(res, 200, { ok: true, doc: publishEntry(root, kind, id) });
+        if (act === 'unpublish') { unpublishEntry(root, kind, id); return send(res, 200, { ok: true }); }
+        return send(res, 200, { ok: true, ...discardDraft(root, kind, id) });
+      }
       if ((mm = m(/^\/api\/entry\/(post|travel|page)\/([^/]+)$/))) {
         const [, kind, id] = mm;
         if (!isId(id)) return send(res, 400, { error: 'id 只能用字母、数字、下划线和连字符' });

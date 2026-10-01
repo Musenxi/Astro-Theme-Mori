@@ -28,7 +28,7 @@ export default function Dashboard() {
     { label: '文章点赞', value: s?.likes, hint: s ? '暂未统计' : undefined },
   ];
   const entries = project?.entries ?? [];
-  const drafts = entries.filter((e) => e.draft).length;
+  const drafts = entries.filter((e) => e.draft || e.changed).length;
   const recent = entries.filter((e) => !e.broken && !e.draft).sort((a, b) => b.date.localeCompare(a.date)).slice(0, RECENT); // 已发布的，按发布日期
   const cm = project?.comments;
   const canList = cm?.provider === 'mori' && cm.hasToken;

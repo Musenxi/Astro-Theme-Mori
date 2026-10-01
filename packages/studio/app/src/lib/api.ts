@@ -45,6 +45,9 @@ export const api = {
   entry: (kind: Kind, id: string) => req<Doc>('GET', `/api/entry/${kind}/${id}`),
   saveEntry: (kind: Kind, id: string, doc: Doc) => req<SaveResult>('PUT', `/api/entry/${kind}/${id}`, doc),
   createEntry: (kind: Kind, body: { id: string; title: string; category?: string }) => req<{ ok: true; id: string }>('POST', `/api/entry/${kind}`, body),
+  publishEntry: (kind: Kind, id: string) => req<{ ok: true }>('POST', `/api/entry/${kind}/${id}/publish`),
+  unpublishEntry: (kind: Kind, id: string) => req<{ ok: true }>('POST', `/api/entry/${kind}/${id}/unpublish`),
+  discardDraft: (kind: Kind, id: string) => req<{ ok: true; removed: boolean }>('POST', `/api/entry/${kind}/${id}/discard`),
   removeEntry: (kind: Kind, id: string) => req<{ ok: true }>('DELETE', `/api/entry/${kind}/${id}`),
 
   setConfig: (key: string, value: string | null) => req('PUT', '/api/config', { key, value }),

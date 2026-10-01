@@ -64,5 +64,8 @@ export function useAutosave(kind: Kind, id: string, doc: Doc | null, onSaved?: (
     return () => { removeEventListener('beforeunload', beforeUnload); void flush(); };
   }, [flush]);
 
-  return { state, flush };
+  /** 丢掉还没写出去的修改（删除草稿时用，免得离开页面又被写回去） */
+  const cancel = useCallback(() => { clearTimeout(timer.current); dirty.current = false; }, []);
+
+  return { state, flush, cancel };
 }

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router';
-import { useQuery } from '@tanstack/react-query';
+import { Link, useNavigate, useParams } from 'react-router';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, Eye, ExternalLink, PanelRight, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
@@ -8,6 +8,7 @@ import { cn } from '@/lib/cn';
 import { useProject, useRefresh } from '@/lib/hooks';
 import type { Doc, Kind } from '@/lib/types';
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/confirm';
 import { onCard } from '@/components/page';
 import { Segmented } from '@/components/segmented';
 import { InfoPanel } from '@/editor/info-panel';
@@ -33,6 +34,9 @@ export default function Editor({ kind }: { kind: 'post' | 'page' }) {
 function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: string; initial: Doc }) {
   const { data: project } = useProject();
   const refresh = useRefresh();
+  const confirm = useConfirm();
+  const nav = useNavigate();
+  const qc = useQueryClient();
   const modes = useMemo<Array<{ value: Mode; label: string }>>(() => [{ value: 'md', label: 'Markdown' }, { value: 'blocks', label: '排版' }, { value: 'raw', label: '源码' }], []);
   const [mode, setMode] = useState<Mode>('md');
   const [panel, setPanel] = useState<'info' | 'preview' | null>(null);
@@ -48,7 +52,7 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
     return next;
   }), []);
 
-  const { state, flush } = useAutosave(kind, id, doc, () => { void refresh(); setTimeout(() => setPreviewKey((k) => k + 1), 700); });
+  const { state, flush, cancel } = useAutosave(kind, id, doc, () => { void refresh(); setTimeout(() => setPreviewKey((k) => k + 1), 700); });
 
   const [busy, setBusy] = useState(false);
   const save = async (next?: Doc, done?: string) => {
@@ -58,10 +62,32 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
     setBusy(false);
     if (r) toast.success(done ?? '已保存');
   };
-  const publish = () => {
+  const publish = async () => {
     const next = { ...doc };
     delete next.draft;
-    void save(next, '已发布');
+    setBusy(true);
+    setDocState(next);
+    try {
+      if (!(await flush(next))) throw new Error('没能保存，没有发布');
+      await api.publishEntry(routeKind === 'page' ? 'page' : 'post', id);
+      await refresh();
+      toast.success('已发布');
+    } catch (e) { toast.error((e as Error).message); }
+    setBusy(false);
+  };
+  const summary = routeKind === 'page' ? project?.pages.find((p) => p.id === id) : project?.entries.find((e) => e.id === id);
+  const hasDraft = !!summary && (summary.draft || summary.changed);
+  const discard = async () => {
+    if (!(await confirm({ title: '删除草稿？', description: summary?.draft ? '还没发布过，整篇会移进回收站。' : '没发布的修改会丢掉，回到上次发布的版本。', confirmLabel: '删除草稿', danger: true }))) return;
+    try {
+      cancel();
+      const r = await api.discardDraft(routeKind === 'page' ? 'page' : 'post', id);
+      await refresh();
+      qc.removeQueries({ queryKey: ['entry', routeKind, id] });
+      toast.success('已删除草稿');
+      nav(routeKind === 'page' ? '/pages' : '/posts');
+      void r;
+    } catch (e) { toast.error((e as Error).message); }
   };
 
   const path = routeKind === 'page' ? `/${id}/` : `/posts/${id}/`;
@@ -79,7 +105,8 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
         </span>
         <Segmented size="sm" value={mode} onValueChange={setMode} options={modes} />
         <Button size="sm" onClick={() => void save()} disabled={busy}>保存</Button>
-        <Button size="sm" variant="default" onClick={publish} disabled={busy}>发布</Button>
+        {hasDraft && <Button size="sm" variant="ghost-danger" onClick={() => void discard()} disabled={busy}>删除草稿</Button>}
+        <Button size="sm" variant="default" onClick={() => void publish()} disabled={busy}>发布</Button>
         <Button size="sm" active={panel === 'info'} onClick={() => setPanel(panel === 'info' ? null : 'info')}><PanelRight size={14} />信息</Button>
         <Button size="sm" active={panel === 'preview'} onClick={() => setPanel(panel === 'preview' ? null : 'preview')}><Eye size={14} />预览</Button>
       </header>
