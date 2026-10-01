@@ -4,6 +4,7 @@
  * 悬浮搜索框（SearchPanel.astro）：点页头的搜索入口、按 ⌘K / Ctrl+K 或 / 打开；↑↓ 选、回车打开、Esc 关。
  */
 import { t } from './i18n.ts';
+import { lgFilter, lgSpec } from './lg.ts';
 interface Item { t: string; s: string; u: string; c: string; d: string; e: string; x: string }
 let index: Item[] | null = null;
 
@@ -109,6 +110,20 @@ function initPanel() {
     else if (el.closest('a')) dlg.close();
   });
   dlg.addEventListener('close', () => document.documentElement.classList.remove('srch-open'));
+
+  // 液态玻璃：折射贴图和高光都按板子的实际尺寸画；结果一多板子变高，就重画（攒一帧再画）
+  const box = dlg.querySelector<HTMLElement>('[data-srch]')!, defs = dlg.querySelector('[data-defs]')!;
+  let raf = 0;
+  const glass = () => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      const w = Math.round(box.offsetWidth), h = Math.round(box.offsetHeight), r = parseFloat(getComputedStyle(box).borderTopLeftRadius) || 24;
+      if (!w || !h) return;
+      box.style.setProperty('--lg-spec', `url(${lgSpec(w, h, r)})`);
+      if (document.documentElement.classList.contains('lg-refract')) defs.innerHTML = lgFilter('lg-f-panel', box, r);
+    });
+  };
+  new ResizeObserver(glass).observe(box);
 }
 
 function open() {
