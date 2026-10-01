@@ -30,7 +30,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
               <p class={`col-[1/7] ${p}`} data-b={b.id} set:html={html(b.text)} />
               <div class="col-[7/10] flex flex-col gap-[.9em] narrow:mt-[-.4em] narrow:mb-[1.4em]">
                 {refs.map((ref) => (
-                  <aside class="border-t border-t-border pt-[.35em] text-[13.5px] leading-[1.75] text-muted-foreground narrow:pt-[.5em]" id={`note-${ref}`}>
+                  <aside class="border-t border-t-border pt-[.35em] text-meta leading-[1.75] text-muted-foreground narrow:pt-[.5em]" id={`note-${ref}`}>
                     <sup class="nref" data-skip>{numbers.side.get(ref)}</sup>
                     <Fragment set:html={html(notes[ref]?.text ?? [])} />
                   </aside>
@@ -45,8 +45,8 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
           if (b.level === 3) return <h3 class="col-[3/9]" data-b={b.id} set:html={html(b.text)} />;
           h2 += 1;
           return (
-            <h2 class="col-[3/9] mt-[2.6em] mb-[.9em] flex items-baseline gap-4 text-[24px] leading-[1.5] font-bold tracking-[.08em]" data-b={b.id}>
-              <span class="font-display text-[26px] leading-none font-light tracking-normal text-muted-foreground [font-feature-settings:'lnum']" data-skip>{pad2(h2)}</span>
+            <h2 class="col-[3/9] mt-[2.6em] mb-[.9em] flex items-baseline gap-4 text-h2 leading-[1.5] font-bold tracking-[.08em]" data-b={b.id}>
+              <span class="font-display text-h2 leading-none font-light tracking-normal text-muted-foreground [font-feature-settings:'lnum']" data-skip>{pad2(h2)}</span>
               <Fragment set:html={html(b.text)} />
             </h2>
           );
@@ -54,9 +54,9 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         case 'quote': {
           const vq = b.writing === 'v' && vertical;
           return (
-            <blockquote class:list={['col-[3/9]', vq && 'mt-[1.4em] mb-[2.2em] h-[12.5em] justify-self-center border-r border-r-primary pr-[1.1em] text-[21px] leading-[2.1] tracking-[.2em] text-soft-foreground [writing-mode:vertical-rl]']} data-b={b.id}>
+            <blockquote class:list={['col-[3/9]', vq && 'mt-[1.4em] mb-[2.2em] h-[12.5em] justify-self-center border-r border-r-primary pr-[1.1em] text-section leading-[2.1] tracking-[.2em] text-soft-foreground [writing-mode:vertical-rl]']} data-b={b.id}>
               <Fragment set:html={html(b.text)} />
-              {b.cite && <cite class={vq ? 'block text-end text-[13px] text-muted-foreground not-italic [margin-block-start:.4em]' : undefined} data-skip>{b.cite}</cite>}
+              {b.cite && <cite class={vq ? 'block text-end text-meta text-muted-foreground not-italic [margin-block-start:.4em]' : undefined} data-skip>{b.cite}</cite>}
             </blockquote>
           );
         }
@@ -66,7 +66,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
             <figure class:list={['rv mt-[2em] mb-[2.4em]', b.layout === 'inline' ? 'inline col-[3/9]' : 'col-[2/12]']} data-b={b.id}>
               <Image class="aspect-video w-full cursor-zoom-in object-cover" src={b.src} alt={b.alt} widths={[640, 960, 1280, 1600]} sizes="(max-width: 760px) 100vw, 83vw" />
               {b.caption && (
-                <figcaption class="mt-2.5 flex items-baseline gap-3 text-[13px] text-muted-foreground">
+                <figcaption class="mt-2.5 flex items-baseline gap-3 text-meta text-muted-foreground">
                   <span class="mono flex-none">{t('fig', { n: fig })}</span>
                   {b.caption}
                 </figcaption>
@@ -91,7 +91,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
   }
   {
     footnotes.length > 0 && (
-      <section class="fns col-[3/9] mt-[3.2em] text-[14px] leading-[1.8] text-muted-foreground before:mb-[1.1em] before:block before:h-px before:w-12 before:bg-border before:content-['']" aria-label={t('notes.foot')}>
+      <section class="fns col-[3/9] mt-[3.2em] text-aux leading-[1.8] text-muted-foreground before:mb-[1.1em] before:block before:h-px before:w-12 before:bg-border before:content-['']" aria-label={t('notes.foot')}>
         <ol class="grid gap-[.5em]">
           {footnotes.map((f) => (
             <li class="flex items-baseline gap-[.7em] text-pretty" id={`fn-${f.ref}`}>

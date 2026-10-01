@@ -38,14 +38,14 @@ const slides = pinned.map((e) => {
   };
 });
 const first = slides[0];
-const dt = 'mb-1 text-[12.5px] leading-[1.6] tracking-[.12em] text-muted-foreground';
+const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground';
 ---
 
 <section class="wrap fo pt-[clamp(36px,8vh,110px)] pb-[clamp(64px,13vh,160px)] narrow:pt-0" id="fo">
   <div class="g">
     <div class="fo-side meta col-[1/3] row-1 flex flex-col gap-[5px] pt-[.5em] text-muted-foreground narrow:row-2 narrow:mt-[26px] narrow:flex-row narrow:flex-wrap narrow:items-baseline narrow:gap-x-3.5 narrow:gap-y-1 narrow:p-0">
       <span class="mb-3 text-primary narrow:m-0">{t('home.feature')}</span>
-      <b class="mb-2.5 font-display text-[34px] leading-none font-light tracking-[0] text-foreground [font-variant-numeric:oldstyle-nums] narrow:m-0 narrow:text-[24px]" id="fo-no">{pad3(first.e.n)}</b>
+      <b class="mb-2.5 font-display text-num leading-none font-light tracking-[0] text-foreground [font-variant-numeric:oldstyle-nums] narrow:m-0 narrow:text-h2" id="fo-no">{pad3(first.e.n)}</b>
       <span id="fo-cat">{catName(first.e.category)}</span>
       <span>{fmt.yearSeason(ld)}</span>
       {
@@ -55,8 +55,8 @@ const dt = 'mb-1 text-[12.5px] leading-[1.6] tracking-[.12em] text-muted-foregro
               {slides.map((s, k) => (
                 <li class="group/li relative border-t border-t-border after:absolute after:top-[-1px] after:left-0 after:h-px after:w-0 after:bg-primary after:[transition:width_.65s_cubic-bezier(.22,1,.36,1)] after:content-[''] aria-[current]:after:w-full" aria-current={k === 0 ? 'true' : undefined}>
                   <button class="group/btn flex w-full items-baseline gap-3 pt-[13px] pb-3.5 text-left font-serif" type="button" data-i={k}>
-                    <b class="mb-2.5 min-w-[1.7em] flex-none narrow:m-0 font-display text-[20px] leading-none font-light tracking-[0] text-muted-foreground italic transition-[color] duration-400 [font-variant-numeric:oldstyle-nums] group-hover/btn:text-primary group-aria-[current]/li:text-primary">{pad3(s.e.n)}</b>
-                    <span class="text-[17px] leading-[1.45] tracking-[.03em] text-muted-foreground transition-[color] duration-400 group-hover/btn:text-foreground group-aria-[current]/li:text-foreground">{s.e.data.title}</span>
+                    <b class="mb-2.5 min-w-[1.7em] flex-none narrow:m-0 font-display text-item leading-none font-light tracking-[0] text-muted-foreground italic transition-[color] duration-400 [font-variant-numeric:oldstyle-nums] group-hover/btn:text-primary group-aria-[current]/li:text-primary">{pad3(s.e.n)}</b>
+                    <span class="text-body leading-[1.45] tracking-[.03em] text-muted-foreground transition-[color] duration-400 group-hover/btn:text-foreground group-aria-[current]/li:text-foreground">{s.e.data.title}</span>
                   </button>
                 </li>
               ))}
@@ -82,7 +82,7 @@ const dt = 'mb-1 text-[12.5px] leading-[1.6] tracking-[.12em] text-muted-foregro
                     </figcaption>
                   </figure>
                   <a class="group/qa relative z-2 block max-w-[min(100%,800px)] self-center justify-self-start pl-[clamp(16px,3vw,48px)] vert:justify-self-end vert:pl-0 vert:pr-[clamp(8px,1.4vw,24px)] narrow:self-end narrow:pt-0! narrow:pr-0! narrow:pb-[46px]! narrow:pl-[1em]!" href={s.e.href}>
-                    <p class="fo-q indent-[-1em] text-[clamp(32px,4vw,66px)] leading-[1.6] font-light tracking-[.05em] transition-[color] duration-500 group-hover/qa:text-soft-foreground vert:text-[clamp(30px,3.2vw,52px)] vert:leading-[2] vert:[writing-mode:vertical-rl] horiz:narrow:text-[clamp(25px,7.6vw,32px)]">
+                    <p class="fo-q indent-[-1em] text-quote leading-[1.6] font-light tracking-[.05em] transition-[color] duration-500 group-hover/qa:text-soft-foreground vert:text-quote-v vert:leading-[2] vert:[writing-mode:vertical-rl] horiz:narrow:text-quote-sm">
                       {s.quote.map((line, n) => (
                         <Fragment>
                           {n > 0 && <br />}
@@ -93,9 +93,9 @@ const dt = 'mb-1 text-[12.5px] leading-[1.6] tracking-[.12em] text-muted-foregro
                   </a>
                 </div>
                 <dl class="fo-cite mt-[clamp(22px,4vh,44px)] grid grid-flow-col grid-cols-[1.3fr_1fr_1fr_1.4fr_auto] grid-rows-[auto_auto] max-[1000px]:grid-cols-[1.3fr_1fr_auto] items-start gap-x-(--gap) gap-y-1 bg-[linear-gradient(var(--foreground),var(--foreground))] bg-[position:0_0] bg-[size:100%_1px] bg-no-repeat pt-4 narrow:grid-cols-[1fr_auto] narrow:bg-[position:var(--gut)_0] narrow:bg-[size:calc(100%_-_2*var(--gut))_1px] narrow:px-(--gut)">
-                  <div class="contents"><dt class={dt}>{t('home.title')}</dt><dd class="w-fit self-baseline text-[23px] leading-[1.3] tracking-[.06em] text-balance">{s.e.data.title}</dd></div>
-                  {s.meta.map((m, i) => <div class:list={['contents narrow:hidden', i > 0 && 'max-[1000px]:hidden']}><dt class={dt}>{m.label}</dt><dd class="self-baseline text-[15px] leading-[1.6] text-balance">{m.value}</dd></div>)}
-                  <a class="row-span-2 self-end pb-0.5 text-[15px] whitespace-nowrap [&_.chev]:text-primary [&_.chev]:[transition:transform_.5s_var(--ease-mori)] hover:[&_.chev]:[transform:translateX(5px)]" href={s.e.href}>{t('home.readMore')}<Chevron /></a>
+                  <div class="contents"><dt class={dt}>{t('home.title')}</dt><dd class="w-fit self-baseline text-section leading-[1.3] tracking-[.06em] text-balance">{s.e.data.title}</dd></div>
+                  {s.meta.map((m, i) => <div class:list={['contents narrow:hidden', i > 0 && 'max-[1000px]:hidden']}><dt class={dt}>{m.label}</dt><dd class="self-baseline text-aux leading-[1.6] text-balance">{m.value}</dd></div>)}
+                  <a class="row-span-2 self-end pb-0.5 text-aux whitespace-nowrap [&_.chev]:text-primary [&_.chev]:[transition:transform_.5s_var(--ease-mori)] hover:[&_.chev]:[transform:translateX(5px)]" href={s.e.href}>{t('home.readMore')}<Chevron /></a>
                 </dl>
               </article>
             ))

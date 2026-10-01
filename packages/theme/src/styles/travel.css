@@ -9,7 +9,7 @@
 /* 自由排布：每张图的 x / y / 宽度 由作者指定（占画布的比例） */
 .canvas{position:relative}
 .fi{position:absolute;left:calc(var(--x)*100%);top:calc(var(--y)*100%);width:calc(var(--w)*100%);height:auto;z-index:var(--z,1)}
-.fnote{position:absolute;left:calc(var(--x)*100%);top:calc(var(--y)*100%);writing-mode:vertical-rl;font-size:15px;letter-spacing:.26em;line-height:1.9;color:var(--soft-foreground);z-index:3}
+.fnote{position:absolute;left:calc(var(--x)*100%);top:calc(var(--y)*100%);writing-mode:vertical-rl;font-size:var(--text-aux);letter-spacing:.26em;line-height:1.9;color:var(--soft-foreground);z-index:3}
 
 .strip-track{display:flex;align-items:flex-start;gap:clamp(8px,1vw,14px);width:max-content}
 .strip-track img{width:auto;max-width:none;height:calc(var(--sh)*var(--s,1));margin-top:calc(var(--sh)*var(--o,0))}

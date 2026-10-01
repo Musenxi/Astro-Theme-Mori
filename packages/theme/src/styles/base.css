@@ -64,7 +64,7 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font: 400 17px/1.9 var(--font-serif);
+  font: 400 var(--text-body)/1.9 var(--font-serif);
   letter-spacing: 0.02em;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -125,5 +125,5 @@ figcaption,
   text-wrap: balance;
 }
 @media (max-width:760px){
-  body{font-size:16px}
+  :root{--text-body:16px}
 }

@@ -20,12 +20,12 @@ const host = (u: string) => new URL(u).host.replace(/^www\./, '');
               ) : f.data.avatar ? (
                 <Image src={f.data.avatar} alt="" width={96} height={96} />
               ) : (
-                <b class="text-[20px] font-normal text-muted-foreground">{[...f.data.name][0]}</b>
+                <b class="text-item font-normal text-muted-foreground">{[...f.data.name][0]}</b>
               )}
             </span>
             <span class="grid min-w-0 gap-[3px]">
-              <span class="w-fit bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-[size:0_1px] bg-no-repeat text-[19px] tracking-[.06em] [transition:background-size_.5s_var(--ease-mori),color_.3s] group-hover:bg-[size:100%_1px] group-hover:text-primary">{f.data.name}</span>
-              {f.data.desc && <span class="line-clamp-2 overflow-hidden text-[14.5px] leading-[1.7] text-ellipsis text-soft-foreground">{f.data.desc}</span>}
+              <span class="w-fit bg-[linear-gradient(currentColor,currentColor)] bg-[position:0_100%] bg-[size:0_1px] bg-no-repeat text-item tracking-[.06em] [transition:background-size_.5s_var(--ease-mori),color_.3s] group-hover:bg-[size:100%_1px] group-hover:text-primary">{f.data.name}</span>
+              {f.data.desc && <span class="line-clamp-2 overflow-hidden text-aux leading-[1.7] text-ellipsis text-soft-foreground">{f.data.desc}</span>}
               <span class="mono text-muted-foreground">{host(f.data.url)}</span>
             </span>
           </a>

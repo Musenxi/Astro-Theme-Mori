@@ -43,8 +43,8 @@ const li = 'relative [counter-increment:li]';
 const ht = {
   stop: 'mb-3.5',
   no: 'mb-1.5 block text-primary',
-  h2: 'mr-3 inline text-[30px] font-normal tracking-[.08em]',
-  en: 'text-[15px] text-muted-foreground',
+  h2: 'mr-3 inline text-chapter font-normal tracking-[.08em]',
+  en: 'text-aux text-muted-foreground',
   p: 'text-justify',
   pp: 'mt-[.9em]',
   h3: 'mt-[1.3em] mb-[.5em] text-[1.12em] font-bold tracking-[.08em]',
@@ -58,9 +58,9 @@ const ht = {
 };
 const vt = {
   stop: 'm-0 ml-[1.2em]',
-  no: 'm-0 ml-[.3em] block font-serif text-[13px] tracking-[.26em] text-primary',
-  h2: 'm-0 block text-[28px] font-normal tracking-[.18em]',
-  en: 'mr-[.2em] block font-mono text-[12px] tracking-[.04em] text-muted-foreground',
+  no: 'm-0 ml-[.3em] block font-serif text-meta tracking-[.26em] text-primary',
+  h2: 'm-0 block text-chapter font-normal tracking-[.18em]',
+  en: 'mr-[.2em] block font-mono text-tick tracking-[.04em] text-muted-foreground',
   p: 'text-justify',
   pp: 'm-0 mr-[.9em]',
   h3: 'm-0 mr-[1.1em] text-[1.12em] font-bold tracking-[.08em]',
@@ -137,7 +137,7 @@ const nextFig = () => pad2(++fig);
               return (
                 <figure id={anchor} class:list={['blk', 'b-single', 'rv', b.layout === 'inset' && 'inset']} data-b={b.id} data-stop={b.stop} style={{ '--y': b.y, '--s': b.scale }}>
                   <Image src={b.src} alt={b.alt} widths={[800, 1200, 1800, 2400]} sizes="100vw" />
-                  {b.caption && <figcaption class="mt-2.5 flex items-baseline gap-3 text-[13px] text-muted-foreground"><span class="mono flex-none">{nextFig()}</span>{b.caption}</figcaption>}
+                  {b.caption && <figcaption class="mt-2.5 flex items-baseline gap-3 text-meta text-muted-foreground"><span class="mono flex-none">{nextFig()}</span>{b.caption}</figcaption>}
                 </figure>
               );
             case 'pair':
@@ -146,7 +146,7 @@ const nextFig = () => pad2(++fig);
                   <div class="imgs">
                     {b.images.map((im) => <Image src={im.src} alt={im.alt} widths={[600, 900, 1400]} sizes="(max-width: 760px) 50vw, 45vw" />)}
                   </div>
-                  {b.images.some((i) => i.caption) && <figcaption class="mt-2.5 flex items-baseline gap-3 text-[13px] text-muted-foreground"><span class="mono flex-none">{nextFig()}</span>{b.images.map((i) => i.caption).filter(Boolean).join(' / ')}</figcaption>}
+                  {b.images.some((i) => i.caption) && <figcaption class="mt-2.5 flex items-baseline gap-3 text-meta text-muted-foreground"><span class="mono flex-none">{nextFig()}</span>{b.images.map((i) => i.caption).filter(Boolean).join(' / ')}</figcaption>}
                 </figure>
               );
             case 'strip':
@@ -158,7 +158,7 @@ const nextFig = () => pad2(++fig);
                         {b.images.map((im) => <Image src={im.src} alt={im.alt} height={900} widths={[600, 900, 1400]} sizes="60vw" style={{ '--s': im.scale, '--o': im.offset }} />)}
                       </div>
                     </div>
-                    <figcaption class="flex items-baseline gap-3 text-[13px] text-muted-foreground">
+                    <figcaption class="flex items-baseline gap-3 text-meta text-muted-foreground">
                       <span class="mono flex-none">{nextFig()}</span>
                       {b.images.map((i) => i.caption).filter(Boolean).join(' / ')}
                       <span class="strip-ctl">
@@ -175,7 +175,7 @@ const nextFig = () => pad2(++fig);
                   <div class="imgs">
                     {b.images.map((im, i) => <Image src={im.src} alt={im.alt} widths={[500, 900, 1400]} sizes={i === 0 ? '66vw' : '33vw'} />)}
                   </div>
-                  {b.images.some((i) => i.caption) && <figcaption class="mt-2.5 flex items-baseline gap-3 text-[13px] text-muted-foreground"><span class="mono flex-none">{nextFig()}</span>{b.images.map((i) => i.caption).filter(Boolean).join(' / ')}</figcaption>}
+                  {b.images.some((i) => i.caption) && <figcaption class="mt-2.5 flex items-baseline gap-3 text-meta text-muted-foreground"><span class="mono flex-none">{nextFig()}</span>{b.images.map((i) => i.caption).filter(Boolean).join(' / ')}</figcaption>}
                 </figure>
               );
             case 'free':
@@ -203,7 +203,7 @@ const nextFig = () => pad2(++fig);
       }
       <div class="blk b-endcard" data-stop={stops[stops.length - 1].id}>
         <span class="meta">{t('travel.total')}</span>
-        <span class="text-[44px] tracking-[.04em] text-foreground">{endStat}</span>
+        <span class="text-num-lg tracking-[.04em] text-foreground">{endStat}</span>
         <span>{t('travel.endNote')}</span>
       </div>
     </div>
@@ -213,11 +213,11 @@ const nextFig = () => pad2(++fig);
 
 {
   endnotes.length > 0 && (
-    <section class="wrap fns mt-[clamp(56px,8vw,96px)] border-t border-t-border pt-[1.2em] pb-0 text-[14px] leading-[1.8] text-muted-foreground" aria-label={t('notes.all')}>
+    <section class="wrap fns mt-[clamp(56px,8vw,96px)] border-t border-t-border pt-[1.2em] pb-0 text-aux leading-[1.8] text-muted-foreground" aria-label={t('notes.all')}>
       <ol class="max-w-[40em]">
         {endnotes.map((f) => (
           <li class="flex items-baseline gap-[.8em]" id={`fn-${f.ref}`}>
-            <sup class="nref font-mono text-[12px] text-primary" id={`note-${f.ref}`}>{f.n}</sup>
+            <sup class="nref font-mono text-tick text-primary" id={`note-${f.ref}`}>{f.n}</sup>
             <span set:html={html(f.text)} />
           </li>
         ))}
@@ -227,7 +227,7 @@ const nextFig = () => pad2(++fig);
 }
 
 <section class="t-end wrap g pt-[clamp(80px,10vw,140px)] pb-10">
-  <h2 class="col-[1/3] border-t border-t-border pt-3.5 text-[21px] font-normal tracking-[.14em]">{t('travel.itinerary')}</h2>
+  <h2 class="col-[1/3] border-t border-t-border pt-3.5 text-section font-normal tracking-[.14em]">{t('travel.itinerary')}</h2>
   <ol class="itin col-[3/13] border-t border-t-border">
     {
       stops.map((s, i) => (
@@ -235,7 +235,7 @@ const nextFig = () => pad2(++fig);
           <a class="contents" href={`#stop-${s.id}`}>
             <span class="meta">{pad2(i + 1)}</span>
             <span class="meta">{s.date ?? ''}</span>
-            <span class="text-[18px]">{s.name}{s.en && <small class="ml-2.5 font-display text-[15px] text-muted-foreground italic">{s.en}</small>}</span>
+            <span class="text-item">{s.name}{s.en && <small class="ml-2.5 font-display text-aux text-muted-foreground italic">{s.en}</small>}</span>
             <span class="mono text-muted-foreground narrow:hidden">{coord(s.lnglat)}</span>
           </a>
         </li>

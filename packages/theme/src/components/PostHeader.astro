@@ -10,8 +10,8 @@ const { title, meta = [], sub } = Astro.props;
 ---
 
 <header class="wrap g pt-[clamp(48px,9vw,120px)] pb-[clamp(40px,5.5vw,72px)] *:col-[3/11]">
-  <h1 class="w-fit text-[clamp(32px,4.2vw,54px)] leading-[1.25] font-normal tracking-[.06em] [view-transition-name:title-post]">{title}</h1>
-  {sub && <p class="mt-3 text-[clamp(17px,1.6vw,20px)] leading-[1.6] tracking-[.04em] text-soft-foreground">{sub}</p>}
+  <h1 class="w-fit text-title leading-[1.25] font-normal tracking-[.06em] [view-transition-name:title-post]">{title}</h1>
+  {sub && <p class="mt-3 text-item leading-[1.6] tracking-[.04em] text-soft-foreground">{sub}</p>}
   {
     meta.length > 0 && (
       <p class="meta mt-5 flex flex-wrap items-baseline gap-x-2.5">

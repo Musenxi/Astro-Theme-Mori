@@ -26,7 +26,7 @@ const mini = variant === 'mini';
 const full = !mini;
 // 陆地、比例尺文字、站点圆点的样式：SVG 里的元素也用工具类
 const land = 'fill-land stroke-land-edge stroke-1 transition-[fill] duration-400 [vector-effect:non-scaling-stroke]';
-const meta = 'fill-muted-foreground font-mono text-[15px] tracking-[.08em]';
+const meta = 'fill-muted-foreground font-mono text-aux tracking-[.08em]';
 const dot = 'stroke-primary stroke-2 [vector-effect:non-scaling-stroke]';
 const label = t('map.route', { list: stops.map((s) => s.name).join(lang === 'en' ? ', ' : '、') });
 ---
@@ -64,8 +64,8 @@ const label = t('map.route', { list: stops.map((s) => s.name).join(lang === 'en'
       {m.stops.map((s, i) => <circle cx={s.x} cy={s.y} r="7" class:list={['dot', dot, i === 0 ? 'fill-primary' : 'fill-background']} data-t={s.t} />)}
       {m.stops.map((s) => (
         <g class="lab [transform-box:fill-box]" data-t={s.t}>
-          <text x={s.label.x} y={s.label.y} text-anchor={s.label.anchor} class="fill-foreground font-serif text-[22px]">{s.name}</text>
-          {s.en && <text x={s.label.x} y={s.label.y + 18} text-anchor={s.label.anchor} class="fill-muted-foreground font-mono text-[15px] tracking-[.05em]">{s.en}</text>}
+          <text x={s.label.x} y={s.label.y} text-anchor={s.label.anchor} class="fill-foreground font-serif text-section">{s.name}</text>
+          {s.en && <text x={s.label.x} y={s.label.y + 18} text-anchor={s.label.anchor} class="fill-muted-foreground font-mono text-aux tracking-[.05em]">{s.en}</text>}
         </g>
       ))}
     </>

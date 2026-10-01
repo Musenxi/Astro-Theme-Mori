@@ -16,7 +16,7 @@ const cats = config.categories.map((c) => ({ ...c, n: entries.filter((e) => e.ca
       <label class="flex items-center gap-4 border-b border-b-foreground pb-3">
         <svg class="size-[22px] flex-none text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m15.5 15.5 5 5"></path></svg>
         <span class="sr-only">{t('search.title')}</span>
-        <input class="min-w-0 flex-1 appearance-none border-0 bg-transparent text-[clamp(24px,2.8vw,34px)] leading-[1.4] tracking-[.06em] text-inherit [font-family:inherit] [outline:0] placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden" id="q" type="search" placeholder={t('search.title')} autocomplete="off" autofocus />
+        <input class="min-w-0 flex-1 appearance-none border-0 bg-transparent text-chapter leading-[1.4] tracking-[.06em] text-inherit [font-family:inherit] [outline:0] placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden" id="q" type="search" placeholder={t('search.title')} autocomplete="off" autofocus />
         <button class="grid size-8 flex-none place-items-center rounded-full text-muted-foreground transition-[color,background-color] duration-300 hover:bg-muted hover:text-foreground" id="q-clear" type="button" title={t('search.clear')} aria-label={t('search.clear')} hidden>
           <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
         </button>
@@ -28,7 +28,7 @@ const cats = config.categories.map((c) => ({ ...c, n: entries.filter((e) => e.ca
         <nav class="col-[3/11] mt-6 flex flex-wrap items-baseline gap-x-7 gap-y-3" id="srch-cats" aria-label={t('search.cats')}>
           <span class="meta mr-1">{t('search.cats')}</span>
           {cats.map((c) => (
-            <a class="group text-[16px] tracking-[.06em]" href={`/category/${c.id}/`}>
+            <a class="group text-body tracking-[.06em]" href={`/category/${c.id}/`}>
               <span class="transition-[color] duration-300 group-hover:text-primary">{c.zh}</span>
               <span class="meta ml-1.5">{c.n}</span>
             </a>

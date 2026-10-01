@@ -19,13 +19,13 @@ const initial = allowed.includes(short(d.reading.default)) ? short(d.reading.def
 <article class="travel" data-mode={initial} data-dir={vertical ? d.reading.direction : 'ltr'}>
   <header class="t-hero wrap g items-center gap-y-8 pt-[clamp(28px,5vw,72px)] pb-[clamp(48px,7vw,96px)]">
     <div class="col-[1/6]">
-      <h1 class="w-fit text-[clamp(40px,5.6vw,76px)] leading-[1.15] font-normal tracking-[.06em] [view-transition-name:title-is]">{d.title}</h1>
+      <h1 class="w-fit text-display leading-[1.15] font-normal tracking-[.06em] [view-transition-name:title-is]">{d.title}</h1>
       <p class="meta mt-5 flex flex-wrap items-baseline gap-x-2"><a class="transition-[color] duration-300 hover:text-primary" href={`/category/${entry.category.id}/`}>{entry.category.zh}</a><span aria-hidden="true">·</span><span>{dotDate(d.date)}</span></p>
       <p class="ex mt-6 mb-8 max-w-[24em] text-soft-foreground">{d.excerpt}</p>
       {d.facts.length > 0 && (
         <dl class="grid grid-cols-[auto_1fr] items-baseline gap-x-6 gap-y-2.5 border-t border-t-border pt-5">
-          {d.facts.map((f) => <><dt class="meta">{f.label}</dt><dd class="text-[16px] tracking-[.04em] [font-feature-settings:'tnum','lnum']">{f.value}</dd></>)}
-          <dt class="meta">{t('travel.stops')}</dt><dd class="text-[16px] tracking-[.04em] [font-feature-settings:'tnum','lnum']">{d.stops.length}</dd>
+          {d.facts.map((f) => <><dt class="meta">{f.label}</dt><dd class="text-body tracking-[.04em] [font-feature-settings:'tnum','lnum']">{f.value}</dd></>)}
+          <dt class="meta">{t('travel.stops')}</dt><dd class="text-body tracking-[.04em] [font-feature-settings:'tnum','lnum']">{d.stops.length}</dd>
         </dl>
       )}
     </div>

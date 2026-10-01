@@ -30,7 +30,7 @@ const ny = Math.floor(newest / 12), nm = (newest % 12) + 1;
 
 const tick = 'pointer-events-none absolute horiz:left-0 horiz:top-[calc(var(--p)*var(--mh))] horiz:border-t vert:top-[calc(30vh_-_12px)] vert:right-[calc(var(--edge)_+_var(--p)*var(--mw))] vert:border-l';
 const tickY = 'horiz:w-10 vert:top-[calc(30vh_-_40px)] vert:h-10 horiz:border-t-foreground vert:border-l-foreground';
-const tickI = 'absolute font-mono text-[12px] leading-none whitespace-nowrap not-italic';
+const tickI = 'absolute font-mono text-tick leading-none whitespace-nowrap not-italic';
 const ticks = Array.from({ length: months }, (_, k) => {
   const tm = newest - k, y = Math.floor(tm / 12), m = (tm % 12) + 1;
   return { k, y, m, yearTop: m === 12 || k === 0 };
@@ -44,8 +44,8 @@ const posOf = (e: Entry) => {
 
 <header class="wrap pt-[clamp(48px,8vh,96px)]">
   <div class="flex items-baseline gap-4 border-b border-b-border pb-5">
-    <h1 class="w-fit text-[clamp(30px,3.4vw,46px)] leading-[1.25] font-normal tracking-[.08em] [view-transition-name:cat-title]">{title}</h1>
-    {en && <em class="font-display text-[clamp(20px,2vw,26px)] font-light text-muted-foreground italic">{en}</em>}
+    <h1 class="w-fit text-title leading-[1.25] font-normal tracking-[.08em] [view-transition-name:cat-title]">{title}</h1>
+    {en && <em class="font-display text-lead font-light text-muted-foreground italic">{en}</em>}
     <span class="meta ml-auto">{tn('count', entries.length, { n: fmt.num(entries.length) })}</span>
   </div>
 </header>
@@ -57,7 +57,7 @@ const posOf = (e: Entry) => {
         {
           ticks.map((t) => (
             <>
-              <span class:list={[tick, t.yearTop ? tickY : 'horiz:w-3 vert:h-3 horiz:border-t-muted-foreground vert:border-l-muted-foreground']} style={{ '--p': t.k }}>{t.yearTop && <i class:list={[tickI, 'text-[13px] tracking-[.08em] text-foreground horiz:left-[52px] horiz:top-[-.5em] horiz:narrow:left-1 horiz:narrow:top-[-1.5em] vert:left-1.5 vert:top-0', t.k === 0 && 'vert:max-[900px]:right-1.5 vert:max-[900px]:left-auto']}>{t.y}</i>}</span>
+              <span class:list={[tick, t.yearTop ? tickY : 'horiz:w-3 vert:h-3 horiz:border-t-muted-foreground vert:border-l-muted-foreground']} style={{ '--p': t.k }}>{t.yearTop && <i class:list={[tickI, 'text-meta tracking-[.08em] text-foreground horiz:left-[52px] horiz:top-[-.5em] horiz:narrow:left-1 horiz:narrow:top-[-1.5em] vert:left-1.5 vert:top-0', t.k === 0 && 'vert:max-[900px]:right-1.5 vert:max-[900px]:left-auto']}>{t.y}</i>}</span>
               <span class:list={[tick, 'border-0! horiz:w-3 vert:h-3']} style={{ '--p': t.k }}><i class:list={[tickI, 'text-muted-foreground horiz:left-5 horiz:top-[calc(var(--mh)/2_-_.5em)] vert:top-[-4px] vert:right-[calc(var(--mw)/2_-_1em)] vert:left-auto']}>{pad2(t.m)}</i></span>
             </>
           ))
@@ -65,13 +65,13 @@ const posOf = (e: Entry) => {
         {
           entries.map((e) => (
             <a class="he-item group/it absolute flex items-baseline gap-[14px] whitespace-nowrap horiz:top-[var(--q,calc(var(--p)*var(--mh)))] horiz:left-[clamp(96px,12vw,180px)] horiz:[transform:translateY(-50%)] horiz:narrow:left-16 horiz:narrow:max-w-[calc(100%_-_64px)] horiz:narrow:flex-wrap horiz:narrow:gap-x-2.5 horiz:narrow:whitespace-normal vert:top-[calc(30vh_+_22px)] vert:right-[calc(var(--edge)_+_var(--q,calc(var(--p)*var(--mw))))] vert:max-h-[56vh] vert:[writing-mode:vertical-rl] vert:[transform:translateX(50%)]" href={e.href} style={{ '--p': posOf(e).toFixed(3) }}>
-              <span class="text-[clamp(19px,1.8vw,25px)] tracking-[.06em] transition-[color] duration-300 group-hover/it:text-primary horiz:narrow:basis-full">{e.data.title}</span>
+              <span class="text-lead tracking-[.06em] transition-[color] duration-300 group-hover/it:text-primary horiz:narrow:basis-full">{e.data.title}</span>
               <span class="meta vert:tracking-[.18em]">{!hideCategory && <>{e.category.zh}<span class="px-1.5">·</span></>}<span class="vert:hidden">{pad2(e.data.date.getMonth() + 1)}.{pad2(e.data.date.getDate())}</span><span class="horiz:hidden">{monthDay(e.data.date)}</span></span>
             </a>
           ))
         }
       </div>
-      <div class="pointer-events-none font-display text-[clamp(56px,8.5vw,136px)] leading-none font-light tracking-[.01em] whitespace-nowrap text-muted-foreground [font-feature-settings:'lnum'] horiz:sticky horiz:top-[34vh] horiz:col-2 horiz:row-2 horiz:self-start horiz:narrow:hidden vert:absolute vert:bottom-[8vh] vert:left-(--edge) vert:[direction:ltr]" id="he-counter" aria-hidden="true">
+      <div class="pointer-events-none font-display text-giant leading-none font-light tracking-[.01em] whitespace-nowrap text-muted-foreground [font-feature-settings:'lnum'] horiz:sticky horiz:top-[34vh] horiz:col-2 horiz:row-2 horiz:self-start horiz:narrow:hidden vert:absolute vert:bottom-[8vh] vert:left-(--edge) vert:[direction:ltr]" id="he-counter" aria-hidden="true">
         {
           [0, 0, 0, 0, '.', 0, 0].map((d) =>
             d === '.' ? (
