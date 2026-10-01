@@ -48,7 +48,8 @@ const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground'
     <div class="fo-side meta col-[1/3] row-1 flex flex-col gap-[5px] pt-[.5em] text-muted-foreground narrow:row-2 narrow:mt-[26px] narrow:flex-row narrow:flex-wrap narrow:items-baseline narrow:gap-x-3.5 narrow:gap-y-1 narrow:p-0">
       <span class="mb-3 text-primary narrow:m-0">{t('home.feature')}</span>
       <b class="mb-2.5 font-display text-num leading-none font-light tracking-[0] text-foreground [font-variant-numeric:oldstyle-nums] narrow:m-0 narrow:text-heading" id="fo-no">{pad3(first.e.n)}</b>
-      <span id="fo-cat">{catName(first.e.category)}</span>
+      {/* 各篇的分类叠在一格里、只显示当前一篇：占的地方按最长的算，换篇时下面的目录不会因为分类名折行而跳 */}
+      <span class="grid" id="fo-cat">{slides.map((s, k) => <span class:list={['[grid-area:1/1]', k !== 0 && 'invisible']}>{catName(s.e.category)}</span>)}</span>
       <span>{fmt.yearSeason(ld)}</span>
       {
         many && (
@@ -69,32 +70,31 @@ const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground'
     </div>
     <div class="col-[3/13] row-1 grid">
       <div class="flex min-w-0 flex-col [grid-area:1/1] narrow:-mx-(--gut) narrow:-mt-[53px]" id="fo-stage" role="region" aria-label={t('home.region')}>
-        <div class="grid" id="fo-track">
+        {/* 各篇叠在一起，共用三行：封面（引文压在上面）、图注、篇名栏。行高取各篇里最高的，换篇时图注和篇名栏不会因为某一篇的图注折行而跳 */}
+        <div class="grid grid-rows-[auto_auto_auto]" id="fo-track">
           {
             slides.map((s, k) => (
-              <article class:list={['fo-slide flex min-w-0 flex-col [grid-area:1/1]', k === 0 && 'on']} data-no={pad3(s.e.n)} data-cat={catName(s.e.category)} inert={k !== 0}>
-                <div class="grid *:[grid-area:1/1]">
-                  <figure class="fo-cover flex flex-col gap-2.5" style={s.fade !== undefined ? { '--k': s.fade * 2 } : undefined}>
-                    <div class="ph">
-                      {s.image && <Image class="absolute inset-0 size-full object-cover [filter:saturate(.9)] dark:[filter:saturate(.9)_brightness(.8)]" src={s.image} alt={s.alt} widths={[800, 1200, 1600, 2000]} sizes="(max-width: 760px) 100vw, 83vw" loading={k === 0 ? 'eager' : 'lazy'} fetchpriority={k === 0 ? 'high' : 'auto'} />}
-                    </div>
-                    <figcaption class="meta mt-2.5 flex items-baseline justify-between gap-4 narrow:px-(--gut)">
-                      <span>{s.caption}</span>
-                      {many && <span>{pad2(k + 1)} / {pad2(slides.length)}</span>}
-                    </figcaption>
-                  </figure>
-                  <a class="group/qa relative z-2 flex h-(--ph-h) max-w-[min(100%,800px)] items-center self-start justify-self-start pl-[clamp(16px,3vw,48px)] vert:justify-self-end vert:pl-0 vert:pr-[clamp(8px,1.4vw,24px)] narrow:items-end narrow:pt-0! narrow:pr-0! narrow:pb-[46px]! narrow:pl-[1em]!" href={s.e.href} style={s.fit}>
-                    <p class="fo-q indent-[-1em] leading-[1.6] font-light tracking-[.05em] transition-[color] duration-500 group-hover/qa:text-soft-foreground vert:leading-[2] vert:[writing-mode:vertical-rl]">
-                      {s.quote.map((line, n) => (
-                        <Fragment>
-                          {n > 0 && <br />}
-                          {line.map(({ ch, i }) => <span class="ch" style={{ '--i': i }}>{ch}</span>)}
-                        </Fragment>
-                      ))}
-                    </p>
-                  </a>
-                </div>
-                <dl class="fo-cite mt-[clamp(22px,4vh,44px)] grid grid-flow-col grid-cols-[1.3fr_1fr_1fr_1.4fr_auto] grid-rows-[auto_auto] max-[1000px]:grid-cols-[1.3fr_1fr_auto] items-start gap-x-(--gap) gap-y-1 bg-[linear-gradient(var(--foreground),var(--foreground))] bg-[position:0_0] bg-[size:100%_1px] bg-no-repeat pt-4 narrow:grid-cols-[1fr_auto] narrow:bg-[position:var(--gut)_0] narrow:bg-[size:calc(100%_-_2*var(--gut))_1px] narrow:px-(--gut)">
+              <article class:list={['fo-slide col-1 row-[1/4] grid min-w-0 grid-rows-subgrid', k === 0 && 'on']} data-no={pad3(s.e.n)} inert={k !== 0}>
+                <figure class="fo-cover col-1 row-[1/3] grid grid-rows-subgrid" style={s.fade !== undefined ? { '--k': s.fade * 2 } : undefined}>
+                  <div class="ph">
+                    {s.image && <Image class="absolute inset-0 size-full object-cover [filter:saturate(.9)] dark:[filter:saturate(.9)_brightness(.8)]" src={s.image} alt={s.alt} widths={[800, 1200, 1600, 2000]} sizes="(max-width: 760px) 100vw, 83vw" loading={k === 0 ? 'eager' : 'lazy'} fetchpriority={k === 0 ? 'high' : 'auto'} />}
+                  </div>
+                  <figcaption class="meta mt-5 flex items-baseline justify-between gap-4 narrow:px-(--gut)">
+                    <span>{s.caption}</span>
+                    {many && <span>{pad2(k + 1)} / {pad2(slides.length)}</span>}
+                  </figcaption>
+                </figure>
+                <a class="group/qa relative z-2 col-1 row-1 flex h-(--ph-h) max-w-[min(100%,800px)] items-center self-start justify-self-start pl-[clamp(16px,3vw,48px)] vert:justify-self-end vert:pl-0 vert:pr-[clamp(8px,1.4vw,24px)] narrow:items-end narrow:pt-0! narrow:pr-0! narrow:pb-[46px]! narrow:pl-[1em]!" href={s.e.href} style={s.fit}>
+                  <p class="fo-q indent-[-1em] leading-[1.6] font-light tracking-[.05em] transition-[color] duration-500 group-hover/qa:text-soft-foreground vert:leading-[2] vert:[writing-mode:vertical-rl]">
+                    {s.quote.map((line, n) => (
+                      <Fragment>
+                        {n > 0 && <br />}
+                        {line.map(({ ch, i }) => <span class="ch" style={{ '--i': i }}>{ch}</span>)}
+                      </Fragment>
+                    ))}
+                  </p>
+                </a>
+                <dl class="fo-cite col-1 row-3 mt-[clamp(22px,4vh,44px)] grid content-start grid-flow-col grid-cols-[1.3fr_1fr_1fr_1.4fr_auto] grid-rows-[auto_auto] max-[1000px]:grid-cols-[1.3fr_1fr_auto] items-start gap-x-(--gap) gap-y-1 bg-[linear-gradient(var(--foreground),var(--foreground))] bg-[position:0_0] bg-[size:100%_1px] bg-no-repeat pt-4 narrow:grid-cols-[1fr_auto] narrow:bg-[position:var(--gut)_0] narrow:bg-[size:calc(100%_-_2*var(--gut))_1px] narrow:px-(--gut)">
                   <div class="contents"><dt class={dt}>{t('home.title')}</dt><dd class="w-fit self-baseline text-heading leading-[1.3] tracking-[.06em] text-balance">{s.e.data.title}</dd></div>
                   {s.meta.map((m, i) => <div class:list={['contents narrow:hidden', i > 0 && 'max-[1000px]:hidden']}><dt class={dt}>{m.label}</dt><dd class="self-baseline text-aux leading-[1.6] text-balance">{m.value}</dd></div>)}
                   <a class="row-start-2 self-baseline text-aux whitespace-nowrap [&_.chev]:text-primary [&_.chev]:[transition:transform_.5s_var(--ease-mori)] hover:[&_.chev]:[transform:translateX(5px)]" href={s.e.href}>{t('home.readMore')}<Chevron /></a>

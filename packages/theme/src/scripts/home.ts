@@ -49,8 +49,9 @@ function init() {
     });
     items.forEach((li, k) => (k === cur ? li.setAttribute('aria-current', 'true') : li.removeAttribute('aria-current')));
     no.textContent = slides[cur].dataset.no!;
-    cat.textContent = slides[cur].dataset.cat!;
-    if (!reduce) for (const el of [no, cat]) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 650, easing: 'cubic-bezier(.22,1,.36,1)' });
+    const names = [...cat.children] as HTMLElement[];
+    names.forEach((el, k) => el.classList.toggle('invisible', k !== cur));
+    if (!reduce) for (const el of [no, names[cur]]) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 650, easing: 'cubic-bezier(.22,1,.36,1)' });
   }
 
   // 手机上目录在图下面：换篇时如果图已经滚出屏幕，就把图滚回来
