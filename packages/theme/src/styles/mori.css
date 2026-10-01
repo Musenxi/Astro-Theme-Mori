@@ -17,6 +17,7 @@
 @import "./transitions.css" layer(components);
 /* 第三方评论框自己的样式是不进层的，改写它们的规则也不能进层，否则会被压过 */
 @import "./embed.css";
+@import "./vt-chrome.css";
 
 /* 昼夜：<html data-theme> 手动切换优先；没有手动选择时跟系统 */
 @custom-variant dark {

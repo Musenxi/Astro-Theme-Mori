@@ -1,6 +1,5 @@
 /* 页面切换 —— 由 design/style-probe/index.html 还原 */
 /* ---------- 页面切换 ---------- */
-::view-transition-group(*){animation-duration:.62s;animation-timing-function:cubic-bezier(.2,.75,.15,1)}
 ::view-transition-old(root){animation:.32s ease both vt-out}
 ::view-transition-new(root){animation:.55s cubic-bezier(.2,.75,.15,1) .08s both vt-in}
 @keyframes vt-out{to{opacity:0}}

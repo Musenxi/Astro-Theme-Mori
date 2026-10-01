@@ -1,0 +1,7 @@
+/* 命名元素（标题、页头）的页面切换动画。这个文件不进 @layer：浏览器给每个命名元素生成的默认动画盖得过层里的规则，写在层里就不生效 */
+::view-transition-group(*){animation-duration:.62s;animation-timing-function:cubic-bezier(.2,.75,.15,1)}
+
+/* 页头（刊名、导航胶囊、昼夜钮）：跨页保留，只显示新的那份，不做交叉淡入——否则旧的透镜和新的透镜叠成两个 */
+::view-transition-group(site-mark),::view-transition-group(site-nav),::view-transition-group(site-theme){animation:none}
+::view-transition-old(site-mark),::view-transition-old(site-nav),::view-transition-old(site-theme){display:none}
+::view-transition-new(site-mark),::view-transition-new(site-nav),::view-transition-new(site-theme){animation:none}
