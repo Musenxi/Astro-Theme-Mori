@@ -21,6 +21,7 @@ export function useAutosave(kind: Kind, id: string, doc: Doc | null, onSaved?: (
   const baseline = useRef(doc); // 刚读进来的那份：它不需要保存（严格模式下 effect 会多跑一遍，不能靠“第一次”判断）
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const inflight = useRef(0);
+  const lastSent = useRef(doc ? JSON.stringify(doc) : ''); // 最近一次写出去的内容：只改了“信息”时，自动保存要写的和它一样，就什么都不做（状态不闪）
   const cb = useRef(onSaved);
   cb.current = onSaved;
   const stripRef = useRef(strip);
@@ -44,6 +45,7 @@ export function useAutosave(kind: Kind, id: string, doc: Doc | null, onSaved?: (
       const r = await api.saveEntry(kind, id, body);
       if (seq !== inflight.current) return;
       setState({ status: dirty.current ? 'dirty' : 'saved', errors: r.errors ?? [], warnings: r.annotationWarnings ?? [], savedAt: Date.now() });
+      lastSent.current = JSON.stringify(body);
       cb.current?.(body, manual);
       return r;
     } catch (e) {
@@ -57,6 +59,7 @@ export function useAutosave(kind: Kind, id: string, doc: Doc | null, onSaved?: (
   useEffect(() => {
     if (!doc) return;
     if (doc === baseline.current) return;
+    if (stripRef.current && JSON.stringify(stripRef.current(doc)) === lastSent.current) return;
     dirty.current = true;
     setState((s) => (s.status === 'saving' ? s : { ...s, status: 'dirty' }));
     clearTimeout(timer.current);
