@@ -30,7 +30,7 @@ const ny = Math.floor(newest / 12), nm = (newest % 12) + 1;
 
 const tick = 'pointer-events-none absolute horiz:left-0 horiz:top-[calc(var(--p)*var(--mh))] horiz:border-t vert:top-[calc(30vh_-_12px)] vert:right-[calc(var(--edge)_+_var(--p)*var(--mw))] vert:border-l';
 const tickY = 'horiz:w-10 vert:top-[calc(30vh_-_40px)] vert:h-10 horiz:border-t-foreground vert:border-l-foreground';
-const tickI = 'absolute font-mono text-meta leading-none whitespace-nowrap not-italic';
+const tickI = 'absolute font-mono text-meta leading-none whitespace-nowrap ';
 const ticks = Array.from({ length: months }, (_, k) => {
   const tm = newest - k, y = Math.floor(tm / 12), m = (tm % 12) + 1;
   return { k, y, m, yearTop: m === 12 || k === 0 };
@@ -45,7 +45,7 @@ const posOf = (e: Entry) => {
 <header class="wrap pt-[clamp(48px,8vh,96px)]">
   <div class="flex items-baseline gap-4 border-b border-b-border pb-5">
     <h1 class="w-fit text-title leading-[1.25] font-normal tracking-[.08em] [view-transition-name:cat-title]">{title}</h1>
-    {en && <em class="font-display text-lead font-light text-muted-foreground italic">{en}</em>}
+    {en && <em class="font-display text-lead font-light text-muted-foreground ">{en}</em>}
     <span class="meta ml-auto">{tn('count', entries.length, { n: fmt.num(entries.length) })}</span>
   </div>
 </header>
@@ -77,7 +77,7 @@ const posOf = (e: Entry) => {
             d === '.' ? (
               <span class="mx-[.06em] text-primary">·</span>
             ) : (
-              <span class="dg inline-block h-[1em] overflow-hidden align-top"><i class="block not-italic [transition:transform_.8s_var(--ease-mori)]">{[...'0123456789'].map((x) => <b class="block h-[1em] [font-weight:inherit]">{x}</b>)}</i></span>
+              <span class="dg inline-block h-[1em] overflow-hidden align-top"><i class="block [transition:transform_.8s_var(--ease-mori)]">{[...'0123456789'].map((x) => <b class="block h-[1em] [font-weight:inherit]">{x}</b>)}</i></span>
             ),
           )
         }

@@ -49,7 +49,7 @@ const ht = {
   pp: 'mt-[.9em]',
   h3: 'mt-[1.3em] mb-[.5em] text-[1.12em] font-bold tracking-[.08em]',
   quote: 'my-[1em] border-l border-l-primary pl-[1em] text-soft-foreground',
-  cite: 'mt-[.3em] block text-meta text-muted-foreground not-italic',
+  cite: 'mt-[.3em] block text-meta text-muted-foreground ',
   ul: 'my-[.9em] [counter-reset:li]',
   ol: 'my-[.9em] [counter-reset:li]',
   uli: `${li} py-[.2em] pl-[1.6em] before:absolute before:top-[1.05em] before:left-0 before:h-px before:w-[.7em] before:bg-muted-foreground before:content-['']`,
@@ -65,7 +65,7 @@ const vt = {
   pp: 'm-0 mr-[.9em]',
   h3: 'm-0 mr-[1.1em] text-[1.12em] font-bold tracking-[.08em]',
   quote: 'm-0 mr-[.9em] border-r border-r-primary p-0 pb-[1em] text-soft-foreground',
-  cite: 'm-0 mr-[.4em] block text-meta text-muted-foreground not-italic',
+  cite: 'm-0 mr-[.4em] block text-meta text-muted-foreground ',
   ul: 'm-0 mr-[.9em] [counter-reset:li]',
   ol: 'm-0 mr-[.9em] [counter-reset:li]',
   uli: `${li} border-0 p-0 before:static before:top-[1.05em] before:left-0 before:inline before:h-auto before:w-auto before:bg-transparent before:content-['・']`,
@@ -235,7 +235,7 @@ const nextFig = () => pad2(++fig);
           <a class="contents" href={`#stop-${s.id}`}>
             <span class="meta">{pad2(i + 1)}</span>
             <span class="meta">{s.date ?? ''}</span>
-            <span class="text-item">{s.name}{s.en && <small class="ml-2.5 font-display text-aux text-muted-foreground italic">{s.en}</small>}</span>
+            <span class="text-item">{s.name}{s.en && <small class="ml-2.5 font-display text-aux text-muted-foreground ">{s.en}</small>}</span>
             <span class="mono text-muted-foreground narrow:hidden">{coord(s.lnglat)}</span>
           </a>
         </li>

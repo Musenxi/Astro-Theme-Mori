@@ -55,7 +55,7 @@ const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground'
               {slides.map((s, k) => (
                 <li class="group/li relative border-t border-t-border after:absolute after:top-[-1px] after:left-0 after:h-px after:w-0 after:bg-primary after:[transition:width_.65s_cubic-bezier(.22,1,.36,1)] after:content-[''] aria-[current]:after:w-full" aria-current={k === 0 ? 'true' : undefined}>
                   <button class="group/btn flex w-full items-baseline gap-3 pt-[13px] pb-3.5 text-left font-serif" type="button" data-i={k}>
-                    <b class="mb-2.5 min-w-[1.7em] flex-none narrow:m-0 font-display text-item leading-none font-light tracking-[0] text-muted-foreground italic transition-[color] duration-400 [font-variant-numeric:oldstyle-nums] group-hover/btn:text-primary group-aria-[current]/li:text-primary">{pad3(s.e.n)}</b>
+                    <b class="mb-2.5 min-w-[1.7em] flex-none narrow:m-0 font-display text-item leading-none font-light tracking-[0] text-muted-foreground transition-[color] duration-400 [font-variant-numeric:oldstyle-nums] group-hover/btn:text-primary group-aria-[current]/li:text-primary">{pad3(s.e.n)}</b>
                     <span class="text-body leading-[1.45] tracking-[.03em] text-muted-foreground transition-[color] duration-400 group-hover/btn:text-foreground group-aria-[current]/li:text-foreground">{s.e.data.title}</span>
                   </button>
                 </li>
