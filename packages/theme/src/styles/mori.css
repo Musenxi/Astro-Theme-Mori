@@ -42,18 +42,15 @@
   /* 等宽只管西文和数字；中文落回正文的宋体，不掉到系统黑体上 */
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, "STDongGuanTi", "ZhuqueFS", "Songti SC", monospace;
   --font-display: "Cormorant Garamond", "Cormorant", Georgia, serif;
-  /* 字号：以正文 17px 为基准，每级约 ×1.125。全站只用这些，不再写 text-[Npx]。
+  /* 字号：以正文 17px 为基准，全站只用这些，不再写 text-[Npx]。最小 14px，没有更小的字。
      em 写的相对字号（行内 code、注号、游记里的 h3/引注）跟着所在段落走，不算在内。 */
-  --text-tick: 12px; /* 等宽：刻度、坐标、注号、编号 */
-  --text-meta: 13.5px; /* 附属：日期、分类、计数、图注、引注、按钮小字 */
-  --text-aux: 15px; /* 辅文：摘要、脚注、导航、表单、回复 */
+  --text-meta: 14px; /* 附属：日期、分类、计数、图注、引注、刻度、坐标、编号 */
+  --text-aux: 15.5px; /* 辅文：摘要、脚注、导航、表单、回复 */
   --text-body: 17px; /* 正文（窄屏 16px，见 base.css） */
   --text-item: 19px; /* 条目：列表里的篇名、人名、副题 */
-  --text-section: 21.5px; /* 区块标题：评论、行程、目次分类 */
-  --text-h2: 24px; /* 文章小标题 */
-  --text-chapter: 27px; /* 游记章节、搜索框 */
-  --text-num: 34px; /* 期号数字 */
-  --text-num-lg: 44px; /* 大数字：卷次、里程 */
+  --text-heading: 24px; /* 标题：文章小标题、评论、行程、目次分类 */
+  --text-chapter: 28px; /* 游记章节、搜索框 */
+  --text-num: 38px; /* 大数字：期号、卷次、里程 */
   /* 随屏宽变化的几级 */
   --text-lead: clamp(19px, 1.8vw, 25px); /* 目次、归档里的篇名，封面副题 */
   --text-title: clamp(30px, 3.8vw, 50px); /* 页面标题 */

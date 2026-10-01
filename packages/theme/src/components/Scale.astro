@@ -30,7 +30,7 @@ const ny = Math.floor(newest / 12), nm = (newest % 12) + 1;
 
 const tick = 'pointer-events-none absolute horiz:left-0 horiz:top-[calc(var(--p)*var(--mh))] horiz:border-t vert:top-[calc(30vh_-_12px)] vert:right-[calc(var(--edge)_+_var(--p)*var(--mw))] vert:border-l';
 const tickY = 'horiz:w-10 vert:top-[calc(30vh_-_40px)] vert:h-10 horiz:border-t-foreground vert:border-l-foreground';
-const tickI = 'absolute font-mono text-tick leading-none whitespace-nowrap not-italic';
+const tickI = 'absolute font-mono text-meta leading-none whitespace-nowrap not-italic';
 const ticks = Array.from({ length: months }, (_, k) => {
   const tm = newest - k, y = Math.floor(tm / 12), m = (tm % 12) + 1;
   return { k, y, m, yearTop: m === 12 || k === 0 };

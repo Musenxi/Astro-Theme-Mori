@@ -49,23 +49,23 @@ const ht = {
   pp: 'mt-[.9em]',
   h3: 'mt-[1.3em] mb-[.5em] text-[1.12em] font-bold tracking-[.08em]',
   quote: 'my-[1em] border-l border-l-primary pl-[1em] text-soft-foreground',
-  cite: 'mt-[.3em] block text-[.85em] text-muted-foreground not-italic',
+  cite: 'mt-[.3em] block text-meta text-muted-foreground not-italic',
   ul: 'my-[.9em] [counter-reset:li]',
   ol: 'my-[.9em] [counter-reset:li]',
   uli: `${li} py-[.2em] pl-[1.6em] before:absolute before:top-[1.05em] before:left-0 before:h-px before:w-[.7em] before:bg-muted-foreground before:content-['']`,
-  oli: `${li} py-[.2em] pl-[1.6em] before:absolute before:top-[.3em] before:left-0 before:font-mono before:text-[.8em] before:leading-[2] before:text-muted-foreground before:content-[counter(li)]`,
+  oli: `${li} py-[.2em] pl-[1.6em] before:absolute before:top-[.3em] before:left-0 before:font-mono before:text-meta before:leading-[2] before:text-muted-foreground before:content-[counter(li)]`,
   pre: 'my-[1em] overflow-x-auto rounded-[6px] bg-muted px-[1.1em] py-[.9em] text-soft-foreground [font:.8em/1.75_var(--font-mono)]',
 };
 const vt = {
   stop: 'm-0 ml-[1.2em]',
   no: 'm-0 ml-[.3em] block font-serif text-meta tracking-[.26em] text-primary',
   h2: 'm-0 block text-chapter font-normal tracking-[.18em]',
-  en: 'mr-[.2em] block font-mono text-tick tracking-[.04em] text-muted-foreground',
+  en: 'mr-[.2em] block font-mono text-meta tracking-[.04em] text-muted-foreground',
   p: 'text-justify',
   pp: 'm-0 mr-[.9em]',
   h3: 'm-0 mr-[1.1em] text-[1.12em] font-bold tracking-[.08em]',
   quote: 'm-0 mr-[.9em] border-r border-r-primary p-0 pb-[1em] text-soft-foreground',
-  cite: 'm-0 mr-[.4em] block text-[.85em] text-muted-foreground not-italic',
+  cite: 'm-0 mr-[.4em] block text-meta text-muted-foreground not-italic',
   ul: 'm-0 mr-[.9em] [counter-reset:li]',
   ol: 'm-0 mr-[.9em] [counter-reset:li]',
   uli: `${li} border-0 p-0 before:static before:top-[1.05em] before:left-0 before:inline before:h-auto before:w-auto before:bg-transparent before:content-['・']`,
@@ -203,7 +203,7 @@ const nextFig = () => pad2(++fig);
       }
       <div class="blk b-endcard" data-stop={stops[stops.length - 1].id}>
         <span class="meta">{t('travel.total')}</span>
-        <span class="text-num-lg tracking-[.04em] text-foreground">{endStat}</span>
+        <span class="text-num tracking-[.04em] text-foreground">{endStat}</span>
         <span>{t('travel.endNote')}</span>
       </div>
     </div>
@@ -217,7 +217,7 @@ const nextFig = () => pad2(++fig);
       <ol class="max-w-[40em]">
         {endnotes.map((f) => (
           <li class="flex items-baseline gap-[.8em]" id={`fn-${f.ref}`}>
-            <sup class="nref font-mono text-tick text-primary" id={`note-${f.ref}`}>{f.n}</sup>
+            <sup class="nref font-mono text-meta text-primary" id={`note-${f.ref}`}>{f.n}</sup>
             <span set:html={html(f.text)} />
           </li>
         ))}
@@ -227,7 +227,7 @@ const nextFig = () => pad2(++fig);
 }
 
 <section class="t-end wrap g pt-[clamp(80px,10vw,140px)] pb-10">
-  <h2 class="col-[1/3] border-t border-t-border pt-3.5 text-section font-normal tracking-[.14em]">{t('travel.itinerary')}</h2>
+  <h2 class="col-[1/3] border-t border-t-border pt-3.5 text-heading font-normal tracking-[.14em]">{t('travel.itinerary')}</h2>
   <ol class="itin col-[3/13] border-t border-t-border">
     {
       stops.map((s, i) => (

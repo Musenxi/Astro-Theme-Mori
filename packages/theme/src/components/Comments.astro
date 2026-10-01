@@ -20,7 +20,7 @@ const pub = c?.provider === 'mori' ? { ...c, avatar: avatarTemplate(c.avatar) } 
 {
   c && (
     <section class="wrap g pt-[clamp(24px,4vw,48px)] pb-[clamp(40px,6vw,72px)]" id="comments" data-entry={entry} data-provider={c.provider} data-config={JSON.stringify(pub)}>
-      <header class="col-[3/11] mb-5 flex items-baseline gap-3 border-t border-t-border pt-8"><h2 class="text-section font-normal tracking-[.14em]">{t('comments.title')}</h2><span class="meta" data-count></span></header>
+      <header class="col-[3/11] mb-5 flex items-baseline gap-3 border-t border-t-border pt-8"><h2 class="text-heading font-normal tracking-[.14em]">{t('comments.title')}</h2><span class="meta" data-count></span></header>
       <div class="col-[3/11]" data-body></div>
     </section>
   )

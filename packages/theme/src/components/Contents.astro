@@ -29,8 +29,8 @@ const sections = config.categories
         sections.map(({ c, list, roman }) => (
           <section class="f-sec group/sec mb-[clamp(44px,8vh,88px)]">
             <a class="f-sh group/sh flex items-baseline gap-4 bg-[linear-gradient(var(--foreground),var(--foreground))] bg-[position:0_100%] bg-[size:0_1px] bg-no-repeat pb-3 [transition:background-size_1.3s_var(--ease-mori)] group-[.in]/sec:bg-[size:100%_1px]" href={`/category/${c.id}/`}>
-              <span class="min-w-[1.4em] font-display text-num-lg leading-[.9] font-light">{roman}</span>
-              <h3 class="text-section font-normal tracking-[.14em] transition-[color] duration-300 group-hover/sh:text-primary">{c.zh}</h3>
+              <span class="min-w-[1.4em] font-display text-num leading-[.9] font-light">{roman}</span>
+              <h3 class="text-heading font-normal tracking-[.14em] transition-[color] duration-300 group-hover/sh:text-primary">{c.zh}</h3>
               <em class="font-display text-item font-light text-muted-foreground italic">{c.en}</em>
               <span class="meta ml-auto transition-[color] duration-300 group-hover/sh:text-primary">{tn('count', list.length, { n: fmt.num(list.length) })}<Chevron /></span>
             </a>

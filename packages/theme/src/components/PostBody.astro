@@ -45,8 +45,8 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
           if (b.level === 3) return <h3 class="col-[3/9]" data-b={b.id} set:html={html(b.text)} />;
           h2 += 1;
           return (
-            <h2 class="col-[3/9] mt-[2.6em] mb-[.9em] flex items-baseline gap-4 text-h2 leading-[1.5] font-bold tracking-[.08em]" data-b={b.id}>
-              <span class="font-display text-h2 leading-none font-light tracking-normal text-muted-foreground [font-feature-settings:'lnum']" data-skip>{pad2(h2)}</span>
+            <h2 class="col-[3/9] mt-[2.6em] mb-[.9em] flex items-baseline gap-4 text-heading leading-[1.5] font-bold tracking-[.08em]" data-b={b.id}>
+              <span class="font-display text-heading leading-none font-light tracking-normal text-muted-foreground [font-feature-settings:'lnum']" data-skip>{pad2(h2)}</span>
               <Fragment set:html={html(b.text)} />
             </h2>
           );
@@ -54,7 +54,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         case 'quote': {
           const vq = b.writing === 'v' && vertical;
           return (
-            <blockquote class:list={['col-[3/9]', vq && 'mt-[1.4em] mb-[2.2em] h-[12.5em] justify-self-center border-r border-r-primary pr-[1.1em] text-section leading-[2.1] tracking-[.2em] text-soft-foreground [writing-mode:vertical-rl]']} data-b={b.id}>
+            <blockquote class:list={['col-[3/9]', vq && 'mt-[1.4em] mb-[2.2em] h-[12.5em] justify-self-center border-r border-r-primary pr-[1.1em] text-heading leading-[2.1] tracking-[.2em] text-soft-foreground [writing-mode:vertical-rl]']} data-b={b.id}>
               <Fragment set:html={html(b.text)} />
               {b.cite && <cite class={vq ? 'block text-end text-meta text-muted-foreground not-italic [margin-block-start:.4em]' : undefined} data-skip>{b.cite}</cite>}
             </blockquote>

@@ -1,7 +1,7 @@
 /* 全站通用的几个类：版心、12 栏网格、等宽小字、箭头、下划线 */
 .wrap{@apply mx-auto max-w-(--maxw) px-(--gut)}
 .g{@apply grid grid-cols-12 gap-x-(--gap)}
-.mono{@apply font-mono text-tick leading-[1.6] tracking-[.04em] [font-feature-settings:"tnum"]}
+.mono{@apply font-mono text-meta leading-[1.6] tracking-[.04em] [font-feature-settings:"tnum"]}
 /* 附属信息（日期、分类、篇幅、计数）：正文的宋体，小一号，不用等宽 */
 .meta{@apply text-meta leading-[1.6] tracking-[.06em] text-muted-foreground [font-feature-settings:"tnum"]}
 .lbl{@apply text-muted-foreground}

@@ -64,7 +64,7 @@ const label = t('map.route', { list: stops.map((s) => s.name).join(lang === 'en'
       {m.stops.map((s, i) => <circle cx={s.x} cy={s.y} r="7" class:list={['dot', dot, i === 0 ? 'fill-primary' : 'fill-background']} data-t={s.t} />)}
       {m.stops.map((s) => (
         <g class="lab [transform-box:fill-box]" data-t={s.t}>
-          <text x={s.label.x} y={s.label.y} text-anchor={s.label.anchor} class="fill-foreground font-serif text-section">{s.name}</text>
+          <text x={s.label.x} y={s.label.y} text-anchor={s.label.anchor} class="fill-foreground font-serif text-heading">{s.name}</text>
           {s.en && <text x={s.label.x} y={s.label.y + 18} text-anchor={s.label.anchor} class="fill-muted-foreground font-mono text-aux tracking-[.05em]">{s.en}</text>}
         </g>
       ))}
