@@ -19,7 +19,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'lightbox.close': 'Esc 關閉', 'footer.search': '搜尋', 'footer.rss': '訂閱',
   'notfound.title': '找不到這一頁', 'notfound.h': '這一頁不在目次裡。', 'notfound.back': '回到目次',
   'search.title': '搜尋', 'search.cats': '分類', 'search.clear': '清除',
-  'comments.title': '留言',
+  'friends.lost': '已失聯', 'comments.title': '留言',
   'js.theme.toLight': '晝', 'js.theme.toDark': '夜',
   'js.cmt.loading': '留言載入中……', 'js.cmt.retry': '重試', 'js.cmt.count': '{n} 則', 'js.cmt.none': '還沒有留言。', 'js.cmt.reply': '回覆', 'js.cmt.cancelReply': '取消回覆',
   'js.cmt.jump': '回到正文裡的這一段', 'js.cmt.name': '暱稱 *', 'js.cmt.email': '信箱 *', 'js.cmt.url': '網站', 'js.cmt.write': '寫下你的想法…', 'js.cmt.replyTo': '回覆 {name}', 'js.cmt.send': '發表', 'js.cmt.sendReply': '發表回覆',

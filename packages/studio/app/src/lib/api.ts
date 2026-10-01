@@ -55,9 +55,8 @@ export const api = {
   renameTag: (from: string, to: string | null) => req<{ ok: true; changed: number }>('POST', '/api/tags/rename', { from, to }),
   setNav: (body: { nav?: NavItem[] | null; actions?: Action[] | null }) => req<{ ok: true }>('PUT', '/api/nav', body),
 
-  friends: () => req<{ friends: Friend[] }>('GET', '/api/friends'),
-  saveFriends: (friends: Friend[]) => req<{ ok: true; friends: Friend[] }>('PUT', '/api/friends', { friends }),
-  probeSite: (url: string) => req<{ name: string; desc: string; avatar?: string }>('POST', '/api/friends/probe', { url }),
+  friends: () => req<{ friends: Friend[]; text: string; lost: string }>('GET', '/api/friends'),
+  saveFriends: (text: string, lost: string) => req<{ ok: true; friends: Friend[]; text: string; lost: string }>('PUT', '/api/friends', { text, lost }),
 
   upload: async (file: File) => {
     const r = await fetch(`/api/asset/${encodeURIComponent(file.name)}`, { method: 'PUT', body: file });

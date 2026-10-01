@@ -19,7 +19,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'lightbox.close': 'Esc で閉じる', 'footer.search': '検索', 'footer.rss': '購読',
   'notfound.title': 'ページが見つかりません', 'notfound.h': 'このページは目次にありません。', 'notfound.back': '目次へ戻る',
   'search.title': '検索', 'search.cats': 'カテゴリー', 'search.clear': 'クリア',
-  'comments.title': 'コメント',
+  'friends.lost': '音信不通', 'comments.title': 'コメント',
   'js.theme.toLight': '昼', 'js.theme.toDark': '夜',
   'js.cmt.loading': 'コメントを読み込み中……', 'js.cmt.retry': '再試行', 'js.cmt.count': '{n}件', 'js.cmt.none': 'まだコメントはありません。', 'js.cmt.reply': '返信', 'js.cmt.cancelReply': '返信をやめる',
   'js.cmt.jump': '本文のこの箇所へ戻る', 'js.cmt.name': '名前 *', 'js.cmt.email': 'メール *', 'js.cmt.url': 'ウェブサイト', 'js.cmt.write': '感想を書く…', 'js.cmt.replyTo': '{name} さんへ返信', 'js.cmt.send': '投稿', 'js.cmt.sendReply': '返信を投稿',

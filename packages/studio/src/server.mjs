@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import sharp from 'sharp';
 import { avatarTemplate } from 'astro-mori/avatar';
-import { RESERVED_SLUGS, assetUsage, trashAsset, loadConfig, setConfigValue, setCategories, setPublish, setNav, setActions, listPages, readFriends, writeFriends, renameCategoryInEntries, renameTag, countPages, listEntries, readEntry, writeEntry, entryExists, skeleton, trashEntry, publishEntry, unpublishEntry, discardDraft, listAssets, saveAsset, isId, KINDS, IMAGE_EXT } from './project.mjs';
+import { RESERVED_SLUGS, assetUsage, trashAsset, loadConfig, setConfigValue, setCategories, setPublish, setNav, setActions, listPages, readFriends, writeFriends, readFriendsLost, writeFriendsLost, formatFriends, parseFriends, renameCategoryInEntries, renameTag, countPages, listEntries, readEntry, writeEntry, entryExists, skeleton, trashEntry, publishEntry, unpublishEntry, discardDraft, listAssets, saveAsset, isId, KINDS, IMAGE_EXT } from './project.mjs';
 import { validateEntry } from 'astro-mori/validate';
 import { locate } from 'astro-mori/anchor';
 import { probeSite } from './probe.mjs';
@@ -243,9 +243,9 @@ export async function startStudio({ root, port = 4400, dev = false }) {
       }
 
       /* ── 友人帐 ── */
-      if (p === '/api/friends' && req.method === 'GET') return send(res, 200, { friends: readFriends(root) });
+      if (p === '/api/friends' && req.method === 'GET') { const friends = readFriends(root); return send(res, 200, { friends, text: formatFriends(friends), lost: readFriendsLost(root) }); }
       if (p === '/api/friends' && req.method === 'PUT') {
-        try { return send(res, 200, { ok: true, friends: writeFriends(root, (await readJson(req)).friends) }); } catch (e) { return send(res, 400, { error: e.message }); }
+        try { const b = await readJson(req); const friends = writeFriends(root, parseFriends(b.text, readFriends(root))); writeFriendsLost(root, b.lost); return send(res, 200, { ok: true, friends, text: formatFriends(friends), lost: readFriendsLost(root) }); } catch (e) { return send(res, 400, { error: e.message }); }
       }
       if (p === '/api/friends/probe' && req.method === 'POST') {
         try { return send(res, 200, await probeSite((await readJson(req)).url)); } catch (e) { return send(res, 400, { error: e.message }); }

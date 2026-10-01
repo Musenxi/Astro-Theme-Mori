@@ -18,7 +18,7 @@ export default {
   'lightbox.close': 'Esc 关闭', 'footer.search': '搜索', 'footer.rss': '订阅',
   'notfound.title': '找不到这一页', 'notfound.h': '这一页不在目次里。', 'notfound.back': '回到目次',
   'search.title': '搜索', 'search.cats': '分类', 'search.clear': '清除',
-  'comments.title': '评论',
+  'friends.lost': '已失联', 'comments.title': '评论',
   // ↓ 浏览器里的脚本用
   'js.theme.toLight': '昼', 'js.theme.toDark': '夜',
   'js.cmt.loading': '评论加载中……', 'js.cmt.retry': '重试', 'js.cmt.count': '{n} 条', 'js.cmt.none': '还没有评论。', 'js.cmt.reply': '回复', 'js.cmt.cancelReply': '取消回复',

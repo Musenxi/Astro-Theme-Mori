@@ -2,7 +2,7 @@
  * 项目文件的读写：Studio 直接读写站点项目里的内容文件（src/content/posts（普通文章和游记）、src/assets）。
  * 不需要 git；“删除”是移进 .mori-trash/，不会真的删掉。
  */
-import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, statSync, copyFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, statSync, copyFileSync, rmSync } from 'node:fs';
 import { join, basename, extname } from 'node:path';
 import { loadConfigFromFile } from 'vite';
 
@@ -395,6 +395,44 @@ export function checkFriends(list) {
     const avatar = String(raw?.avatar ?? '').trim();
     return { id, name, url: u.href, desc: String(raw?.desc ?? '').trim(), ...(avatar ? { avatar } : {}), order: i };
   });
+}
+
+const lostFile = (root) => join(root, 'src/content/friends-lost.txt');
+
+export function readFriendsLost(root) {
+  const f = lostFile(root);
+  return existsSync(f) ? readFileSync(f, 'utf8') : '';
+}
+
+/** 一行一位：[名字](链接)+(头像)+(描述)；头像、描述可省，只有描述时头像写成 () */
+export function formatFriends(list) {
+  return list.map((f) => `[${f.name}](${f.url})` + (f.avatar || f.desc ? `+(${f.avatar ?? ''})` : '') + (f.desc ? `+(${f.desc})` : '')).join('\n');
+}
+
+/** 从别处粘来的文字里带着 &#39; &amp; 这类转义，还原成原来的符号 */
+export const unescapeHtml = (s) => String(s ?? '').replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos|nbsp);/gi, (m, e) => {
+  const k = e.toLowerCase();
+  if (k[0] === '#') { const n = k[1] === 'x' ? parseInt(k.slice(2), 16) : parseInt(k.slice(1), 10); try { return String.fromCodePoint(n); } catch { return m; } }
+  return { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' }[k];
+});
+
+export function parseFriends(text, prev = []) {
+  const ids = new Map(prev.map((f) => [f.url, f.id]));
+  return unescapeHtml(text).split(/\r?\n/).map((l) => l.trim()).filter(Boolean).map((line, i) => {
+    const m = /^\[([^\]]+)\]\(\s*([^)\s]+)\s*\)(.*)$/.exec(line);
+    if (!m) throw new Error(`第 ${i + 1} 行写法不对：${line}`);
+    const parts = [...m[3].matchAll(/\s*\+\s*[(（](.*?)[)）](?=\s*\+\s*[(（]|\s*$)/g)].map((x) => x[1].trim());
+    const url = m[2];
+    let href = url; try { href = new URL(url).href; } catch { /* checkFriends 报错 */ }
+    return { id: ids.get(href), name: m[1].trim(), url, avatar: parts[0] || undefined, desc: parts.slice(1).join('+') };
+  });
+}
+
+export function writeFriendsLost(root, text) {
+  const t = unescapeHtml(text).replace(/\s+$/, '');
+  if (t) { mkdirSync(join(root, 'src/content'), { recursive: true }); writeFileSync(lostFile(root), t + '\n'); }
+  else if (existsSync(lostFile(root))) rmSync(lostFile(root));
+  return t;
 }
 
 export function writeFriends(root, list) {
