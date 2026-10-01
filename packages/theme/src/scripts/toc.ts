@@ -1,5 +1,5 @@
 /**
- * 文章目录（PostToc.astro）：滚动时标出当前读到的那一节；跨栏大图、旁注、代码块经过目录所在的位置时，目录先隐去，免得叠在上面。
+ * 文章目录（PostToc.astro）：滚动时标出当前读到的那一节；跨栏大图、旁注经过目录所在的位置时，目录先隐去，免得叠在上面。
  * 点目录平滑滚到小标题（小标题的 scroll-margin 和目录的 top 相同，滚到后两者齐平）。
  */
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -13,7 +13,7 @@ function init() {
   if (!toc || !list) return;
   const links = [...list.querySelectorAll<HTMLAnchorElement>('a')];
   const heads = links.map((a) => document.getElementById(decodeURIComponent(a.hash.slice(1))));
-  const blocks = [...document.querySelectorAll<HTMLElement>('article figure:not(.inline), article aside, article pre')];
+  const blocks = [...document.querySelectorAll<HTMLElement>('article figure:not(.inline), article aside')];
 
   let raf = 0;
   const update = () => {

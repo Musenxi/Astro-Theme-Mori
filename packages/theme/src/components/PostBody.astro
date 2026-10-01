@@ -26,9 +26,9 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         case 'p': {
           const refs = sideRefs(b.text);
           return refs.length ? (
-            <div class="col-[3/12] grid grid-cols-subgrid narrow:block">
+            <div class="col-[3/13] grid grid-cols-subgrid narrow:block">
               <p class={`col-[1/7] ${p}`} data-b={b.id} set:html={html(b.text)} />
-              <div class="col-[7/10] flex flex-col gap-[.9em] narrow:mt-[-.4em] narrow:mb-[1.4em]">
+              <div class="col-[8/11] flex flex-col gap-[.9em] narrow:mt-[-.4em] narrow:mb-[1.4em]">
                 {refs.map((ref) => (
                   <aside class="border-t border-t-border pt-[.35em] text-meta leading-[1.75] text-muted-foreground narrow:pt-[.5em]" id={`note-${ref}`}>
                     <sup class="nref" data-skip>{numbers.side.get(ref)}</sup>
@@ -84,7 +84,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         }
         case 'code':
           return (
-            <pre class="col-[3/10] mt-[.4em] mb-[1.6em] overflow-x-auto rounded-[6px] bg-muted px-[22px] py-[18px] text-soft-foreground [font:13px/1.8_var(--font-mono)]" data-b={b.id} data-lang={b.lang}><code>{b.code}</code></pre>
+            <pre class="col-[3/9] mt-[.4em] mb-[1.6em] overflow-x-auto rounded-[6px] bg-muted px-[22px] py-[18px] text-soft-foreground [font:13px/1.8_var(--font-mono)]" data-b={b.id} data-lang={b.lang}><code>{b.code}</code></pre>
           );
       }
     })
