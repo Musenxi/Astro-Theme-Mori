@@ -83,6 +83,15 @@ nav.addEventListener('pointerleave', () => lgLens());
 nav.addEventListener('focusin', (e) => lgLens((e.target as Element).closest('a')));
 nav.addEventListener('focusout', () => lgLens());
 
+// 换页时才给页头起过渡名（vt-chrome.css），过渡结束就去掉：平时带着名字，玻璃的背景模糊会失效
+// 换页会把 <html> 的 class 换成新页面的，所以换完页（after-swap）过渡还没结束就再加回去
+let vtSite = false;
+document.addEventListener('astro:before-preparation', () => { vtSite = true; root.classList.add('vt-site'); });
+document.addEventListener('astro:before-swap', (e) => {
+  e.viewTransition.finished.catch(() => {}).finally(() => { vtSite = false; root.classList.remove('vt-site'); });
+});
+document.addEventListener('astro:after-swap', () => { if (vtSite) root.classList.add('vt-site'); });
+
 // 页头跨页保留，但换页时它会被重新插入文档，进行到一半的透镜滑动因此被取消、直接跳到终点。换页前记下透镜当前的位置，换页后从那里接着滑
 let lensAt: { x: number; w: number } | null = null;
 document.addEventListener('astro:before-swap', () => {

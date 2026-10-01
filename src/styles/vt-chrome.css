@@ -1,7 +1,10 @@
 /* 命名元素（标题、页头）的页面切换动画。这个文件不进 @layer：浏览器给每个命名元素生成的默认动画盖得过层里的规则，写在层里就不生效 */
 ::view-transition-group(*){animation-duration:.62s;animation-timing-function:cubic-bezier(.2,.75,.15,1)}
 
-/* 页头跨页保留：整个页头是一个命名元素（site），只显示新的那份，不做旧/新交叉淡入——否则旧透镜和新透镜叠成两个 */
+/* 页头跨页保留：整个页头是一个命名元素（site），只显示新的那份，不做旧/新交叉淡入——否则旧透镜和新透镜叠成两个。
+   名字只在过渡进行时加上（chrome.ts 的 vt-site、昼夜切换的 vt-theme、游记换读法的 vt-mode）：带名字的元素会成为“背景根”，
+   里面玻璃的 backdrop-filter 只看得到页头自己（透明），模糊和折射全都失效 */
+html:is(.vt-site,.vt-theme,.vt-mode) #site{view-transition-name:site}
 html:not(.vt-theme)::view-transition-group(site){animation:none}
 html:not(.vt-theme)::view-transition-old(site){display:none}
 html:not(.vt-theme)::view-transition-new(site){animation:none}
