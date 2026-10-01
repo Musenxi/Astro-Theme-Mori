@@ -10,6 +10,6 @@ const entries = await getEntries();
 
 <Base title={t('nav.archive')} direction={config.archive.direction}>
   <main data-page="archive">
-    <Scale title={t('archive.title')} empty={t('empty.all')} entries={entries} all={entries} />
+    <Scale title={t('archive.title')} entries={entries} all={entries} />
   </main>
 </Base>
