@@ -31,6 +31,8 @@ const slides = pinned.map((e) => {
     image: pin?.image ?? d.cover,
     alt: pin?.alt ?? d.coverAlt ?? '',
     quote,
+    /** 引文的行数、最长一行的字数（含「」）：引文字号按这两个数缩到放得进封面图（opening.css） */
+    fit: { '--lines': quote.length, '--n': Math.max(...quote.map((l) => l.length)) },
     caption: pin?.caption ?? `${e.category.zh} · ${dotDate(d.date)}`,
     meta: pin?.meta ?? [{ label: t('home.date'), value: dotDate(d.date) }],
     /** 0.5 是默认的淡出强度（k=1）；0 不淡出，1 淡得更多 */
@@ -81,8 +83,8 @@ const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground'
                       {many && <span>{pad2(k + 1)} / {pad2(slides.length)}</span>}
                     </figcaption>
                   </figure>
-                  <a class="group/qa relative z-2 block max-w-[min(100%,800px)] self-center justify-self-start pl-[clamp(16px,3vw,48px)] vert:justify-self-end vert:pl-0 vert:pr-[clamp(8px,1.4vw,24px)] narrow:self-end narrow:pt-0! narrow:pr-0! narrow:pb-[46px]! narrow:pl-[1em]!" href={s.e.href}>
-                    <p class="fo-q indent-[-1em] text-quote leading-[1.6] font-light tracking-[.05em] transition-[color] duration-500 group-hover/qa:text-soft-foreground vert:text-quote-v vert:leading-[2] vert:[writing-mode:vertical-rl] horiz:narrow:text-quote-sm">
+                  <a class="group/qa relative z-2 flex h-(--ph-h) max-w-[min(100%,800px)] items-center self-start justify-self-start pl-[clamp(16px,3vw,48px)] vert:justify-self-end vert:pl-0 vert:pr-[clamp(8px,1.4vw,24px)] narrow:items-end narrow:pt-0! narrow:pr-0! narrow:pb-[46px]! narrow:pl-[1em]!" href={s.e.href} style={s.fit}>
+                    <p class="fo-q indent-[-1em] leading-[1.6] font-light tracking-[.05em] transition-[color] duration-500 group-hover/qa:text-soft-foreground vert:leading-[2] vert:[writing-mode:vertical-rl]">
                       {s.quote.map((line, n) => (
                         <Fragment>
                           {n > 0 && <br />}
@@ -95,7 +97,7 @@ const dt = 'mb-1 text-meta leading-[1.6] tracking-[.12em] text-muted-foreground'
                 <dl class="fo-cite mt-[clamp(22px,4vh,44px)] grid grid-flow-col grid-cols-[1.3fr_1fr_1fr_1.4fr_auto] grid-rows-[auto_auto] max-[1000px]:grid-cols-[1.3fr_1fr_auto] items-start gap-x-(--gap) gap-y-1 bg-[linear-gradient(var(--foreground),var(--foreground))] bg-[position:0_0] bg-[size:100%_1px] bg-no-repeat pt-4 narrow:grid-cols-[1fr_auto] narrow:bg-[position:var(--gut)_0] narrow:bg-[size:calc(100%_-_2*var(--gut))_1px] narrow:px-(--gut)">
                   <div class="contents"><dt class={dt}>{t('home.title')}</dt><dd class="w-fit self-baseline text-heading leading-[1.3] tracking-[.06em] text-balance">{s.e.data.title}</dd></div>
                   {s.meta.map((m, i) => <div class:list={['contents narrow:hidden', i > 0 && 'max-[1000px]:hidden']}><dt class={dt}>{m.label}</dt><dd class="self-baseline text-aux leading-[1.6] text-balance">{m.value}</dd></div>)}
-                  <a class="row-span-2 self-end pb-0.5 text-aux whitespace-nowrap [&_.chev]:text-primary [&_.chev]:[transition:transform_.5s_var(--ease-mori)] hover:[&_.chev]:[transform:translateX(5px)]" href={s.e.href}>{t('home.readMore')}<Chevron /></a>
+                  <a class="row-start-2 self-baseline text-aux whitespace-nowrap [&_.chev]:text-primary [&_.chev]:[transition:transform_.5s_var(--ease-mori)] hover:[&_.chev]:[transform:translateX(5px)]" href={s.e.href}>{t('home.readMore')}<Chevron /></a>
                 </dl>
               </article>
             ))
