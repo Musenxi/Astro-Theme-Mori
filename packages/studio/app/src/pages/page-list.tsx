@@ -30,7 +30,7 @@ export default function PageList() {
     } catch (x) { toast.error((x as Error).message); }
   };
   const discard = async (p: PageSummary) => {
-    if (!(await confirm({ title: `删除「${p.title}」的草稿？`, description: p.draft ? '这个页面还没发布过，整页会移进回收站。' : '没发布的修改会丢掉，回到上次发布的版本。', confirmLabel: '删除草稿', danger: true }))) return;
+    if (!(await confirm({ title: `删除「${p.title}」的草稿？`, description: '没发布的修改会丢掉，回到上次发布的版本。', confirmLabel: '删除草稿', danger: true }))) return;
     try { await api.discardDraft('page', p.id); await refresh(); toast.success('已删除草稿'); } catch (x) { toast.error((x as Error).message); }
   };
   const remove = async (p: PageSummary) => {
@@ -57,7 +57,7 @@ export default function PageList() {
                 <MenuContent>
                   <MenuItem icon={<Pencil size={14} />} onSelect={() => nav(`/pages/${p.id}`)}>编辑</MenuItem>
                   <MenuItem icon={p.draft ? <Send size={14} /> : <FilePen size={14} />} onSelect={() => toggleDraft(p)}>{p.draft ? '发布' : '转为草稿'}</MenuItem>
-                  {(p.draft || p.changed) && <MenuItem icon={<Trash2 size={14} />} onSelect={() => discard(p)}>删除草稿</MenuItem>}
+                  {p.changed && <MenuItem icon={<Trash2 size={14} />} onSelect={() => discard(p)}>删除草稿</MenuItem>}
                   {project?.preview.url && <MenuItem icon={<Eye size={14} />} onSelect={() => window.open(`${project.preview.url}/${p.id}/`, '_blank')}>在预览里打开</MenuItem>}
                   <MenuSeparator />
                   <MenuItem danger icon={<Trash2 size={14} />} onSelect={() => remove(p)}>删除</MenuItem>

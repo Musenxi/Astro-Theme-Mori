@@ -62,23 +62,26 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
     setBusy(false);
     if (r) toast.success(done ?? '已保存');
   };
+  /** 公开度选的是草稿时，这个按钮是“转为草稿”：站上撤下；否则是“发布” */
+  const toDraft = !!doc.draft;
   const publish = async () => {
     const next = { ...doc };
-    delete next.draft;
+    if (!toDraft) delete next.draft;
     setBusy(true);
     setDocState(next);
     try {
-      if (!(await flush(next))) throw new Error('没能保存，没有发布');
-      await api.publishEntry(routeKind === 'page' ? 'page' : 'post', id);
+      if (!(await flush(next))) throw new Error('没能保存');
+      const kind = routeKind === 'page' ? 'page' : 'post';
+      if (toDraft) await api.unpublishEntry(kind, id); else await api.publishEntry(kind, id);
       await refresh();
-      toast.success('已发布');
+      toast.success(toDraft ? '已转为草稿' : '已发布');
     } catch (e) { toast.error((e as Error).message); }
     setBusy(false);
   };
   const summary = routeKind === 'page' ? project?.pages.find((p) => p.id === id) : project?.entries.find((e) => e.id === id);
-  const hasDraft = !!summary && (summary.draft || summary.changed);
+  const hasDraft = !!summary?.changed; // 和上次发布的比有改动才有可删的草稿
   const discard = async () => {
-    if (!(await confirm({ title: '删除草稿？', description: summary?.draft ? '还没发布过，整篇会移进回收站。' : '没发布的修改会丢掉，回到上次发布的版本。', confirmLabel: '删除草稿', danger: true }))) return;
+    if (!(await confirm({ title: '删除草稿？', description: '没发布的修改会丢掉，回到上次发布的版本。', confirmLabel: '删除草稿', danger: true }))) return;
     try {
       cancel();
       const r = await api.discardDraft(routeKind === 'page' ? 'page' : 'post', id);
@@ -106,7 +109,7 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
         <Segmented size="sm" value={mode} onValueChange={setMode} options={modes} />
         <Button size="sm" onClick={() => void save()} disabled={busy}>保存</Button>
         {hasDraft && <Button size="sm" variant="ghost-danger" onClick={() => void discard()} disabled={busy}>删除草稿</Button>}
-        <Button size="sm" variant="default" onClick={() => void publish()} disabled={busy}>发布</Button>
+        <Button size="sm" variant="default" onClick={() => void publish()} disabled={busy}>{toDraft ? '转为草稿' : '发布'}</Button>
         <Button size="sm" active={panel === 'info'} onClick={() => setPanel(panel === 'info' ? null : 'info')}><PanelRight size={14} />信息</Button>
         <Button size="sm" active={panel === 'preview'} onClick={() => setPanel(panel === 'preview' ? null : 'preview')}><Eye size={14} />预览</Button>
       </header>

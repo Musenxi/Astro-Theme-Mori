@@ -57,7 +57,7 @@ export default function PostList({ view }: { view: 'all' | 'draft' }) {
     } catch (x) { toast.error((x as Error).message); }
   };
   const discard = async (e: EntrySummary) => {
-    if (!(await confirm({ title: `删除《${e.title}》的草稿？`, description: e.draft ? '这篇还没发布过，整篇会移进回收站。' : '没发布的修改会丢掉，回到上次发布的版本。', confirmLabel: '删除草稿', danger: true }))) return;
+    if (!(await confirm({ title: `删除《${e.title}》的草稿？`, description: '没发布的修改会丢掉，回到上次发布的版本。', confirmLabel: '删除草稿', danger: true }))) return;
     try { await api.discardDraft(e.kind, e.id); await refresh(); toast.success('已删除草稿'); } catch (x) { toast.error((x as Error).message); }
   };
   const remove = async (e: EntrySummary) => {
@@ -114,7 +114,7 @@ export default function PostList({ view }: { view: 'all' | 'draft' }) {
                 <MenuContent>
                   <MenuItem icon={<Pencil size={14} />} onSelect={() => nav(`/posts/${e.id}`)}>编辑</MenuItem>
                   <MenuItem icon={e.draft ? <Send size={14} /> : <FilePen size={14} />} onSelect={() => toggleDraft(e)}>{e.draft ? '发布' : '转为草稿'}</MenuItem>
-                  {(e.draft || e.changed) && <MenuItem icon={<Trash2 size={14} />} onSelect={() => discard(e)}>删除草稿</MenuItem>}
+                  {e.changed && <MenuItem icon={<Trash2 size={14} />} onSelect={() => discard(e)}>删除草稿</MenuItem>}
                   {project?.preview.url && <MenuItem icon={<Eye size={14} />} onSelect={() => window.open(`${project.preview.url}/posts/${e.id}/`, '_blank')}>在预览里打开</MenuItem>}
                   <MenuSeparator />
                   <MenuItem danger icon={<Trash2 size={14} />} onSelect={() => remove(e)}>删除</MenuItem>
