@@ -69,6 +69,18 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   transition: background-color 0.4s, color 0.4s;
+  /* 页面不够高时，页脚也贴着窗口底部 */
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+body > main {
+  flex: 1 0 auto;
+}
+/* 版心（.wrap）靠左右 auto 外边距居中，放进 flex 列里不撑满就会缩成内容那么宽 */
+body > main,
+body > footer {
+  width: 100%;
 }
 img {
   display: block;
