@@ -4,7 +4,7 @@
  * 悬浮搜索框（SearchPanel.astro）：点页头的搜索入口、按 ⌘K / Ctrl+K 或 / 打开；↑↓ 选、回车打开、Esc 关。
  */
 import { t } from './i18n.ts';
-import { lgFilter } from './lg.ts';
+import { lgFilter, lgSpec } from './lg.ts';
 interface Item { t: string; s: string; u: string; c: string; d: string; e: string; x: string }
 let index: Item[] | null = null;
 
@@ -103,7 +103,7 @@ function initPanel() {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); select(sel + (e.key === 'ArrowDown' ? 1 : -1)); }
     else if (e.key === 'Enter' && sel >= 0) { e.preventDefault(); links()[sel]?.click(); }
   });
-  // 点外面的磨砂层关；点结果先关再跳，换页时不把搜索框截进过渡画面
+  // 点外面关；点结果先关再跳，换页时不把搜索框截进过渡画面
   dlg.addEventListener('click', (e) => {
     const el = e.target as Element;
     if (el.closest('[data-close]')) close();
@@ -111,18 +111,26 @@ function initPanel() {
   });
   dlg.addEventListener('close', () => document.documentElement.classList.remove('srch-open'));
 
-  // 液态玻璃：折射贴图按板子的实际尺寸画；结果一多板子变高，就重画（攒一帧再画）
-  const box = dlg.querySelector<HTMLElement>('[data-srch]')!, defs = dlg.querySelector('[data-defs]')!;
+  // 液态玻璃：胶囊和结果板的折射贴图、高光都按实际尺寸画；结果一多板子变高就重画（攒一帧再画）
+  const cap = dlg.querySelector<HTMLElement>('[data-cap]')!, res = dlg.querySelector<HTMLElement>('[data-res]')!, defs = dlg.querySelector('[data-defs]')!;
   let raf = 0;
   const glass = () => {
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(() => {
-      const w = Math.round(box.offsetWidth), h = Math.round(box.offsetHeight), r = parseFloat(getComputedStyle(box).borderTopLeftRadius) || 24;
-      if (!w || !h) return;
-      if (document.documentElement.classList.contains('lg-refract')) defs.innerHTML = lgFilter('lg-f-panel', box, r);
+      let f = '';
+      for (const [el, id] of [[cap, 'lg-f-srch'], [res, 'lg-f-panel']] as const) {
+        const w = Math.round(el.offsetWidth), h = Math.round(el.offsetHeight);
+        if (!w || !h) continue;
+        const r = Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius) || h / 2, h / 2);
+        el.style.setProperty('--lg-spec', `url(${lgSpec(w, h, r)})`);
+        f += lgFilter(id, el, r);
+      }
+      if (document.documentElement.classList.contains('lg-refract')) defs.innerHTML = f;
     });
   };
-  new ResizeObserver(glass).observe(box);
+  const ro = new ResizeObserver(glass);
+  ro.observe(cap);
+  ro.observe(res);
 }
 
 function open() {
