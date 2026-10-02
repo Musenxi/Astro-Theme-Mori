@@ -1,7 +1,27 @@
 import { existsSync, readdirSync, readFileSync, mkdirSync, copyFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { defineCollection } from 'astro:content';
 import { glob, file } from 'astro/loaders';
+import type { Loader } from 'astro/loaders';
 import { entrySchema, pageSchema, friendSchema } from './schema.ts';
+import schemaSource from './schema.ts?raw';
+import flowSource from '../lib/flow.mjs?raw';
+
+/**
+ * Astro 的内容缓存只看 content.config.ts 有没有变，schema（和旧游记的转换）变了它不会重新解析没改过的文件，
+ * 页面就会拿着旧结构的数据渲染。这里给每个集合的 loader 套一层：schema 的源码变了，就清掉这个集合的缓存。
+ */
+const schemaVersion = createHash('md5').update(schemaSource).update(flowSource).digest('hex').slice(0, 12);
+const fresh = (loader: Loader): Loader => ({
+  ...loader,
+  async load(ctx) {
+    if (ctx.meta.get('mori-schema') !== schemaVersion) {
+      ctx.store.clear();
+      ctx.meta.set('mori-schema', schemaVersion);
+    }
+    return loader.load(ctx);
+  },
+});
 
 export * from './schema.ts';
 
@@ -17,9 +37,9 @@ export function moriCollections(base = './src/content') {
   if (building) seedPublished(base, './src/published');
   const live = building ? './src/published' : base;
   return {
-    posts: defineCollection({ loader: glob({ pattern: '**/*.json', base: `${live}/posts` }), schema: entrySchema }),
-    pages: defineCollection({ loader: glob({ pattern: '**/*.json', base: `${live}/pages` }), schema: pageSchema }),
-    friends: defineCollection({ loader: existsSync(`${base}/friends.json`) ? file(`${base}/friends.json`) : () => [], schema: friendSchema }),
+    posts: defineCollection({ loader: fresh(glob({ pattern: '**/*.json', base: `${live}/posts` })), schema: entrySchema }),
+    pages: defineCollection({ loader: fresh(glob({ pattern: '**/*.json', base: `${live}/pages` })), schema: pageSchema }),
+    friends: defineCollection({ loader: existsSync(`${base}/friends.json`) ? fresh(file(`${base}/friends.json`)) : () => [], schema: friendSchema }),
   };
 }
 
