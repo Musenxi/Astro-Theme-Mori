@@ -133,8 +133,8 @@ function form(cfg: MoriCommentsConfig & { entry: string }, parent: MoriComment |
   const ts = h('div', { class: 'cmt-ts' });
   const msg = h('p', { class: 'cmt-msg', role: 'status' });
   const btn = h('button', { class: 'cmt-send', type: 'submit' }, (parent ? t('js.cmt.sendReply') : t('js.cmt.send')));
-  // 一个细线框：上面写字，下面一栏是署名和发表
-  const f = h('form', { class: 'cmt-form' }, h('div', { class: 'cmt-box' }, text, h('div', { class: 'cmt-row' }, name, email, url, btn)), trap, ts, msg);
+  // 一个细线框：上面一栏是署名，中间写字，下面一栏是发表
+  const f = h('form', { class: 'cmt-form' }, h('div', { class: 'cmt-box' }, h('div', { class: 'cmt-row' }, name, email, url), text, h('div', { class: 'cmt-foot' }, btn)), trap, ts, msg);
   let widget: { token(): string; reset(): void } | null = null;
   // 人机验证控件在第一次聚焦时才加载
   f.addEventListener('focusin', async () => { if (!widget && cfg.turnstileSiteKey) widget = await mountTurnstile(cfg, ts); }, { once: true });

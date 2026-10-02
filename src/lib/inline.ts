@@ -42,7 +42,7 @@ function wrap(html: string, mark: Mark, numbers: NoteNumbers): string {
     case 'code': return `<code>${html}</code>`;
     case 'tcy': return `<span class="tcy">${html}</span>`;
     case 'place': return html; // 地点的序号和包裹在 renderInline 里处理
-    case 'link': return `<a href="${escapeHtml(mark.href)}">${html}</a>`;
+    case 'link': return /^(https?:)?\/\//i.test(mark.href) ? `<a href="${escapeHtml(mark.href)}" target="_blank" rel="noopener noreferrer">${html}</a>` : `<a href="${escapeHtml(mark.href)}">${html}</a>`;
     case 'note': return `${html}<sup class="nref" data-skip><a href="#note-${mark.ref}" id="ref-${mark.ref}">${numbers.side.get(mark.ref) ?? '?'}</a></sup>`;
     case 'fn': return `${html}<sup class="nref" data-skip><a href="#fn-${mark.ref}" id="ref-${mark.ref}">${numbers.foot.get(mark.ref) ?? '?'}</a></sup>`;
   }

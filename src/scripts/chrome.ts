@@ -132,7 +132,16 @@ document.addEventListener('astro:after-swap', markRefract);
 const refresh = () => { lgRefract(); lgLens(); };
 addEventListener('resize', refresh);
 document.fonts?.ready.then(refresh);
-document.addEventListener('astro:page-load', () => { markCurrent(); syncTheme(); refresh(); });
-markCurrent(); syncTheme(); refresh();
+/** 站外链接一律新开标签页（页头页脚的链接、正文里没经过渲染器的链接都兜住） */
+const externalLinks = () => {
+  for (const a of document.querySelectorAll<HTMLAnchorElement>('a[href^="http"], a[href^="//"]')) {
+    if (a.target || a.origin === location.origin) continue;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+  }
+};
+
+document.addEventListener('astro:page-load', () => { markCurrent(); syncTheme(); refresh(); externalLinks(); });
+markCurrent(); syncTheme(); refresh(); externalLinks();
 
 export {}; // 这是一个模块（让顶层的 const / function 不进全局作用域）
