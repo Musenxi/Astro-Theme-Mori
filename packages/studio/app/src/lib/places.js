@@ -4,6 +4,7 @@
  */
 import { inlineOf } from 'astro-mori/flow';
 import { nextId } from './layout-ops.js';
+import { decode, recover } from './olc.js';
 
 const spans = (v) => (typeof v === 'string' ? [{ t: v }] : Array.isArray(v) ? v : []);
 
@@ -64,17 +65,38 @@ export function appendPlace(doc, { name, lnglat, en, date }) {
   return { ...doc, blocks: [...doc.blocks, { id: nextId(doc.blocks), type: 'p', text: [{ t: name, marks: [mark] }] }] };
 }
 
+const inRange = (lat, lng) => Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+
 /**
- * 读 “纬度, 经度”（地图软件里复制出来的写法），返回 [经度, 纬度]；读不懂是 null
+ * 读一个坐标，返回 [经度, 纬度]；读不懂是 null。认这几种写法：
+ *   - “纬度, 经度”（地图软件里复制出来的）
+ *   - Open Location Code（Google 地图里的 Plus Code）：全码 8FVC9G8F+6W；短码 9G8F+6W（后面可以跟城市名）靠 reference 补全
+ *   - Google 地图的网址（@纬度,经度 或 !3d纬度!4d经度）
+ * @param {string | undefined} text
+ * @param {number[] | undefined} [reference] 补短码用的参考点 [经度, 纬度]，取附近的一个地点
+ * @returns {[number, number] | null}
+ */
+export function parseCoordinate(text, reference) {
+  const s = (text ?? '').trim();
+  let m = /^(-?\d+(?:\.\d+)?)\s*[,，\s]\s*(-?\d+(?:\.\d+)?)$/.exec(s);
+  if (m && inRange(+m[1], +m[2])) return [+m[2], +m[1]];
+  if (m) return null;
+  m = /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/.exec(s) ?? /@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/.exec(s);
+  if (m && /^https?:/.test(s) && inRange(+m[1], +m[2])) return [+m[2], +m[1]];
+  const code = /^([0-9A-Za-z]{2,8}\+[0-9A-Za-z]*)(?:[\s,，].*)?$/.exec(s)?.[1];
+  if (code) {
+    const p = decode(code) ?? recover(code, reference && reference.length === 2 ? reference : undefined);
+    if (p) return [+p.lng.toFixed(7), +p.lat.toFixed(7)];
+  }
+  return null;
+}
+
+/**
+ * 读 “纬度, 经度”，返回 [经度, 纬度]
  * @param {string | undefined} s
  * @returns {[number, number] | null}
  */
-export function parseLatLng(s) {
-  const m = /^\s*(-?\d+(?:\.\d+)?)\s*[,，\s]\s*(-?\d+(?:\.\d+)?)\s*$/.exec(s ?? '');
-  if (!m) return null;
-  const lat = +m[1], lng = +m[2];
-  return Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? [lng, lat] : null;
-}
+export const parseLatLng = (s) => parseCoordinate(s);
 
 /**
  * [经度, 纬度] → “纬度, 经度”

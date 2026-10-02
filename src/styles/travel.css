@@ -3,7 +3,12 @@
 
 /* 正文里的地点：前面一个和地图上的点一样的空心圆；标题里的不加 */
 .place::before{content:'';display:inline-block;width:.42em;height:.42em;margin-inline-end:.28em;border:1.5px solid var(--primary);border-radius:50%;vertical-align:.06em}
-.place:is(h2 *,h3 *)::before{display:none}
+.place:is(h2 *,h3 *)::before,.place:empty::before{display:none}
+/* 不写地名的地点：段落本身看不见（高度 0），整列都是它时只留一个零宽的锚点，抵掉块与块之间的间距 */
+.place-only{height:0;margin:0!important;overflow:hidden}
+.b-text.anchor{height:0;pointer-events:none}
+.travel:not([data-mode="h"]) .b-text.anchor{margin-top:calc(-1*clamp(56px,9vw,128px))}
+.travel[data-mode="h"] .b-text.anchor:not(.v){width:0;margin-inline-end:calc(-1*clamp(40px,6vw,104px))}
 .blk img{background:var(--muted);object-fit:cover;cursor:zoom-in}
 .rv img{clip-path:inset(5% 0 5% 0);transform:scale(1.035);opacity:0;transition:clip-path 1.1s var(--ease-mori),transform 1.4s var(--ease-mori),opacity .8s ease}
 .rv.in img{clip-path:inset(0);transform:none;opacity:1}

@@ -7,6 +7,7 @@ import type { FlowPlace } from '../lib/flow.ts';
 import type { PostData } from '../schema/schema.ts';
 import RouteMap from './RouteMap.astro';
 import { t } from '../lib/i18n.ts';
+import { coord } from '../lib/geo.ts';
 
 interface Props {
   allowed: Array<'v' | 'h' | 'm'>;
@@ -16,7 +17,7 @@ interface Props {
 }
 const { allowed, stops = [], track } = Astro.props;
 const LABEL = { v: [t('travel.mode.v'), t('travel.modeLabel.v')], h: [t('travel.mode.h'), t('travel.modeLabel.h')], m: [t('travel.mode.m'), t('travel.modeLabel.m')] } as const;
-const stopData = stops.map((s) => ({ id: s.id, name: s.name, date: s.date ?? '' }));
+const stopData = stops.map((s) => ({ id: s.id, name: s.name || coord(s.lnglat), date: s.date ?? '' }));
 ---
 
 {
@@ -33,6 +34,6 @@ const stopData = stops.map((s) => ({ id: s.id, name: s.name, date: s.date ?? '' 
   <RouteMap variant="mini" stops={stops} track={track} />
   <div class="leading-[1.35] whitespace-nowrap">
     <span class="mono text-muted-foreground narrow:hidden" id="rb-n">01 / {String(stops.length).padStart(2, '0')}</span>
-    <b class="block text-aux font-normal" id="rb-name">{stops[0].name}</b>
+    <b class="block text-aux font-normal" id="rb-name">{stopData[0].name}</b>
   </div>
 </div>}

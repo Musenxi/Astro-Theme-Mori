@@ -90,7 +90,14 @@ export function placesOf(blocks) {
 }
 
 /** 地点的名字：就是标记住的文字。去掉两端空白 */
-export const placeName = (p) => p.label.trim();
+export const placeName = (p) => p.label.trim() || p.en || '';
+
+/** 只有地点、没有字的段落（不写地名的地点：读到这里时地图跟着变，页面上看不见） */
+export const isPlaceOnly = (b) => {
+  if (b.type !== 'p') return false;
+  const s = spansOf(b.text);
+  return s.some((x) => (x.marks ?? []).some((m) => m.type === 'place')) && s.every((x) => !x.t.trim());
+};
 
 /* ───────────── 把块排成“列” ───────────── */
 
@@ -98,7 +105,7 @@ export const placeName = (p) => p.label.trim();
  * 横滚时，相邻的文字块排成一列文字；图片、地图各自一块。
  * 二级标题另起一列；竖排和横排不混在一列里（h / list 没有竖排设置，跟着所在的列走）。
  * 一列的上下位置和缩放取列里第一个设了的块（Studio 会写在列里每个块上，删掉第一个块也不丢）。
- * @returns {Array<{ kind: 'text', blocks: any[], writing: 'h' | 'v', y?: number, scale?: number } | { kind: 'block', block: any }>}
+ * @returns {Array<{ kind: 'text', blocks: any[], writing: 'h' | 'v', y?: number, scale?: number, anchor?: boolean } | { kind: 'block', block: any }>}
  */
 export function columns(blocks) {
   const out = [];
@@ -115,6 +122,7 @@ export function columns(blocks) {
   for (const c of out) {
     if (c.kind !== 'text') continue;
     c.writing = c.writing === 'v' ? 'v' : 'h';
+    if (c.blocks.every(isPlaceOnly)) c.anchor = true; // 整列都是看不见的地点：只当一个锚点
     const y = c.blocks.find((b) => b.y !== undefined)?.y, scale = c.blocks.find((b) => b.scale !== undefined)?.scale;
     if (y !== undefined) c.y = y;
     if (scale !== undefined) c.scale = scale;

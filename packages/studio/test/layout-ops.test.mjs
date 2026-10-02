@@ -103,3 +103,14 @@ test('坐标输入：“纬度, 经度”（地图软件里复制的写法）', 
   assert.equal(places.parseLatLng('abc'), null);
   assert.equal(places.formatLatLng([135.7681, 35.0116]), '35.0116, 135.7681');
 });
+
+test('坐标输入：Plus Code（全码、带城市名的短码）和 Google 地图网址', () => {
+  const near = (a, b) => assert.ok(Math.abs(a[0] - b[0]) < 1e-4 && Math.abs(a[1] - b[1]) < 1e-4, `${a} ≠ ${b}`);
+  near(places.parseCoordinate('8FVC9G8F+6W'), [8.5248125, 47.3655625]);
+  near(places.parseCoordinate('8fvc9g8f+6w'), [8.5248125, 47.3655625]);
+  near(places.parseCoordinate('9G8F+6W Zürich', [8.5, 47.4]), [8.5248125, 47.3655625]);
+  assert.equal(places.parseCoordinate('9G8F+6W Zürich'), null); // 短码没有参考点补不全
+  near(places.parseCoordinate('https://www.google.com/maps/place/x/@35.0116,135.7681,17z'), [135.7681, 35.0116]);
+  near(places.parseCoordinate('https://www.google.com/maps/place/x/data=!3d35.0116!4d135.7681'), [135.7681, 35.0116]);
+  assert.equal(places.parseCoordinate('hello+world'), null);
+});

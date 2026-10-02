@@ -237,3 +237,13 @@ test('把一段普通文字改成引用，还是原来那一段（沿用 id，�
   assert.equal(back.blocks[1].id, 'b02');
   assert.equal(back.blocks[1].type, 'p');
 });
+
+test('不写地名的地点：[](geo:…) 单独一行或夹在文字里，不动就不变，也不会丢', () => {
+  const d = { title: 'T', blocks: [
+    { id: 'b01', type: 'p', text: [{ t: '', marks: [{ type: 'place', lnglat: [135.7, 35], en: 'Spot' }] }] },
+    { id: 'b02', type: 'p', text: [{ t: '前' }, { t: '', marks: [{ type: 'place', lnglat: [1, 2] }] }, { t: '后' }] },
+  ] };
+  const md = toMarkdown(d);
+  assert.match(md, /^\[\]\(geo:35,135\.7\?en=Spot\)$/m);
+  assert.deepEqual(fromMarkdown(md, d).blocks, d.blocks);
+});

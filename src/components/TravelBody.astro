@@ -8,6 +8,7 @@ import { Image } from 'astro:assets';
 import type { Inline, PostData } from '../schema/schema.ts';
 import type { Flow } from '../lib/flow.ts';
 import { numberNotes, renderInline } from '../lib/inline.ts';
+import { isPlaceOnly } from '../lib/flow.mjs';
 import { coord } from '../lib/geo.ts';
 import { pad2 } from '../lib/zh.ts';
 import { t, fmt, vertical } from '../lib/i18n.ts';
@@ -95,7 +96,7 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
             const v = c.writing === 'v' && vertical;
             const k = v ? vt : ht; // 竖排文字和横排文字的行内块样式不同，渲染时就选好
             return (
-              <section class:list={['blk', 'b-text', v && 'v tracking-[.12em] leading-[2.05] [writing-mode:vertical-rl]']} {...at(c, c.y, c.scale)}>
+              <section class:list={['blk', 'b-text', c.anchor && 'anchor', v && 'v tracking-[.12em] leading-[2.05] [writing-mode:vertical-rl]']} {...at(c, c.y, c.scale)}>
                 {c.blocks.map((b, bi) => {
                   switch (b.type) {
                     case 'h': {
@@ -135,7 +136,7 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
                     default: {
                       const prev = c.blocks[bi - 1];
                       const afterP = prev?.type === 'p'; // 紧跟在另一段后面的段落隔开一点
-                      return <p class={afterP ? `${k.p} ${k.pp}` : k.p} data-b={b.id} set:html={html((b as { text: Inline }).text)} />;
+                      return <p class={isPlaceOnly(b) ? 'place-only' : afterP ? `${k.p} ${k.pp}` : k.p} data-b={b.id} set:html={html((b as { text: Inline }).text)} />;
                     }
                   }
                 })}

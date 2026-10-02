@@ -8,7 +8,7 @@
 import { parsePlaceHref, placeHref } from './flow.mjs';
 
 /* ───────────── 行内：文字 + 标注 ───────────── */
-const INLINE = /(\*\*([^*]+)\*\*)|(\*([^*]+)\*)|(`([^`]+)`)|(\[([^\]]+)\]\(([^)\s]+)\))|(\[\^([^\]]+)\])/;
+const INLINE = /(\*\*([^*]+)\*\*)|(\*([^*]+)\*)|(`([^`]+)`)|(\[([^\]]+)\]\(([^)\s]+)\))|(\[\]\((geo:[^)\s]+)\))|(\[\^([^\]]+)\])/;
 
 export function parseInline(text, marks = []) {
   const spans = [];
@@ -22,7 +22,8 @@ export function parseInline(text, marks = []) {
     else if (m[3]) spans.push(...parseInline(m[4], [...marks, { type: 'em' }]));
     else if (m[5]) push(m[6], [...marks, { type: 'code' }]);
     else if (m[7]) spans.push(...parseInline(m[8], [...marks, parsePlaceHref(m[9]) ?? { type: 'link', href: m[9] }]));
-    else if (m[10]) spans.push({ t: '', marks: [...marks, { type: 'fn', ref: m[11] }] });
+    else if (m[10]) { const pl = parsePlaceHref(m[11]); if (pl) spans.push({ t: '', marks: [...marks, pl] }); else push(m[0], marks); } // 不写地名的地点：[](geo:…)
+    else if (m[12]) spans.push({ t: '', marks: [...marks, { type: 'fn', ref: m[13] }] });
     last = m.index + m[0].length;
   }
   push(text.slice(last), marks);

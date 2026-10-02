@@ -98,6 +98,7 @@ export function MarkdownView({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) 
       <div ref={host} className="min-h-0 flex-1" />
       <PlaceDialog
         open={!!place} onOpenChange={(o) => { if (!o) { setPin(null); ed.current?.focus(); } }}
+        reference={(placesOf(doc.blocks ?? []).at(-1) as { lnglat: number[] } | undefined)?.lnglat}
         initial={place?.initial ?? { label: '' }} editing={!!place?.editing}
         onSubmit={(v) => {
           const t = place!.target;

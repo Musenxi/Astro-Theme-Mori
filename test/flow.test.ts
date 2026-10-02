@@ -90,3 +90,13 @@ test('老游记：没写读法就是三种都允许；不属于任何站点的�
   assert.deepEqual(d.reading.allowed, ['v', 'h', 'mix']);
   assert.equal(d.blocks.at(-1).id, 'x1');
 });
+
+test('不写地名的地点：整列都是它时只当锚点，混在文字里的那一段不单独成列；名字缺省用英文名', async () => {
+  const { isPlaceOnly, placeName } = await import('../src/lib/flow.mjs');
+  const only = { id: 'a', type: 'p', text: [{ t: '', marks: [place([1, 2], { en: 'Spot' })] }] };
+  assert.equal(isPlaceOnly(only), true);
+  assert.equal(isPlaceOnly({ id: 'b', type: 'p', text: [{ t: '字', marks: [place([1, 2])] }] }), false);
+  const cols = columns([only, { id: 'i', type: 'image', src: 'x' }, { id: 'c', type: 'p', text: '文字' }, only && { ...only, id: 'd' }]);
+  assert.deepEqual(cols.map((c: any) => (c.kind === 'text' ? `${c.blocks.map((b: any) => b.id).join('')}${c.anchor ? '*' : ''}` : c.block.id)), ['a*', 'i', 'cd']);
+  assert.equal(placeName(placesOf([only])[0]), 'Spot');
+});

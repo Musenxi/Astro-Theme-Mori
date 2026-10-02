@@ -185,10 +185,10 @@ function PlaceList({ doc, edit }: { doc: Doc; edit: (fn: (d: Doc) => Doc) => voi
         <div key={p.n}>
           <div className="mb-1 flex items-center gap-2">
             <span className="mono w-5 text-11 text-muted-foreground">{String(p.n + 1).padStart(2, '0')}</span>
-            <span className="min-w-0 flex-1 truncate text-13 font-medium">{p.label.trim()}</span>
+            <span className={`min-w-0 flex-1 truncate text-13 ${p.label.trim() ? 'font-medium' : 'text-muted-foreground'}`}>{p.label.trim() || p.en || '无地名'}</span>
             <Button variant="ghost" size="icon-sm" aria-label="去掉地点" onClick={() => edit((d) => removePlace(d, p.n))}><Trash2 size={14} /></Button>
           </div>
-          <PlaceFields value={p} onChange={(patch) => edit((d) => editPlace(d, p.n, patch))} />
+          <PlaceFields reference={places[p.n - 1]?.lnglat} value={p} onChange={(patch) => edit((d) => editPlace(d, p.n, patch))} />
         </div>
       ))}
     </div>

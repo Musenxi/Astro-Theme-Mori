@@ -21,7 +21,7 @@ export interface FlowPlace {
 }
 
 export type FlowColumn =
-  | { kind: 'text'; blocks: PostBlock[]; writing: 'h' | 'v'; y?: number; scale?: number; place: number; places: number[] }
+  | { kind: 'text'; blocks: PostBlock[]; writing: 'h' | 'v'; y?: number; scale?: number; anchor?: boolean; place: number; places: number[] }
   | { kind: 'block'; block: PostBlock; place: number; places: number[] };
 
 export interface Flow {
@@ -31,7 +31,7 @@ export interface Flow {
 }
 
 export function flowOf(d: Pick<PostData, 'blocks' | 'reading'>): Flow {
-  const places: FlowPlace[] = placesOf(d.blocks).map((p: any) => ({ n: p.n, id: `p${p.n + 1}`, name: placeName(p), en: p.en, lnglat: p.lnglat, date: p.date, block: p.block }));
+  const places: FlowPlace[] = placesOf(d.blocks).map((p: any) => ({ n: p.n, id: `p${p.n + 1}`, name: placeName(p), en: p.en && p.en !== placeName(p) ? p.en : undefined, lnglat: p.lnglat, date: p.date, block: p.block }));
   let cur = -1;
   const cols: FlowColumn[] = (columns(d.blocks) as any[]).map((c) => {
     const ids = new Set<string>((c.kind === 'text' ? c.blocks : [c.block]).map((b: PostBlock) => b.id));
