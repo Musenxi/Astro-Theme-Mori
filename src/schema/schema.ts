@@ -1,10 +1,12 @@
 /**
  * MORI 内容格式（spec §3.3）：一篇文章 = 元信息 + 块序列。
  * 每个块有创建后不变的 id（划词引用评论靠它定位）；段落内部是“文字 + 标注”的序列，不在字符串里嵌 Markdown。
- * 普通文章和游记各一套 schema，共用同一份元信息和行内文字。
+ * 文章只有一种结构：读法（横滚）和地图是每篇自己的设置，地点是正文里的行内标记。
+ * 老游记（stops + 每个块属于一站）读取时自动转成这种结构（见 lib/flow.mjs）。
  */
 import { z } from 'astro/zod';
 import type { SchemaContext } from 'astro/content/config';
+import { normalizeDoc } from '../lib/flow.mjs';
 
 type ImageFn = SchemaContext['image'];
 
@@ -20,6 +22,14 @@ export const markSchema = z.discriminatedUnion('type', [
   /** 竖排里的数字横排（text-combine-upright） */
   z.object({ type: z.literal('tcy') }),
   z.object({ type: z.literal('link'), href: z.string() }),
+  /** 地点：标记住的文字是地点名，地图上的一个点。[经度, 纬度]（GeoJSON 顺序） */
+  z.object({
+    type: z.literal('place'),
+    lnglat: z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]),
+    en: z.string().optional(),
+    /** 到达日期，只用于显示 */
+    date: z.string().optional(),
+  }),
   /** 旁注：宽屏放右栏，窄屏内联 */
   z.object({ type: z.literal('note'), ref: id }),
   /** 脚注：文末统一列出 */
@@ -40,7 +50,7 @@ export type Mark = z.infer<typeof markSchema>;
 export type Span = z.infer<typeof spanSchema>;
 export type Inline = Span[];
 
-/* ───────────── 元信息（普通文章与游记共用） ───────────── */
+/* ───────────── 元信息 ───────────── */
 
 /** 置顶：有 `pin` 就是置顶，首页放文章时排在最前，`pin.order`（0–99 的整数）决定先后 */
 export const pinSchema = (image: ImageFn) =>
@@ -135,34 +145,7 @@ export const articleBlocks = (image: ImageFn) => {
   ]);
 };
 
-export const postSchema = ({ image }: SchemaContext) => {
-  const block = articleBlocks(image);
-
-  return z
-    .object({
-      /** 普通文章。文件里可以不写 kind（见 entrySchema） */
-      kind: z.literal('article'),
-      ...metaBase(image),
-      notes: z.record(id, noteSchema).default({}),
-      blocks: z.array(block),
-    })
-    .superRefine(checkIntegrity);
-};
-
-/* ───────────── 游记 ───────────── */
-
 const unit = z.number().min(0).max(1);
-
-/** 站点：游记的段落，也是地图上的点 */
-const stopSchema = z.object({
-  id,
-  name: z.string(),
-  en: z.string().optional(),
-  /** [经度, 纬度]（GeoJSON 顺序） */
-  lnglat: z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]),
-  /** 到达日期，只用于显示 */
-  date: z.string().optional(),
-});
 
 /** 横滚时的位置参数（spec §3.2）：用比例，不用像素，所以不同屏幕上构图一致 */
 const place = {
@@ -171,47 +154,30 @@ const place = {
   scale: z.number().positive().optional(),
 };
 
-export const travelSchema = ({ image }: SchemaContext) => {
-  const stop = id;
-  /**
-   * 文字块里的一段。缺省 type 就是普通段落（老文件不用改）；
-   * 也可以是小标题、引用、列表、代码——和普通文章里的同名块一样，游记的文字能写的东西不比文章少。
-   * `##` 在游记里是“新的一站”，所以小标题只有一级（###）。
-   */
-  const paragraph = z.union([
-    z.object({ id, type: z.literal('h'), text: inlineSchema }),
-    z.object({ id, type: z.literal('quote'), text: inlineSchema, cite: z.string().optional() }),
-    z.object({ id, type: z.literal('list'), ordered: z.boolean().default(false), items: z.array(inlineSchema) }),
-    z.object({ id, type: z.literal('code'), lang: z.string().optional(), code: z.string() }),
-    z.object({ id, type: z.literal('p').optional(), text: inlineSchema }),
-  ]);
+/** 竖排：横滚时一列文字可以竖着写 */
+const writing = { writing: z.enum(['h', 'v']).optional() };
 
-  const block = z.discriminatedUnion('type', [
-    /** 文字块；`head` 缺省时，站点的第一个文字块显示站点标题 */
-    z.object({
-      id, type: z.literal('text'), stop,
-      writing: z.enum(['h', 'v']).default('h'),
-      head: z.boolean().optional(),
-      paras: z.array(paragraph),
-      ...place,
-    }),
-    z.object({
-      id, type: z.literal('single'), stop, ...picture(image),
-      /** 竖向 / 混合读法下通栏或内缩 */
-      layout: z.enum(['full', 'inset']).default('full'),
-      ...place,
-    }),
-    z.object({ id, type: z.literal('pair'), stop, images: z.array(z.object(picture(image))).length(2), ...place }),
+/** 文章正文里的块：文字和图片，加上长卷（横滚）版式才有的图组、自由排布、地图 */
+export const postBlocks = (image: ImageFn) =>
+  z.discriminatedUnion('type', [
+    z.object({ id, type: z.literal('p'), text: inlineSchema, ...writing, ...place }),
+    z.object({ id, type: z.literal('h'), level: z.union([z.literal(2), z.literal(3)]).default(2), text: inlineSchema, ...writing, ...place }),
+    z.object({ id, type: z.literal('quote'), text: inlineSchema, cite: z.string().optional(), writing: z.enum(['h', 'v']).default('h'), ...place }),
+    z.object({ id, type: z.literal('image'), ...picture(image), layout: z.enum(['wide', 'inline']).default('wide'), ...place }),
+    z.object({ id, type: z.literal('list'), ordered: z.boolean().default(false), items: z.array(inlineSchema), ...writing, ...place }),
+    z.object({ id, type: z.literal('code'), lang: z.string().optional(), code: z.string(), ...place }),
+    /** 双图并列 */
+    z.object({ id, type: z.literal('pair'), images: z.array(z.object(picture(image))).length(2), ...place }),
     /** 横向图组：竖向读法里是可左右滑动的一行；每张图可以缩放、上下错开 */
     z.object({
-      id, type: z.literal('strip'), stop,
+      id, type: z.literal('strip'),
       images: z.array(z.object({ ...picture(image), scale: z.number().positive().default(1), offset: z.number().default(0) })).min(2),
       ...place,
     }),
-    z.object({ id, type: z.literal('grid'), stop, images: z.array(z.object(picture(image))).min(2), ...place }),
+    z.object({ id, type: z.literal('grid'), images: z.array(z.object(picture(image))).min(2), ...place }),
     /** 自由排布：一幅画布，图（和一小段竖排文字）的 x / y / w 是占画布的比例 */
     z.object({
-      id, type: z.literal('free'), stop,
+      id, type: z.literal('free'),
       /** 画布宽高比 = 宽 / 高 */
       ar: z.number().positive(),
       items: z.array(
@@ -222,39 +188,36 @@ export const travelSchema = ({ image }: SchemaContext) => {
       ),
       ...place,
     }),
-    /** 地图：全程路线，或只显示这一站附近 */
-    z.object({ id, type: z.literal('map'), stop, scope: z.enum(['route', 'stop']).default('route'), ...place }),
+    /** 地图：route 全程路线，near 只看当前读到的地点附近 */
+    z.object({ id, type: z.literal('map'), scope: z.enum(['route', 'near']).default('route'), ...place }),
   ]);
 
-  return z
+export const postSchema = ({ image }: SchemaContext) =>
+  z
     .object({
-      /** 游记 */
-      kind: z.literal('travel'),
+      /** 老文件里可能写着 article；新的不用写 */
+      kind: z.literal('article').optional(),
       ...metaBase(image),
-      /** 一行行的事实，游记封面的“路线 / 日期 / 里程” */
+      /** 一行行的事实，长卷封面的“路线 / 日期 / 里程” */
       facts: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
-      stops: z.array(stopSchema).min(1),
-      /** 路线的细节：[经度, 纬度] 点列（GPX 导入、照片 EXIF 生成的轨迹）。不写就按站点顺序连线 */
+      /** 地图：封面的路线图、左下角的当前位置、文末的行程表。地点在正文里标 */
+      map: z.boolean().default(false),
+      /** 路线的细节：[经度, 纬度] 点列（GPX 导入、照片 EXIF 生成的轨迹）。不写就按地点顺序连线 */
       track: z.array(z.tuple([z.number(), z.number()])).optional(),
+      /** 读法（横滚）。不写就是普通的竖向文章；写了就能让读者在 竖向 / 横向 / 混合 之间选 */
       reading: z
         .object({
           /** 默认读法：v 竖向 / h 横向 / mix 混合 */
           default: z.enum(['v', 'h', 'mix']).default('v'),
-          allowed: z.array(z.enum(['v', 'h', 'mix'])).default(['v', 'h', 'mix']),
+          allowed: z.array(z.enum(['v', 'h', 'mix'])).min(1).default(['v', 'h', 'mix']),
           /** 横滚方向：ltr 左→右；rtl 右→左（手卷） */
           direction: z.enum(['ltr', 'rtl']).default('ltr'),
         })
-        .default({ default: 'v', allowed: ['v', 'h', 'mix'], direction: 'ltr' }),
+        .optional(),
       notes: z.record(id, noteSchema).default({}),
-      blocks: z.array(block),
+      blocks: z.array(postBlocks(image)),
     })
-    .superRefine((d, ctx) => {
-      checkIntegrity(d, ctx);
-      const stops = new Set(d.stops.map((s) => s.id));
-      if (stops.size !== d.stops.length) ctx.addIssue({ code: 'custom', message: '站点 id 重复' });
-      for (const b of d.blocks) if (!stops.has(b.stop)) ctx.addIssue({ code: 'custom', message: `块 “${b.id}” 引用了不存在的站点 “${b.stop}”` });
-    });
-};
+    .superRefine(checkIntegrity);
 
 /* ───────────── 页面（关于、留言……）与友人帐 ───────────── */
 
@@ -290,19 +253,12 @@ export const friendSchema = ({ image }: SchemaContext) =>
   });
 
 /**
- * 一篇“文章”：普通文章或游记，都放在 src/content/posts/ 下。
- * 文件里可以不写 kind：有 stops 的是游记，其余是普通文章（手写 JSON 时省事，也兼容旧文件）。
+ * 一篇文章，放在 src/content/posts/ 下。老游记（有 stops）先转成现在的结构再校验。
  */
-export const entrySchema = (ctx: SchemaContext) =>
-  z.preprocess(
-    (v) => (v && typeof v === 'object' && !('kind' in v) ? { ...(v as object), kind: 'stops' in v ? 'travel' : 'article' } : v),
-    z.discriminatedUnion('kind', [postSchema(ctx), travelSchema(ctx)]),
-  );
+export const entrySchema = (ctx: SchemaContext) => z.preprocess((v) => (v && typeof v === 'object' ? normalizeDoc(v) : v), postSchema(ctx));
 
 export type PostData = z.infer<ReturnType<typeof postSchema>>;
-export type TravelData = z.infer<ReturnType<typeof travelSchema>>;
-export type EntryData = PostData | TravelData;
+export type EntryData = PostData;
 export type PageData = z.infer<ReturnType<typeof pageSchema>>;
 export type FriendData = z.infer<ReturnType<typeof friendSchema>>;
 export type PostBlock = PostData['blocks'][number];
-export type TravelBlock = TravelData['blocks'][number];

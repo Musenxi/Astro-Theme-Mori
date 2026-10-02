@@ -3,7 +3,7 @@ import { getImage } from 'astro:assets';
 import config from 'virtual:mori/config';
 import { getEntries } from '../lib/entries.ts';
 import { siteUrl, xmlEscape } from '../lib/site.ts';
-import { postHtml, travelHtml } from '../lib/feed-html.ts';
+import { postHtml } from '../lib/feed-html.ts';
 
 /**
  * RSS 2.0。同一份内容挂在 /feed 和 /rss.xml 两个地址上（订阅地址是 /feed）。
@@ -18,7 +18,7 @@ export const GET: APIRoute = async ({ site }) => {
     // 订阅里的图不能太大：缩到 1200 宽的 jpeg，并换成绝对地址
     image: async (src: any) => { const im = await getImage({ src, width: 1200, format: 'jpeg' }); return im.src.startsWith('/') ? base + im.src : im.src; },
   };
-  const bodies = full ? await Promise.all(entries.map((e) => (e.kind === 'post' ? postHtml(e.data as any, ctx) : travelHtml(e.data as any, ctx)))) : [];
+  const bodies = full ? await Promise.all(entries.map((e) => postHtml(e.data, ctx))) : [];
   // 每篇的 guid 是文章的固定网址（isPermaLink="true"）：读者的阅读器靠它判断“读过没有”，所以只要网址不变它就不变
   const items = entries.map((e, i) => `  <item>
     <title>${xmlEscape(e.data.title)}</title>

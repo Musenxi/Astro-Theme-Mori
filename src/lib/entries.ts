@@ -5,7 +5,7 @@ import type { MoriCategory } from '../config.ts';
 
 export type PostEntry = CollectionEntry<'posts'>;
 
-/** 文章和游记放进同一个列表：首页、目次、归档都是不分类型地看它们 */
+/** 所有文章放进同一个列表：首页、目次、归档都是不分类型地看它们。kind 是 travel 的，开着地图（路线、地点） */
 export interface Entry {
   kind: 'post' | 'travel';
   id: string;
@@ -22,9 +22,8 @@ const categories = new Map(config.categories.map((c) => [c.id, c]));
 
 /** 最新的排最前。隐藏的文章默认不在里面；生成文章页自己的地址时传 { hidden: true } */
 export async function getEntries({ hidden = false } = {}): Promise<Entry[]> {
-  // 普通文章和游记同在 posts 里，靠 data.kind 区分
   const list = (await getCollection('posts'))
-    .map((raw) => ({ kind: (raw.data.kind === 'travel' ? 'travel' : 'post') as 'post' | 'travel', raw }))
+    .map((raw) => ({ kind: (raw.data.map ? 'travel' : 'post') as 'post' | 'travel', raw }))
     .filter(({ raw }) => import.meta.env.DEV || !raw.data.draft)
     .sort((a, b) => a.raw.data.date.getTime() - b.raw.data.date.getTime() || a.raw.id.localeCompare(b.raw.id));
 

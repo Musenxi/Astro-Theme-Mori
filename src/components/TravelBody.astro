@@ -1,11 +1,12 @@
 ---
 import Chevron from './Chevron.astro';
 /**
- * 游记正文（框架版，只有竖向读法）：块序列，每块属于一个站点。
- * 站点标题挂在每站第一个文字块上（block.head 可以覆盖）。混合 / 横向读法之后在这个结构上加。
+ * 长卷版式的正文：把文章的块排成“列”（相邻文字一列，图片、地图各自一块），有竖向、混合、横向三种读法。
+ * 读到哪个地点由正文里的地点标记决定：每一列记着自己读到第几个地点（data-place），左下角的“当前位置”和行程表都按它走。
  */
 import { Image } from 'astro:assets';
-import type { Inline, TravelData } from '../schema/schema.ts';
+import type { Inline, PostData } from '../schema/schema.ts';
+import type { Flow } from '../lib/flow.ts';
 import { numberNotes, renderInline } from '../lib/inline.ts';
 import { coord } from '../lib/geo.ts';
 import { pad2 } from '../lib/zh.ts';
@@ -13,30 +14,29 @@ import { t, fmt, vertical } from '../lib/i18n.ts';
 import RouteMap from './RouteMap.astro';
 
 interface Props {
-  travel: TravelData;
+  post: PostData;
+  flow: Flow;
 }
-const { travel } = Astro.props;
-const { blocks, stops, notes } = travel;
+const { post, flow } = Astro.props;
+const { notes, facts, track } = post;
+const { places, columns } = flow;
+const map = post.map && places.length > 0;
 
-// 游记里旁注和脚注不分栏：都在文末列成“注”，编号统一
-const raw = numberNotes(blocks);
+// 长卷里旁注和脚注不分栏：都在文末列成“注”，编号统一
+const raw = numberNotes(post.blocks);
 const all = new Map<string, number>();
 for (const [ref] of [...raw.side, ...raw.foot]) if (!all.has(ref)) all.set(ref, all.size + 1);
-const numbers = { side: all, foot: all };
+// 正文里的地点按出现顺序编号（和 flow.places 的顺序一致）；自由排布里的小字不算
+const counter = { next: 0 };
+const numbers = { side: all, foot: all, place: counter };
 const html = (spans: Inline) => renderInline(spans, numbers);
+const plainHtml = (spans: Inline) => renderInline(spans, { side: all, foot: all });
 const endnotes = [...all].map(([ref, n]) => ({ ref, n, text: notes[ref]?.text ?? [] }));
 
-const stopIndex = new Map(stops.map((s, i) => [s.id, i]));
-/** 每个站点第一次出现的块 id（行程表的锚点），和第一个文字块 id（站点标题挂在它上面） */
-const firstBlock = new Map<string, string>();
-const firstText = new Map<string, string>();
-for (const b of blocks) {
-  if (!firstBlock.has(b.stop)) firstBlock.set(b.stop, b.id);
-  if (b.type === 'text' && !firstText.has(b.stop)) firstText.set(b.stop, b.id);
-}
+/** 二级标题上标着的地点（有就把英文名、日期、坐标放在标题旁，和以前站点的标题一样） */
+const placeOfBlock = (id: string) => places.find((p) => p.block === id);
 
-const endStat = travel.facts.find((f) => /里程|距离|全程|里程|距離|総距離|distance|total|mileage/i.test(f.label))?.value ?? t('travel.fallbackStat', { n: stops.length });
-
+const endStat = facts.find((f) => /里程|距离|全程|里程|距離|総距離|distance|total|mileage/i.test(f.label))?.value ?? t('travel.fallbackStat', { n: places.length });
 
 // 游记文字块里各种块的样式：横排文字和竖排文字（.v）各一套，渲染时选好，不靠覆盖
 const li = 'relative [counter-increment:li]';
@@ -75,74 +75,85 @@ const vt = {
 
 let fig = 0;
 const nextFig = () => pad2(++fig);
+let chapter = 0;
+
+/** 每一列（块）共有的属性：读到第几个地点、位置和缩放 */
+const at = (c: { place: number; places: number[] }, y?: number, scale?: number) => ({
+  'data-place': c.place >= 0 ? c.place : undefined,
+  'data-places': c.places.length ? c.places.join(',') : undefined,
+  style: { '--y': y, '--s': scale },
+});
 ---
 
 <div class="t-body">
   <div class="t-vp">
     <div class="t-track">
       {
-        blocks.map((b) => {
-          const stop = stops[stopIndex.get(b.stop)!];
-          const si = stopIndex.get(b.stop)!;
-          const anchor = firstBlock.get(b.stop) === b.id ? `stop-${b.stop}` : undefined;
-          switch (b.type) {
-            case 'text': {
-              const v = b.writing === 'v' && vertical;
-              const head = b.head ?? firstText.get(b.stop) === b.id;
-              const k = v ? vt : ht; // 竖排文字和横排文字的行内块样式不同，渲染时就选好
-              return (
-                <section id={anchor} class:list={['blk', 'b-text', v && 'v tracking-[.12em] leading-[2.05] [writing-mode:vertical-rl]']} data-b={b.id} data-stop={b.stop} style={{ '--y': b.y, '--s': b.scale }}>
-                  {head && (
-                    <header class={k.stop}>
-                      {v ? (
-                        <>
-                          <span class={k.no}>{fmt.stop(si + 1)}{stop.date ? `　${stop.date}` : ''}</span>
-                          <h2 class={k.h2}>{stop.name}</h2>
-                          {stop.en && <span class={k.en}>{stop.en}　{coord(stop.lnglat)}</span>}
-                        </>
-                      ) : (
-                        <>
-                          <span class={`mono ${k.no}`}>{pad2(si + 1)}{stop.date ? ` · ${stop.date}` : ''}</span>
-                          <h2 class={k.h2}>{stop.name}</h2>
-                          {stop.en && <span class={k.en}>{stop.en}</span>}
-                          <span class="mono mt-0.5 block text-muted-foreground">{coord(stop.lnglat)}</span>
-                        </>
-                      )}
-                    </header>
-                  )}
-                  {b.paras.map((p, pi) => {
-                    switch (p.type) {
-                      case 'h': return <h3 class={k.h3} data-b={p.id} set:html={html(p.text)} />;
-                      case 'quote': return (
-                        <blockquote class={k.quote} data-b={p.id}>
-                          <Fragment set:html={html(p.text)} />
-                          {p.cite && <cite class={k.cite} data-skip>{p.cite}</cite>}
-                        </blockquote>
+        columns.map((c) => {
+          if (c.kind === 'text') {
+            const v = c.writing === 'v' && vertical;
+            const k = v ? vt : ht; // 竖排文字和横排文字的行内块样式不同，渲染时就选好
+            return (
+              <section class:list={['blk', 'b-text', v && 'v tracking-[.12em] leading-[2.05] [writing-mode:vertical-rl]']} {...at(c, c.y, c.scale)}>
+                {c.blocks.map((b, bi) => {
+                  switch (b.type) {
+                    case 'h': {
+                      if (b.level === 3) return <h3 class={k.h3} data-b={b.id} set:html={html(b.text)} />;
+                      const n = ++chapter;
+                      const place = placeOfBlock(b.id);
+                      return (
+                        <header class={k.stop}>
+                          {v ? (
+                            <>
+                              <span class={k.no}>{fmt.num(n)}{place?.date ? `　${place.date}` : ''}</span>
+                              <h2 class={k.h2} data-b={b.id} set:html={html(b.text)} />
+                              {place && <span class={k.en}>{place.en ? `${place.en}　` : ''}{coord(place.lnglat)}</span>}
+                            </>
+                          ) : (
+                            <>
+                              <span class={`mono ${k.no}`}>{pad2(n)}{place?.date ? ` · ${place.date}` : ''}</span>
+                              <h2 class={k.h2} data-b={b.id} set:html={html(b.text)} />
+                              {place?.en && <span class={k.en}>{place.en}</span>}
+                              {place && <span class="mono mt-0.5 block text-muted-foreground">{coord(place.lnglat)}</span>}
+                            </>
+                          )}
+                        </header>
                       );
-                      case 'list': {
-                        const Tag = p.ordered ? 'ol' : 'ul';
-                        return <Tag class={p.ordered ? k.ol : k.ul} data-b={p.id}>{p.items.map((item) => <li class={p.ordered ? k.oli : k.uli} set:html={html(item)} />)}</Tag>;
-                      }
-                      case 'code': return <pre class={k.pre} data-b={p.id} data-lang={p.lang}><code>{p.code}</code></pre>;
-                      default: {
-                        const afterP = pi > 0 && [undefined, 'p'].includes(b.paras[pi - 1].type); // 紧跟在另一段后面的段落隔开一点
-                        return <p class={afterP ? `${k.p} ${k.pp}` : k.p} data-b={p.id} set:html={html(p.text)} />;
-                      }
                     }
-                  })}
-                </section>
-              );
-            }
-            case 'single':
+                    case 'quote': return (
+                      <blockquote class={k.quote} data-b={b.id}>
+                        <Fragment set:html={html(b.text)} />
+                        {b.cite && <cite class={k.cite} data-skip>{b.cite}</cite>}
+                      </blockquote>
+                    );
+                    case 'list': {
+                      const Tag = b.ordered ? 'ol' : 'ul';
+                      return <Tag class={b.ordered ? k.ol : k.ul} data-b={b.id}>{b.items.map((item) => <li class={b.ordered ? k.oli : k.uli} set:html={html(item)} />)}</Tag>;
+                    }
+                    case 'code': return <pre class={k.pre} data-b={b.id} data-lang={b.lang}><code>{b.code}</code></pre>;
+                    default: {
+                      const prev = c.blocks[bi - 1];
+                      const afterP = prev?.type === 'p'; // 紧跟在另一段后面的段落隔开一点
+                      return <p class={afterP ? `${k.p} ${k.pp}` : k.p} data-b={b.id} set:html={html((b as { text: Inline }).text)} />;
+                    }
+                  }
+                })}
+              </section>
+            );
+          }
+          const b = c.block;
+          const pos = at(c, b.y, b.scale);
+          switch (b.type) {
+            case 'image':
               return (
-                <figure id={anchor} class:list={['blk', 'b-single', 'rv', b.layout === 'inset' && 'inset']} data-b={b.id} data-stop={b.stop} style={{ '--y': b.y, '--s': b.scale }}>
+                <figure class:list={['blk', 'b-single', 'rv', b.layout === 'inline' && 'inset']} data-b={b.id} {...pos}>
                   <Image src={b.src} alt={b.alt} widths={[800, 1200, 1800, 2400]} sizes="100vw" />
                   {b.caption && <figcaption class="mt-2.5 flex items-baseline gap-3 text-meta text-muted-foreground"><span class="mono flex-none">{nextFig()}</span>{b.caption}</figcaption>}
                 </figure>
               );
             case 'pair':
               return (
-                <figure id={anchor} class="blk b-pair rv" data-b={b.id} data-stop={b.stop} style={{ '--y': b.y, '--s': b.scale }}>
+                <figure class="blk b-pair rv" data-b={b.id} {...pos}>
                   <div class="imgs">
                     {b.images.map((im) => <Image src={im.src} alt={im.alt} widths={[600, 900, 1400]} sizes="(max-width: 760px) 50vw, 45vw" />)}
                   </div>
@@ -151,7 +162,7 @@ const nextFig = () => pad2(++fig);
               );
             case 'strip':
               return (
-                <figure id={anchor} class="blk b-strip rv" data-b={b.id} data-stop={b.stop} style={{ '--y': b.y, '--s': b.scale }}>
+                <figure class="blk b-strip rv" data-b={b.id} {...pos}>
                   <div class="strip-vp">
                     <div class="strip-sc">
                       <div class="strip-track">
@@ -171,7 +182,7 @@ const nextFig = () => pad2(++fig);
               );
             case 'grid':
               return (
-                <figure id={anchor} class="blk b-grid rv" data-b={b.id} data-stop={b.stop} style={{ '--y': b.y, '--s': b.scale }}>
+                <figure class="blk b-grid rv" data-b={b.id} {...pos}>
                   <div class="imgs">
                     {b.images.map((im, i) => <Image src={im.src} alt={im.alt} widths={[500, 900, 1400]} sizes={i === 0 ? '66vw' : '33vw'} />)}
                   </div>
@@ -180,32 +191,34 @@ const nextFig = () => pad2(++fig);
               );
             case 'free':
               return (
-                <div id={anchor} class="blk b-free rv" data-b={b.id} data-stop={b.stop} style={{ '--y': b.y, '--s': b.scale }}>
+                <div class="blk b-free rv" data-b={b.id} {...pos}>
                   <div class="canvas" style={{ '--ar': b.ar }}>
                     {b.items.map((it, i) =>
                       it.kind === 'image' ? (
                         <Image class="fi" src={it.src} alt={it.alt} widths={[400, 800, 1400]} sizes={`${Math.round(it.w * 100)}vw`} style={{ '--x': it.x, '--y': it.y, '--w': it.w, '--z': it.z, '--i': i }} />
                       ) : (
-                        <p class="fnote" style={{ '--x': it.x, '--y': it.y }} set:html={html(it.text)} />
+                        <p class="fnote" style={{ '--x': it.x, '--y': it.y }} set:html={plainHtml(it.text)} />
                       ),
                     )}
                   </div>
                 </div>
               );
             case 'map':
-              return (
-                <div id={anchor} class="blk b-map" data-b={b.id} data-stop={b.stop} style={{ '--y': b.y, '--s': b.scale }}>
-                  <RouteMap variant="block" stops={stops} track={travel.track} scope={b.scope} stopId={b.stop} />
+              return map ? (
+                <div class="blk b-map" data-b={b.id} {...pos}>
+                  <RouteMap variant="block" stops={places} track={track} scope={b.scope === 'near' ? 'stop' : 'route'} stopId={places[c.place >= 0 ? c.place : 0]?.id} />
                 </div>
-              );
+              ) : null;
           }
         })
       }
-      <div class="blk b-endcard" data-stop={stops[stops.length - 1].id}>
-        <span class="meta">{t('travel.total')}</span>
-        <span class="text-num tracking-[.04em] text-foreground">{endStat}</span>
-        <span>{t('travel.endNote')}</span>
-      </div>
+      {map && (
+        <div class="blk b-endcard">
+          <span class="meta">{t('travel.total')}</span>
+          <span class="text-num tracking-[.04em] text-foreground">{endStat}</span>
+          <span>{t('travel.endNote')}</span>
+        </div>
+      )}
     </div>
     <div class="h-progress"><i></i></div>
   </div>
@@ -226,21 +239,25 @@ const nextFig = () => pad2(++fig);
   )
 }
 
-<section class="t-end wrap g pt-[clamp(80px,10vw,140px)] pb-10">
-  <h2 class="col-[1/3] border-t border-t-border pt-3.5 text-heading font-normal tracking-[.14em]">{t('travel.itinerary')}</h2>
-  {/* 各站共用一套列：坐标那一栏按最长的坐标定宽，站名栏每行一样宽 */}
-  <ol class="itin col-[3/13] grid grid-cols-[3em_5.5em_1fr_auto] gap-x-(--gap) border-t border-t-border narrow:grid-cols-[2.2em_4.6em_1fr]">
-    {
-      stops.map((s, i) => (
-        <li class="col-span-full grid cursor-pointer grid-cols-subgrid items-baseline border-b border-b-border py-3 transition-[color] duration-300 hover:text-primary">
-          <a class="contents" href={`#stop-${s.id}`}>
-            <span class="meta">{pad2(i + 1)}</span>
-            <span class="meta">{s.date ?? ''}</span>
-            <span class="text-item">{s.name}{s.en && <small class="ml-2.5 text-aux text-muted-foreground ">{s.en}</small>}</span>
-            <span class="mono text-muted-foreground narrow:hidden">{coord(s.lnglat)}</span>
-          </a>
-        </li>
-      ))
-    }
-  </ol>
-</section>
+{
+  map && (
+    <section class="t-end wrap g pt-[clamp(80px,10vw,140px)] pb-10">
+      <h2 class="col-[1/3] border-t border-t-border pt-3.5 text-heading font-normal tracking-[.14em]">{t('travel.itinerary')}</h2>
+      {/* 各地点共用一套列：坐标那一栏按最长的坐标定宽，名字栏每行一样宽 */}
+      <ol class="itin col-[3/13] grid grid-cols-[3em_5.5em_1fr_auto] gap-x-(--gap) border-t border-t-border narrow:grid-cols-[2.2em_4.6em_1fr]">
+        {
+          places.map((p, i) => (
+            <li class="col-span-full grid cursor-pointer grid-cols-subgrid items-baseline border-b border-b-border py-3 transition-[color] duration-300 hover:text-primary">
+              <a class="contents" href={`#place-${p.n}`}>
+                <span class="meta">{pad2(i + 1)}</span>
+                <span class="meta">{p.date ?? ''}</span>
+                <span class="text-item">{p.name}{p.en && <small class="ml-2.5 text-aux text-muted-foreground ">{p.en}</small>}</span>
+                <span class="mono text-muted-foreground narrow:hidden">{coord(p.lnglat)}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+  )
+}

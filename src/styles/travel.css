@@ -1,6 +1,9 @@
-/* 游记：三种读法（竖向 / 混合 / 横向）的版式、图片块、进场显现。由 <div.travel data-mode> 的属性驱动，所以留在 CSS 里；文字、封面、行程表、角落控件的样式在各自的组件里 */
+/* 长卷（横滚、地图）：三种读法（竖向 / 混合 / 横向）的版式、图片块、进场显现。由 <div.travel data-mode> 的属性驱动，所以留在 CSS 里；文字、封面、行程表、角落控件的样式在各自的组件里 */
 .t-body,.t-vp,.t-track,.blk{position:relative}
 
+/* 正文里的地点：前面一个和地图上的点一样的空心圆；标题里的不加 */
+.place::before{content:'';display:inline-block;width:.42em;height:.42em;margin-inline-end:.28em;border:1.5px solid var(--primary);border-radius:50%;vertical-align:.06em}
+.place:is(h2 *,h3 *)::before{display:none}
 .blk img{background:var(--muted);object-fit:cover;cursor:zoom-in}
 .rv img{clip-path:inset(5% 0 5% 0);transform:scale(1.035);opacity:0;transition:clip-path 1.1s var(--ease-mori),transform 1.4s var(--ease-mori),opacity .8s ease}
 .rv.in img{clip-path:inset(0);transform:none;opacity:1}
@@ -53,6 +56,10 @@
 /* --y：块在上下方向的位置（0 顶 / 1 底），--s：缩放。默认居中、原尺寸 */
 .travel[data-mode="h"] .blk{flex:none;top:calc(var(--y,.5)*100%);transform:translateY(calc(var(--y,.5)*-100%))}
 .travel[data-mode="h"] .b-text:not(.v){width:min(23em,84vw)}
+/* 长文字：脚本把它排成并排的几栏（scripts/travel.ts 的 flowText），高度用满、从顶部开始 */
+.travel[data-mode="h"] .b-text.cols{top:0;transform:none;column-width:var(--col-w);column-gap:var(--col-gap);column-fill:auto}
+.b-text.cols header,.b-text.cols h3,.b-text.cols blockquote,.b-text.cols pre,.b-text.cols li{break-inside:avoid}
+.b-text.cols header,.b-text.cols h3{break-after:avoid}
 .travel[data-mode="h"] .b-text.v{height:calc(var(--ph)*.92*var(--s,1))}
 .travel[data-mode="h"] .b-single img{height:calc(var(--ph)*var(--s,1));width:auto}
 .travel[data-mode="h"] .b-pair .imgs{display:flex;gap:14px}

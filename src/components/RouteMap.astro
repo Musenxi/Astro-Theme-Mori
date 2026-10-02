@@ -1,19 +1,20 @@
 ---
 /**
- * 剪影地图：构建时算好几何，输出纯 SVG（spec §3.2）。
- *  - hero：游记封面里的大图，同时把陆地轮廓放进 <symbol id="map-land">，同页的其他地图直接引用
- *  - block：正文里的地图块（route 全程 / stop 只看这一站附近）
+ * 剪影地图：构建时算好几何，输出纯 SVG（spec §3.2）。地点是正文里标的 place。
+ *  - hero：长卷封面里的大图，同时把陆地轮廓放进 <symbol id="map-land">，同页的其他地图直接引用
+ *  - block：正文里的地图块（route 全程 / stop 只看当前地点附近）
  *  - mini：左下角“当前位置”里的小地图，只有轮廓、路线和一个当前位置标记
  */
-import type { TravelData } from '../schema/schema.ts';
+import type { PostData } from '../schema/schema.ts';
+import type { FlowPlace } from '../lib/flow.ts';
 import { buildMap, W, H } from '../lib/map.ts';
 import { t, lang } from '../lib/i18n.ts';
 
 interface Props {
   variant: 'hero' | 'block' | 'mini';
-  stops: TravelData['stops'];
-  track?: TravelData['track'];
-  /** block 用：route 全程，stop 只看某一站 */
+  stops: FlowPlace[];
+  track?: PostData['track'];
+  /** block 用：route 全程，stop 只看某个地点附近 */
   scope?: 'route' | 'stop';
   stopId?: string;
 }

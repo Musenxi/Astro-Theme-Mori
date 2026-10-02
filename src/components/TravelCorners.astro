@@ -1,18 +1,20 @@
 ---
 /**
- * 游记的两个角落控件（玻璃）：右下角读法切换（竖 / 横 / 混），左下角当前位置。
+ * 长卷的两个角落控件（玻璃）：右下角读法切换（竖 / 横 / 混），左下角当前位置（开着地图、正文里标了地点才有）。
  * 读者选读法并被记住；作者只决定默认值和允许哪几种（reading.default / allowed）。
  */
-import type { TravelData } from '../schema/schema.ts';
+import type { FlowPlace } from '../lib/flow.ts';
+import type { PostData } from '../schema/schema.ts';
 import RouteMap from './RouteMap.astro';
 import { t } from '../lib/i18n.ts';
 
 interface Props {
   allowed: Array<'v' | 'h' | 'm'>;
-  stops: TravelData['stops'];
-  track?: TravelData['track'];
+  /** 正文里的地点（没开地图或没有地点就不给） */
+  stops?: FlowPlace[];
+  track?: PostData['track'];
 }
-const { allowed, stops, track } = Astro.props;
+const { allowed, stops = [], track } = Astro.props;
 const LABEL = { v: [t('travel.mode.v'), t('travel.modeLabel.v')], h: [t('travel.mode.h'), t('travel.modeLabel.h')], m: [t('travel.mode.m'), t('travel.modeLabel.m')] } as const;
 const stopData = stops.map((s) => ({ id: s.id, name: s.name, date: s.date ?? '' }));
 ---
@@ -27,10 +29,10 @@ const stopData = stops.map((s) => ({ id: s.id, name: s.name, date: s.date ?? '' 
   )
 }
 
-<div class="glass fixed bottom-[18px] left-[18px] z-20 flex items-center gap-2.5 rounded-[4px] py-1.5 pr-3 pl-2 opacity-0 pointer-events-none [transform:translateY(12px)] [transition:transform_.6s_var(--ease-mori),opacity_.4s] narrow:bottom-3 narrow:left-3 [&.on]:pointer-events-auto [&.on]:opacity-100 [&.on]:[transform:none]" id="loc" data-stops={JSON.stringify(stopData)}>
+{stops.length > 0 && <div class="glass fixed bottom-[18px] left-[18px] z-20 flex items-center gap-2.5 rounded-[4px] py-1.5 pr-3 pl-2 opacity-0 pointer-events-none [transform:translateY(12px)] [transition:transform_.6s_var(--ease-mori),opacity_.4s] narrow:bottom-3 narrow:left-3 [&.on]:pointer-events-auto [&.on]:opacity-100 [&.on]:[transform:none]" id="loc" data-stops={JSON.stringify(stopData)}>
   <RouteMap variant="mini" stops={stops} track={track} />
   <div class="leading-[1.35] whitespace-nowrap">
     <span class="mono text-muted-foreground narrow:hidden" id="rb-n">01 / {String(stops.length).padStart(2, '0')}</span>
     <b class="block text-aux font-normal" id="rb-name">{stops[0].name}</b>
   </div>
-</div>
+</div>}

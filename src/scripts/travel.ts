@@ -1,10 +1,11 @@
 /**
- * 游记的三种读法（spec §3.2）：竖向 / 混合 / 横向，读者在右下角切换并被记住；横滚方向由作者按篇设定。
+ * 长卷的三种读法（spec §3.2）：竖向 / 混合 / 横向，读者在右下角切换并被记住；横滚方向由作者按篇设定。
  * 横向不劫持滚轮：页面仍是原生竖向滚动，横移由 position:sticky + transform 实现（触控板、键盘、滚动条都能用）。
  *  - 竖向（v）：一路往下；横向图组是可以左右滑动的一行。
  *  - 混合（m）：一路往下；横向图组钉住，由竖向滚动驱动横移。
  *  - 横向（h）：整篇排进横轴，竖向滚动驱动整条轨道横移。
- * 切换读法时回到当前站点的开头，不丢阅读位置。
+ * 切换读法时回到当前读到的那一块，不丢阅读位置。
+ * 读到哪个地点：每一列带 data-place（第几个地点）；正文里的地点标记是 #place-<n>。
  */
 import { t } from './i18n.ts';
 type Mode = 'v' | 'h' | 'm';
@@ -32,10 +33,9 @@ function init() {
   const blocks = [...travel.querySelectorAll<HTMLElement>('.t-track .blk:not(.b-endcard)')];
   const progress = travel.querySelector<HTMLElement>('.h-progress i');
   const mc = document.querySelector<HTMLElement>('#mc');
-  const loc = document.querySelector<HTMLElement>('#loc')!;
+  const loc = document.querySelector<HTMLElement>('#loc');
   const allowed = (mc?.dataset.modes?.split(',') ?? [travel.dataset.mode!]) as Mode[];
-  const stops: Array<{ id: string; name: string; date: string }> = JSON.parse(loc.dataset.stops ?? '[]');
-  const stopIndex = new Map(stops.map((s, i) => [s.id, i]));
+  const stops: Array<{ id: string; name: string; date: string }> = JSON.parse(loc?.dataset.stops ?? '[]');
   const rtl = () => travel.dataset.dir === 'rtl';
   const vw = () => root.clientWidth;
   const mode = () => travel.dataset.mode as Mode;
@@ -45,8 +45,32 @@ function init() {
   const saved = store.get('mori-mode') as Mode | null;
   if (saved && allowed.includes(saved)) travel.dataset.mode = saved;
 
+  // 横向读法里，横排的长文字排成并排的几栏（高度用满，宽度按栏数撑开）；短的一列就保持原样，按 y 摆
+  const texts = [...travel.querySelectorAll<HTMLElement>('.b-text:not(.v)')];
+  function flowText() {
+    for (const el of texts) { el.classList.remove('cols'); el.style.width = ''; el.style.height = ''; }
+    if (mode() !== 'h') return;
+    const cs = getComputedStyle(track);
+    const availH = track.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    const gap = Math.round(clamp(vw() * 0.045, 36, 72));
+    for (const el of texts) {
+      const colW = el.offsetWidth, h = el.offsetHeight;
+      if (!colW || h <= availH) continue;
+      el.classList.add('cols');
+      el.style.setProperty('--col-w', colW + 'px');
+      el.style.setProperty('--col-gap', gap + 'px');
+      el.style.height = availH + 'px';
+      // 从估计的栏数开始，装不下就多加一栏
+      for (let n = Math.max(2, Math.ceil(h / availH)); n < 60; n++) {
+        el.style.width = n * colW + (n - 1) * gap + 'px';
+        if (el.scrollWidth <= el.clientWidth + 1) break;
+      }
+    }
+  }
+
   function layout() {
     const m = mode();
+    flowText();
     tbody.style.height = '';
     for (const s of strips) { s.style.height = ''; const t = s.querySelector<XTrack>('.strip-track')!; t.style.transform = ''; t._x = null; }
     track.style.transform = ''; track._x = null;
@@ -111,8 +135,7 @@ function init() {
 
   function setMode(m: Mode) {
     if (mode() === m) return;
-    const cur = tbody.getBoundingClientRect().top < innerHeight * 0.5 ? current() : null;
-    const anchor = cur && blocks.find((b) => b.dataset.stop === cur.dataset.stop);
+    const anchor = tbody.getBoundingClientRect().top < innerHeight * 0.5 ? current() : null;
     withTransition(() => {
       travel!.dataset.mode = m; store.set('mori-mode', m);
       syncModeUI(); layout(); snap = true;
@@ -130,13 +153,12 @@ function init() {
     sc.scrollBy({ left: +b.dataset.dir! * sc.clientWidth * 0.7, behavior: 'smooth' });
   });
 
-  // 行程表：点某一站，滚到这一站的第一块（横向读法下换算成横轴位置）
+  // 行程表：点某个地点，滚到正文里标着它的那一块（横向读法下换算成横轴位置）
   travel.querySelector('.itin')?.addEventListener('click', (e) => {
     const a = (e.target as Element).closest<HTMLAnchorElement>('a');
     if (!a) return;
     e.preventDefault();
-    const id = a.getAttribute('href')!.replace('#stop-', '');
-    const b = blocks.find((x) => x.dataset.stop === id);
+    const b = document.getElementById(a.getAttribute('href')!.slice(1))?.closest<HTMLElement>('.blk');
     if (b) scrollToBlock(b);
   });
 
@@ -154,11 +176,11 @@ function init() {
     if (prog) prog.style.transform = `scaleX(${max ? x / max : 0})`;
   }
 
-  const hero = travel.querySelector('.t-hero')!, end = travel.querySelector('.t-end')!;
-  const rbN = loc.querySelector<HTMLElement>('#rb-n')!, rbName = loc.querySelector<HTMLElement>('#rb-name')!;
+  const hero = travel.querySelector('.t-hero')!, end = travel.querySelector('.t-end');
+  const rbN = loc?.querySelector<HTMLElement>('#rb-n'), rbName = loc?.querySelector<HTMLElement>('#rb-name');
 
-  // 左下角小地图：路线随阅读往前画，当前位置的标记移到当前站点（站点在路线上走了多远，按最近的采样点量）
-  const mini = loc.querySelector<SVGSVGElement>('svg.map');
+  // 左下角小地图：路线随阅读往前画，当前位置的标记移到当前读到的地点（地点在路线上走了多远，按最近的采样点量）
+  const mini = loc?.querySelector<SVGSVGElement>('svg.map');
   const miniRoute = mini?.querySelector<SVGPathElement>('path.route-p');
   const miniHere = mini?.querySelector<SVGGElement>('.here');
   const miniStops: Array<{ x: number; y: number }> = JSON.parse(mini?.dataset.stops ?? '[]');
@@ -179,9 +201,11 @@ function init() {
   }
   let lastStop = -1;
   function updateLoc() {
-    const hr = hero.getBoundingClientRect(), er = end.getBoundingClientRect();
-    loc.classList.toggle('on', hr.bottom < innerHeight * 0.35 && er.top > innerHeight * 0.5);
-    const i = stopIndex.get(current().dataset.stop!) ?? 0;
+    if (!loc || !rbN || !rbName || !stops.length) return;
+    const hr = hero.getBoundingClientRect(), er = end?.getBoundingClientRect();
+    loc.classList.toggle('on', hr.bottom < innerHeight * 0.35 && (!er || er.top > innerHeight * 0.5));
+    // 还没读到第一个地点时，当作在第一个地点
+    const i = Math.min(stops.length - 1, Math.max(0, Number(current().dataset.place ?? 0)));
     if (i === lastStop) return;
     lastStop = i;
     rbN.textContent = `${pad(i + 1)} / ${pad(stops.length)}${stops[i].date ? ` · ${stops[i].date}` : ''}`;

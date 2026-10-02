@@ -1,8 +1,11 @@
 /**
  * Markdown ⇄ MORI 块（纯函数，Node 和浏览器都能用）。
  * mori-md 命令行用它做导入导出；Studio 的 Markdown 写作页用它在文本和块之间转换。
- * 只处理普通文章的块：段落、## / ### 标题、引用、图片、列表、围栏代码；行内的 **粗** *斜* `码` [链接](地址) 和 [^id] 脚注。
+ * 处理的块：段落、## / ### 标题、引用、图片、列表、围栏代码；行内的 **粗** *斜* `码` [链接](地址)、[^id] 脚注，
+ * 和地点 [地名](geo:纬度,经度)（geo URI，可以带 ?en=英文名&date=日期）。
+ * 图组、双图、自由排布里的图在文本里只是一行行图片；地图、位置、缩放、竖排这些版式信息不出现在文本里，由 Studio 保存时对回原来的块。
  */
+import { parsePlaceHref, placeHref } from './flow.mjs';
 
 /* ───────────── 行内：文字 + 标注 ───────────── */
 const INLINE = /(\*\*([^*]+)\*\*)|(\*([^*]+)\*)|(`([^`]+)`)|(\[([^\]]+)\]\(([^)\s]+)\))|(\[\^([^\]]+)\])/;
@@ -18,7 +21,7 @@ export function parseInline(text, marks = []) {
     if (m[1]) spans.push(...parseInline(m[2], [...marks, { type: 'strong' }]));
     else if (m[3]) spans.push(...parseInline(m[4], [...marks, { type: 'em' }]));
     else if (m[5]) push(m[6], [...marks, { type: 'code' }]);
-    else if (m[7]) spans.push(...parseInline(m[8], [...marks, { type: 'link', href: m[9] }]));
+    else if (m[7]) spans.push(...parseInline(m[8], [...marks, parsePlaceHref(m[9]) ?? { type: 'link', href: m[9] }]));
     else if (m[10]) spans.push({ t: '', marks: [...marks, { type: 'fn', ref: m[11] }] });
     last = m.index + m[0].length;
   }
@@ -135,13 +138,14 @@ export const inlineMd = (spans) =>
         case 'em': return `*${t}*`;
         case 'code': return `\`${t}\``;
         case 'link': return `[${t}](${m.href})`;
+        case 'place': return `[${t}](${placeHref(m)})`;
         case 'note': case 'fn': return `${t}[^${m.ref}]`;
         default: return t; // tcy 等只影响排版
       }
     }, s.t))
     .join('');
 
-/** 一个块 → Markdown。游记文字块里的段落（h / quote / list / code）也走这里 */
+/** 一个文字块或图片 → Markdown；图组、地图这类长卷的块没有对应的写法，返回空 */
 export function blockMd(b) {
   switch (b.type) {
     case 'p': return inlineMd(b.text);
@@ -154,11 +158,32 @@ export function blockMd(b) {
   }
 }
 
+const imgLine = (im) => `![${im.alt ?? ''}](${im.src ?? ''}${im.caption ? ` "${im.caption}"` : ''})`;
+
+/**
+ * 块摊平成 Markdown 里的一项一项：文字块一项，图片一项；双图、图组、网格、自由排布里每张图一项；地图和自由排布里的小字不在文本里。
+ * 项：{ block（块 id）, k（是这个块里的第几项）, kind（p / h / quote / list / code / img）, md, 以及图的 src / alt / caption }
+ */
+export function mdItems(blocks) {
+  const items = [];
+  for (const b of blocks ?? []) {
+    const img = (im, k) => items.push({ block: b.id, k, kind: 'img', md: imgLine(im), src: im.src, alt: im.alt, caption: im.caption });
+    switch (b.type) {
+      case 'image': img(b, 0); break;
+      case 'pair': case 'strip': case 'grid': (b.images ?? []).forEach(img); break;
+      case 'free': (b.items ?? []).forEach((it, k) => { if (it.kind === 'image') img(it, k); }); break;
+      case 'map': break;
+      default: { const md = blockMd(b); if (md) items.push({ block: b.id, k: 0, kind: b.type, md }); }
+    }
+  }
+  return items;
+}
+
 /** 块 + 注释表 → 正文 Markdown（不含 front matter） */
 export function blocksToMarkdown(post) {
-  const out = post.blocks.map(blockMd);
+  const out = mdItems(post.blocks).map((it) => it.md);
   const notes = Object.entries(post.notes ?? {}).map(([k, v]) => `[^${k}]: ${inlineMd(v.text)}`);
-  return out.filter(Boolean).join('\n\n') + (notes.length ? `\n\n${notes.join('\n')}` : '') + '\n';
+  return out.join('\n\n') + (notes.length ? `\n\n${notes.join('\n')}` : '') + '\n';
 }
 
 export function postToMarkdown(post) {
@@ -166,105 +191,3 @@ export function postToMarkdown(post) {
   return fm.join('\n') + '\n' + blocksToMarkdown(post);
 }
 
-
-/* ───────────── 游记 ⇄ Markdown ─────────────
- * 游记在 Markdown 里就是普通的文字：`## 站名` 开一个站点，下面是一段段文字和一行行图片。
- * 图组、双图、自由排布里的图在文本里也只是一行行图片；地图、位置、缩放这些版式信息不出现在文本里，
- * 由 Studio 在保存时对回原来的块（见 studio 的 mdsync）。 */
-
-const IMG = /^!\[([^\]]*)\]\(([^)\s]*)(?:\s+"([^"]*)")?\)\s*$/;
-
-/** 游记里出现在 Markdown 中的内容，按站点顺序摊平：文字段和图片。地图、自由排布里的小段文字不在其中 */
-export function travelItems({ stops = [], blocks = [] }) {
-  const items = [];
-  for (const s of stops) {
-    for (const b of blocks.filter((x) => x.stop === s.id)) {
-      const at = (o) => ({ stop: s.id, block: b.id, ...o });
-      if (b.type === 'text') (b.paras ?? []).forEach((p, k) => { const { id: _id, type, ...rest } = p; items.push(at({ ...rest, kind: type ?? 'p', k })); });
-      else if (b.type === 'single') items.push(at({ kind: 'img', k: 0, src: b.src, alt: b.alt, caption: b.caption }));
-      else if (['pair', 'strip', 'grid'].includes(b.type)) (b.images ?? []).forEach((im, k) => items.push(at({ kind: 'img', k, src: im.src, alt: im.alt, caption: im.caption })));
-      else if (b.type === 'free') (b.items ?? []).forEach((it, k) => { if (it.kind === 'image') items.push(at({ kind: 'img', k, src: it.src, alt: it.alt, caption: it.caption })); });
-    }
-  }
-  return items;
-}
-
-/** 游记里的一项（段落 / 小标题 / 引用 / 列表 / 代码）→ Markdown。小标题固定写三个 #：两个 # 是“新的一站” */
-export const travelParaMd = (it) => blockMd(it.kind === 'h' ? { type: 'h', level: 3, text: it.text } : { ...it, type: it.kind });
-
-const imgLine = (it) => `![${it.alt ?? ''}](${it.src ?? ''}${it.caption ? ` "${it.caption}"` : ''})`;
-
-/** 站点 + 块 + 旁注 → 正文 Markdown（不含 # 标题） */
-export function travelToMarkdown({ stops = [], blocks = [], notes = {} }) {
-  const items = travelItems({ stops, blocks });
-  const parts = [];
-  for (const s of stops) {
-    parts.push(`## ${s.name ?? ''}`.trimEnd());
-    for (const it of items.filter((x) => x.stop === s.id)) parts.push(it.kind === 'img' ? imgLine(it) : travelParaMd(it));
-  }
-  const defs = Object.entries(notes).map(([k, v]) => `[^${k}]: ${inlineMd(v.text)}`);
-  return parts.join('\n\n') + (defs.length ? `\n\n${defs.join('\n')}` : '') + '\n';
-}
-
-/** Markdown → { title, stops: [{ name }], items, notes }。item 的 stop 是 stops 里的序号；第一个站点之前的内容归到第一站。
- * 文字项的 kind 和文章里的块一致：p 段落 / h 小标题（###）/ quote 引用 / list 列表 / code 代码；图片是 img */
-export function parseTravel(body) {
-  const lines = body.split(/\r?\n/);
-  const stops = [], items = [], notes = {};
-  let title, cur = 0;
-  const join = (ls) => ls.map((s) => s.trim()).reduce((a, s) => (a && /[A-Za-z0-9]$/.test(a) && /^[A-Za-z0-9]/.test(s) ? `${a} ${s}` : a + s), '');
-  const LI = /^(\s*)([-*+]|\d+[.)])\s+/;
-  const isStart = (l) => /^(#{1,4}(\s|$)|!\[|\[\^[^\]]+\]:|```|>)/.test(l) || LI.test(l);
-
-  for (let i = 0; i < lines.length; ) {
-    const line = lines[i];
-    if (!line.trim()) { i++; continue; }
-    const fn = line.match(/^\[\^([^\]]+)\]:\s*(.*)$/);
-    if (fn) { notes[fn[1]] = { text: parseInline(fn[2]) }; i++; continue; }
-
-    const fence = line.match(/^```(\w*)/);
-    if (fence) {
-      const code = [];
-      for (i++; i < lines.length && !lines[i].startsWith('```'); i++) code.push(lines[i]);
-      i++;
-      items.push({ kind: 'code', stop: cur, ...(fence[1] ? { lang: fence[1] } : {}), code: code.join('\n') });
-      continue;
-    }
-
-    const h = line.match(/^(#{1,4})(?:\s+(.*?))?\s*$/);
-    if (h) {
-      const text = (h[2] ?? '').trim();
-      if (h[1] === '#') title ??= text;
-      else if (h[1] === '##') { stops.push({ name: text }); cur = stops.length - 1; }
-      else items.push({ kind: 'h', stop: cur, text: parseInline(text) });
-      i++; continue;
-    }
-
-    const im = line.match(IMG);
-    if (im) { items.push({ kind: 'img', stop: cur, src: im[2], alt: im[1], ...(im[3] ? { caption: im[3] } : {}) }); i++; continue; }
-
-    if (line.startsWith('>')) {
-      const q = [];
-      for (; i < lines.length && lines[i].startsWith('>'); i++) q.push(lines[i].replace(/^>\s?/, ''));
-      const last = q[q.length - 1]?.match(/^(?:——|—|--)\s*(.+)$/);
-      if (last) q.pop();
-      items.push({ kind: 'quote', stop: cur, text: parseInline(join(q.filter(Boolean))), ...(last ? { cite: last[1] } : {}) });
-      continue;
-    }
-
-    const li = line.match(LI);
-    if (li) {
-      const ordered = /\d/.test(li[2]);
-      const list = [];
-      for (; i < lines.length && LI.test(lines[i]); i++) list.push(parseInline(lines[i].replace(LI, '')));
-      items.push({ kind: 'list', stop: cur, ordered, items: list });
-      continue;
-    }
-
-    const para = [];
-    for (; i < lines.length && lines[i].trim() && !isStart(lines[i]); i++) para.push(lines[i]);
-    if (!para.length) para.push(lines[i++]);
-    items.push({ kind: 'p', stop: cur, text: parseInline(join(para)) });
-  }
-  return { title, stops, items, notes };
-}

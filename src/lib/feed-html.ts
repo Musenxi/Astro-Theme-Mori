@@ -1,8 +1,8 @@
 /**
- * RSS 里的全文：把文章 / 游记的块转成一段自包含的 HTML（放进 content:encoded）。
+ * RSS 里的全文：把文章的块转成一段自包含的 HTML（放进 content:encoded）。
  * 和站内页面不同：链接和图片都要是绝对地址；旁注和脚注没有页内锚点可跳，统一成 [1] 这样的编号，文末列出正文。
  */
-import type { Inline, Mark, PostData, TravelData } from '../schema/schema.ts';
+import type { Inline, Mark, PostData } from '../schema/schema.ts';
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -38,7 +38,7 @@ function wrap(html: string, m: Mark, base: string, nums: Map<string, number>): s
     case 'em': return `<em>${html}</em>`;
     case 'strong': return `<strong>${html}</strong>`;
     case 'code': return `<code>${html}</code>`;
-    case 'tcy': return html;
+    case 'tcy': case 'place': return html;
     case 'link': return `<a href="${esc(abs(base, m.href))}">${html}</a>`;
     case 'note':
     case 'fn': return `${html}<sup>[${nums.get(m.ref) ?? '?'}]</sup>`;
@@ -60,6 +60,7 @@ const notesHtml = (notes: Record<string, { text: Inline }>, nums: Map<string, nu
 export async function postHtml(d: PostData, ctx: FeedCtx): Promise<string> {
   const nums = numberRefs(d.blocks);
   const out: string[] = [];
+  if (d.facts?.length) out.push(`<ul>${d.facts.map((f) => `<li><strong>${esc(f.label)}</strong>：${esc(f.value)}</li>`).join('')}</ul>`);
   for (const b of d.blocks) {
     switch (b.type) {
       case 'p': out.push(`<p>${inline(b.text, ctx.base, nums)}</p>`); break;
@@ -72,35 +73,6 @@ export async function postHtml(d: PostData, ctx: FeedCtx): Promise<string> {
         break;
       }
       case 'code': out.push(`<pre><code>${esc(b.code)}</code></pre>`); break;
-    }
-  }
-  return [...out, notesHtml(d.notes, nums, ctx.base)].filter(keep).join('\n');
-}
-
-export async function travelHtml(d: TravelData, ctx: FeedCtx): Promise<string> {
-  const nums = numberRefs(d.blocks);
-  const out: string[] = [];
-  if (d.facts.length) out.push(`<ul>${d.facts.map((f) => `<li><strong>${esc(f.label)}</strong>：${esc(f.value)}</li>`).join('')}</ul>`);
-  let stop = '';
-  for (const b of d.blocks) {
-    if (b.stop !== stop) {
-      stop = b.stop;
-      const s = d.stops.find((x) => x.id === stop);
-      if (s) out.push(`<h2>${esc(s.name)}${s.en ? ` <small>${esc(s.en)}</small>` : ''}</h2>`);
-    }
-    switch (b.type) {
-      case 'text':
-        for (const p of b.paras) {
-          switch (p.type) {
-            case 'h': out.push(`<h3>${inline(p.text, ctx.base, nums)}</h3>`); break;
-            case 'quote': out.push(`<blockquote><p>${inline(p.text, ctx.base, nums)}</p>${p.cite ? `<p>—— ${esc(p.cite)}</p>` : ''}</blockquote>`); break;
-            case 'list': out.push(`<${p.ordered ? 'ol' : 'ul'}>${p.items.map((it) => `<li>${inline(it, ctx.base, nums)}</li>`).join('')}</${p.ordered ? 'ol' : 'ul'}>`); break;
-            case 'code': out.push(`<pre><code>${esc(p.code)}</code></pre>`); break;
-            default: out.push(`<p>${inline(p.text, ctx.base, nums)}</p>`);
-          }
-        }
-        break;
-      case 'single': out.push(await figure(ctx, b.src, b.alt, b.caption)); break;
       case 'pair': case 'strip': case 'grid': for (const im of b.images) out.push(await figure(ctx, im.src, im.alt, im.caption)); break;
       case 'free':
         for (const it of b.items) out.push(it.kind === 'image' ? await figure(ctx, it.src, it.alt, it.caption) : `<p>${inline(it.text, ctx.base, nums)}</p>`);

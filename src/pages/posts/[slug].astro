@@ -10,11 +10,13 @@ import Comments from '../../components/Comments.astro';
 import EntryNav from '../../components/EntryNav.astro';
 import { getEntries } from '../../lib/entries.ts';
 import type { Entry } from '../../lib/entries.ts';
-import type { PostData, TravelData } from '../../schema/schema.ts';
+import type { PostData } from '../../schema/schema.ts';
 import { readingOf } from '../../lib/inline.ts';
+import { flowOf } from '../../lib/flow.ts';
+import { usesFlow } from '../../lib/flow.mjs';
 import { numDate } from '../../lib/zh.ts';
 
-// 普通文章和游记都在 /posts/<id>/，靠 entry.kind 决定用哪种版式
+// 所有文章都在 /posts/<id>/。开了地图、设了读法或用了长卷的块（图组、地图……）的用长卷版式，其余是普通的竖向文章
 export async function getStaticPaths() {
   const entries = await getEntries();
   // entries 是新→旧：上一篇是更早的一篇，下一篇是更新的一篇。隐藏的文章有自己的页面，但不接进上下篇
@@ -23,21 +25,21 @@ export async function getStaticPaths() {
 }
 
 const { entry, older, newer } = Astro.props as { entry: Entry; older?: Entry; newer?: Entry };
-const travel = entry.kind === 'travel';
-const d = entry.data;
-const p = d as PostData;
-const tv = d as TravelData;
-const { chars, minutes } = travel ? { chars: 0, minutes: 0 } : readingOf(p);
+const d = entry.data as PostData;
+const p = d;
+const longform = usesFlow(d);
+const flow = longform ? flowOf(d) : null;
+const { chars, minutes } = readingOf(p);
 const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | 'm';
 ---
 
 <Base title={d.title} description={d.excerpt} type="article">
-  {travel ? (
+  {flow ? (
     <main data-page="travel">
-      <TravelArticle entry={entry} />
+      <TravelArticle entry={entry} flow={flow} />
       <Comments entry={`posts/${entry.id}`} />
       <EntryNav older={older} newer={newer} />
-      <TravelCorners allowed={tv.reading.allowed.map(short)} stops={tv.stops} track={tv.track} />
+      <TravelCorners allowed={flow.reading.allowed.map(short)} stops={d.map ? flow.places : []} track={d.track} />
     </main>
   ) : (
     <main data-page="post">

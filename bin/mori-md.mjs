@@ -5,8 +5,8 @@
  *   mori-md import 旧文章.md [--out src/content/posts] [--category essays]   → 写出同名 .json
  *   mori-md export src/content/posts/xxx.json [--out 备份目录]                → 写出同名 .md
  *
- * 只处理普通文章：段落、## / ### 标题、引用、图片（带引号的标题作图注）、列表、围栏代码、
- * 行内的 **粗** *斜* `码` [链接](地址)，以及 [^id] 脚注。游记的块（位置参数、自由排布……）没有 Markdown 对应物，不导入导出。
+ * 处理：段落、## / ### 标题、引用、图片（带引号的标题作图注）、列表、围栏代码、
+ * 行内的 **粗** *斜* `码` [链接](地址)，[^id] 脚注，和地点 [地名](geo:纬度,经度)。长卷的块（位置参数、自由排布、地图……）没有 Markdown 对应物：图组里的图导出成一行行图片，其余不导出。
  * 导入时块 id 从 b01 顺序编；导入后请自己检查 category、excerpt，并把图片文件放到 JSON 里写的相对路径。
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';

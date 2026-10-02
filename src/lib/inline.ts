@@ -8,6 +8,8 @@ export interface NoteNumbers {
   side: Map<string, number>;
   /** 脚注 id → 编号 */
   foot: Map<string, number>;
+  /** 长卷版式里给正文里的地点编号（第几个，从 0 起）：渲染时按出现顺序用掉。不给就把地点当普通文字 */
+  place?: { next: number };
 }
 
 /** 递归收集一组块里的 note / fn 引用（顺序即出现顺序）。块里可以有 text、items、paras、text（自由排布） */
@@ -39,6 +41,7 @@ function wrap(html: string, mark: Mark, numbers: NoteNumbers): string {
     case 'strong': return `<strong>${html}</strong>`;
     case 'code': return `<code>${html}</code>`;
     case 'tcy': return `<span class="tcy">${html}</span>`;
+    case 'place': return html; // 地点的序号和包裹在 renderInline 里处理
     case 'link': return `<a href="${escapeHtml(mark.href)}">${html}</a>`;
     case 'note': return `${html}<sup class="nref" data-skip><a href="#note-${mark.ref}" id="ref-${mark.ref}">${numbers.side.get(mark.ref) ?? '?'}</a></sup>`;
     case 'fn': return `${html}<sup class="nref" data-skip><a href="#fn-${mark.ref}" id="ref-${mark.ref}">${numbers.foot.get(mark.ref) ?? '?'}</a></sup>`;
@@ -46,8 +49,19 @@ function wrap(html: string, mark: Mark, numbers: NoteNumbers): string {
 }
 
 export function renderInline(spans: Inline, numbers: NoteNumbers): string {
+  let prev = '', at = -1;
   return spans
-    .map((s) => (s.marks ?? []).reduceRight((html, mark) => wrap(html, mark, numbers), escapeHtml(s.t).replace(/\n/g, '<br>')))
+    .map((s) => {
+      const html = (s.marks ?? []).reduceRight((h, mark) => wrap(h, mark, numbers), escapeHtml(s.t).replace(/\n/g, '<br>'));
+      const place = (s.marks ?? []).find((m) => m.type === 'place');
+      if (!place || !numbers.place) { prev = ''; return html; }
+      // 被粗体之类拆开的同一个地点只编一个号，id 只给第一段
+      const key = JSON.stringify(place);
+      const first = key !== prev;
+      if (first) at = numbers.place.next++;
+      prev = key;
+      return `<span class="place" data-place="${at}"${first ? ` id="place-${at}"` : ''}>${html}</span>`;
+    })
     .join('');
 }
 

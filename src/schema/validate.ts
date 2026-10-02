@@ -12,7 +12,7 @@ export interface ValidationIssue {
 
 const image = (() => z.string()) as any;
 
-/** 普通文章和游记同一个入口：按内容里的 kind（或有没有 stops）判断是哪一种 */
+/** 文章和页面的校验入口。老游记（有 stops）先转成现在的结构再校验；kind 'travel' 只是旧叫法 */
 export function validateEntry(kind: 'post' | 'travel' | 'page' | undefined, data: unknown): { ok: boolean; errors: ValidationIssue[] } {
   const schema = kind === 'page' ? pageSchema({ image }) : entrySchema({ image });
   const r = schema.safeParse(data);

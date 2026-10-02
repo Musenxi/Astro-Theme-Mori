@@ -1,0 +1,92 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { columns, fromLegacyTravel, isLegacyTravel, parsePlaceHref, placeHref, placesOf, usesFlow } from '../src/lib/flow.mjs';
+
+const place = (lnglat: [number, number], extra = {}) => ({ type: 'place', lnglat, ...extra });
+
+test('地点地址：geo URI 往返，经纬度顺序是 纬度,经度；英文名里的特殊字符转义', () => {
+  const m = place([-21.9426, 64.1466], { en: 'Reykjavík (capital)', date: '06.20' });
+  const href = placeHref(m);
+  assert.equal(href, 'geo:64.1466,-21.9426?en=Reykjavík%20%28capital%29&date=06.20');
+  assert.deepEqual(parsePlaceHref(href), m);
+  assert.deepEqual(parsePlaceHref('geo:35.0116,135.7681'), place([135.7681, 35.0116]));
+  assert.equal(parsePlaceHref('https://example.com'), null);
+  assert.equal(parsePlaceHref('geo:91,0'), null);
+});
+
+test('正文里的地点按出现顺序；被粗体拆开的同一个地点算一个', () => {
+  const blocks = [
+    { id: 'b1', type: 'p', text: [{ t: '到了' }, { t: '京', marks: [place([135.7, 35.0]), { type: 'strong' }] }, { t: '都', marks: [place([135.7, 35.0])] }, { t: '。' }] },
+    { id: 'b2', type: 'image', src: 'a.jpg' },
+    { id: 'b3', type: 'list', items: [[{ t: '大阪', marks: [place([135.5, 34.7], { date: '09.21' })] }], '没有地点'] },
+  ];
+  assert.deepEqual(placesOf(blocks), [
+    { n: 0, block: 'b1', label: '京都', lnglat: [135.7, 35.0] },
+    { n: 1, block: 'b3', label: '大阪', lnglat: [135.5, 34.7], date: '09.21' },
+  ]);
+});
+
+test('长卷版式：开了地图、设了读法或用了长卷的块才走长卷', () => {
+  const blocks = [{ id: 'b1', type: 'p', text: 'x' }];
+  assert.equal(usesFlow({ blocks }), false);
+  assert.equal(usesFlow({ blocks, map: true }), true);
+  assert.equal(usesFlow({ blocks, reading: { default: 'v', allowed: ['v', 'h'], direction: 'ltr' } }), true);
+  assert.equal(usesFlow({ blocks: [...blocks, { id: 'b2', type: 'map' }] }), true);
+});
+
+test('排成列：相邻文字一列，二级标题另起，图片单独，竖排和横排不混', () => {
+  const blocks = [
+    { id: 'a', type: 'p', text: '1', y: 0.2 }, { id: 'b', type: 'p', text: '2' }, { id: 'c', type: 'h', level: 3, text: '小' },
+    { id: 'd', type: 'image', src: 'x' },
+    { id: 'e', type: 'h', level: 2, text: '章' }, { id: 'f', type: 'p', text: '3', writing: 'v' }, { id: 'g', type: 'code', code: 'x' }, { id: 'h', type: 'p', text: '4' },
+  ];
+  const cols = columns(blocks);
+  const show = (c: any) => (c.kind === 'text' ? `${c.blocks.map((b: any) => b.id).join('')}:${c.writing}` : c.block.id);
+  assert.deepEqual(cols.map(show), ['abc:h', 'd', 'efg:v', 'h:h']);
+  assert.equal(cols[0].kind === 'text' && cols[0].y, 0.2);
+});
+
+const legacy = {
+  kind: 'travel', title: 'T', date: '2025-06-20', category: 'j', excerpt: 'x', facts: [{ label: '路线', value: '环岛' }], notes: {},
+  stops: [
+    { id: 'rey', name: '雷克雅未克', en: 'Reykjavík', lnglat: [-21.9, 64.1], date: '06.20' },
+    { id: 's2', name: '起点', lnglat: [0, 0] },
+  ],
+  reading: { default: 'h', allowed: ['v', 'h'], direction: 'rtl' },
+  blocks: [
+    { id: 't1', type: 'text', stop: 'rey', writing: 'v', y: 0.3, paras: [{ id: 't1p1', text: '一' }, { id: 't1p2', type: 'quote', text: '引', cite: '谁' }, { id: 't1p3', type: 'code', code: 'x' }] },
+    { id: 's1', type: 'single', stop: 'rey', src: 'a.jpg', alt: '', layout: 'inset' },
+    { id: 'm1', type: 'map', stop: 'rey', scope: 'stop' },
+    { id: 'p1', type: 'pair', stop: 's2', images: [{ src: 'a', alt: '' }, { src: 'b', alt: '' }] },
+  ],
+};
+
+test('老游记：站点变成二级标题（站名上标着地点），块按站点顺序，沿用段落 id', () => {
+  assert.equal(isLegacyTravel(legacy), true);
+  const d = fromLegacyTravel(legacy);
+  assert.equal(d.kind, undefined);
+  assert.equal(d.stops, undefined);
+  assert.equal(d.map, true);
+  assert.deepEqual(d.reading, legacy.reading);
+  assert.deepEqual(d.facts, legacy.facts);
+  assert.deepEqual(d.blocks.map((b: any) => b.id), ['h-rey', 't1p1', 't1p2', 't1p3', 's1', 'm1', 'h-s2', 'p1']);
+  assert.deepEqual(d.blocks[0], { id: 'h-rey', type: 'h', level: 2, text: [{ t: '雷克雅未克', marks: [place([-21.9, 64.1], { en: 'Reykjavík', date: '06.20' })] }] });
+  // 竖排和位置抄到每个块上；代码没有竖排设置
+  assert.deepEqual(d.blocks[1], { id: 't1p1', type: 'p', text: '一', writing: 'v', y: 0.3 });
+  assert.deepEqual(d.blocks[2], { id: 't1p2', type: 'quote', text: '引', cite: '谁', writing: 'v', y: 0.3 });
+  assert.deepEqual(d.blocks[3], { id: 't1p3', type: 'code', code: 'x', y: 0.3 });
+  assert.deepEqual(d.blocks[4], { id: 's1', type: 'image', src: 'a.jpg', alt: '', layout: 'inline' });
+  assert.deepEqual(d.blocks[5], { id: 'm1', type: 'map', scope: 'near' });
+  // 没填经纬度的站只有标题；双图原样（去掉 stop）
+  assert.deepEqual(d.blocks[6].text, [{ t: '起点' }]);
+  assert.equal('stop' in d.blocks[7], false);
+  assert.deepEqual(fromLegacyTravel(legacy), d); // 每次转换结果一样
+  assert.equal(usesFlow(d), true);
+});
+
+test('老游记：没写读法就是三种都允许；不属于任何站点的块留在最后', () => {
+  const { reading: _r, ...noReading } = legacy;
+  const d = fromLegacyTravel({ ...noReading, blocks: [...legacy.blocks, { id: 'x1', type: 'single', stop: 'gone', src: 'z.jpg', alt: '' }] });
+  assert.deepEqual(d.reading.allowed, ['v', 'h', 'mix']);
+  assert.equal(d.blocks.at(-1).id, 'x1');
+});

@@ -12,7 +12,7 @@ import { locate, contextOf, type Anchor } from '../lib/anchor-text.ts';
 import { moriConfig, listComments, sendComment, mountTurnstile, remember, type MoriComment } from './cmt-api.ts';
 
 /** 能划词的块：普通文章的段落 / 标题 / 引用，游记的文字块里的段落 */
-const SELECTABLE = '.prose p[data-b], .prose h2[data-b], .prose h3[data-b], .prose blockquote[data-b], .b-text p[data-b]';
+const SELECTABLE = '.prose p[data-b], .prose h2[data-b], .prose h3[data-b], .prose blockquote[data-b], .b-text p[data-b], .b-text h2[data-b], .b-text h3[data-b], .b-text blockquote[data-b]';
 const MAX_QUOTE = 600;
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -83,7 +83,7 @@ function resolve(block: Element, c: Pick<MoriComment, 'start' | 'end' | 'quote' 
 
 /* ───────────── 从评论区回到正文 ───────────── */
 
-/** 让块出现在屏幕中间：游记横向读法由 travel.ts 接手（换算成竖向滚动距离），其余用原生滚动 */
+/** 让块出现在屏幕中间：长卷的横向读法由 travel.ts 接手（换算成竖向滚动距离），其余用原生滚动 */
 function reveal(el: Element) {
   const ev = new CustomEvent('mori:reveal', { detail: { el, handled: false } });
   document.dispatchEvent(ev);
