@@ -83,7 +83,7 @@ export function parseCoordinate(text, reference) {
   if (m) return null;
   m = /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/.exec(s) ?? /@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/.exec(s);
   if (m && /^https?:/.test(s) && inRange(+m[1], +m[2])) return [+m[2], +m[1]];
-  const code = /^([0-9A-Za-z]{2,8}\+[0-9A-Za-z]*)(?:[\s,，].*)?$/.exec(s)?.[1];
+  const code = /(?:^|[\s:：])([0-9A-Za-z]{2,8}\+[0-9A-Za-z]*)(?=$|[\s,，])/.exec(s)?.[1]; // 前面可以带“Plus Code:”之类，后面可以跟城市名
   if (code) {
     const p = decode(code) ?? recover(code, reference && reference.length === 2 ? reference : undefined);
     if (p) return [+p.lng.toFixed(7), +p.lat.toFixed(7)];
