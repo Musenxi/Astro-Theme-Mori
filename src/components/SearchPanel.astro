@@ -7,14 +7,14 @@ import { t } from '../lib/i18n.ts';
 <dialog class="srch-panel fixed inset-0 m-0 h-full max-h-none w-full max-w-none border-0 bg-transparent p-0 text-foreground outline-none backdrop:bg-transparent" id="srch-panel" aria-label={t('search.title')}>
   <svg class="absolute" width="0" height="0" aria-hidden="true"><defs data-defs></defs></svg>
   <div class="absolute inset-0" data-close></div>
-  <div class="relative mx-auto mt-[clamp(64px,12vh,128px)] flex max-h-[calc(100svh-clamp(64px,12vh,128px)-24px)] w-[min(600px,calc(100vw-32px))] flex-col gap-2.5 [transition:opacity_.3s,transform_.5s_cubic-bezier(.34,1.45,.5,1)] starting:opacity-0 starting:[transform:translateY(-6px)_scale(.96)]">
-    <label class="lg lg-srch flex h-[52px] flex-none items-center gap-3 px-5" data-cap>
+  <div class="relative mx-auto mt-[clamp(64px,12vh,128px)] flex max-h-[calc(100svh-clamp(64px,12vh,128px)-24px)] w-[min(600px,calc(100vw-32px))] flex-col gap-2.5 [transition:transform_.5s_cubic-bezier(.34,1.45,.5,1)] starting:[transform:translateY(-6px)_scale(.96)]">
+    <label class="lg lg-srch flex h-[52px] flex-none items-center gap-3 px-5 [transition:opacity_.3s,background-color_.4s,box-shadow_.4s] starting:opacity-0" data-cap>
       <svg class="relative size-[18px] flex-none text-(--lg-fg)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m15.5 15.5 5 5"></path></svg>
       <span class="sr-only">{t('search.title')}</span>
       <input class="relative min-w-0 flex-1 appearance-none border-0 bg-transparent text-body leading-[1.5] tracking-[.05em] text-inherit [font-family:inherit] [outline:0] placeholder:text-(--lg-fg) [&::-webkit-search-cancel-button]:hidden" data-q type="search" placeholder={t('search.title')} autocomplete="off" />
       <span class="meta relative" data-note></span>
     </label>
-    <div class="lg lg-panel flex min-h-0 flex-col [&:not(:has(li))]:hidden" data-res>
+    <div class="lg lg-panel flex min-h-0 flex-col [transition:opacity_.3s,background-color_.4s,box-shadow_.4s] starting:opacity-0 [&:not(:has(li))]:hidden" data-res>
       <ol class="relative min-h-0 overflow-y-auto overscroll-contain px-6" data-list></ol>
     </div>
   </div>
