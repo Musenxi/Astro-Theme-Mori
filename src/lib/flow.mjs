@@ -164,6 +164,8 @@ export function arcBetween(a, b, bow = 0.16, n = 28) {
   const dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy) || 1;
   const nx = -dy / len, ny = dx / len;
   return Array.from({ length: n + 1 }, (_, i) => {
+    if (i === 0) return [a[0], a[1]];
+    if (i === n) return [b[0], b[1]];
     const t = i / n, lift = Math.sin(Math.PI * t) * len * bow;
     return [a[0] + dx * t + nx * lift, a[1] + dy * t + ny * lift];
   });
