@@ -177,7 +177,7 @@ function MapGroup({ doc, set, edit }: { doc: Doc; set: (patch: Doc) => void; edi
 
 /** 正文里标出的地点，按出现顺序。地名是标住的那几个字，在 Markdown 里改；这里改坐标、英文名、日期 */
 function PlaceList({ doc, edit }: { doc: Doc; edit: (fn: (d: Doc) => Doc) => void }) {
-  const places = placesOf(doc.blocks ?? []) as Array<{ n: number; label: string; lnglat: [number, number]; en?: string; date?: string }>;
+  const places = placesOf(doc.blocks ?? []) as Array<{ n: number; label: string; lnglat: [number, number]; en?: string; date?: string; region?: 'new' | 'same' }>;
   if (!places.length) return <p className="text-12 text-muted-foreground">还没有地点。</p>;
   return (
     <div className="space-y-3">

@@ -18,12 +18,16 @@ interface Props {
   /** block 用：route 全程，stop 只看某个地点附近 */
   scope?: 'route' | 'stop';
   stopId?: string;
+  /** 取景范围的最小度数：区域地图放得比全程图大（默认 3） */
+  minSpan?: number;
+  /** 左下角小地图的视图名（区域 r0 / 过渡图 t1…），脚本按它切换 */
+  view?: string;
 }
-const { variant, stops, track, scope = 'route', stopId } = Astro.props;
+const { variant, stops, track, scope = 'route', stopId, minSpan, view } = Astro.props;
 
 const own = variant === 'block' && scope === 'stop'; // 只看一处：取景不同
 const list = own ? stops.filter((s) => s.id === stopId) : stops;
-const m = await buildMap(list, own ? undefined : track, own ? { minSpan: 4 } : {});
+const m = await buildMap(list, own ? undefined : track, own ? { minSpan: 4 } : minSpan ? { minSpan } : {});
 const mini = variant === 'mini';
 const full = !mini;
 // 陆地、比例尺文字、站点圆点的样式：SVG 里的元素也用工具类
@@ -33,7 +37,7 @@ const dot = 'stroke-primary stroke-2 [vector-effect:non-scaling-stroke]';
 const label = t('map.route', { list: stops.map((s) => s.name).join(lang === 'en' ? ', ' : '、') });
 ---
 
-<svg class:list={['map block h-auto', mini ? 'w-[60px] flex-none overflow-hidden rounded-[8px]' : 'w-full overflow-visible']} viewBox={`0 0 ${W} ${H}`} data-map={variant} data-stops={mini ? JSON.stringify(m.stops.map((s) => ({ x: s.x, y: s.y }))) : undefined} role="img" aria-label={label}>
+<svg class:list={['map h-auto', view ? 'mini-v' : 'block', mini ? 'w-[60px] flex-none overflow-hidden rounded-[8px]' : 'w-full overflow-visible']} viewBox={`0 0 ${W} ${H}`} data-map={variant} data-stops={mini ? JSON.stringify(m.stops.map((s) => ({ x: s.x, y: s.y }))) : undefined} data-view={view} role="img" aria-label={label}>
   <path class={land} d={m.land} />
   {full && m.parallels.map((p) => (
     <>

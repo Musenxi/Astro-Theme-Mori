@@ -100,3 +100,24 @@ test('不写地名的地点：整列都是它时只当锚点，混在文字里�
   assert.deepEqual(cols.map((c: any) => (c.kind === 'text' ? `${c.blocks.map((b: any) => b.id).join('')}${c.anchor ? '*' : ''}` : c.block.id)), ['a*', 'i', 'cd']);
   assert.equal(placeName(placesOf([only])[0]), 'Spot');
 });
+
+test('地图分区：相邻的地点一个区域，隔得远另起一区；作者可以强制另起或接上；区域之间有过渡图', async () => {
+  const { regionsOf } = await import('../src/lib/flow.mjs');
+  const P = (lng: number, lat: number, extra = {}) => ({ lnglat: [lng, lat], ...extra });
+  const ps = [P(135.76, 35.01), P(135.5, 34.69), P(139.7, 35.68), P(139.65, 35.64), P(139.8, 35.71, { region: 'new' }), P(139.9, 35.7, { region: 'same' })].map((p, n) => ({ n, ...p }));
+  const r = regionsOf(ps as any);
+  assert.deepEqual(r.regions.map((x: any) => x.places), [[0, 1], [2, 3], [4, 5]]);
+  assert.deepEqual(r.viewOf, ['r0', 'r0', 't1', 'r1', 't2', 'r2']);
+  assert.deepEqual(r.views.find((v: any) => v.key === 't1').places, [1, 2]);
+  // same 能把隔得很远的接在一起；一个区域铺得太大也会自动分
+  assert.equal(regionsOf([P(0, 0), P(60, 0, { region: 'same' })].map((p, n) => ({ n, ...p })) as any).regions.length, 1);
+  assert.equal(regionsOf([P(0, 0), P(1, 0), P(2, 0), P(3, 0), P(4, 0)].map((p, n) => ({ n, ...p })) as any).regions.length > 1, true);
+});
+
+test('地点地址带分区标记', async () => {
+  const { placeHref: pinHref, parsePlaceHref: parsePinHref } = await import('../src/lib/flow.mjs');
+  const m = place([139.7, 35.68], { region: 'new' });
+  assert.equal(pinHref(m), 'geo:35.68,139.7?region=new');
+  assert.deepEqual(parsePinHref('geo:35.68,139.7?region=new'), m);
+  assert.equal('region' in (parsePinHref('geo:35.68,139.7?region=bogus') as object), false);
+});

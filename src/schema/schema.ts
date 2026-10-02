@@ -29,6 +29,8 @@ export const markSchema = z.discriminatedUnion('type', [
     en: z.string().optional(),
     /** 到达日期，只用于显示 */
     date: z.string().optional(),
+    /** 地图分区：new 从这里另起一个区域，same 接着上一处（不管多远）；不写就按远近自动分 */
+    region: z.enum(['new', 'same']).optional(),
   }),
   /** 旁注：宽屏放右栏，窄屏内联 */
   z.object({ type: z.literal('note'), ref: id }),
@@ -188,8 +190,8 @@ export const postBlocks = (image: ImageFn) =>
       ),
       ...place,
     }),
-    /** 地图：route 全程路线，near 只看当前读到的地点附近 */
-    z.object({ id, type: z.literal('map'), scope: z.enum(['route', 'near']).default('route'), ...place }),
+    /** 地图：region 当前读到的地点所在的区域（默认），route 全程路线，near 只看当前读到的地点附近 */
+    z.object({ id, type: z.literal('map'), scope: z.enum(['region', 'route', 'near']).default('region'), ...place }),
   ]);
 
 export const postSchema = ({ image }: SchemaContext) =>

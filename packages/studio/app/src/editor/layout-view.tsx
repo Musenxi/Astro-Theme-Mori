@@ -186,7 +186,7 @@ export function LayoutView({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) =>
         <span className="ml-auto flex items-center gap-0.5">
           <Segmented size="sm" className="mr-1.5" value={zoom} onValueChange={setZoom} options={[{ value: 's', label: '小' }, { value: 'm', label: '中' }, { value: 'l', label: '大' }]} />
           <ToolBtn label="插入图片" onClick={() => setLib(true)}><ImagePlus size={15} /></ToolBtn>
-          <ToolBtn label="插入地图" onClick={() => insert({ type: 'map', scope: 'route' })}><MapIcon size={15} /></ToolBtn>
+          <ToolBtn label="插入地图" onClick={() => insert({ type: 'map', scope: 'region' })}><MapIcon size={15} /></ToolBtn>
           <span className="mx-1 h-4 w-px bg-border-strong" />
           <ToolBtn label="撤销　⌘Z" disabled={!past.current.length} onClick={undo}><Undo2 size={15} /></ToolBtn>
           <ToolBtn label="重做　⇧⌘Z" disabled={!future.current.length} onClick={redo}><Redo2 size={15} /></ToolBtn>
@@ -261,7 +261,7 @@ function BlockBar({ b, doc, commit, place, patch, onDetail, onRemove }: { b: Doc
         <Segmented size="sm" value={b.type} onValueChange={(t) => commit(ops.setLayout(doc, b.key, t))} options={layouts.map((t) => ({ value: t, label: NAMES[t] }))} />
       )}
       {text && <Segmented size="sm" value={b.writing === 'v' ? 'v' : 'h'} onValueChange={(v) => place({ writing: v === 'v' ? 'v' : undefined })} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />}
-      {b.type === 'map' && <Segmented size="sm" value={b.scope === 'near' ? 'near' : 'route'} onValueChange={(v) => patch({ scope: v })} options={[{ value: 'route', label: '全程路线' }, { value: 'near', label: '只看这一处' }]} />}
+      {b.type === 'map' && <Segmented size="sm" value={b.scope ?? 'region'} onValueChange={(v) => patch({ scope: v })} options={[{ value: 'region', label: '所在区域' }, { value: 'route', label: '全程' }, { value: 'near', label: '这一处' }]} />}
       {ops.canMergeNext(doc, b.key) && <Button size="sm" variant="ghost" onClick={() => commit(ops.mergeWithNext(doc, b.key))}><Merge size={14} />和后一块合并</Button>}
       {ops.isImageBlock(b) && b.type !== 'image' && <Button size="sm" variant="ghost" onClick={() => commit(ops.split(doc, b.key))}><Split size={14} />拆成单图</Button>}
       <span className="mono px-1 text-11 text-muted-foreground">↕ {Math.round((b.y ?? 0.5) * 100)}%{b.type !== 'map' && ` · ${Math.round((b.scale ?? 1) * 100)}%`}</span>
@@ -490,7 +490,7 @@ function MiniMap({ places, here, w, h, fs }: { places: PlaceInfo[]; here?: numbe
           {places.map((s) => { const [x, y] = P(s); const on = s.n === here; return <circle key={s.n} cx={x} cy={y} r={on ? 5 : 3} fill={on ? 'var(--foreground)' : 'var(--card)'} stroke="var(--soft-foreground)" strokeWidth={1.2} />; })}
         </svg>
       ) : <span className="absolute inset-0 grid place-items-center text-(length:--fs) text-muted-foreground" style={{ '--fs': px(fs * 0.8) }}>还没有地点</span>}
-      <span className="mono absolute left-3 top-2 text-(length:--fs) text-muted-foreground" style={{ '--fs': px(fs * 0.62) }}>地图 · {here !== undefined ? '这一处' : '全程'}</span>
+      <span className="mono absolute left-3 top-2 text-(length:--fs) text-muted-foreground" style={{ '--fs': px(fs * 0.62) }}>地图</span>
     </div>
   );
 }

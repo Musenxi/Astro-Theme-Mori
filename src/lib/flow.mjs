@@ -29,14 +29,14 @@ const unesc = (s) => { try { return decodeURIComponent(s); } catch { return s; }
 
 /** 地点标记 → `geo:纬度,经度?en=…&date=…`（geo URI，RFC 5870） */
 export function placeHref(m) {
-  const q = [m.en ? `en=${escHref(m.en)}` : '', m.date ? `date=${escHref(m.date)}` : ''].filter(Boolean).join('&');
+  const q = [m.en ? `en=${escHref(m.en)}` : '', m.date ? `date=${escHref(m.date)}` : '', m.region ? `region=${m.region}` : ''].filter(Boolean).join('&');
   return `geo:${num(m.lnglat[1])},${num(m.lnglat[0])}${q ? `?${q}` : ''}`;
 }
 
 /**
  * `geo:…` → 地点标记；不是地点就返回 null
  * @param {string | undefined} href
- * @returns {{ type: 'place', lnglat: [number, number], en?: string, date?: string } | null}
+ * @returns {{ type: 'place', lnglat: [number, number], en?: string, date?: string, region?: 'new' | 'same' } | null}
  */
 export function parsePlaceHref(href) {
   const m = /^geo:(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)(?:\?(.*))?$/.exec(href ?? '');
@@ -44,7 +44,7 @@ export function parsePlaceHref(href) {
   const lat = +m[1], lng = +m[2];
   if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
   const q = Object.fromEntries((m[3] ?? '').split('&').filter(Boolean).map((kv) => { const i = kv.indexOf('='); return i < 0 ? [kv, ''] : [kv.slice(0, i), unesc(kv.slice(i + 1))]; }));
-  return { type: 'place', lnglat: [lng, lat], ...(q.en ? { en: q.en } : {}), ...(q.date ? { date: q.date } : {}) };
+  return { type: 'place', lnglat: [lng, lat], ...(q.en ? { en: q.en } : {}), ...(q.date ? { date: q.date } : {}), ...(q.region === 'new' || q.region === 'same' ? { region: q.region } : {}) };
 }
 
 /* ───────────── 正文里的地点 ───────────── */
@@ -83,10 +83,61 @@ export function placesOf(blocks) {
   const out = [];
   for (const b of blocks ?? []) {
     for (const spans of inlineOf(b)) {
-      for (const { label, mark } of placesInSpans(spans)) out.push({ n: out.length, block: b.id, label, lnglat: mark.lnglat, ...(mark.en ? { en: mark.en } : {}), ...(mark.date ? { date: mark.date } : {}) });
+      for (const { label, mark } of placesInSpans(spans)) out.push({ n: out.length, block: b.id, label, lnglat: mark.lnglat, ...(mark.en ? { en: mark.en } : {}), ...(mark.date ? { date: mark.date } : {}), ...(mark.region ? { region: mark.region } : {}) });
     }
   }
   return out;
+}
+
+/* ───────────── 地图的区域 ───────────── */
+
+const RAD = Math.PI / 180;
+/** 两点之间的大圆距离（公里） */
+export function distanceKm(a, b) {
+  const dLat = (b[1] - a[1]) * RAD, dLng = (b[0] - a[0]) * RAD;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[1] * RAD) * Math.cos(b[1] * RAD) * Math.sin(dLng / 2) ** 2;
+  return 12742 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+/** 自动分区的两个界限：和上一处隔了多远、这一区一共铺开多大（度） */
+const AUTO_KM = 150, AUTO_SPAN = 3;
+
+/**
+ * 把按顺序的地点分成“区域”：相邻的地点同属一个小区域，左下角的地图和插入的地图块只画这一区。
+ * 自动：和上一处隔得远（>150 公里），或者这一区铺得太大（>3 度），就另起一区。
+ * 作者可以改：地点标记上 `region: 'new'` 从这里另起一区，`'same'` 接上一处（不管多远）。
+ * 区域之间的大转移用“过渡图”：上一区最后一处到这一区第一处，在读到这一区第一个地点时显示。
+ * @param {Array<{ n: number, lnglat: [number, number], region?: 'new' | 'same' }>} places
+ * @returns {{ regions: Array<{ k: number, places: number[] }>, regionOf: number[], views: Array<{ key: string, kind: 'region' | 'leg', places: number[] }>, viewOf: string[] }}
+ */
+export function regionsOf(places) {
+  const regions = [], regionOf = [];
+  let box = null;
+  places.forEach((p, i) => {
+    const [x, y] = p.lnglat;
+    let split = i === 0;
+    if (!split) {
+      const prev = places[i - 1];
+      if (p.region === 'new') split = true;
+      else if (p.region !== 'same') {
+        const nb = [Math.min(box[0], x), Math.max(box[1], x), Math.min(box[2], y), Math.max(box[3], y)];
+        const spanX = (nb[1] - nb[0]) * Math.cos(((nb[2] + nb[3]) / 2) * RAD), spanY = nb[3] - nb[2];
+        split = distanceKm(prev.lnglat, p.lnglat) > AUTO_KM || Math.max(spanX, spanY) > AUTO_SPAN;
+      }
+    }
+    if (split) { regions.push({ k: regions.length, places: [] }); box = [x, x, y, y]; }
+    else box = [Math.min(box[0], x), Math.max(box[1], x), Math.min(box[2], y), Math.max(box[3], y)];
+    regions.at(-1).places.push(i);
+    regionOf.push(regions.length - 1);
+  });
+  // 地图的“视图”：每个区域一张；区域之间再加一张过渡图（只含上一区最后一处和这一区第一处）
+  const views = [], viewOf = [];
+  for (const r of regions) {
+    if (r.k > 0) views.push({ key: `t${r.k}`, kind: 'leg', places: [regions[r.k - 1].places.at(-1), r.places[0]] });
+    views.push({ key: `r${r.k}`, kind: 'region', places: r.places });
+  }
+  places.forEach((_, i) => { const r = regions[regionOf[i]]; viewOf.push(r.k > 0 && r.places[0] === i ? `t${r.k}` : `r${r.k}`); });
+  return { regions, regionOf, views, viewOf };
 }
 
 /** 地点的名字：就是标记住的文字。去掉两端空白 */

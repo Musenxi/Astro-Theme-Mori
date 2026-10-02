@@ -67,7 +67,7 @@ export function LayoutBlockBody({ b, patch }: { b: Doc; patch: (p: Doc) => void 
         </>
       );
     case 'map':
-      return <OptionSelect value={b.scope ?? 'route'} onValueChange={(v) => patch({ scope: v })} options={[{ value: 'route', label: '全程路线' }, { value: 'near', label: '只看读到的地点附近' }]} />;
+      return <OptionSelect value={b.scope ?? 'region'} onValueChange={(v) => patch({ scope: v })} options={[{ value: 'region', label: '所在区域' }, { value: 'route', label: '全程路线' }, { value: 'near', label: '只看读到的地点附近' }]} />;
     case 'free':
       return <FreeCanvas b={b} patch={patch} />;
   }

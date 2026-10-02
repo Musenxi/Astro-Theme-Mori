@@ -36,7 +36,7 @@ export function mapPlaces(blocks, fn) {
 
 const markOf = (m, patch) => {
   const o = { ...m, ...patch };
-  for (const k of ['en', 'date']) if (!o[k]) delete o[k];
+  for (const k of ['en', 'date', 'region']) if (!o[k]) delete o[k];
   return o;
 };
 
@@ -44,7 +44,7 @@ const markOf = (m, patch) => {
  * 改第 n 个地点的坐标、英文名、日期（文字本身不动）
  * @param {any} doc
  * @param {number} n
- * @param {{ lnglat?: number[], en?: string, date?: string }} patch
+ * @param {{ lnglat?: number[], en?: string, date?: string, region?: string }} patch
  */
 export function editPlace(doc, n, patch) {
   return { ...doc, blocks: mapPlaces(doc.blocks, (i, m) => (i === n ? markOf(m, patch) : undefined)) };
@@ -58,7 +58,7 @@ export function removePlace(doc, n) {
 /**
  * 文末加一段只有地名的文字，标成地点
  * @param {any} doc
- * @param {{ name: string, lnglat: number[], en?: string, date?: string }} place
+ * @param {{ name: string, lnglat: number[], en?: string, date?: string, region?: string }} place
  */
 export function appendPlace(doc, { name, lnglat, en, date }) {
   const mark = markOf({ type: 'place', lnglat }, { en, date });
