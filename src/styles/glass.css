@@ -21,6 +21,8 @@
   box-shadow:inset 0 0 0 .5px var(--lg-rim-2),inset 1px 1px 1px -.5px var(--lg-lens-rim),inset -1px -1px 1px -.5px var(--lg-rim-2),0 2px 8px -3px var(--lg-drop);
   transition:transform .55s cubic-bezier(.34,1.45,.5,1),width .55s cubic-bezier(.34,1.45,.5,1),opacity .3s}
 .lg-lens.on{opacity:1}
+/* 竖排的选中透镜（长卷右下角的读法切换）：一格 30px，按 --i 往下挪 */
+.lg-lens-v{top:3px;bottom:auto;left:3px;width:30px;height:30px;opacity:1;transform:translateY(calc(var(--i,0)*30px))}
 .lg-lens.snap{transition:none}
 /* 悬浮搜索：胶囊和页头的一样（.lg），只是自己的折射滤镜；结果板是同一块玻璃做成圆角大板，磨砂和底色多一点，底下的正文才不抢字 */
 :root.lg-refract .lg-srch{-webkit-backdrop-filter:url(#lg-f-srch) blur(4px) saturate(1.7) brightness(1.05);backdrop-filter:url(#lg-f-srch) blur(4px) saturate(1.7) brightness(1.05)}

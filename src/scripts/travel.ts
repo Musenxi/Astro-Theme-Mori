@@ -8,6 +8,7 @@
  * 读到哪个地点：每一列带 data-place（第几个地点）；正文里的地点标记是 #place-<n>。
  */
 import { t } from './i18n.ts';
+import { lgFilter, lgSpec } from './lg.ts';
 type Mode = 'v' | 'h' | 'm';
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
@@ -225,6 +226,29 @@ function init() {
     snap = false;
     requestAnimationFrame(tick);
   }
+
+  // 右下角的读法切换和左下角的小地图是液态玻璃（和页头一样）：高光、折射贴图按实际尺寸画，尺寸变了（地名换了）就重画
+  const glassEls = [mc, loc].filter((x): x is HTMLElement => !!x);
+  const lgDefs = document.querySelector('#lg-defs-t');
+  let glassRaf = 0;
+  const glass = () => {
+    cancelAnimationFrame(glassRaf);
+    glassRaf = requestAnimationFrame(() => {
+      const refract = root.classList.contains('lg-refract');
+      let f = '';
+      glassEls.forEach((el, i) => {
+        const w = Math.round(el.offsetWidth), h = Math.round(el.offsetHeight);
+        if (!w || !h) return;
+        el.style.setProperty('--lg-spec', `url(${lgSpec(w, h)})`);
+        if (refract) { el.style.setProperty('--lg-f', `url(#lg-f-t${i}) blur(4px) saturate(1.7) brightness(1.05)`); f += lgFilter(`lg-f-t${i}`, el); }
+      });
+      if (refract && lgDefs) lgDefs.innerHTML = f;
+    });
+  };
+  const glassRo = new ResizeObserver(glass);
+  glassEls.forEach((el) => glassRo.observe(el));
+  glass();
+  document.fonts?.ready.then(glass);
 
   layout();
   document.fonts?.ready.then(() => { layout(); snap = true; });
