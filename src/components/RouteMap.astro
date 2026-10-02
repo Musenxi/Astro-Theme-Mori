@@ -1,8 +1,8 @@
 ---
 /**
  * 剪影地图：构建时算好几何，输出纯 SVG（spec §3.2）。地点是正文里标的 place。
- *  - hero：长卷封面里的大图，同时把陆地轮廓放进 <symbol id="map-land">，同页的其他地图直接引用
- *  - defs：封面不显示路线图时，只放这个 <symbol>，正文里的地图块和左下角的小地图照样有底图
+ * 每张地图自己画陆地，互不依赖（封面不显示路线图也不影响别的地图）：
+ *  - hero：长卷封面里的大图
  *  - block：正文里的地图块（route 全程 / stop 只看当前地点附近）
  *  - mini：左下角“当前位置”里的小地图，只有轮廓、路线和一个当前位置标记
  */
@@ -12,7 +12,7 @@ import { buildMap, W, H } from '../lib/map.ts';
 import { t, lang } from '../lib/i18n.ts';
 
 interface Props {
-  variant: 'hero' | 'block' | 'mini' | 'defs';
+  variant: 'hero' | 'block' | 'mini';
   stops: FlowPlace[];
   track?: PostData['track'];
   /** block 用：route 全程，stop 只看某个地点附近 */
@@ -21,7 +21,7 @@ interface Props {
 }
 const { variant, stops, track, scope = 'route', stopId } = Astro.props;
 
-const own = variant === 'block' && scope === 'stop'; // 只看一站：取景不同，陆地单独画
+const own = variant === 'block' && scope === 'stop'; // 只看一处：取景不同
 const list = own ? stops.filter((s) => s.id === stopId) : stops;
 const m = await buildMap(list, own ? undefined : track, own ? { minSpan: 4 } : {});
 const mini = variant === 'mini';
@@ -33,15 +33,8 @@ const dot = 'stroke-primary stroke-2 [vector-effect:non-scaling-stroke]';
 const label = t('map.route', { list: stops.map((s) => s.name).join(lang === 'en' ? ', ' : '、') });
 ---
 
-{
-  (variant === 'hero' || variant === 'defs') && (
-    <svg class="absolute" width="0" height="0" aria-hidden="true">
-      <symbol id="map-land" viewBox={`0 0 ${W} ${H}`}><path class={land} d={m.land} /></symbol>
-    </svg>
-  )
-}
-{variant !== 'defs' && <svg class:list={['map block h-auto overflow-visible', mini ? 'w-[60px] flex-none' : 'w-full']} viewBox={`0 0 ${W} ${H}`} data-map={variant} data-stops={mini ? JSON.stringify(m.stops.map((s) => ({ x: s.x, y: s.y }))) : undefined} role="img" aria-label={label}>
-  {own ? <path class={land} d={m.land} /> : <use href="#map-land" width={W} height={H} />}
+<svg class:list={['map block h-auto overflow-visible', mini ? 'w-[60px] flex-none' : 'w-full']} viewBox={`0 0 ${W} ${H}`} data-map={variant} data-stops={mini ? JSON.stringify(m.stops.map((s) => ({ x: s.x, y: s.y }))) : undefined} role="img" aria-label={label}>
+  <path class={land} d={m.land} />
   {full && m.parallels.map((p) => (
     <>
       <path d={p.d} fill="none" class="stroke-muted-foreground stroke-1 opacity-70 [stroke-dasharray:6_5] [vector-effect:non-scaling-stroke]" />
@@ -72,4 +65,4 @@ const label = t('map.route', { list: stops.map((s) => s.name).join(lang === 'en'
       ))}
     </>
   )}
-</svg>}
+</svg>

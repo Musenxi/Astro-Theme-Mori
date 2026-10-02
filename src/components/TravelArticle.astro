@@ -42,7 +42,6 @@ const { chars, minutes } = readingOf(d);
       </header>
     ) : (
       <div class="t-hero">
-        {d.map && flow.places.length > 0 && <RouteMap variant="defs" stops={flow.places} track={d.track} />}
         <PostHeader title={d.title} sub={d.subtitle || undefined} cover={d.cover} coverAlt={d.coverAlt} meta={[{ label: entry.category.zh, href: `/category/${entry.category.id}/` }, numDate(d.date), ...t('post.meta', { chars: chars.toLocaleString('en-US'), min: minutes }).split(' · ')]} />
       </div>
     )
