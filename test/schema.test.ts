@@ -64,3 +64,9 @@ test('页面：只要标题，其余有默认值；template 只能是 default / 
   assert.equal(validateEntry('page', { title: '?', template: 'weird' }).ok, false);
   assert.equal(validateEntry('page', { subtitle: 'no title' }).ok, false);
 });
+
+test('地图的三处显示可以分别关掉', () => {
+  const r = validateEntry('post', { ...post, map: true, mapView: { itinerary: false } });
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.equal(validateEntry('post', { ...post, map: true, mapView: { hero: 'no' } }).ok, false);
+});

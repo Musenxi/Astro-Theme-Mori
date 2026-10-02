@@ -19,7 +19,7 @@ const d = entry.data as PostData;
 // 内容里叫 v / h / mix，样式和脚本里混合读法叫 m
 const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | 'm';
 const initial = short(flow.reading.default);
-const mapped = d.map && flow.places.length > 0;
+const mapped = d.map && (d.mapView?.hero ?? true) && flow.places.length > 0;
 const { chars, minutes } = readingOf(d);
 ---
 

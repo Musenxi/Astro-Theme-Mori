@@ -134,14 +134,28 @@ function ReadingGroup({ doc, set }: { doc: Doc; set: (patch: Doc) => void }) {
   );
 }
 
+type MapPart = 'hero' | 'here' | 'itinerary';
+const MAP_PARTS: Array<[MapPart, string]> = [['hero', '封面路线图'], ['here', '左下角当前位置'], ['itinerary', '文末行程表']];
+
 /** 地图：开关。开了以后封面有路线图、左下角显示读到哪里、文末有行程表；地点在正文里标 */
 function MapGroup({ doc, set, edit }: { doc: Doc; set: (patch: Doc) => void; edit: (fn: (d: Doc) => Doc) => void }) {
   const facts: Array<{ label: string; value: string }> = doc.facts ?? [];
   const setFacts = (f: typeof facts) => set({ facts: f.length ? f : undefined });
+  const view: Record<MapPart, boolean> = { hero: true, here: true, itinerary: true, ...doc.mapView };
+  // 三项都显示就不写 mapView
+  const setView = (k: MapPart, on: boolean) => {
+    const next = { ...view, [k]: on };
+    set({ mapView: Object.values(next).every(Boolean) ? undefined : next });
+  };
   return (
     <Group title="地图" action={<SwitchField checked={!!doc.map} onCheckedChange={(v) => set({ map: v || undefined })} />}>
       {doc.map && (
         <>
+          <div className="mb-4 flex flex-wrap gap-x-4 gap-y-1.5">
+            {MAP_PARTS.map(([k, n]) => (
+              <label key={k} className="flex cursor-pointer items-center gap-1.5 text-13"><input type="checkbox" checked={view[k]} onChange={() => setView(k, !view[k])} className="accent-foreground" />{n}</label>
+            ))}
+          </div>
           <PlaceList doc={doc} edit={edit} />
           <div className="mt-5"><RouteData doc={doc} set={set} edit={edit} /></div>
           <h4 className="mb-1 mt-5 text-13 font-medium">事实</h4>

@@ -202,6 +202,8 @@ export const postSchema = ({ image }: SchemaContext) =>
       facts: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
       /** 地图：封面的路线图、左下角的当前位置、文末的行程表。地点在正文里标 */
       map: z.boolean().default(false),
+      /** 地图开着时显示哪几处：封面路线图、左下角当前位置、文末行程表；不写就都显示（正文里的地图块不受影响） */
+      mapView: z.object({ hero: z.boolean().default(true), here: z.boolean().default(true), itinerary: z.boolean().default(true) }).optional(),
       /** 路线的细节：[经度, 纬度] 点列（GPX 导入、照片 EXIF 生成的轨迹）。不写就按地点顺序连线 */
       track: z.array(z.tuple([z.number(), z.number()])).optional(),
       /** 读法（横滚）。不写就是普通的竖向文章；写了就能让读者在 竖向 / 横向 / 混合 之间选 */

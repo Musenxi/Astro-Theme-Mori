@@ -21,6 +21,7 @@ const { post, flow } = Astro.props;
 const { notes, facts, track } = post;
 const { places, columns } = flow;
 const map = post.map && places.length > 0;
+const itinerary = map && (post.mapView?.itinerary ?? true);
 
 // 长卷里旁注和脚注不分栏：都在文末列成“注”，编号统一
 const raw = numberNotes(post.blocks);
@@ -240,7 +241,7 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
 }
 
 {
-  map && (
+  itinerary && (
     <section class="t-end wrap g pt-[clamp(80px,10vw,140px)] pb-10">
       <h2 class="col-[1/3] border-t border-t-border pt-3.5 text-heading font-normal tracking-[.14em]">{t('travel.itinerary')}</h2>
       {/* 各地点共用一套列：坐标那一栏按最长的坐标定宽，名字栏每行一样宽 */}
