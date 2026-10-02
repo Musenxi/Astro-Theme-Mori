@@ -20,7 +20,7 @@ export interface MapResult {
   land: string;
   route: string;
   stops: Array<{ id: string; name: string; en?: string; x: number; y: number; /** 沿路线走了多远（0–1），进场动画按它排先后 */ t: number; label: { x: number; y: number; anchor: 'start' | 'end' } }>;
-  scale: { px: number; label: string };
+  scale: { px: number; label: string; /** 画面中心 1 个单位对应多少公里：小地图切换区域时按它算缩放倍数 */ kmPerPx: number };
   parallels: Array<{ d: string; label: string; y: number }>;
 }
 
@@ -153,7 +153,7 @@ async function compute(stops: Array<MapStop & { lnglat: LngLat }>, track: LngLat
     land: withoutClipRect(path(land as any) ?? ''),
     route: routeD,
     stops: stops.map((st, i) => ({ id: st.id, name: st.name, en: st.en, x: +stopXY[i][0].toFixed(1), y: +stopXY[i][1].toFixed(1), t: +along(stopXY[i]).toFixed(4), label: { x: +placed[i].x.toFixed(1), y: +placed[i].y.toFixed(1), anchor: placed[i].anchor } })),
-    scale: { px: +(nice / kmPerPx).toFixed(1), label: `${nice} KM` },
+    scale: { px: +(nice / kmPerPx).toFixed(1), label: `${nice} KM`, kmPerPx },
     parallels,
   };
 }

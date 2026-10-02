@@ -140,6 +140,35 @@ export function regionsOf(places) {
   return { regions, regionOf, views, viewOf };
 }
 
+/** 轨迹上离 p 最近的点的序号（从 from 往后找） */
+function nearestOnTrack(track, p, from = 0) {
+  let best = Infinity, at = from;
+  const k = Math.cos(p[1] * RAD);
+  for (let i = from; i < track.length; i++) {
+    const dx = (track[i][0] - p[0]) * k, dy = track[i][1] - p[1], d = dx * dx + dy * dy;
+    if (d < best) { best = d; at = i; }
+  }
+  return at;
+}
+
+/** 轨迹上从 a 走到 b 的那一段（两头接上 a、b 本身）；轨迹没有这一段（没给、两点对不上先后）返回 null */
+export function trackBetween(track, a, b) {
+  if (!track || track.length < 2) return null;
+  const i = nearestOnTrack(track, a), j = nearestOnTrack(track, b, i);
+  if (j <= i) return null;
+  return [a, ...track.slice(i + 1, j), b];
+}
+
+/** 没有轨迹的大转移：画一条弯弓形的弧（朝行进方向的左边鼓出去），一眼能看出是“去了那里”而不是一条精确的路 */
+export function arcBetween(a, b, bow = 0.16, n = 28) {
+  const dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy) || 1;
+  const nx = -dy / len, ny = dx / len;
+  return Array.from({ length: n + 1 }, (_, i) => {
+    const t = i / n, lift = Math.sin(Math.PI * t) * len * bow;
+    return [a[0] + dx * t + nx * lift, a[1] + dy * t + ny * lift];
+  });
+}
+
 /** 地点的名字：就是标记住的文字。去掉两端空白 */
 export const placeName = (p) => p.label.trim() || p.en || '';
 

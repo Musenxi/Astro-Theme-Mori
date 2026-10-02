@@ -181,12 +181,12 @@ function init() {
 
   // 左下角小地图：每个区域一张，区域之间有一张过渡图（见 flow.mjs 的 regionsOf）；读到哪个地点就显示哪一张，
   // 路线随阅读往前画，当前位置的标记移到当前读到的地点（地点在路线上走了多远，按最近的采样点量）
-  interface MiniView { el: SVGSVGElement; route: SVGPathElement | null; here: SVGGElement | null; xy: Array<{ x: number; y: number }>; places: number[]; len: number; at: number[] }
+  interface MiniView { el: SVGSVGElement; route: SVGPathElement | null; here: SVGGElement | null; xy: Array<{ x: number; y: number }>; places: number[]; len: number; at: number[]; ppk: number }
   const viewData: { of: string[]; places: Record<string, number[]> } = JSON.parse(loc?.dataset.views ?? '{"of":[],"places":{}}');
   const miniViews = new Map<string, MiniView>();
   for (const el of loc?.querySelectorAll<SVGSVGElement>('svg.mini-v') ?? []) {
     const key = el.dataset.view!;
-    miniViews.set(key, { el, route: el.querySelector('path.route-p'), here: el.querySelector('.here'), xy: JSON.parse(el.dataset.stops ?? '[]'), places: viewData.places[key] ?? [], len: 0, at: [] });
+    miniViews.set(key, { el, route: el.querySelector('path.route-p'), here: el.querySelector('.here'), xy: JSON.parse(el.dataset.stops ?? '[]'), places: viewData.places[key] ?? [], len: 0, at: [], ppk: Number(el.dataset.ppk) || 1 });
   }
   /** 第一次显示时才量路线（display:none 的 SVG 量不出长度） */
   function prepare(v: MiniView) {
@@ -204,6 +204,35 @@ function init() {
     v.route.style.strokeDasharray = String(v.len);
     v.route.style.strokeDashoffset = String(v.len);
   }
+  /**
+   * 切换小地图的视图时做一次缩放过渡：两张图共有的那个地点（区域和过渡图总是共用一个地点）在屏幕上不动，
+   * 旧图以它为中心放大（拉近）或缩小（拉远）并淡出，新图从相反的倍数缩放到原尺寸并淡入；倍数是两张图的比例尺之比。
+   * 两张图没有共同的地点（比如跳着滚）就只淡入淡出。
+   */
+  let anims: Animation[] = [];
+  function switchView(from: MiniView | null, to: MiniView) {
+    for (const a of anims) a.cancel();
+    anims = [];
+    for (const v of miniViews.values()) if (v !== to && v !== from) v.el.classList.remove('on');
+    to.el.classList.add('on');
+    if (!from || from === to || reduce || !to.el.animate) { if (from && from !== to) from.el.classList.remove('on'); return; }
+    const k = to.el.clientWidth / 1000; // 视图坐标 → 像素
+    const shared = from.places.find((n) => to.places.includes(n));
+    const pa = shared === undefined ? null : from.xy[from.places.indexOf(shared)], pb = shared === undefined ? null : to.xy[to.places.indexOf(shared)];
+    const opt: KeyframeAnimationOptions = { duration: 1000, easing: 'cubic-bezier(.45,0,.2,1)' };
+    if (!pa || !pb) {
+      anims = [from.el.animate([{ opacity: 1 }, { opacity: 0 }], opt), to.el.animate([{ opacity: 0 }, { opacity: 1 }], opt)];
+    } else {
+      const s = clamp(to.ppk / from.ppk, 1 / 40, 40);
+      const o = (p: { x: number; y: number }) => `${p.x * k}px ${p.y * k}px`;
+      const d = `translate(${(pb.x - pa.x) * k}px,${(pb.y - pa.y) * k}px)`;
+      anims = [
+        from.el.animate([{ opacity: 1, transformOrigin: o(pa), transform: `${d} scale(1)` }, { opacity: 0, transformOrigin: o(pa), transform: `${d} scale(${s})` }], { ...opt, easing: 'cubic-bezier(.45,0,.9,.5)' }),
+        to.el.animate([{ opacity: 0, transformOrigin: o(pb), transform: `scale(${1 / s})` }, { opacity: 1, transformOrigin: o(pb), transform: 'scale(1)' }], { ...opt, easing: 'cubic-bezier(.1,.5,.2,1)' }),
+      ];
+    }
+    anims[0].onfinish = () => { if (from !== lastView) from.el.classList.remove('on'); };
+  }
   let lastStop = -1, lastView: MiniView | null = null;
   function updateLoc() {
     if (!loc || !rbN || !rbName || !stops.length) return;
@@ -217,8 +246,8 @@ function init() {
     rbName.textContent = stops[i].name;
     const v = miniViews.get(viewData.of[i]);
     if (!v) return;
-    if (lastView !== v) { lastView?.el.classList.remove('on'); v.el.classList.add('on'); lastView = v; }
-    prepare(v);
+    if (lastView !== v) { switchView(lastView, v); lastView = v; }
+    prepare(v); // 要先显示出来才量得出路线长度
     const k = v.places.indexOf(i);
     if (v.route && k >= 0 && v.xy[k]) {
       v.route.style.strokeDashoffset = String(v.len - v.at[k]);

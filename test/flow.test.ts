@@ -121,3 +121,14 @@ test('地点地址带分区标记', async () => {
   assert.deepEqual(parsePinHref('geo:35.68,139.7?region=new'), m);
   assert.equal('region' in (parsePinHref('geo:35.68,139.7?region=bogus') as object), false);
 });
+
+test('过渡图的路线：有轨迹就取轨迹里这一段，没有就画一段弧（不是直线）', async () => {
+  const { trackBetween, arcBetween } = await import('../src/lib/flow.mjs');
+  const track = [[0, 0], [1, 0.2], [2, 0.1], [3, 1], [4, 1.2]];
+  assert.deepEqual(trackBetween(track, [0.9, 0.2], [3.1, 1]), [[0.9, 0.2], [2, 0.1], [3.1, 1]]);
+  assert.equal(trackBetween(track, [3, 1], [0, 0]), null); // 先后对不上
+  assert.equal(trackBetween(undefined, [0, 0], [1, 1]), null);
+  const arc = arcBetween([0, 0], [10, 0]);
+  assert.deepEqual([arc[0], arc.at(-1)], [[0, 0], [10, 0]]);
+  assert.ok(Math.max(...arc.map((p: number[]) => Math.abs(p[1]))) > 1); // 中间鼓出去
+});

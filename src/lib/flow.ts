@@ -3,7 +3,7 @@
  * 纯逻辑在 flow.mjs（Studio 也用），这里只加类型和站点渲染需要的几个字段。
  */
 import type { PostData, PostBlock } from '../schema/schema.ts';
-import { columns, placesOf, placeName, regionsOf } from './flow.mjs';
+import { columns, placesOf, placeName, regionsOf, trackBetween, arcBetween } from './flow.mjs';
 
 export type Reading = 'v' | 'h' | 'mix';
 
@@ -23,7 +23,7 @@ export interface FlowPlace {
 }
 
 /** 地图的一张视图：一个区域，或者两个区域之间的过渡图（上一区最后一处 → 这一区第一处） */
-export interface FlowView { key: string; kind: 'region' | 'leg'; places: number[] }
+export interface FlowView { key: string; kind: 'region' | 'leg'; places: number[]; /** 这张图上的路线：轨迹里对应的一段；过渡图没有轨迹时是一段弧；区域里没有轨迹就是 undefined（按地点连线） */ track?: Array<[number, number]> }
 
 export type FlowColumn =
   | { kind: 'text'; blocks: PostBlock[]; writing: 'h' | 'v'; y?: number; scale?: number; anchor?: boolean; place: number; places: number[] }
@@ -39,7 +39,7 @@ export interface Flow {
   reading: { default: Reading; allowed: Reading[]; direction: 'ltr' | 'rtl' };
 }
 
-export function flowOf(d: Pick<PostData, 'blocks' | 'reading'>): Flow {
+export function flowOf(d: Pick<PostData, 'blocks' | 'reading'> & { track?: PostData['track'] }): Flow {
   const raw = placesOf(d.blocks) as any[];
   const rg = regionsOf(raw);
   const places: FlowPlace[] = raw.map((p: any) => ({ n: p.n, id: `p${p.n + 1}`, name: placeName(p), en: p.en && p.en !== placeName(p) ? p.en : undefined, lnglat: p.lnglat, date: p.date, block: p.block, region: rg.regionOf[p.n] }));
@@ -54,5 +54,9 @@ export function flowOf(d: Pick<PostData, 'blocks' | 'reading'>): Flow {
   const r = d.reading;
   const allowed = (r?.allowed?.length ? r.allowed : ['v']) as Reading[];
   const def = (r?.default ?? 'v') as Reading;
-  return { places, regions: rg.regions, views: rg.views as FlowView[], viewOf: rg.viewOf, columns: cols, reading: { default: allowed.includes(def) ? def : allowed[0], allowed, direction: r?.direction ?? 'ltr' } };
+  return { places, regions: rg.regions, views: rg.views.map((v: any) => {
+    const at = (n: number) => places[n].lnglat;
+    const track = v.kind === 'leg' ? (trackBetween(d.track, at(v.places[0]), at(v.places[1])) ?? arcBetween(at(v.places[0]), at(v.places[1]))) : v.places.length > 1 ? trackBetween(d.track, at(v.places[0]), at(v.places.at(-1))) : null;
+    return { ...v, ...(track ? { track } : {}) } as FlowView;
+  }), viewOf: rg.viewOf, columns: cols, reading: { default: allowed.includes(def) ? def : allowed[0], allowed, direction: r?.direction ?? 'ltr' } };
 }
