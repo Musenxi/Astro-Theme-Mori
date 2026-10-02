@@ -132,3 +132,26 @@ figcaption,
 @media (max-width:760px){
   :root{--text-body:16px}
 }
+
+/* 文章页（普通文章和长卷）里的字号整体大一号：每级 ×1.125，正好是级数里相邻两级之比。
+   游记标题（display）不放大，大了会折行；地图里的文字是图的一部分，按原来的字号排（标签避让按它算的） */
+main:is([data-page="post"],[data-page="travel"]){
+  --text-meta:15.75px;
+  --text-aux:17.5px;
+  --text-body:19px;
+  --text-item:21.5px;
+  --text-heading:27px;
+  --text-chapter:31.5px;
+  --text-num:43px;
+  --text-lead:clamp(21px,2vw,28px);
+  --text-title:clamp(34px,4.3vw,56px);
+  --main-plus:calc(3 * 1.02 * var(--text-body));
+  font-size:var(--text-body);
+}
+main:is([data-page="post"],[data-page="travel"]) svg.map{
+  --text-aux:15.5px;
+  --text-heading:24px;
+}
+@media (max-width:760px){
+  main:is([data-page="post"],[data-page="travel"]){--text-body:18px}
+}

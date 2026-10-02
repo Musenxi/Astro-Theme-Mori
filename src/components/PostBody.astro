@@ -83,7 +83,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         }
         case 'code':
           return (
-            <pre class={`${main} mt-[.4em] mb-[1.6em] overflow-x-auto rounded-[6px] bg-muted px-[22px] py-[18px] text-soft-foreground [font:13px/1.8_var(--font-mono)]`} data-b={b.id} data-lang={b.lang}><code>{b.code}</code></pre>
+            <pre class={`${main} mt-[.4em] mb-[1.6em] overflow-x-auto rounded-[6px] bg-muted px-[22px] py-[18px] text-soft-foreground [font:calc(var(--text-body)*.8)/1.8_var(--font-mono)]`} data-b={b.id} data-lang={b.lang}><code>{b.code}</code></pre>
           );
       }
     })
