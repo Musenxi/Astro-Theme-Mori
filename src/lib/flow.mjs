@@ -106,9 +106,9 @@ const AUTO_KM = 150, AUTO_SPAN = 3;
  * 把按顺序的地点分成“区域”：相邻的地点同属一个小区域，左下角的地图和插入的地图块只画这一区。
  * 自动：和上一处隔得远（>150 公里），或者这一区铺得太大（>3 度），就另起一区。
  * 作者可以改：地点标记上 `region: 'new'` 从这里另起一区，`'same'` 接上一处（不管多远）。
- * 区域之间的大转移用“过渡图”：上一区最后一处到这一区第一处，在读到这一区第一个地点时显示。
+ * 区域之间的大转移不单独出图：左下角的小地图从这一区飞到下一区（见 travel.ts）。
  * @param {Array<{ n: number, lnglat: [number, number], region?: 'new' | 'same' }>} places
- * @returns {{ regions: Array<{ k: number, places: number[] }>, regionOf: number[], views: Array<{ key: string, kind: 'region' | 'leg', places: number[] }>, viewOf: string[] }}
+ * @returns {{ regions: Array<{ k: number, places: number[] }>, regionOf: number[] }}
  */
 export function regionsOf(places) {
   const regions = [], regionOf = [];
@@ -130,14 +130,7 @@ export function regionsOf(places) {
     regions.at(-1).places.push(i);
     regionOf.push(regions.length - 1);
   });
-  // 地图的“视图”：每个区域一张；区域之间再加一张过渡图（只含上一区最后一处和这一区第一处）
-  const views = [], viewOf = [];
-  for (const r of regions) {
-    if (r.k > 0) views.push({ key: `t${r.k}`, kind: 'leg', places: [regions[r.k - 1].places.at(-1), r.places[0]] });
-    views.push({ key: `r${r.k}`, kind: 'region', places: r.places });
-  }
-  places.forEach((_, i) => { const r = regions[regionOf[i]]; viewOf.push(r.k > 0 && r.places[0] === i ? `t${r.k}` : `r${r.k}`); });
-  return { regions, regionOf, views, viewOf };
+  return { regions, regionOf };
 }
 
 /** 轨迹上离 p 最近的点的序号（从 from 往后找） */
@@ -151,11 +144,14 @@ function nearestOnTrack(track, p, from = 0) {
   return at;
 }
 
-/** 轨迹上从 a 走到 b 的那一段（两头接上 a、b 本身）；轨迹没有这一段（没给、两点对不上先后）返回 null */
+/** 地点离轨迹多远以内算在轨迹上（公里） */
+const ON_TRACK_KM = 50;
+
+/** 轨迹上从 a 走到 b 的那一段（两头接上 a、b 本身）；轨迹没有这一段（没给、有一处不在轨迹上、两点对不上先后）返回 null */
 export function trackBetween(track, a, b) {
   if (!track || track.length < 2) return null;
   const i = nearestOnTrack(track, a), j = nearestOnTrack(track, b, i);
-  if (j <= i) return null;
+  if (j <= i || distanceKm(a, track[i]) > ON_TRACK_KM || distanceKm(b, track[j]) > ON_TRACK_KM) return null;
   return [a, ...track.slice(i + 1, j), b];
 }
 
@@ -169,6 +165,28 @@ export function arcBetween(a, b, bow = 0.16, n = 28) {
     const t = i / n, lift = Math.sin(Math.PI * t) * len * bow;
     return [a[0] + dx * t + nx * lift, a[1] + dy * t + ny * lift];
   });
+}
+
+/**
+ * 整趟行程的路线（一条折线），左下角小地图沿它往前画。相邻两处之间：轨迹里有这一段就用轨迹，
+ * 没有的话同一区里直接连，跨区的大转移画一段弧。
+ * @param {Array<{ lnglat: [number, number] }>} places
+ * @param {number[]} regionOf
+ * @param {Array<[number, number]> | undefined} track
+ * @returns {{ line: Array<[number, number]>, at: number[] }} at[地点序号] = 这个地点在折线里是第几个点
+ */
+export function tripOf(places, regionOf, track) {
+  const line = [], at = [];
+  places.forEach((p, i) => {
+    if (i === 0) line.push(p.lnglat);
+    else {
+      const a = places[i - 1].lnglat, b = p.lnglat;
+      const seg = trackBetween(track, a, b) ?? (regionOf[i] === regionOf[i - 1] ? [a, b] : arcBetween(a, b));
+      line.push(...seg.slice(1));
+    }
+    at.push(line.length - 1);
+  });
+  return { line, at };
 }
 
 /** 地点的名字：就是标记住的文字。去掉两端空白 */

@@ -9,6 +9,7 @@
  */
 import { t } from './i18n.ts';
 import { lgFilter, lgSpec } from './lg.ts';
+import { zoomPath, tileFit, type Cam } from '../lib/fly.ts';
 type Mode = 'v' | 'h' | 'm';
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
@@ -179,61 +180,70 @@ function init() {
   const hero = travel.querySelector('.t-hero')!, end = travel.querySelector('.t-end');
   const rbN = loc?.querySelector<HTMLElement>('#rb-n'), rbName = loc?.querySelector<HTMLElement>('#rb-name');
 
-  // 左下角小地图：每个区域一张，区域之间有一张过渡图（见 flow.mjs 的 regionsOf）；读到哪个地点就显示哪一张，
-  // 路线随阅读往前画，当前位置的标记移到当前读到的地点（地点在路线上走了多远，按最近的采样点量）
-  interface MiniView { el: SVGSVGElement; route: SVGPathElement | null; here: SVGGElement | null; xy: Array<{ x: number; y: number }>; places: number[]; len: number; at: number[]; ppk: number }
-  const viewData: { of: string[]; places: Record<string, number[]> } = JSON.parse(loc?.dataset.views ?? '{"of":[],"places":{}}');
-  const miniViews = new Map<string, MiniView>();
-  for (const el of loc?.querySelectorAll<SVGSVGElement>('svg.mini-v') ?? []) {
-    const key = el.dataset.view!;
-    miniViews.set(key, { el, route: el.querySelector('path.route-p'), here: el.querySelector('.here'), xy: JSON.parse(el.dataset.stops ?? '[]'), places: viewData.places[key] ?? [], len: 0, at: [], ppk: Number(el.dataset.ppk) || 1 });
-  }
-  /** 第一次显示时才量路线（display:none 的 SVG 量不出长度） */
-  function prepare(v: MiniView) {
-    if (v.len || !v.route) return;
-    v.len = v.route.getTotalLength();
-    const pts = Array.from({ length: 601 }, (_, i) => { const l = (v.len * i) / 600, p = v.route!.getPointAtLength(l); return [l, p.x, p.y] as const; });
-    let from = 0;
-    v.at = v.xy.map((s, k) => {
-      if (k === 0) return 0;
-      let best = Infinity, bl = 0, bi = from;
-      for (let i = from; i < pts.length; i++) { const d = (pts[i][1] - s.x) ** 2 + (pts[i][2] - s.y) ** 2; if (d < best) { best = d; bl = pts[i][0]; bi = i; } }
-      from = bi;
-      return bl;
+  // 左下角小地图（见 MiniMap.astro）：所有图层在同一个墨卡托坐标里，镜头停在当前地点所在的区域。
+  // 读到下一个地点时，当前位置的标记沿路线走过去、路线跟在后面画出来；换了区域，镜头就沿平滑缩放路径飞过去
+  // （fly.ts：先拉远、边移边飞、再拉近），陆地按镜头的远近在几层精度之间交接。飞到一半又换了地点，就从半路接着飞。
+  const mini = loc?.querySelector<SVGSVGElement>('svg[data-map="mini"]');
+  const cams: Cam[] = JSON.parse(mini?.dataset.cams ?? '[]');
+  const spots: Array<[number, number, number, number]> = JSON.parse(mini?.dataset.places ?? '[]'); // x、y、区域、沿路线走了多远
+  const total = Number(mini?.dataset.len ?? 0);
+  const camG = mini?.querySelector<SVGGElement>('.cam'), here = mini?.querySelector<SVGGElement>('.here');
+  const routeP = mini?.querySelector<SVGPathElement>('.route-p');
+  // 图层：细的在前（最后一层最粗，总是兜底）
+  const tileBox: Cam[] = JSON.parse(mini?.dataset.tiles ?? '[]');
+  const tiles = Array.from(mini?.querySelectorAll<SVGGElement>('.tile') ?? [], (el, n) => ({ el, cam: tileBox[n], o: -1 })).reverse();
+  let cam: Cam = cams[0] ?? [0, 0, 1], walked = 0, flight = 0;
+
+  function drawMini() {
+    if (!mini) return;
+    const [cx, cy, cw] = cam, z = 1000 / cw;
+    camG!.setAttribute('transform', `matrix(${z} 0 0 ${z} ${500 - cx * z} ${360 - cy * z})`);
+    mini.style.setProperty('--u', `${cw / (mini.clientWidth || 60)}px`); // 一个屏幕像素是多少全局单位：路线粗细不随缩放变
+    routeP?.style.setProperty('stroke-dashoffset', String(total - walked));
+    const p = routeP && walked > 0 ? routeP.getPointAtLength(walked) : { x: spots[0][0], y: spots[0][1] };
+    here!.setAttribute('transform', `translate(${500 + (p.x - cx) * z} ${360 + (p.y - cy) * z})`);
+    // 从细到粗依次分配：合用的细图层在上面；交接时两层都不透明（同色的陆地叠着看不出来），中途不会变淡
+    let rest = 1;
+    tiles.forEach((t, n) => {
+      const a = rest * (n === tiles.length - 1 ? 1 : tileFit(t.cam, cam, 0.72));
+      rest -= a;
+      const o = Math.round(Math.min(1, 2 * a) * 100) / 100;
+      if (o !== t.o) { t.o = o; t.el.style.opacity = String(o); t.el.style.display = o ? '' : 'none'; }
     });
-    v.route.style.strokeDasharray = String(v.len);
-    v.route.style.strokeDashoffset = String(v.len);
   }
-  /**
-   * 切换小地图的视图时做一次缩放过渡：两张图共有的那个地点（区域和过渡图总是共用一个地点）在屏幕上不动，
-   * 旧图以它为中心放大（拉近）或缩小（拉远）并淡出，新图从相反的倍数缩放到原尺寸并淡入；倍数是两张图的比例尺之比。
-   * 两张图没有共同的地点（比如跳着滚）就只淡入淡出。
-   */
-  let anims: Animation[] = [];
-  function switchView(from: MiniView | null, to: MiniView) {
-    for (const a of anims) a.cancel();
-    anims = [];
-    for (const v of miniViews.values()) if (v !== to && v !== from) v.el.classList.remove('on');
-    to.el.classList.add('on');
-    if (!from || from === to || reduce || !to.el.animate) { if (from && from !== to) from.el.classList.remove('on'); return; }
-    const k = to.el.clientWidth / 1000; // 视图坐标 → 像素
-    const shared = from.places.find((n) => to.places.includes(n));
-    const pa = shared === undefined ? null : from.xy[from.places.indexOf(shared)], pb = shared === undefined ? null : to.xy[to.places.indexOf(shared)];
-    const opt: KeyframeAnimationOptions = { duration: 1000, easing: 'cubic-bezier(.45,0,.2,1)' };
-    if (!pa || !pb) {
-      anims = [from.el.animate([{ opacity: 1 }, { opacity: 0 }], opt), to.el.animate([{ opacity: 0 }, { opacity: 1 }], opt)];
-    } else {
-      const s = clamp(to.ppk / from.ppk, 1 / 40, 40);
-      const o = (p: { x: number; y: number }) => `${p.x * k}px ${p.y * k}px`;
-      const d = `translate(${(pb.x - pa.x) * k}px,${(pb.y - pa.y) * k}px)`;
-      anims = [
-        from.el.animate([{ opacity: 1, transformOrigin: o(pa), transform: `${d} scale(1)` }, { opacity: 0, transformOrigin: o(pa), transform: `${d} scale(${s})` }], { ...opt, easing: 'cubic-bezier(.45,0,.9,.5)' }),
-        to.el.animate([{ opacity: 0, transformOrigin: o(pb), transform: `scale(${1 / s})` }, { opacity: 1, transformOrigin: o(pb), transform: 'scale(1)' }], { ...opt, easing: 'cubic-bezier(.1,.5,.2,1)' }),
-      ];
-    }
-    anims[0].onfinish = () => { if (from !== lastView) from.el.classList.remove('on'); };
+
+  const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+  /** 框住第 a 到第 b 个地点的镜头（跳着读、一次跨过好几区时，先拉远看一眼这一段） */
+  function overview(a: number, b: number): Cam {
+    const s = spots.slice(Math.min(a, b), Math.max(a, b) + 1), xs = s.map((p) => p[0]), ys = s.map((p) => p[1]);
+    const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+    return [(x0 + x1) / 2, (y0 + y1) / 2, (Math.max(x1 - x0, (y1 - y0) / 0.72) / 0.84) * 1.15];
   }
-  let lastStop = -1, lastView: MiniView | null = null;
+
+  /** 去第 i 个地点：同一区里只走路线，换区时镜头一起飞，标记沿路线走、离画面中间不远；路越远飞得越久，但不拖沓 */
+  function goTo(i: number, from: number) {
+    const spot = spots[i];
+    if (!mini || !spot) return;
+    cancelAnimationFrame(flight);
+    const to = cams[spot[2]], w0 = walked, w1 = spot[3];
+    if (from < 0 || reduce) { cam = to; walked = w1; drawMini(); return; }
+    // 中间跳过了别的区域：经过一个能看到这一整段的镜头
+    const skipped = spots.slice(Math.min(from, i) + 1, Math.max(from, i)).some((p) => p[2] !== spot[2] && p[2] !== spots[from][2]);
+    const legs = skipped ? [zoomPath(cam, overview(from, i)), zoomPath(overview(from, i), to)] : [zoomPath(cam, to)];
+    const S = legs.reduce((n, l) => n + l.S, 0), split = S ? legs[0].S / S : 0;
+    const ms = clamp(700 + S * 260, 900, 2400), t0 = performance.now();
+    const step = (time: number) => {
+      const t = Math.min(1, (time - t0) / ms);
+      cam = legs.length === 1 ? legs[0].at(ease(t)) : t < split ? legs[0].at(ease(t / split)) : legs[1].at(ease((t - split) / (1 - split)));
+      // 标记跟着镜头走；跳着读时等镜头拉远了再走这一整段，镜头拉近之前走完
+      walked = w0 + (w1 - w0) * (legs.length === 1 ? legs[0].pan(ease(t)) : ease(clamp((t - 0.6 * split) / (0.4 * split + 0.4 * (1 - split)), 0, 1)));
+      drawMini();
+      if (t < 1) flight = requestAnimationFrame(step);
+    };
+    flight = requestAnimationFrame(step);
+  }
+
+  let lastStop = -1;
   function updateLoc() {
     if (!loc || !rbN || !rbName || !stops.length) return;
     const hr = hero.getBoundingClientRect(), er = end?.getBoundingClientRect();
@@ -241,18 +251,10 @@ function init() {
     // 还没读到第一个地点时，当作在第一个地点
     const i = Math.min(stops.length - 1, Math.max(0, Number(current().dataset.place ?? 0)));
     if (i === lastStop) return;
+    goTo(i, lastStop);
     lastStop = i;
     rbN.textContent = `${pad(i + 1)} / ${pad(stops.length)}${stops[i].date ? ` · ${stops[i].date}` : ''}`;
     rbName.textContent = stops[i].name;
-    const v = miniViews.get(viewData.of[i]);
-    if (!v) return;
-    if (lastView !== v) { switchView(lastView, v); lastView = v; }
-    prepare(v); // 要先显示出来才量得出路线长度
-    const k = v.places.indexOf(i);
-    if (v.route && k >= 0 && v.xy[k]) {
-      v.route.style.strokeDashoffset = String(v.len - v.at[k]);
-      v.here!.style.transform = `translate(${v.xy[k].x}px,${v.xy[k].y}px)`;
-    }
   }
 
   function tick() {

@@ -7,8 +7,6 @@
 .place:is(h2 *,h3 *){color:inherit}
 .place:is(h2 *,h3 *)::before,.place:empty::before{display:none}
 /* 不写地名的地点：段落本身看不见（高度 0），整列都是它时只留一个零宽的锚点，抵掉块与块之间的间距 */
-.mini-v{position:absolute;inset:0;width:100%;height:100%;display:none}
-.mini-v.on{display:block}
 .place-only{height:0;margin:0!important;overflow:hidden}
 .b-text.anchor{height:0;pointer-events:none}
 .travel:not([data-mode="h"]) .b-text.anchor{margin-top:calc(-1*clamp(56px,9vw,128px))}

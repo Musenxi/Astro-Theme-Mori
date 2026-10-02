@@ -3,20 +3,18 @@
  * 长卷的两个角落控件（玻璃）：右下角读法切换（竖 / 横 / 混），左下角当前位置（开着地图、正文里标了地点才有）。
  * 读者选读法并被记住；作者只决定默认值和允许哪几种（reading.default / allowed）。
  */
-import type { FlowPlace, FlowView } from '../lib/flow.ts';
-import RouteMap from './RouteMap.astro';
+import type { Flow } from '../lib/flow.ts';
+import MiniMap from './MiniMap.astro';
 import { t } from '../lib/i18n.ts';
 import { coord } from '../lib/geo.ts';
 
 interface Props {
   allowed: Array<'v' | 'h' | 'm'>;
-  /** 正文里的地点（没开地图或没有地点就不给） */
-  stops?: FlowPlace[];
-  /** 小地图的视图（区域、区域之间的过渡图）和每个地点该显示哪一张 */
-  views?: FlowView[];
-  viewOf?: string[];
+  /** 正文里的地点、区域和路线（没开地图就不给） */
+  flow?: Pick<Flow, 'places' | 'regions' | 'trip'>;
 }
-const { allowed, stops = [], views = [], viewOf = [] } = Astro.props;
+const { allowed, flow } = Astro.props;
+const stops = flow?.places ?? [];
 const LABEL = { v: [t('travel.mode.v'), t('travel.modeLabel.v')], h: [t('travel.mode.h'), t('travel.modeLabel.h')], m: [t('travel.mode.m'), t('travel.modeLabel.m')] } as const;
 const stopData = stops.map((s) => ({ id: s.id, name: s.name || coord(s.lnglat), date: s.date ?? '' }));
 ---
@@ -32,9 +30,9 @@ const stopData = stops.map((s) => ({ id: s.id, name: s.name || coord(s.lnglat), 
   )
 }
 
-{stops.length > 0 && <div class="lg lg-btn fixed bottom-[18px] left-[18px] z-20 flex items-center gap-3 py-2 pr-5 pl-3.5 opacity-0 pointer-events-none [transform:translateY(12px)] [transition:transform_.6s_var(--ease-mori),opacity_.4s,background-color_.4s,box-shadow_.4s] narrow:bottom-3 narrow:left-3 [&.on]:pointer-events-auto [&.on]:opacity-100 [&.on]:[transform:none]" id="loc" data-stops={JSON.stringify(stopData)} data-views={JSON.stringify({ of: viewOf, places: Object.fromEntries(views.map((v) => [v.key, v.places])) })}>
+{stops.length > 0 && <div class="lg lg-btn fixed bottom-[18px] left-[18px] z-20 flex items-center gap-3 py-2 pr-5 pl-3.5 opacity-0 pointer-events-none [transform:translateY(12px)] [transition:transform_.6s_var(--ease-mori),opacity_.4s,background-color_.4s,box-shadow_.4s] narrow:bottom-3 narrow:left-3 [&.on]:pointer-events-auto [&.on]:opacity-100 [&.on]:[transform:none]" id="loc" data-stops={JSON.stringify(stopData)}>
   <div class="relative aspect-[1000/720] w-[60px] flex-none overflow-hidden rounded-[8px]">
-    {views.map((v) => <RouteMap variant="mini" view={v.key} stops={v.places.map((n) => stops[n])} track={v.track} minSpan={v.kind === 'leg' ? 1 : 0.4} />)}
+    <MiniMap flow={flow!} />
   </div>
   <div class="leading-[1.35] whitespace-nowrap">
     <span class="mono text-muted-foreground narrow:hidden" id="rb-n">01 / {String(stops.length).padStart(2, '0')}</span>

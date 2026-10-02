@@ -1,0 +1,72 @@
+---
+/**
+ * 左下角“当前位置”里的小地图。所有图层共用一个墨卡托坐标（见 map.ts 的 miniTile），镜头停在当前地点所在的区域，
+ * 换区域时由 travel.ts 把镜头飞过去（fly.ts）。镜头飞过的每一步都要有一层精度合适的陆地：构建时把相邻两区之间的
+ * 飞行路径走一遍，哪一步没有合用的图层就在那里补一层；最后加一层整趟行程的，跳着读（一次跨好几区）时兜底。
+ * 路线是整趟行程的一条线，随阅读往前画。
+ */
+import type { Flow } from '../lib/flow.ts';
+import { miniCam, miniTile, miniXY, W, H, type LngLat } from '../lib/map.ts';
+import { zoomPath, tileFit, type Cam } from '../lib/fly.ts';
+import { t, lang } from '../lib/i18n.ts';
+
+interface Props { flow: Pick<Flow, 'places' | 'regions' | 'trip'> }
+const { places, regions, trip } = Astro.props.flow;
+
+const cams = regions.map((r) => miniCam(r.line as LngLat[], 0.4));
+const boxes: Cam[] = [];
+// 合用：镜头在它范围里、不比它宽，它也不比镜头宽出四倍以上（不然精度不够）
+const fits = (b: Cam, c: Cam) => b[2] <= 4 * c[2] && tileFit(b, c, H / W) === 1;
+cams.forEach((c) => { if (!boxes.some((b) => fits(b, c))) boxes.push(c); });
+cams.slice(1).forEach((c, i) => {
+  const path = zoomPath(cams[i], c);
+  const steps = Array.from({ length: 63 }, (_, k) => path.at((k + 1) / 64));
+  steps.forEach((s, k) => {
+    if (boxes.some((b) => fits(b, s))) return;
+    // 补一层：在后面几步的位置、按几种宽度试，选能一直用到最后的那一层
+    let best: Cam = s, reach = -1;
+    for (const at of steps.slice(k, k + 16)) {
+      for (const m of [1, 1.5, 2, 3, 4]) {
+        const b: Cam = [at[0], at[1], s[2] * m];
+        if (!fits(b, s)) continue;
+        let j = k;
+        while (j + 1 < steps.length && fits(b, steps[j + 1])) j++;
+        if (j > reach) { reach = j; best = b; }
+      }
+    }
+    boxes.push(best);
+  });
+});
+if (regions.length > 1) boxes.push(miniCam(trip.line as LngLat[], 3));
+const tiles = (await Promise.all(boxes.map(miniTile))).sort((a, b) => b.cam[2] - a.cam[2]); // 粗的在下面
+
+// 整趟路线（全局坐标），每个地点沿路线走了多远
+const pts = trip.line.map((p) => miniXY(p as LngLat).map((v) => +v.toFixed(2)));
+const cum = [0];
+for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+const route = pts.length > 1 ? `M${pts.map((p) => p.join(',')).join('L')}` : '';
+const r2 = (v: number) => +v.toFixed(2);
+const len = r2(cum.at(-1)!);
+// 镜头：每个区域一个；地点：位置、所在区域、沿路线走了多远；图层：取景框，粗的在前（和 DOM 顺序一样）
+const camData = cams.map((c) => c.map(r2));
+const placeData = places.map((p, i) => [...pts[trip.at[i]], p.region, r2(cum[trip.at[i]])]);
+const tileData = tiles.map((c) => c.cam.map(r2));
+
+// 一开始：第一个地点所在区域
+const [cx, cy, cw] = camData[0], z = W / cw;
+const [px, py] = placeData[0];
+const land = 'fill-land stroke-land-edge stroke-1 transition-[fill] duration-400 [vector-effect:non-scaling-stroke]';
+const label = t('map.route', { list: places.map((s) => s.name).join(lang === 'en' ? ', ' : '、') });
+---
+
+<svg class="map block size-full" viewBox={`0 0 ${W} ${H}`} data-map="mini" data-cams={JSON.stringify(camData)} data-places={JSON.stringify(placeData)} data-tiles={JSON.stringify(tileData)} data-len={len} style={{ '--u': `${cw / 60}px` }} role="img" aria-label={label}>
+  <g class="cam" transform={`matrix(${z} 0 0 ${z} ${W / 2 - cx * z} ${H / 2 - cy * z})`}>
+    {tiles.map((c) => <g class="tile" transform={`matrix(${c.k} 0 0 ${c.k} ${c.x} ${c.y})`}><path class={land} d={c.land} /></g>)}
+    {route && <path d={route} fill="none" class="stroke-muted-foreground stroke-1 opacity-40 [stroke-linejoin:round] [vector-effect:non-scaling-stroke]" />}
+    {route && <path d={route} fill="none" class="route-p stroke-primary [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:calc(var(--u)*1.5)]" style={{ strokeDasharray: len, strokeDashoffset: len }} />}
+  </g>
+  <g class="here" transform={`translate(${W / 2 + (px - cx) * z} ${H / 2 + (py - cy) * z})`}>
+    <circle cx="0" cy="0" r="120" fill="var(--primary)" opacity=".12" />
+    <circle cx="0" cy="0" r="52" class="dot fill-primary stroke-primary stroke-2 [vector-effect:non-scaling-stroke]" />
+  </g>
+</svg>

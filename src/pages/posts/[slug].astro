@@ -39,7 +39,7 @@ const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | '
       <TravelArticle entry={entry} flow={flow} />
       <Comments entry={`posts/${entry.id}`} />
       <EntryNav older={older} newer={newer} />
-      <TravelCorners allowed={flow.reading.allowed.map(short)} stops={d.map && (d.mapView?.here ?? true) ? flow.places : []} views={flow.views} viewOf={flow.viewOf} />
+      <TravelCorners allowed={flow.reading.allowed.map(short)} flow={d.map && (d.mapView?.here ?? true) && flow.places.length ? flow : undefined} />
     </main>
   ) : (
     <main data-page="post">

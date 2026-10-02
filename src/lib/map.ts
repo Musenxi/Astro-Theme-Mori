@@ -7,6 +7,7 @@ import { line, curveCatmullRom } from 'd3-shape';
 import { feature } from 'topojson-client';
 import type { Topology } from 'topojson-specification';
 import { t } from './i18n.ts';
+import type { Cam } from './fly.ts';
 
 export const W = 1000, H = 720;
 export type LngLat = [number, number];
@@ -20,7 +21,7 @@ export interface MapResult {
   land: string;
   route: string;
   stops: Array<{ id: string; name: string; en?: string; x: number; y: number; /** 沿路线走了多远（0–1），进场动画按它排先后 */ t: number; label: { x: number; y: number; anchor: 'start' | 'end' } }>;
-  scale: { px: number; label: string; /** 画面中心 1 个单位对应多少公里：小地图切换区域时按它算缩放倍数 */ kmPerPx: number };
+  scale: { px: number; label: string };
   parallels: Array<{ d: string; label: string; y: number }>;
 }
 
@@ -37,8 +38,8 @@ async function landTopology(res: '10m' | '50m' | '110m') {
  * d3 在 clipExtent 下，遇到覆盖整个画面的环会补一个和裁剪框一样大的矩形子路径，把海面也填成了陆地。
  * 陆地路径里凡是和裁剪框重合的矩形子路径都去掉。
  */
-function withoutClipRect(d: string) {
-  const rect = `M-60,-60L${W + 60},-60L${W + 60},${H + 60}L-60,${H + 60}Z`;
+function withoutClipRect(d: string, [[x0, y0], [x1, y1]] = [[-60, -60], [W + 60, H + 60]]) {
+  const rect = `M${x0},${y0}L${x1},${y0}L${x1},${y1}L${x0},${y1}Z`;
   return d.split(/(?=M)/).filter((sub) => sub !== rect).join('');
 }
 
@@ -52,6 +53,8 @@ const NICE_KM = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 
  * @param track    可选的轨迹点；不给就按站点顺序连线
  * @param minSpan  取景范围的最小度数（只有一个站点、或站点挤在一起时，不能无限放大）
  */
+const landRes = (span: number) => (span <= 12 ? '10m' : span <= 70 ? '50m' : '110m');
+
 async function compute(stops: Array<MapStop & { lnglat: LngLat }>, track: LngLat[] | undefined, { minSpan = 3, padX = 80, padY = 80 } = {}): Promise<MapResult> {
   const pts: LngLat[] = [...stops.map((s) => s.lnglat), ...(track ?? [])];
   let [w, e, s, n] = [Math.min(...pts.map((p) => p[0])), Math.max(...pts.map((p) => p[0])), Math.min(...pts.map((p) => p[1])), Math.max(...pts.map((p) => p[1]))];
@@ -86,8 +89,7 @@ async function compute(stops: Array<MapStop & { lnglat: LngLat }>, track: LngLat
   projection.fitExtent([[padX, padY], [W - padX, H - padY]], { type: 'Polygon', coordinates: [[...ring, ring[0]]] } as any);
   projection.clipExtent([[-60, -60], [W + 60, H + 60]]);
 
-  const res = span <= 12 ? '10m' : span <= 70 ? '50m' : '110m';
-  const topo = await landTopology(res);
+  const topo = await landTopology(landRes(span));
   const land = feature(topo, topo.objects.land as any);
   const path = geoPath(projection).digits(1);
 
@@ -153,7 +155,7 @@ async function compute(stops: Array<MapStop & { lnglat: LngLat }>, track: LngLat
     land: withoutClipRect(path(land as any) ?? ''),
     route: routeD,
     stops: stops.map((st, i) => ({ id: st.id, name: st.name, en: st.en, x: +stopXY[i][0].toFixed(1), y: +stopXY[i][1].toFixed(1), t: +along(stopXY[i]).toFixed(4), label: { x: +placed[i].x.toFixed(1), y: +placed[i].y.toFixed(1), anchor: placed[i].anchor } })),
-    scale: { px: +(nice / kmPerPx).toFixed(1), label: `${nice} KM`, kmPerPx },
+    scale: { px: +(nice / kmPerPx).toFixed(1), label: `${nice} KM` },
     parallels,
   };
 }
@@ -165,3 +167,74 @@ export function buildMap(stops: Array<MapStop & { lnglat: LngLat }>, track?: Lng
   if (!memo.has(key)) memo.set(key, compute(stops, track, opts));
   return memo.get(key)!;
 }
+
+/* ───────────── 左下角的小地图 ───────────── */
+
+/**
+ * 小地图的所有图层共用一个墨卡托坐标（“全局坐标”，整个世界宽 MINI_WORLD），图层之间只差缩放和平移：
+ * 镜头（中心、宽度，见 fly.ts）在全局坐标里移动、缩放，从一个区域连续地飞到另一个区域，陆地和路线始终对得上。
+ */
+export const MINI_WORLD = 100000;
+const G = MINI_WORLD / (2 * Math.PI);
+const mercator = geoMercator().scale(G).translate([0, 0]);
+/** 经纬度 → 全局坐标 */
+export const miniXY = (p: LngLat) => mercator([p[0], Math.max(-85, Math.min(85, p[1]))])!;
+
+/** 框住这些点的镜头：和别的地图一样四周留 80/1000 的边，至少 minSpan 度（按纬度量的实际距离）宽 */
+export function miniCam(pts: LngLat[], minSpan: number): Cam {
+  const xy = pts.map(miniXY);
+  const [x0, x1, y0, y1] = [Math.min(...xy.map((p) => p[0])), Math.max(...xy.map((p) => p[0])), Math.min(...xy.map((p) => p[1])), Math.max(...xy.map((p) => p[1]))];
+  const lat = mercator.invert!([0, (y0 + y1) / 2])![1];
+  const min = ((minSpan / 360) * MINI_WORLD) / Math.cos((lat * Math.PI) / 180); // 墨卡托越往高纬放得越大
+  const w = Math.max(x1 - x0, ((y1 - y0) * W) / H, min) / (1 - 160 / W);
+  return [(x0 + x1) / 2, (y0 + y1) / 2, w];
+}
+
+export interface MiniTile {
+  /** 取景框（全局坐标）：中心和宽度 */
+  cam: Cam;
+  /** 图层自己的坐标（0–W × 0–H 的画面）→ 全局坐标：transform="matrix(k 0 0 k x y)" */
+  k: number; x: number; y: number;
+  land: string;
+}
+
+/**
+ * 小地图只有 60px 宽：图层画面 1000 个单位，一个像素十几个单位。按 tol 个单位化简轮廓（Douglas–Peucker），
+ * 小到看不见的岛去掉；只处理 d3 输出的 M…L…Z 多边形。
+ */
+function simplifyLand(d: string, tol = 4) {
+  const out: string[] = [];
+  for (const sub of d.split('M').filter(Boolean)) {
+    const pts = sub.replace(/Z$/, '').split('L').map((q) => q.split(',').map(Number));
+    const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+    if (Math.max(...xs) - Math.min(...xs) < 2 * tol && Math.max(...ys) - Math.min(...ys) < 2 * tol) continue;
+    const keep = new Uint8Array(pts.length);
+    keep[0] = keep[pts.length - 1] = 1;
+    const stack: Array<[number, number]> = [[0, pts.length - 1]];
+    while (stack.length) {
+      const [a, b] = stack.pop()!;
+      const [ax, ay] = pts[a], [bx, by] = pts[b], dx = bx - ax, dy = by - ay, l = Math.hypot(dx, dy);
+      let far = 0, at = -1;
+      for (let i = a + 1; i < b; i++) {
+        const dist = l ? Math.abs(dy * pts[i][0] - dx * pts[i][1] + bx * ay - by * ax) / l : Math.hypot(pts[i][0] - ax, pts[i][1] - ay);
+        if (dist > far) { far = dist; at = i; }
+      }
+      if (far > tol) { keep[at] = 1; stack.push([a, at], [at, b]); }
+    }
+    const kept = pts.filter((_, i) => keep[i]);
+    if (kept.length >= 3) out.push(`M${kept.map((p) => p.join(',')).join('L')}Z`);
+  }
+  return out.join('');
+}
+
+/** 一层陆地：按镜头取景，精度按范围选；陆地画到取景框外一整圈（宽、高各三倍），镜头从这一层拉远一点时边上不会露出空白 */
+export async function miniTile(cam: Cam): Promise<MiniTile> {
+  const [cx, cy, w] = cam, k = w / W;
+  const clip: [[number, number], [number, number]] = [[-W, -H], [2 * W, 2 * H]];
+  // 图层坐标 = 全局坐标 / k + 平移，镜头中心落在画面中心
+  const projection = geoMercator().scale(G / k).translate([W / 2 - cx / k, H / 2 - cy / k]).clipExtent(clip);
+  const topo = await landTopology(landRes((w / MINI_WORLD) * 360 * 2));
+  const land = simplifyLand(withoutClipRect(geoPath(projection).digits(0)(feature(topo, topo.objects.land as any) as any) ?? '', clip));
+  return { cam, k, x: cx - W / 2 * k, y: cy - H / 2 * k, land };
+}
+

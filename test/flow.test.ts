@@ -101,14 +101,13 @@ test('不写地名的地点：整列都是它时只当锚点，混在文字里�
   assert.equal(placeName(placesOf([only])[0]), 'Spot');
 });
 
-test('地图分区：相邻的地点一个区域，隔得远另起一区；作者可以强制另起或接上；区域之间有过渡图', async () => {
+test('地图分区：相邻的地点一个区域，隔得远另起一区；作者可以强制另起或接上', async () => {
   const { regionsOf } = await import('../src/lib/flow.mjs');
   const P = (lng: number, lat: number, extra = {}) => ({ lnglat: [lng, lat], ...extra });
   const ps = [P(135.76, 35.01), P(135.5, 34.69), P(139.7, 35.68), P(139.65, 35.64), P(139.8, 35.71, { region: 'new' }), P(139.9, 35.7, { region: 'same' })].map((p, n) => ({ n, ...p }));
   const r = regionsOf(ps as any);
   assert.deepEqual(r.regions.map((x: any) => x.places), [[0, 1], [2, 3], [4, 5]]);
-  assert.deepEqual(r.viewOf, ['r0', 'r0', 't1', 'r1', 't2', 'r2']);
-  assert.deepEqual(r.views.find((v: any) => v.key === 't1').places, [1, 2]);
+  assert.deepEqual(r.regionOf, [0, 0, 1, 1, 2, 2]);
   // same 能把隔得很远的接在一起；一个区域铺得太大也会自动分
   assert.equal(regionsOf([P(0, 0), P(60, 0, { region: 'same' })].map((p, n) => ({ n, ...p })) as any).regions.length, 1);
   assert.equal(regionsOf([P(0, 0), P(1, 0), P(2, 0), P(3, 0), P(4, 0)].map((p, n) => ({ n, ...p })) as any).regions.length > 1, true);
@@ -122,13 +121,26 @@ test('地点地址带分区标记', async () => {
   assert.equal('region' in (parsePinHref('geo:35.68,139.7?region=bogus') as object), false);
 });
 
-test('过渡图的路线：有轨迹就取轨迹里这一段，没有就画一段弧（不是直线）', async () => {
+test('跨区的路线：有轨迹就取轨迹里这一段，没有就画一段弧（不是直线）', async () => {
   const { trackBetween, arcBetween } = await import('../src/lib/flow.mjs');
   const track = [[0, 0], [1, 0.2], [2, 0.1], [3, 1], [4, 1.2]];
   assert.deepEqual(trackBetween(track, [0.9, 0.2], [3.1, 1]), [[0.9, 0.2], [2, 0.1], [3.1, 1]]);
   assert.equal(trackBetween(track, [3, 1], [0, 0]), null); // 先后对不上
   assert.equal(trackBetween(undefined, [0, 0], [1, 1]), null);
+  assert.equal(trackBetween(track, [0, 0], [40, 30]), null); // 有一处不在轨迹上
   const arc = arcBetween([0, 0], [10, 0]);
   assert.deepEqual([arc[0], arc.at(-1)], [[0, 0], [10, 0]]);
   assert.ok(Math.max(...arc.map((p: number[]) => Math.abs(p[1]))) > 1); // 中间鼓出去
+});
+
+test('整趟路线：同一区里直接连，跨区画弧，有轨迹用轨迹；每个地点都在线上', async () => {
+  const { tripOf } = await import('../src/lib/flow.mjs');
+  const ps = [[0, 0], [0.5, 0], [10, 0], [12, 1]].map((lnglat) => ({ lnglat }));
+  const t = tripOf(ps as any, [0, 0, 1, 1], undefined);
+  assert.equal(t.at.length, 4);
+  ps.forEach((p, i) => assert.deepEqual(t.line[t.at[i]], p.lnglat));
+  assert.equal(t.at[1] - t.at[0], 1); // 同一区：一段直线
+  assert.ok(t.at[2] - t.at[1] > 10); // 跨区：一段弧
+  const withTrack = tripOf(ps as any, [0, 0, 1, 1], [[0, 0], [0.5, 0], [5, 3], [10, 0], [12, 1]]);
+  assert.deepEqual(withTrack.line.slice(withTrack.at[1], withTrack.at[2] + 1), [[0.5, 0], [5, 3], [10, 0]]);
 });

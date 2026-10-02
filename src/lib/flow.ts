@@ -3,7 +3,7 @@
  * 纯逻辑在 flow.mjs（Studio 也用），这里只加类型和站点渲染需要的几个字段。
  */
 import type { PostData, PostBlock } from '../schema/schema.ts';
-import { columns, placesOf, placeName, regionsOf, trackBetween, arcBetween } from './flow.mjs';
+import { columns, placesOf, placeName, regionsOf, tripOf } from './flow.mjs';
 
 export type Reading = 'v' | 'h' | 'mix';
 
@@ -22,8 +22,8 @@ export interface FlowPlace {
   region: number;
 }
 
-/** 地图的一张视图：一个区域，或者两个区域之间的过渡图（上一区最后一处 → 这一区第一处） */
-export interface FlowView { key: string; kind: 'region' | 'leg'; places: number[]; /** 这张图上的路线：轨迹里对应的一段；过渡图没有轨迹时是一段弧；区域里没有轨迹就是 undefined（按地点连线） */ track?: Array<[number, number]> }
+/** 地图的一个区域：挨在一起的几个地点 */
+export interface FlowRegion { k: number; places: number[]; /** 区域里的路线（整趟路线里对应的一段） */ line: Array<[number, number]> }
 
 export type FlowColumn =
   | { kind: 'text'; blocks: PostBlock[]; writing: 'h' | 'v'; y?: number; scale?: number; anchor?: boolean; place: number; places: number[] }
@@ -31,10 +31,9 @@ export type FlowColumn =
 
 export interface Flow {
   places: FlowPlace[];
-  regions: Array<{ k: number; places: number[] }>;
-  /** 左下角小地图的视图，和每个地点读到时该显示哪一张（viewOf[地点序号] = 视图的 key） */
-  views: FlowView[];
-  viewOf: string[];
+  regions: FlowRegion[];
+  /** 整趟路线（经纬度折线），at[地点序号] = 这个地点是折线的第几个点 */
+  trip: { line: Array<[number, number]>; at: number[] };
   columns: FlowColumn[];
   reading: { default: Reading; allowed: Reading[]; direction: 'ltr' | 'rtl' };
 }
@@ -54,9 +53,7 @@ export function flowOf(d: Pick<PostData, 'blocks' | 'reading'> & { track?: PostD
   const r = d.reading;
   const allowed = (r?.allowed?.length ? r.allowed : ['v']) as Reading[];
   const def = (r?.default ?? 'v') as Reading;
-  return { places, regions: rg.regions, views: rg.views.map((v: any) => {
-    const at = (n: number) => places[n].lnglat;
-    const track = v.kind === 'leg' ? (trackBetween(d.track, at(v.places[0]), at(v.places[1])) ?? arcBetween(at(v.places[0]), at(v.places[1]))) : v.places.length > 1 ? trackBetween(d.track, at(v.places[0]), at(v.places.at(-1))) : null;
-    return { ...v, ...(track ? { track } : {}) } as FlowView;
-  }), viewOf: rg.viewOf, columns: cols, reading: { default: allowed.includes(def) ? def : allowed[0], allowed, direction: r?.direction ?? 'ltr' } };
+  const trip = tripOf(raw, rg.regionOf, d.track);
+  const regions = rg.regions.map((g: { k: number; places: number[] }) => ({ ...g, line: trip.line.slice(trip.at[g.places[0]], trip.at[g.places.at(-1)!] + 1) }));
+  return { places, regions, trip, columns: cols, reading: { default: allowed.includes(def) ? def : allowed[0], allowed, direction: r?.direction ?? 'ltr' } };
 }
