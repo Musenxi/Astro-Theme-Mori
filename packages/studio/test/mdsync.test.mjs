@@ -71,169 +71,169 @@ test('旁注：没改的原样保留（裸字符串不变成数组），改过�
   assert.match(JSON.stringify(edited.notes.n1), /改过的旁注/);
 });
 
-/* ───────────── 游记：Markdown 里只有文字和图 ───────────── */
+/* ───────────── 长卷：Markdown 里只有标题、文字、地点和图 ───────────── */
+const place = (extra = {}) => ({ type: 'place', lnglat: [-21.9426, 64.1466], ...extra });
 const trip = () => ({
-  kind: 'travel', title: '环岛', date: '2025-06-30', category: 'journeys', excerpt: 'x',
-  stops: [
-    { id: 'rey', name: '雷克雅未克', en: 'Reykjavík', lnglat: [-21.9426, 64.1466], date: '06.20' },
-    { id: 'vik', name: '维克', lnglat: [-19.006, 63.4186] },
-  ],
+  title: '环岛', date: '2025-06-30', category: 'journeys', excerpt: 'x', map: true,
+  reading: { default: 'h', allowed: ['v', 'h'], direction: 'ltr' },
   notes: { n1: { text: [{ t: '旁注' }] } },
   blocks: [
-    { id: 't01', type: 'text', stop: 'rey', y: 0.3, paras: [{ id: 't01p1', text: [{ t: '落地是晚上。' }] }, { id: 't01p2', text: [{ t: '住在港口边。' }] }] },
-    { id: 's01', type: 'single', stop: 'rey', y: 0.15, scale: 0.92, src: '../../assets/a.jpg', alt: '', caption: '海。', layout: 'inset' },
-    { id: 't02', type: 'text', stop: 'rey', writing: 'v', paras: [{ id: 't02p1', text: [{ t: '向南' }, { t: '', marks: [{ type: 'note', ref: 'n1' }] }] }] },
-    { id: 'm01', type: 'map', stop: 'rey', scope: 'route' },
-    { id: 'p01', type: 'pair', stop: 'vik', y: 0.1, images: [{ src: '../../assets/a.jpg', alt: '', caption: '黑沙滩。' }, { src: '../../assets/b.jpg', alt: '' }] },
-    { id: 'st01', type: 'strip', stop: 'vik', images: [{ src: '../../assets/c.jpg', alt: '', scale: 1, offset: 0 }, { src: '../../assets/d.jpg', alt: '', scale: 0.8, offset: 0.12 }] },
-    { id: 'f01', type: 'free', stop: 'vik', ar: 1.6, items: [{ kind: 'image', src: '../../assets/e.jpg', alt: '', x: 0.04, y: 0.06, w: 0.56, z: 1 }, { kind: 'text', text: [{ t: '一句' }], x: 0.9, y: 0.1 }] },
+    { id: 'h-rey', type: 'h', level: 2, text: [{ t: '雷克雅未克', marks: [place({ en: 'Reykjavík', date: '06.20' })] }] },
+    { id: 'p01', type: 'p', y: 0.3, text: [{ t: '落地是晚上。' }] },
+    { id: 'p02', type: 'p', y: 0.3, text: [{ t: '住在港口边。' }] },
+    { id: 's01', type: 'image', y: 0.15, scale: 0.92, src: '../../assets/a.jpg', alt: '', caption: '海。', layout: 'inline' },
+    { id: 'p03', type: 'p', writing: 'v', text: [{ t: '向南' }, { t: '', marks: [{ type: 'note', ref: 'n1' }] }] },
+    { id: 'm01', type: 'map', scope: 'route' },
+    { id: 'h-vik', type: 'h', level: 2, text: [{ t: '维克' }] },
+    { id: 'pr01', type: 'pair', y: 0.1, images: [{ src: '../../assets/a.jpg', alt: '', caption: '黑沙滩。' }, { src: '../../assets/b.jpg', alt: '' }] },
+    { id: 'st01', type: 'strip', images: [{ src: '../../assets/c.jpg', alt: '', scale: 1, offset: 0 }, { src: '../../assets/d.jpg', alt: '', scale: 0.8, offset: 0.12 }] },
+    { id: 'f01', type: 'free', ar: 1.6, items: [{ kind: 'image', src: '../../assets/e.jpg', alt: '', x: 0.04, y: 0.06, w: 0.56, z: 1 }, { kind: 'text', text: [{ t: '一句' }], x: 0.9, y: 0.1 }] },
   ],
 });
 const find = (d, id) => d.blocks.find((b) => b.id === id);
 
-test('游记：文本里只有站名、文字和图片，没有任何排版指令', () => {
+test('长卷：文本里只有标题、文字、地点和图片，没有任何排版指令；地点是 geo 链接', () => {
   const t = toMarkdown(trip());
   assert.doesNotMatch(t, /:::|\{|\}/);
-  assert.match(t, /^## 雷克雅未克$/m);
+  assert.match(t, /^## \[雷克雅未克\]\(geo:64\.1466,-21\.9426\?en=Reykjavík&date=06\.20\)$/m);
   assert.match(t, /^!\[\]\(a\.jpg "海。"\)$/m);
-  assert.match(t, /^逆时针|向南\[\^n1\]$/m);
+  assert.match(t, /^向南\[\^n1\]$/m);
+  assert.match(t, /^## 维克$/m);
 });
 
-test('游记：不动就不变（站点、版式、竖排、内缩、图组、自由排布里的小段文字、地图、旁注）', () => {
+test('长卷：不动就不变（地点、版式、竖排、内缩、图组、自由排布里的小段文字、地图、旁注、位置）', () => {
   const d = trip();
   const back = fromMarkdown(toMarkdown(d), d);
-  assert.deepEqual(back.stops, d.stops);
   assert.deepEqual(back.blocks, d.blocks);
   assert.deepEqual(back.notes, d.notes);
   assert.equal(back.title, '环岛');
+  assert.equal(back.map, true);
+  assert.deepEqual(back.reading, d.reading);
 });
 
-test('游记：改几个字的段落沿用块和段落 id，横滚位置跟着走', () => {
+test('长卷：改几个字的段落沿用 id，横滚位置跟着走；块的顺序和 id 都不变', () => {
   const d = trip();
   const back = fromMarkdown(toMarkdown(d).replace('落地是晚上。', '落地是深夜。'), d);
-  const t01 = find(back, 't01');
-  assert.equal(t01.y, 0.3);
-  assert.equal(t01.paras[0].id, 't01p1');
-  assert.ok(JSON.stringify(t01.paras[0].text).includes('深夜'));
-  assert.deepEqual(back.blocks.map((b) => b.id), trip().blocks.map((b) => b.id));
+  const p = find(back, 'p01');
+  assert.equal(p.y, 0.3);
+  assert.ok(JSON.stringify(p.text).includes('深夜'));
+  assert.deepEqual(back.blocks.map((b) => b.id), d.blocks.map((b) => b.id));
 });
 
-test('游记：在文字块后面接着写，进同一个文字块；隔着图再写，是新文字块', () => {
+test('长卷：新写的段落是新块（b 开头的新 id），插在写的位置；别的块 id 不变', () => {
   const d = trip();
-  let t = toMarkdown(d).replace('住在港口边。', '住在港口边。\n\n第三段，刚写的，和别的都不像。');
-  const a = fromMarkdown(t, d);
-  assert.equal(find(a, 't01').paras.length, 3);
-  assert.match(find(a, 't01').paras[2].id, /^t01p\d$/);
-  t = toMarkdown(d).replace('![](a.jpg "海。")', '![](a.jpg "海。")\n\n图后面的一段新文字，写得很长很长。');
-  const b = fromMarkdown(t, d);
-  const added = b.blocks.find((x) => JSON.stringify(x).includes('图后面'));
-  assert.equal(added.type, 'text');
-  assert.match(added.id, /^t\d\d$/);
-  assert.notEqual(added.id, 't01');
-  assert.equal(new Set(b.blocks.map((x) => x.id)).size, b.blocks.length);
-});
-
-test('游记：新贴一行图片是新的单图块', () => {
-  const d = trip();
-  const back = fromMarkdown(toMarkdown(d).replace('## 维克', '![新图](n.jpg "新图注")\n\n## 维克'), d);
-  const added = back.blocks.find((b) => b.src === '../../assets/n.jpg');
-  assert.equal(added.type, 'single');
-  assert.equal(added.stop, 'rey');
-  assert.equal(added.caption, '新图注');
-  assert.match(added.id, /^s\d\d$/);
-});
-
-test('游记：改图注只改图注；换掉图片文件就是删一张再加一张', () => {
-  const d = trip();
-  const back = fromMarkdown(toMarkdown(d).replace('"海。"', '"夜里的海。"'), d);
-  assert.equal(find(back, 's01').caption, '夜里的海。');
-  assert.equal(find(back, 's01').y, 0.15);
-  assert.equal(find(back, 's01').layout, 'inset');
-});
-
-test('游记：双图删掉一张退成单图，图组和自由排布保留剩下的；全删就没了，地图不受影响', () => {
-  const d = trip();
-  let t = toMarkdown(d).replace('![](b.jpg)\n\n', '');
-  let back = fromMarkdown(t, d);
-  assert.equal(find(back, 'p01').type, 'single');
-  assert.equal(find(back, 'p01').src, '../../assets/a.jpg');
-  assert.equal(find(back, 'p01').y, 0.1);
-  t = toMarkdown(d).replace('![](e.jpg)\n\n', '').replace('![](c.jpg)\n\n', '').replace('![](d.jpg)\n\n', '');
-  back = fromMarkdown(t, d);
-  assert.equal(find(back, 'st01'), undefined);
-  assert.deepEqual(find(back, 'f01').items, [d.blocks[6].items[1]]); // 自由排布里只剩那段小文字
-  assert.ok(find(back, 'm01'));
-});
-
-test('游记：新站点取新 id、没写经纬度；站名改了沿用旧站点', () => {
-  const d = trip();
-  const t = toMarkdown(d).replace('## 维克', '## 维克镇') + '\n## 阿克雷里\n\n新的一站，写了一段和别的都不像的话。\n';
-  const back = fromMarkdown(t, d);
-  assert.equal(back.stops[1].id, 'vik');
-  assert.equal(back.stops[1].name, '维克镇');
-  assert.deepEqual(back.stops[1].lnglat, [-19.006, 63.4186]);
-  const s = back.stops[2];
-  assert.equal(s.name, '阿克雷里');
-  assert.deepEqual(s.lnglat, [0, 0]);
-  assert.equal(back.blocks.find((b) => b.stop === s.id).type, 'text');
+  const back = fromMarkdown(toMarkdown(d).replace('住在港口边。', '住在港口边。\n\n第三段，刚写的，和别的都不像。'), d);
+  const added = back.blocks.find((b) => JSON.stringify(b).includes('第三段'));
+  assert.equal(added.type, 'p');
+  assert.match(added.id, /^b\d\d$/);
+  assert.deepEqual(back.blocks.map((b) => b.id).filter((id) => id !== added.id), d.blocks.map((b) => b.id));
+  assert.equal(back.blocks.indexOf(added), 3);
   assert.equal(new Set(back.blocks.map((b) => b.id)).size, back.blocks.length);
 });
 
-test('游记：原 JSON 里块不是按站点排的，改一个字也不该让别的块换 id', () => {
+test('长卷：新贴一行图片是新的单图块', () => {
   const d = trip();
-  d.blocks = [d.blocks.at(-1), ...d.blocks.slice(0, -1)];
-  const back = fromMarkdown(toMarkdown(d).replace('落地是晚上。', '落地是深夜。'), d);
-  assert.deepEqual(back.blocks.map((b) => b.id).sort(), d.blocks.map((b) => b.id).sort());
+  const back = fromMarkdown(toMarkdown(d).replace('## 维克', '![新图](n.jpg "新图注")\n\n## 维克'), d);
+  const added = back.blocks.find((b) => b.src === '../../assets/n.jpg');
+  assert.equal(added.type, 'image');
+  assert.equal(added.caption, '新图注');
+  assert.match(added.id, /^b\d\d$/);
 });
 
-/* ───────────── 游记的文字也能有小标题、引用、列表、代码（游记是文章的超集） ───────────── */
+test('长卷：改图注只改图注，位置、缩放、内缩跟着走', () => {
+  const d = trip();
+  const back = fromMarkdown(toMarkdown(d).replace('"海。"', '"夜里的海。"'), d);
+  const s = find(back, 's01');
+  assert.equal(s.caption, '夜里的海。');
+  assert.equal(s.y, 0.15);
+  assert.equal(s.layout, 'inline');
+  assert.equal(s.scale, 0.92);
+});
+
+test('长卷：双图删掉一张退成单图，图组和自由排布保留剩下的；全删就没了，地图不受影响', () => {
+  const d = trip();
+  let back = fromMarkdown(toMarkdown(d).replace('![](b.jpg)\n\n', ''), d);
+  assert.equal(find(back, 'pr01').type, 'image');
+  assert.equal(find(back, 'pr01').src, '../../assets/a.jpg');
+  assert.equal(find(back, 'pr01').y, 0.1);
+  back = fromMarkdown(toMarkdown(d).replace('![](e.jpg)\n\n', '').replace('![](c.jpg)\n\n', '').replace('![](d.jpg)\n\n', ''), d);
+  assert.equal(find(back, 'st01'), undefined);
+  assert.deepEqual(find(back, 'f01').items, [d.blocks.at(-1).items[1]]); // 自由排布里只剩那段小文字
+  assert.ok(find(back, 'm01'));
+});
+
+test('长卷：把标题上的地点链接删掉，标题还是原来那一块，地点没了', () => {
+  const d = trip();
+  const back = fromMarkdown(toMarkdown(d).replace(/\[雷克雅未克\]\(geo:[^)]*\)/, '雷克雅未克'), d);
+  assert.equal(back.blocks[0].id, 'h-rey');
+  assert.equal(JSON.stringify(back.blocks[0]).includes('place'), false);
+});
+
+test('长卷：在文字里加地点——选中一个词写成 [词](geo:纬度,经度)，其余标记原样', () => {
+  const d = trip();
+  const t = toMarkdown(d).replace('住在港口边。', '住在[港口](geo:64.15,-21.93?en=Harbour)边。');
+  const back = fromMarkdown(t, d);
+  const p = find(back, 'p02');
+  assert.equal(p.id, 'p02');
+  assert.equal(p.y, 0.3);
+  assert.deepEqual(p.text.find((x) => x.marks?.some((m) => m.type === 'place')), { t: '港口', marks: [{ type: 'place', lnglat: [-21.93, 64.15], en: 'Harbour' }] });
+});
+
+test('长卷：地点链接里改了坐标，文字块沿用 id，标题上的地点也改', () => {
+  const d = trip();
+  const back = fromMarkdown(toMarkdown(d).replace('geo:64.1466,-21.9426', 'geo:64.2,-21.8'), d);
+  assert.equal(back.blocks[0].id, 'h-rey');
+  assert.deepEqual(back.blocks[0].text[0].marks[0].lnglat, [-21.8, 64.2]);
+});
+
+test('老游记：打开就是转换后的结构；站名成了带地点的二级标题，段落 id 沿用', () => {
+  const legacy = {
+    kind: 'travel', title: '环岛', date: '2025-01-01', category: 'journeys', excerpt: '', notes: {},
+    stops: [{ id: 'rey', name: '雷克雅未克', en: 'Reykjavík', lnglat: [-21.9426, 64.1466], date: '06.20' }],
+    blocks: [{ id: 't01', type: 'text', stop: 'rey', y: 0.3, paras: [{ id: 't01p1', text: [{ t: '落地是晚上。' }] }] }, { id: 's01', type: 'single', stop: 'rey', src: '../../assets/a.jpg', alt: '', layout: 'inset' }],
+  };
+  const md = toMarkdown(legacy);
+  assert.match(md, /^## \[雷克雅未克\]\(geo:64\.1466,-21\.9426\?en=Reykjavík&date=06\.20\)$/m);
+  const back = fromMarkdown(md.replace('落地是晚上。', '落地是深夜。'), legacy);
+  assert.equal(back.stops, undefined);
+  assert.equal(back.kind, undefined);
+  assert.equal(back.map, true);
+  assert.deepEqual(back.blocks.map((b) => b.id), ['h-rey', 't01p1', 's01']);
+  assert.equal(find(back, 't01p1').y, 0.3);
+  assert.equal(find(back, 's01').layout, 'inline');
+});
+
+/* ───────────── 长卷的文字也能有小标题、引用、列表、代码（和普通文章一样） ───────────── */
 
 const rich = () => ({
-  kind: 'travel', title: '环岛', date: '2025-01-01', category: 'journeys', excerpt: '', notes: {},
-  stops: [{ id: 'rey', name: '雷克雅未克', lnglat: [0, 0] }],
-  blocks: [{ id: 't01', type: 'text', stop: 'rey', paras: [
-    { id: 't01p1', text: [{ t: '落地是晚上。' }] },
-    { id: 't01p2', type: 'h', text: [{ t: '港口' }] },
-    { id: 't01p3', type: 'quote', text: [{ t: '一句话' }], cite: '某人' },
-    { id: 't01p4', type: 'list', ordered: false, items: [[{ t: '面包' }], [{ t: '咖啡' }]] },
-    { id: 't01p5', type: 'code', lang: 'ts', code: 'a();\n\nb();' },
-  ] }],
+  title: '环岛', date: '2025-01-01', category: 'journeys', excerpt: '', notes: {},
+  blocks: [
+    { id: 'b01', type: 'p', text: [{ t: '落地是晚上。' }] },
+    { id: 'b02', type: 'h', level: 3, text: [{ t: '港口' }] },
+    { id: 'b03', type: 'quote', text: [{ t: '一句话' }], cite: '某人' },
+    { id: 'b04', type: 'list', ordered: false, items: [[{ t: '面包' }], [{ t: '咖啡' }]] },
+    { id: 'b05', type: 'code', lang: 'ts', code: 'a();\n\nb();' },
+  ],
 });
 
-test('游记：小标题、引用、列表、代码写成和文章一样的 Markdown，不动就不变', () => {
+test('小标题、引用、列表、代码写成和文章一样的 Markdown，不动就不变', () => {
   const d = rich();
   const t = toMarkdown(d);
   assert.match(t, /^### 港口$/m);
   assert.match(t, /^> 一句话\n> —— 某人$/m);
   assert.match(t, /^- 面包\n- 咖啡$/m);
   assert.match(t, /^```ts\na\(\);\n\nb\(\);\n```$/m);
-  const back = fromMarkdown(t, d);
-  assert.deepEqual(back.blocks, d.blocks);
-  assert.deepEqual(back.stops, d.stops);
+  assert.deepEqual(fromMarkdown(t, d).blocks, d.blocks);
 });
 
-test('游记：新写的引用、列表、小标题接进前一个文字块，代码里的空行不会把它截断', () => {
+test('把一段普通文字改成引用，还是原来那一段（沿用 id，位置跟着走）；改成小标题也一样', () => {
   const d = rich();
-  d.blocks[0].paras = [d.blocks[0].paras[0]];
-  const text = toMarkdown(d) + '\n### 新小标题\n\n> 引一句\n> —— 谁\n\n1. 甲\n2. 乙\n\n```\nx\n\ny\n```\n';
-  const back = fromMarkdown(text, d);
-  assert.equal(back.blocks.length, 1);
-  const ps = back.blocks[0].paras;
-  assert.deepEqual(ps.map((p) => p.type ?? 'p'), ['p', 'h', 'quote', 'list', 'code']);
-  assert.equal(ps[0].id, 't01p1');
-  assert.equal(ps[2].cite, '谁');
-  assert.equal(ps[3].ordered, true);
-  assert.equal(ps[4].code, 'x\n\ny');
-  assert.equal(new Set(ps.map((p) => p.id)).size, 5);
-});
-
-test('游记：把一段普通文字改成引用，还是原来那一段（沿用 id）；改成小标题也一样', () => {
-  const d = rich();
+  d.blocks[0].y = 0.4;
   const t = toMarkdown(d).replace('落地是晚上。', '> 落地是晚上。').replace('### 港口', '港口');
   const back = fromMarkdown(t, d);
-  const ps = back.blocks[0].paras;
-  assert.equal(ps[0].id, 't01p1');
-  assert.equal(ps[0].type, 'quote');
-  assert.equal(ps[1].id, 't01p2');
-  assert.equal(ps[1].type ?? 'p', 'p');
+  assert.equal(back.blocks[0].id, 'b01');
+  assert.equal(back.blocks[0].type, 'quote');
+  assert.equal(back.blocks[0].y, 0.4);
+  assert.equal(back.blocks[1].id, 'b02');
+  assert.equal(back.blocks[1].type, 'p');
 });

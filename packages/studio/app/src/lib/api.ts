@@ -19,7 +19,7 @@ export interface SaveResult {
   errors: Array<{ path: string; message: string }>;
   annotationWarnings?: Array<{ id: number; block: string; quote?: string }>;
 }
-export interface AssetInfo { name: string; size: number; mtime: number; width?: number; height?: number; usedBy: Array<{ kind: 'post' | 'travel' | 'page' | 'friends'; id: string; title: string }> }
+export interface AssetInfo { name: string; size: number; mtime: number; width?: number; height?: number; usedBy: Array<{ kind: 'post' | 'page' | 'friends'; id: string; title: string }> }
 export interface GitInfo { isRepo: boolean; top?: string; nested?: boolean; branch?: string; remotes?: Array<{ name: string; url: string }>; changed?: number; last?: string }
 export interface CommentRow { id: number; entry: string; name: string; avatar?: string | null; url?: string | null; body: string; createdAt: number; status: 'pending' | 'approved' | 'hidden'; block?: string | null; quote?: string | null; parentId?: number | null }
 

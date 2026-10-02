@@ -17,9 +17,9 @@ test('块文字：只取能划词的块；换行符不算字符（和页面 DOM 
   assert.equal(t.get('b03'), '第一行第二行');
 });
 
-test('游记：文字块里每个段落各算一个块', () => {
-  const t = blockTexts('travel', { blocks: [{ id: 't01', type: 'text', paras: [{ id: 't01p1', text: '甲' }, { id: 't01p2', text: '乙' }] }, { id: 's01', type: 'single' }] });
-  assert.deepEqual([...t], [['t01p1', '甲'], ['t01p2', '乙']]);
+test('老游记：转换后文字块里每个段落各算一个块，站名成了二级标题', () => {
+  const t = blockTexts('travel', { stops: [{ id: 's1', name: '甲站', lnglat: [0, 0] }], blocks: [{ id: 't01', type: 'text', stop: 's1', paras: [{ id: 't01p1', text: '甲' }, { id: 't01p2', text: '乙' }] }, { id: 's01', type: 'single', stop: 's1' }] });
+  assert.deepEqual([...t], [['h-s1', '甲站'], ['t01p1', '甲'], ['t01p2', '乙']]);
 });
 
 test('提醒：块被删了、原文被改了会报；位置偏了但原文还在不报', () => {

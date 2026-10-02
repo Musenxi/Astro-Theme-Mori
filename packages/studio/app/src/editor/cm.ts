@@ -2,7 +2,7 @@
  * Markdown 编辑器（CodeMirror 6）。弱渲染：标题变大、粗体变粗、斜体变斜，Markdown 符号变淡但不消失——文字始终是源码。
  */
 import { EditorSelection, EditorState } from '@codemirror/state';
-import { EditorView, keymap, placeholder as cmPlaceholder } from '@codemirror/view';
+import { Decoration, EditorView, MatchDecorator, ViewPlugin, keymap, placeholder as cmPlaceholder, type DecorationSet, type ViewUpdate } from '@codemirror/view';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { markdown } from '@codemirror/lang-markdown';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
@@ -31,7 +31,16 @@ const theme = EditorView.theme({
   '.cm-cursor': { borderLeftColor: 'var(--brand)' },
   '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': { background: 'color-mix(in srgb, var(--brand) 22%, transparent)' },
   '.cm-placeholder': { color: 'var(--muted-foreground)' },
+  '.cm-geo': { fontSize: '.72em', opacity: '.55' },
 });
+
+/** 地点链接 [地名](geo:坐标…) 的地址部分缩小变淡（文字照样是源码，只是不抢正文） */
+const geoMatcher = new MatchDecorator({ regexp: /\(geo:[^)\s]*\)/g, decoration: Decoration.mark({ class: 'cm-geo' }) });
+const geoLinks = ViewPlugin.fromClass(class {
+  decorations: DecorationSet;
+  constructor(view: EditorView) { this.decorations = geoMatcher.createDeco(view); }
+  update(u: ViewUpdate) { this.decorations = geoMatcher.updateDeco(u, this.decorations); }
+}, { decorations: (v) => v.decorations });
 
 type View = EditorView;
 
@@ -74,14 +83,22 @@ function linkSelection(v: View) {
   return true;
 }
 
+/** 光标或选区所在的地点链接 [文字](geo:…)；不在链接里就是选中的文字（href 为 null） */
+export interface PlaceTarget { from: number; to: number; label: string; href: string | null }
+
 export interface MdEditor {
   view: View;
   getText: () => string;
+  /** 整篇换成新文本（文章在别处改过时同步进来），不触发 onChange */
+  setText: (text: string) => void;
   focus: () => void;
   destroy: () => void;
   run: (cmd: MdCommand) => void;
   insertBlock: (text: string) => void;
   addNote: () => void;
+  placeTarget: () => PlaceTarget;
+  /** 把一段范围换成新文字，光标放在它后面 */
+  replaceRange: (from: number, to: number, insert: string) => void;
 }
 export type MdCommand = 'bold' | 'italic' | 'code' | 'link' | 'h2' | 'h3' | 'quote' | 'list';
 
@@ -92,13 +109,14 @@ export function createEditor({ parent, doc, placeholder, cursor = 'start', onCha
     const at = pos ?? view.state.selection.main.head;
     view.dispatch({ changes: { from: at, insert: names.map((n) => `\n\n![](${n})\n\n`).join('') } });
   };
+  let silent = false; // 程序自己换文本时，不当作用户输入
   const view = new EditorView({
     parent,
     state: EditorState.create({
       doc,
       selection: { anchor: cursor === 'end' ? doc.length : 0 },
       extensions: [
-        history(), markdown(), syntaxHighlighting(style), theme, EditorView.lineWrapping,
+        history(), markdown(), syntaxHighlighting(style), theme, geoLinks, EditorView.lineWrapping,
         placeholder ? cmPlaceholder(placeholder) : [],
         keymap.of([
           { key: 'Mod-b', run: (v) => wrap(v, '**') },
@@ -106,7 +124,7 @@ export function createEditor({ parent, doc, placeholder, cursor = 'start', onCha
           { key: 'Mod-k', run: linkSelection },
           indentWithTab, ...defaultKeymap, ...historyKeymap,
         ]),
-        EditorView.updateListener.of((u) => { if (u.docChanged) onChange?.(u.state.doc.toString()); }),
+        EditorView.updateListener.of((u) => { if (u.docChanged && !silent) onChange?.(u.state.doc.toString()); }),
         EditorView.domEventHandlers({
           paste(e, v) {
             const files = [...(e.clipboardData?.files ?? [])].filter((f) => f.type.startsWith('image/'));
@@ -131,6 +149,11 @@ export function createEditor({ parent, doc, placeholder, cursor = 'start', onCha
   return {
     view,
     getText: () => view.state.doc.toString(),
+    setText(text) {
+      const head = Math.min(view.state.selection.main.head, text.length);
+      silent = true;
+      try { view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: text }, selection: { anchor: head } }); } finally { silent = false; }
+    },
     focus: () => view.focus(),
     destroy: () => view.destroy(),
     run: (cmd) => { commands[cmd](); },
@@ -138,6 +161,19 @@ export function createEditor({ parent, doc, placeholder, cursor = 'start', onCha
     insertBlock(text) {
       const at = view.state.selection.main.head;
       view.dispatch({ changes: { from: at, insert: `\n\n${text}\n\n` }, selection: { anchor: at + text.length + 4 } });
+      view.focus();
+    },
+    placeTarget() {
+      const r = view.state.selection.main;
+      const line = view.state.doc.lineAt(r.from);
+      for (const m of line.text.matchAll(/\[([^\]]*)\]\((geo:[^)\s]*)\)/g)) {
+        const from = line.from + m.index, to = from + m[0].length;
+        if (r.from >= from && r.to <= to) return { from, to, label: m[1], href: m[2] };
+      }
+      return { from: r.from, to: r.to, label: view.state.sliceDoc(r.from, r.to).replace(/\s+/g, ' ').trim(), href: null };
+    },
+    replaceRange(from, to, insert) {
+      view.dispatch({ changes: { from, to, insert }, selection: { anchor: from + insert.length } });
       view.focus();
     },
     /** 加一条旁注：光标处放引用，文末追加定义，光标跳到定义处等着输入 */

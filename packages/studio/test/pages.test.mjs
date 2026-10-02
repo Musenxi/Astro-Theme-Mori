@@ -113,7 +113,7 @@ test('文件：谁在引用一张图片；删除是移进回收站', () => {
   writeFileSync(join(root, 'src/content/pages/about.json'), JSON.stringify({ title: '关于', blocks: [{ src: '../../assets/b.jpg' }] }));
   writeFileSync(join(root, 'src/content/friends.json'), JSON.stringify([{ id: 'x', name: 'X', url: 'https://x.io', avatar: '../assets/c.png' }]));
   const u = Object.fromEntries(assetUsage(root).map((a) => [a.name, a.usedBy.map((r) => `${r.kind}:${r.id}`)]));
-  assert.deepEqual(u['a.jpg'].sort(), ['post:p1', 'travel:t1']);
+  assert.deepEqual(u['a.jpg'].sort(), ['post:p1', 'post:t1']);
   assert.deepEqual(u['b.jpg'], ['page:about']);
   assert.deepEqual(u['c.png'], ['friends:friends']);
   trashAsset(root, 'c.png');

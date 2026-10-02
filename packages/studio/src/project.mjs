@@ -1,14 +1,14 @@
 /**
- * 项目文件的读写：Studio 直接读写站点项目里的内容文件（src/content/posts（普通文章和游记）、src/assets）。
+ * 项目文件的读写：Studio 直接读写站点项目里的内容文件（src/content/posts（文章）、src/assets）。
  * 不需要 git；“删除”是移进 .mori-trash/，不会真的删掉。
  */
 import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync, renameSync, statSync, copyFileSync, rmSync } from 'node:fs';
 import { join, basename, extname } from 'node:path';
 import { loadConfigFromFile } from 'vite';
 
-/** 普通文章和游记都在 src/content/posts/ 下，靠内容里的 kind 区分 */
+/** 文章都在 src/content/posts/ 下（travel 是游记并进文章之前的叫法，接口还认） */
 export const KINDS = { post: 'posts', travel: 'posts', page: 'pages' };
-export const kindOf = (d) => (d?.kind === 'travel' || (d?.kind === undefined && Array.isArray(d?.stops)) ? 'travel' : 'post');
+export const kindOf = () => 'post';
 const ID = /^[a-z0-9][a-z0-9_-]*$/i;
 export const IMAGE_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif', '.gif', '.svg']);
 
@@ -95,16 +95,7 @@ export const entryExists = (root, kind, id) => existsSync(fileOf(root, kind, id)
 /** 新建：给一个能通过校验的最小骨架 */
 export function skeleton(kind, { title, category }) {
   if (kind === 'page') return { title, excerpt: '', template: 'default', draft: true, blocks: [{ id: 'b01', type: 'p', text: '' }] };
-  const base = { title, date: new Date().toISOString().slice(0, 10), category, excerpt: '', draft: true };
-  if (kind === 'post') return { kind: 'article', ...base, blocks: [{ id: 'b01', type: 'p', text: '' }] };
-  return {
-    kind: 'travel',
-    ...base,
-    facts: [],
-    stops: [{ id: 's1', name: '起点', lnglat: [0, 0] }],
-    reading: { default: 'v', allowed: ['v', 'h', 'mix'], direction: 'ltr' },
-    blocks: [{ id: 't01', type: 'text', stop: 's1', paras: [{ id: 't01p1', text: '' }] }],
-  };
+  return { title, date: new Date().toISOString().slice(0, 10), category, excerpt: '', draft: true, blocks: [{ id: 'b01', type: 'p', text: '' }] };
 }
 
 /** “删除”：移进 .mori-trash/，带时间戳，随时能拿回来 */

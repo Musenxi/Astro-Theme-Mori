@@ -2,7 +2,6 @@ import { Plus, Trash2 } from 'lucide-react';
 import { ImageField } from '@/components/asset-picker';
 import { TagsInput } from '@/components/tags-input';
 import { Button } from '@/components/ui/button';
-import { useConfirm } from '@/components/confirm';
 import { Field } from '@/components/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,9 +9,11 @@ import { Segmented } from '@/components/segmented';
 import { OptionSelect } from '@/components/option-select';
 import { SwitchField } from '@/components/switch-field';
 import { useProject } from '@/lib/hooks';
-import { toArticle, toTravel } from '@/lib/template.js';
+import { editPlace, removePlace } from '@/lib/places.js';
 import type { Doc, Kind } from '@/lib/types';
-import { RouteData } from './travel-blocks';
+import { placesOf } from 'astro-mori/flow';
+import { PlaceFields } from './place-fields';
+import { RouteData } from './layout-blocks';
 
 const Group = ({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) => (
   <section className="mt-8 first:mt-0">
@@ -24,10 +25,12 @@ const Group = ({ title, children, action }: { title: string; children: React.Rea
 const VISIBILITY = [{ value: 'public', label: '公开' }, { value: 'hidden', label: '隐藏' }, { value: 'draft', label: '草稿' }];
 const visibilityOf = (doc: Doc) => (doc.draft ? 'draft' : doc.hidden ? 'hidden' : 'public');
 
-/** 右侧“信息”面板：正文以外的一切——分类、日期、摘要、封面、置顶…… */
-export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; set: (patch: Doc) => void; setDoc: (fn: (d: Doc) => Doc) => void }) {
+/**
+ * 右侧“信息”面板：正文以外的一切——分类、日期、摘要、封面、读法、地图、置顶……
+ * set 改文章的设置（不自动保存，点保存才写）；edit 改正文（地点在正文里，和打字一样自动保存）
+ */
+export function InfoPanel({ kind, doc, set, edit }: { kind: Kind; doc: Doc; set: (patch: Doc) => void; edit: (fn: (d: Doc) => Doc) => void }) {
   const { data: project } = useProject();
-  const confirm = useConfirm();
   const cats = project?.config.categories ?? [];
   const knownTags = [...new Set((project?.entries ?? []).flatMap((e) => e.tags))];
 
@@ -47,21 +50,11 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
     );
   }
 
-  const switchTemplate = async (to: string) => {
-    if ((to === 'travel') === (kind === 'travel')) return;
-    const ok = await confirm(to === 'travel'
-      ? { title: '换成游记模版？', description: '正文里的二级标题会变成站点，段落和图片按站点编排；之后在“排版”里摆版式、在站点上填经纬度。段落沿用原来的编号，读者划词引用的评论不受影响。', confirmLabel: '换成游记' }
-      : { title: '换成普通模版？', description: '站点会变成二级标题，图组、双图、自由排布里的图变成一张张图片，地图去掉。站点的经纬度会留在文件里，换回游记时按站名找回来。', confirmLabel: '换成普通文章' });
-    if (ok) setDoc((d) => (to === 'travel' ? toTravel(d) : toArticle(d)));
-  };
   const pin = doc.pin as Doc | undefined;
   const setPin = (patch: Doc) => set({ pin: { ...pin, ...patch } });
   return (
     <div className="p-6">
       <Group title="文章">
-        <Field label="模版">
-          <Segmented value={kind === 'travel' ? 'travel' : 'post'} onValueChange={(v) => void switchTemplate(v)} options={[{ value: 'post', label: '普通' }, { value: 'travel', label: '游记' }]} />
-        </Field>
         <Field label="副标题"><Input value={doc.subtitle ?? ''} onChange={(e) => set({ subtitle: e.target.value || undefined })} /></Field>
         <Field label="公开度"><Segmented value={visibilityOf(doc)} onValueChange={(v) => set({ draft: v === 'draft' ? true : undefined, hidden: v === 'hidden' ? true : undefined })} options={VISIBILITY} /></Field>
         <Field label="日期"><Input type="date" value={String(doc.date ?? '').slice(0, 10)} onChange={(e) => set({ date: e.target.value })} /></Field>
@@ -75,7 +68,8 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
         {doc.cover && <Field label="封面说明"><Input value={doc.coverAlt ?? ''} onChange={(e) => set({ coverAlt: e.target.value || undefined })} /></Field>}
       </Group>
 
-      {kind === 'travel' ? <TravelExtras doc={doc} set={set} /> : null}
+      <ReadingGroup doc={doc} set={set} />
+      <MapGroup doc={doc} set={set} edit={edit} />
 
       <Group title="首页置顶" action={<SwitchField checked={!!pin} onCheckedChange={(v) => set({ pin: v ? { order: 0, quote: [''], caption: '', meta: [] } : undefined })} />}>
         {pin && (
@@ -107,44 +101,82 @@ export function InfoPanel({ kind, doc, set, setDoc }: { kind: Kind; doc: Doc; se
 }
 
 const MODES: Array<['v' | 'h' | 'mix', string]> = [['v', '竖向'], ['h', '横向'], ['mix', '混合']];
+type Mode = 'v' | 'h' | 'mix';
+const VERTICAL_ONLY = { default: 'v', allowed: ['v'], direction: 'ltr' };
 
-function TravelExtras({ doc, set }: { doc: Doc; set: (patch: Doc) => void }) {
-  const r = doc.reading ?? { default: 'v', allowed: ['v', 'h', 'mix'], direction: 'ltr' };
-  const put = (patch: Doc) => set({ reading: { ...r, ...patch } });
-  const toggle = (m: 'v' | 'h' | 'mix') => {
+/** 读法：每篇都能开横滚。只允许竖向就是普通文章，不写 reading */
+function ReadingGroup({ doc, set }: { doc: Doc; set: (patch: Doc) => void }) {
+  const r = doc.reading ?? VERTICAL_ONLY;
+  const put = (patch: Doc) => {
+    const next = { ...r, ...patch };
+    const plain = next.allowed.length === 1 && next.allowed[0] === 'v' && next.direction === 'ltr';
+    set({ reading: plain ? undefined : next });
+  };
+  const toggle = (m: Mode) => {
     const has = r.allowed.includes(m);
     if (has && r.allowed.length === 1) return;
-    const allowed = has ? r.allowed.filter((x: string) => x !== m) : [...r.allowed, m];
+    const allowed = MODES.map(([x]) => x).filter((x) => (x === m ? !has : r.allowed.includes(x)));
     put({ allowed, default: allowed.includes(r.default) ? r.default : allowed[0] });
   };
-  const facts: Array<{ label: string; value: string }> = doc.facts ?? [];
-  const setFacts = (f: typeof facts) => set({ facts: f });
+  const flow = r.allowed.some((m: Mode) => m !== 'v');
   return (
-    <>
-      <Group title="读法">
-        <Field label="允许读者选">
-          <div className="flex gap-4 pt-1">
-            {MODES.map(([m, n]) => (
-              <label key={m} className="flex cursor-pointer items-center gap-1.5 text-13"><input type="checkbox" checked={r.allowed.includes(m)} onChange={() => toggle(m)} className="accent-foreground" />{n}</label>
-            ))}
-          </div>
-        </Field>
-        <Field label="默认"><OptionSelect value={r.default} onValueChange={(v) => put({ default: v })} options={MODES.filter(([m]) => r.allowed.includes(m)).map(([m, n]) => ({ value: m, label: n }))} /></Field>
-        <Field label="横滚方向"><OptionSelect value={r.direction} onValueChange={(v) => put({ direction: v })} options={[{ value: 'ltr', label: '左 → 右' }, { value: 'rtl', label: '右 → 左（手卷）' }]} /></Field>
-      </Group>
-      <Group title="路线"><RouteData doc={doc} patch={set} /></Group>
-      <Group title="事实">
-        <div className="space-y-1.5 py-1">
-          {facts.map((f, i) => (
-            <div key={i} className="flex gap-1.5">
-              <Input className="w-20" value={f.label} placeholder="标签" onChange={(e) => setFacts(facts.map((x, k) => (k === i ? { ...x, label: e.target.value } : x)))} />
-              <Input value={f.value} placeholder="内容" onChange={(e) => setFacts(facts.map((x, k) => (k === i ? { ...x, value: e.target.value } : x)))} />
-              <Button variant="ghost" size="icon-sm" aria-label="删除" onClick={() => setFacts(facts.filter((_, k) => k !== i))}><Trash2 size={14} /></Button>
-            </div>
+    <Group title="读法">
+      <Field label="允许读者选">
+        <div className="flex gap-4 pt-1">
+          {MODES.map(([m, n]) => (
+            <label key={m} className="flex cursor-pointer items-center gap-1.5 text-13"><input type="checkbox" checked={r.allowed.includes(m)} onChange={() => toggle(m)} className="accent-foreground" />{n}</label>
           ))}
-          <Button variant="link" onClick={() => setFacts([...facts, { label: '', value: '' }])}><Plus size={14} />添加一条</Button>
         </div>
-      </Group>
-    </>
+      </Field>
+      {r.allowed.length > 1 && <Field label="默认"><OptionSelect value={r.default} onValueChange={(v) => put({ default: v })} options={MODES.filter(([m]) => r.allowed.includes(m)).map(([m, n]) => ({ value: m, label: n }))} /></Field>}
+      {flow && <Field label="横滚方向"><OptionSelect value={r.direction} onValueChange={(v) => put({ direction: v })} options={[{ value: 'ltr', label: '左 → 右' }, { value: 'rtl', label: '右 → 左（手卷）' }]} /></Field>}
+    </Group>
+  );
+}
+
+/** 地图：开关。开了以后封面有路线图、左下角显示读到哪里、文末有行程表；地点在正文里标 */
+function MapGroup({ doc, set, edit }: { doc: Doc; set: (patch: Doc) => void; edit: (fn: (d: Doc) => Doc) => void }) {
+  const facts: Array<{ label: string; value: string }> = doc.facts ?? [];
+  const setFacts = (f: typeof facts) => set({ facts: f.length ? f : undefined });
+  return (
+    <Group title="地图" action={<SwitchField checked={!!doc.map} onCheckedChange={(v) => set({ map: v || undefined })} />}>
+      {doc.map && (
+        <>
+          <PlaceList doc={doc} edit={edit} />
+          <div className="mt-5"><RouteData doc={doc} set={set} edit={edit} /></div>
+          <h4 className="mb-1 mt-5 text-13 font-medium">事实</h4>
+          <div className="space-y-1.5 py-1">
+            {facts.map((f, i) => (
+              <div key={i} className="flex gap-1.5">
+                <Input className="w-20" value={f.label} placeholder="标签" onChange={(e) => setFacts(facts.map((x, k) => (k === i ? { ...x, label: e.target.value } : x)))} />
+                <Input value={f.value} placeholder="内容" onChange={(e) => setFacts(facts.map((x, k) => (k === i ? { ...x, value: e.target.value } : x)))} />
+                <Button variant="ghost" size="icon-sm" aria-label="删除" onClick={() => setFacts(facts.filter((_, k) => k !== i))}><Trash2 size={14} /></Button>
+              </div>
+            ))}
+            <Button variant="link" onClick={() => setFacts([...facts, { label: '', value: '' }])}><Plus size={14} />添加一条</Button>
+          </div>
+        </>
+      )}
+    </Group>
+  );
+}
+
+/** 正文里标出的地点，按出现顺序。地名是标住的那几个字，在 Markdown 里改；这里改坐标、英文名、日期 */
+function PlaceList({ doc, edit }: { doc: Doc; edit: (fn: (d: Doc) => Doc) => void }) {
+  const places = placesOf(doc.blocks ?? []) as Array<{ n: number; label: string; lnglat: [number, number]; en?: string; date?: string }>;
+  if (!places.length) return <p className="text-12 text-muted-foreground">还没有地点。</p>;
+  return (
+    <div className="space-y-3">
+      {places.map((p) => (
+        <div key={p.n}>
+          <div className="mb-1 flex items-center gap-2">
+            <span className="mono w-5 text-11 text-muted-foreground">{String(p.n + 1).padStart(2, '0')}</span>
+            <span className="min-w-0 flex-1 truncate text-13 font-medium">{p.label.trim()}</span>
+            <Button variant="ghost" size="icon-sm" aria-label="去掉地点" onClick={() => edit((d) => removePlace(d, p.n))}><Trash2 size={14} /></Button>
+          </div>
+          <PlaceFields value={p} onChange={(patch) => edit((d) => editPlace(d, p.n, patch))} />
+        </div>
+      ))}
+    </div>
   );
 }

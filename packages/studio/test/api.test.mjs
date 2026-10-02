@@ -21,10 +21,10 @@ before(async () => {
 });
 after(() => s.stop());
 
-test('新建文章：带 kind: article，出现在项目信息里；重复地址名 409', async () => {
+test('新建文章：出现在项目信息里；重复地址名 409', async () => {
   assert.equal((await call('POST', '/api/entry/post', { id: 'hello', title: '你好', category: 'a' })).status, 200);
   const d = JSON.parse(readFileSync(join(root, 'src/content/posts/hello.json'), 'utf8'));
-  assert.equal(d.kind, 'article');
+  assert.equal(d.kind, undefined);
   assert.equal(d.title, '你好');
   assert.equal((await call('POST', '/api/entry/post', { id: 'hello', title: 'x' })).status, 409);
   const p = (await call('GET', '/api/project')).body;
@@ -32,13 +32,13 @@ test('新建文章：带 kind: article，出现在项目信息里；重复地址
   assert.equal(p.dev, false);
 });
 
-test('新建游记：kind: travel，和文章同在 posts 目录', async () => {
+test('游记并进文章：旧的 travel 接口新建出来的也是普通结构，和文章同在 posts 目录', async () => {
   assert.equal((await call('POST', '/api/entry/travel', { id: 'trip', title: '一次旅行', category: 'b' })).status, 200);
   const d = JSON.parse(readFileSync(join(root, 'src/content/posts/trip.json'), 'utf8'));
-  assert.equal(d.kind, 'travel');
-  assert.ok(Array.isArray(d.stops));
+  assert.equal(d.stops, undefined);
+  assert.equal(d.blocks[0].type, 'p');
   const p = (await call('GET', '/api/project')).body;
-  assert.equal(p.entries.find((e) => e.id === 'trip').kind, 'travel');
+  assert.equal(p.entries.find((e) => e.id === 'trip').kind, 'post');
 });
 
 test('保存：校验不过也写盘，并返回问题；改好后问题消失', async () => {

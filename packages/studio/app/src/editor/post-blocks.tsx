@@ -19,16 +19,15 @@ export const POST_BLOCKS: Array<{ type: string; label: string; prefix: string; m
 
 const cap = (b: Doc) => b.text; // 让 lint 别抱怨
 
-/** 普通文章 / 页面里一个块的编辑内容 */
-/** travel：游记文字块里的一段——小标题只有一级、竖排由文字块决定，这两项不出现 */
-export function PostBlockBody({ b, patch, travel }: { b: Doc; patch: (p: Doc) => void; travel?: boolean }) {
+/** 页面里一个块的编辑内容 */
+export function PostBlockBody({ b, patch }: { b: Doc; patch: (p: Doc) => void }) {
   switch (b.type) {
     case 'p':
       return <InlineField rows={3} value={cap(b)} onChange={(v) => patch({ text: v })} placeholder="正文" />;
     case 'h':
       return (
         <div className="flex items-start gap-2">
-          {!travel && <OptionSelect className="w-24" value={String(b.level ?? 2)} onValueChange={(v) => patch({ level: +v })} options={[{ value: '2', label: '二级' }, { value: '3', label: '三级' }]} />}
+          <OptionSelect className="w-24" value={String(b.level ?? 2)} onValueChange={(v) => patch({ level: +v })} options={[{ value: '2', label: '二级' }, { value: '3', label: '三级' }]} />
           <div className="flex-1"><InlineField rows={1} value={b.text} onChange={(v) => patch({ text: v })} placeholder="标题" /></div>
         </div>
       );
@@ -36,9 +35,9 @@ export function PostBlockBody({ b, patch, travel }: { b: Doc; patch: (p: Doc) =>
       return (
         <div className="space-y-2">
           <InlineField rows={2} value={b.text} onChange={(v) => patch({ text: v })} placeholder="引文" />
-          <div className={travel ? undefined : 'grid grid-cols-[1fr_8rem] gap-2'}>
+          <div className="grid grid-cols-[1fr_8rem] gap-2">
             <Input value={b.cite ?? ''} onChange={(e) => patch({ cite: e.target.value || undefined })} placeholder="出处" />
-            {!travel && <OptionSelect value={b.writing ?? 'h'} onValueChange={(v) => patch({ writing: v })} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />}
+            <OptionSelect value={b.writing ?? 'h'} onValueChange={(v) => patch({ writing: v })} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />
           </div>
         </div>
       );

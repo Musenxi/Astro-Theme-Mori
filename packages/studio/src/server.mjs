@@ -13,6 +13,7 @@ import { avatarTemplate } from 'astro-mori/avatar';
 import { RESERVED_SLUGS, assetUsage, trashAsset, loadConfig, setConfigValue, setCategories, setPublish, setNav, setActions, listPages, readFriends, writeFriends, readFriendsLost, writeFriendsLost, formatFriends, parseFriends, renameCategoryInEntries, renameTag, countPages, listEntries, readEntry, writeEntry, entryExists, skeleton, trashEntry, publishEntry, unpublishEntry, discardDraft, listAssets, saveAsset, isId, KINDS, IMAGE_EXT } from './project.mjs';
 import { validateEntry } from 'astro-mori/validate';
 import { locate } from 'astro-mori/anchor';
+import { normalizeDoc } from 'astro-mori/flow';
 import { probeSite } from './probe.mjs';
 import { gitInfo, gitInit, publishGit, publishLocal } from './publish.mjs';
 import { parseGpx, simplify, readExif, clusterStops } from './geo.mjs';
@@ -56,10 +57,8 @@ function serveFile(res, file) {
 export function blockTexts(kind, data) {
   const spanText = (v) => (typeof v === 'string' ? v : (v ?? []).map((s) => s.t).join('')).replace(/\n/g, '');
   const out = new Map();
-  for (const b of data.blocks ?? []) {
-    if (kind === 'post' && ['p', 'h', 'quote'].includes(b.type)) out.set(b.id, spanText(b.text));
-    if (kind === 'travel' && b.type === 'text') for (const p of b.paras ?? []) if (!p.type || ['p', 'h', 'quote'].includes(p.type)) out.set(p.id, spanText(p.text));
-  }
+  // 老游记（stops + 文字块）读者看到的是转换后的块：段落 id 沿用，引用评论照样能找到
+  for (const b of normalizeDoc(data).blocks ?? []) if (['p', 'h', 'quote'].includes(b.type)) out.set(b.id, spanText(b.text));
   return out;
 }
 

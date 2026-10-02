@@ -27,7 +27,7 @@ const inputVariants = cva('', {
 });
 
 function Input({ className, type, variant, ...props }: ComponentProps<'input'> & VariantProps<typeof inputVariants>) {
-  return <input type={type} data-slot="input" className={cn(fieldVariants, 'h-9 w-full px-3 text-13-5 placeholder:text-muted-foreground/80 disabled:opacity-50', inputVariants({ variant }), className)} {...props} />;
+  return <input type={type} data-slot="input" className={cn(fieldVariants, 'h-9 w-full px-3 text-13-5 placeholder:text-muted-foreground/80 disabled:opacity-50 aria-invalid:text-destructive', inputVariants({ variant }), className)} {...props} />;
 }
 
 export { Input, fieldVariants, inputVariants };

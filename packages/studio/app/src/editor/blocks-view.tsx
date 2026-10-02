@@ -6,33 +6,26 @@ import { useConfirm } from '@/components/confirm';
 import { Input } from '@/components/ui/input';
 import { onCard, Section } from '@/components/page';
 import { cn } from '@/lib/cn';
-import type { Doc, Kind } from '@/lib/types';
+import type { Doc } from '@/lib/types';
 import { allIds, nextId } from './ids';
 import { InlineField } from './inline-field';
 import { POST_BLOCKS, PostBlockBody } from './post-blocks';
 import { SortableItem, SortableList } from './sortable';
-import { TRAVEL_BLOCKS, TravelBlockBody, TravelHead } from './travel-blocks';
 
-const LABEL: Record<string, string> = { p: '段落', h: '标题', quote: '引用', image: '图片', list: '列表', code: '代码', text: '文字', single: '单图', pair: '双图', strip: '图组', grid: '网格', free: '自由排布', map: '地图' };
+const LABEL: Record<string, string> = { p: '段落', h: '标题', quote: '引用', image: '图片', list: '列表', code: '代码' };
 
-/** 块视图：每个块一张卡，能拖动排序。文章、页面、游记共用；游记多站点 / 路线 / 位置参数 */
-export function BlocksView({ kind, doc, patch, setDoc }: { kind: Kind; doc: Doc; patch: (p: Doc) => void; setDoc: (fn: (d: Doc) => Doc) => void }) {
+/** 块视图（页面用）：每个块一张卡，能拖动排序 */
+export function BlocksView({ doc, patch, setDoc }: { doc: Doc; patch: (p: Doc) => void; setDoc: (fn: (d: Doc) => Doc) => void }) {
   const confirm = useConfirm();
   const blocks: Doc[] = useMemo(() => doc.blocks ?? [], [doc.blocks]);
-  const travel = kind === 'travel';
-  const palette = travel ? TRAVEL_BLOCKS : POST_BLOCKS;
+  const palette = POST_BLOCKS;
   const ids = useMemo(() => allIds(blocks), [blocks]);
 
   const setBlocks = (next: Doc[]) => patch({ blocks: next });
   const patchBlock = (id: string, p: Doc) => setDoc((d) => ({ ...d, blocks: (d.blocks ?? []).map((b: Doc) => (b.id === id ? { ...b, ...p } : b)) }));
   const add = (type: string) => {
     const def = palette.find((p) => p.type === type)!;
-    const id = nextId(ids, def.prefix);
-    const stop = travel ? blocks.at(-1)?.stop ?? doc.stops?.[0]?.id : undefined;
-    const body = def.make();
-    // 游记的文字块，段落 id 跟着块 id 走（引用评论靠它定位）
-    if (travel && type === 'text') body.paras = [{ id: `${id}p1`, text: '' }];
-    setBlocks([...blocks, { id, ...(stop ? { stop } : {}), ...body }]);
+    setBlocks([...blocks, { id: nextId(ids, def.prefix), ...def.make() }]);
   };
   const remove = async (b: Doc) => {
     const empty = !JSON.stringify(b).replace(/["'{}[\]:,\s]|"?(id|type|text|stop|layout|writing|alt|level|paras|images|items)"?/g, '').length;
@@ -44,8 +37,6 @@ export function BlocksView({ kind, doc, patch, setDoc }: { kind: Kind; doc: Doc;
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-184 px-8 pb-32 pt-6">
         <Input value={doc.title ?? ''} onChange={(e) => patch({ title: e.target.value })} placeholder="标题" variant="title" />
-
-        {travel && <TravelHead doc={doc} patch={patch} />}
 
         <Section title="正文" hint={`${wan(countWords(doc))} 字 · ${blocks.length} 个块`} className="mt-8">
           <SortableList items={blocks} getId={(b) => b.id} onReorder={setBlocks}>
@@ -62,7 +53,7 @@ export function BlocksView({ kind, doc, patch, setDoc }: { kind: Kind; doc: Doc;
                         <Button variant="ghost" size="icon-sm" aria-label="删除这个块" reveal="block" onClick={() => remove(b)}><Trash2 size={14} /></Button>
                       </div>
                       <div className="px-3.5 pb-3.5 pt-1.5">
-                        {travel ? <TravelBlockBody b={b} patch={(p) => patchBlock(b.id, p)} doc={doc} ids={ids} /> : <PostBlockBody b={b} patch={(p) => patchBlock(b.id, p)} />}
+                        <PostBlockBody b={b} patch={(p) => patchBlock(b.id, p)} />
                       </div>
                     </>
                   )}

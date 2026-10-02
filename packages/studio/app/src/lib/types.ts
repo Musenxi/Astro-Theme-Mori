@@ -1,10 +1,10 @@
 /** Studio 服务返回的数据形状（见 packages/studio/src/server.mjs） */
-export type Kind = 'post' | 'travel' | 'page';
+export type Kind = 'post' | 'page';
 
 export interface Category { id: string; zh: string; en?: string; empty?: string }
 
 export interface EntrySummary {
-  kind: 'post' | 'travel';
+  kind: 'post';
   id: string;
   title: string;
   date: string;

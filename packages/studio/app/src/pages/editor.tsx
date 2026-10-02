@@ -15,11 +15,11 @@ import { InfoPanel } from '@/editor/info-panel';
 import { Notices } from '@/editor/notices';
 import { RawView } from '@/editor/raw-view';
 import { useAutosave } from '@/editor/use-autosave';
-import { isTravelDoc } from '@/lib/template.js';
+import { normalizeDoc } from 'astro-mori/flow';
 
 const MarkdownView = lazy(() => import('@/editor/markdown-view').then((m) => ({ default: m.MarkdownView })));
 const BlocksView = lazy(() => import('@/editor/blocks-view').then((m) => ({ default: m.BlocksView })));
-const TravelLayout = lazy(() => import('@/editor/travel-layout').then((m) => ({ default: m.TravelLayout })));
+const LayoutView = lazy(() => import('@/editor/layout-view').then((m) => ({ default: m.LayoutView })));
 
 type Mode = 'md' | 'blocks' | 'raw';
 
@@ -28,7 +28,8 @@ export default function Editor({ kind }: { kind: 'post' | 'page' }) {
   const { data, error, isPending } = useQuery({ queryKey: ['entry', kind, id], queryFn: () => api.entry(kind, id), staleTime: Infinity, gcTime: 0, refetchOnWindowFocus: false });
   if (error) return <div className="grid h-full place-items-center px-8 text-center text-muted-foreground">{(error as Error).message}<Link to={kind === 'page' ? '/pages' : '/posts'} className="mt-3 underline">回到列表</Link></div>;
   if (isPending) return <div className="grid h-full place-items-center text-muted-foreground">读取中……</div>;
-  return <Session key={`${kind}/${id}`} routeKind={kind} id={id} initial={data} />;
+  // 以前的游记（stops + 每个块属于一站）打开时转成现在的结构；改动保存时才写回文件
+  return <Session key={`${kind}/${id}`} routeKind={kind} id={id} initial={kind === 'post' ? normalizeDoc(data) : data} />;
 }
 
 function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: string; initial: Doc }) {
@@ -43,8 +44,7 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
   const [previewKey, setPreviewKey] = useState(0);
 
   const [doc, setDocState] = useState<Doc>(initial);
-  // 普通文章还是游记，看内容本身：在“信息”里换了模版，这里跟着变
-  const kind: Kind = routeKind === 'page' ? 'page' : isTravelDoc(doc) ? 'travel' : 'post';
+  const kind: Kind = routeKind;
   const setDoc = useCallback((fn: (d: Doc) => Doc) => setDocState((d) => fn(d)), []);
   const patch = useCallback((p: Doc) => setDocState((d) => {
     const next = { ...d, ...p };
@@ -69,13 +69,6 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
     setHeldCount(held.current.size);
     patch(p);
   }, [patch]);
-  const infoSetDoc = useCallback((fn: (d: Doc) => Doc) => {
-    const cur = docRef.current, next = fn(cur);
-    for (const k of new Set([...Object.keys(cur), ...Object.keys(next)])) if (cur[k] !== next[k]) held.current.add(k);
-    setHeldCount(held.current.size);
-    docRef.current = next;
-    setDocState(next);
-  }, []);
 
   const { state, flush, cancel } = useAutosave(kind, id, doc, (sent, manual) => {
     savedRef.current = sent;
@@ -148,13 +141,13 @@ function Session({ routeKind, id, initial }: { routeKind: 'post' | 'page'; id: s
       <div className="flex min-h-0 flex-1">
         <div className="min-w-0 flex-1">
           <Suspense fallback={<div className="grid h-full place-items-center text-muted-foreground">载入编辑器……</div>}>
-            {mode === 'md' && <MarkdownView key={kind} doc={doc} setDoc={setDoc} travel={kind === 'travel'} />}
-            {mode === 'blocks' && (kind === 'travel' ? <TravelLayout doc={doc} setDoc={setDoc} /> : <BlocksView key={kind} kind={kind} doc={doc} patch={patch} setDoc={setDoc} />)}
+            {mode === 'md' && <MarkdownView doc={doc} setDoc={setDoc} />}
+            {mode === 'blocks' && (kind === 'post' ? <LayoutView doc={doc} setDoc={setDoc} /> : <BlocksView doc={doc} patch={patch} setDoc={setDoc} />)}
             {mode === 'raw' && <RawView doc={doc} setDoc={setDoc} />}
           </Suspense>
         </div>
         {panel === 'info' && (
-          <aside className={cn('mb-2 mr-2 w-104 shrink-0 animate-slide-in overflow-y-auto rounded-2xl bg-muted/60', onCard)}><InfoPanel kind={kind} doc={doc} set={infoPatch} setDoc={infoSetDoc} /></aside>
+          <aside className={cn('mb-2 mr-2 w-104 shrink-0 animate-slide-in overflow-y-auto rounded-2xl bg-muted/60', onCard)}><InfoPanel kind={kind} doc={doc} set={infoPatch} edit={setDoc} /></aside>
         )}
         {panel === 'preview' && project && (
           <aside className="mb-2 mr-2 w-[46%] min-w-96 shrink-0 animate-slide-in overflow-hidden rounded-2xl bg-muted/60">
