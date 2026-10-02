@@ -19,7 +19,7 @@ interface Props {
   flow: Flow;
 }
 const { post, flow } = Astro.props;
-const { notes, facts, track } = post;
+const { notes, track } = post;
 const { places, columns, regions } = flow;
 const map = post.map && places.length > 0;
 const itinerary = map && (post.mapView?.itinerary ?? true);
@@ -37,8 +37,6 @@ const endnotes = [...all].map(([ref, n]) => ({ ref, n, text: notes[ref]?.text ??
 
 /** 二级标题上标着的地点（有就把英文名、日期、坐标放在标题旁，和以前站点的标题一样） */
 const placeOfBlock = (id: string) => places.find((p) => p.block === id);
-
-const endStat = facts.find((f) => /里程|距离|全程|里程|距離|総距離|distance|total|mileage/i.test(f.label))?.value ?? t('travel.fallbackStat', { n: places.length });
 
 // 游记文字块里各种块的样式：横排文字和竖排文字（.v）各一套，渲染时选好，不靠覆盖
 const li = 'relative [counter-increment:li]';
@@ -218,13 +216,6 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
           }
         })
       }
-      {map && (
-        <div class="blk b-endcard">
-          <span class="meta">{t('travel.total')}</span>
-          <span class="text-num tracking-[.04em] text-foreground">{endStat}</span>
-          <span>{t('travel.endNote')}</span>
-        </div>
-      )}
     </div>
     <div class="h-progress"><i></i></div>
   </div>

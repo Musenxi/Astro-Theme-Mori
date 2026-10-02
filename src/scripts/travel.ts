@@ -32,7 +32,7 @@ function init() {
   const tbody = travel.querySelector<HTMLElement>('.t-body')!;
   const track = travel.querySelector<XTrack>('.t-track')!;
   const strips = [...travel.querySelectorAll<HTMLElement>('.b-strip')];
-  const blocks = [...travel.querySelectorAll<HTMLElement>('.t-track .blk:not(.b-endcard)')];
+  const blocks = [...travel.querySelectorAll<HTMLElement>('.t-track .blk')];
   const progress = travel.querySelector<HTMLElement>('.h-progress i');
   const mc = document.querySelector<HTMLElement>('#mc');
   const loc = document.querySelector<HTMLElement>('#loc');

@@ -78,8 +78,6 @@
 .travel[data-mode="h"] .b-free .canvas{height:calc(var(--ph)*1.04*var(--s,1));width:calc(var(--ph)*1.04*var(--s,1)*var(--ar))}
 .travel[data-mode="h"] .b-strip{--sh:calc(var(--ph)*var(--s,1))}
 .travel[data-mode="h"] .b-strip figcaption{margin:12px 0 0}
-.b-endcard{display:none}
-.travel[data-mode="h"] .b-endcard{display:flex;flex-direction:column;justify-content:center;width:min(18em,70vw);gap:10px;color:var(--soft-foreground)}
 .h-progress{display:none}
 .travel[data-mode="h"] .h-progress{display:block;position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--border)}
 .h-progress i{position:absolute;inset:0;background:var(--primary);transform-origin:0 50%;transform:scaleX(0)}
