@@ -33,7 +33,7 @@ const dot = 'stroke-primary stroke-2 [vector-effect:non-scaling-stroke]';
 const label = t('map.route', { list: stops.map((s) => s.name).join(lang === 'en' ? ', ' : '、') });
 ---
 
-<svg class:list={['map block h-auto overflow-visible', mini ? 'w-[60px] flex-none' : 'w-full']} viewBox={`0 0 ${W} ${H}`} data-map={variant} data-stops={mini ? JSON.stringify(m.stops.map((s) => ({ x: s.x, y: s.y }))) : undefined} role="img" aria-label={label}>
+<svg class:list={['map block h-auto', mini ? 'w-[60px] flex-none overflow-hidden rounded-[8px]' : 'w-full overflow-visible']} viewBox={`0 0 ${W} ${H}`} data-map={variant} data-stops={mini ? JSON.stringify(m.stops.map((s) => ({ x: s.x, y: s.y }))) : undefined} role="img" aria-label={label}>
   <path class={land} d={m.land} />
   {full && m.parallels.map((p) => (
     <>
