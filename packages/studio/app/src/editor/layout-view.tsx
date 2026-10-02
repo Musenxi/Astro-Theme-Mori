@@ -7,7 +7,7 @@
  * 相邻的文字排成一列，二级标题另起一列；尺寸比例照着主题的横向读法（styles/travel.css）：视口高 S，图高 0.66S，上下留白 8% / 13%。
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { ImagePlus, Map as MapIcon, Merge, Redo2, RotateCcw, Settings2, Split, Trash2, Undo2 } from 'lucide-react';
+import { ImagePlus, Map as MapIcon, MapPin, Merge, Redo2, RotateCcw, Settings2, Split, Trash2, Undo2 } from 'lucide-react';
 import { placesOf } from 'astro-mori/flow';
 import { assetUrl } from '@/lib/api';
 import { cn } from '@/lib/cn';
@@ -316,8 +316,8 @@ function Spans({ text, dots = true }: { text: unknown; dots?: boolean }) {
     const marks: string[] = (s.marks ?? []).map((m: Doc) => m.type);
     const note = marks.includes('note') || marks.includes('fn');
     return (
-      <span key={i} className={cn(marks.includes('strong') && 'font-bold', marks.includes('em') && 'italic', marks.includes('code') && 'font-mono text-smaller', marks.includes('link') && 'underline decoration-foreground/30 underline-offset-2')}>
-        {dots && marks.includes('place') && <i className="mr-[.28em] inline-block size-[.42em] rounded-full border-[1.5px] border-primary align-[.06em]" />}{s.t}{note && <sup className="mono text-sup text-muted-foreground">*</sup>}
+      <span key={i} className={cn(dots && marks.includes('place') && 'text-primary', marks.includes('strong') && 'font-bold', marks.includes('em') && 'italic', marks.includes('code') && 'font-mono text-smaller', marks.includes('link') && 'underline decoration-foreground/30 underline-offset-2')}>
+        {dots && marks.includes('place') && <MapPin className="mr-[.18em] inline-block size-[.85em] align-[-.1em]" />}{s.t}{note && <sup className="mono text-sup text-muted-foreground">*</sup>}
       </span>
     );
   })}</>;

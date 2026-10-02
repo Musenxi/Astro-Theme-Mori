@@ -1,8 +1,10 @@
 /* 长卷（横滚、地图）：三种读法（竖向 / 混合 / 横向）的版式、图片块、进场显现。由 <div.travel data-mode> 的属性驱动，所以留在 CSS 里；文字、封面、行程表、角落控件的样式在各自的组件里 */
 .t-body,.t-vp,.t-track,.blk{position:relative}
 
-/* 正文里的地点：前面一个和地图上的点一样的空心圆；标题里的不加 */
-.place::before{content:'';display:inline-block;width:.42em;height:.42em;margin-inline-end:.28em;border:1.5px solid var(--primary);border-radius:50%;vertical-align:.06em}
+/* 正文里的地点：地名用主题色，前面一个定位图标（lucide 的 map-pin，用 mask 着色）；标题里的保持标题的样子 */
+.place{color:var(--primary)}
+.place::before{content:'';display:inline-block;width:.85em;height:.85em;margin-inline-end:.18em;vertical-align:-.1em;background:currentColor;-webkit-mask:var(--pin) center/contain no-repeat;mask:var(--pin) center/contain no-repeat;--pin:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z'/%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3C/svg%3E")}
+.place:is(h2 *,h3 *){color:inherit}
 .place:is(h2 *,h3 *)::before,.place:empty::before{display:none}
 /* 不写地名的地点：段落本身看不见（高度 0），整列都是它时只留一个零宽的锚点，抵掉块与块之间的间距 */
 .place-only{height:0;margin:0!important;overflow:hidden}
