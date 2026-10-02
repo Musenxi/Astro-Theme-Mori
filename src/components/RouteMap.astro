@@ -2,6 +2,7 @@
 /**
  * 剪影地图：构建时算好几何，输出纯 SVG（spec §3.2）。地点是正文里标的 place。
  *  - hero：长卷封面里的大图，同时把陆地轮廓放进 <symbol id="map-land">，同页的其他地图直接引用
+ *  - defs：封面不显示路线图时，只放这个 <symbol>，正文里的地图块和左下角的小地图照样有底图
  *  - block：正文里的地图块（route 全程 / stop 只看当前地点附近）
  *  - mini：左下角“当前位置”里的小地图，只有轮廓、路线和一个当前位置标记
  */
@@ -11,7 +12,7 @@ import { buildMap, W, H } from '../lib/map.ts';
 import { t, lang } from '../lib/i18n.ts';
 
 interface Props {
-  variant: 'hero' | 'block' | 'mini';
+  variant: 'hero' | 'block' | 'mini' | 'defs';
   stops: FlowPlace[];
   track?: PostData['track'];
   /** block 用：route 全程，stop 只看某个地点附近 */
@@ -33,13 +34,13 @@ const label = t('map.route', { list: stops.map((s) => s.name).join(lang === 'en'
 ---
 
 {
-  variant === 'hero' && (
+  (variant === 'hero' || variant === 'defs') && (
     <svg class="absolute" width="0" height="0" aria-hidden="true">
       <symbol id="map-land" viewBox={`0 0 ${W} ${H}`}><path class={land} d={m.land} /></symbol>
     </svg>
   )
 }
-<svg class:list={['map block h-auto overflow-visible', mini ? 'w-[60px] flex-none' : 'w-full']} viewBox={`0 0 ${W} ${H}`} data-map={variant} data-stops={mini ? JSON.stringify(m.stops.map((s) => ({ x: s.x, y: s.y }))) : undefined} role="img" aria-label={label}>
+{variant !== 'defs' && <svg class:list={['map block h-auto overflow-visible', mini ? 'w-[60px] flex-none' : 'w-full']} viewBox={`0 0 ${W} ${H}`} data-map={variant} data-stops={mini ? JSON.stringify(m.stops.map((s) => ({ x: s.x, y: s.y }))) : undefined} role="img" aria-label={label}>
   {own ? <path class={land} d={m.land} /> : <use href="#map-land" width={W} height={H} />}
   {full && m.parallels.map((p) => (
     <>
@@ -71,4 +72,4 @@ const label = t('map.route', { list: stops.map((s) => s.name).join(lang === 'en'
       ))}
     </>
   )}
-</svg>
+</svg>}
