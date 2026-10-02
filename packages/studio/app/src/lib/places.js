@@ -68,6 +68,17 @@ export function appendPlace(doc, { name, lnglat, en, date }) {
 const inRange = (lat, lng) => Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
 
 /**
+ * Plus Code 短码（如 MM68+JQ 世田谷区 东京都）：拆成码和后面的地名；不是短码返回 null。有地名时用它定位参考点补全，比拿上一个地点当参考可靠
+ * @param {string | undefined} text
+ * @returns {{ code: string, locality: string } | null}
+ */
+export function shortCodeOf(text) {
+  const m = /(?:^|[\s:：])([0-9A-Za-z]{2,8}\+[0-9A-Za-z]*)(?:[\s,，]+(.*))?$/.exec((text ?? '').trim());
+  if (!m || decode(m[1]) || !recover(m[1], [0, 0])) return null; // 全码不用补；不是码的不算
+  return { code: m[1], locality: (m[2] ?? '').trim() };
+}
+
+/**
  * 读一个坐标，返回 [经度, 纬度]；读不懂是 null。认这几种写法：
  *   - “纬度, 经度”（地图软件里复制出来的）
  *   - Open Location Code（Google 地图里的 Plus Code）：全码 8FVC9G8F+6W；短码 9G8F+6W（后面可以跟城市名）靠 reference 补全

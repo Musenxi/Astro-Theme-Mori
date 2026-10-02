@@ -71,6 +71,7 @@ export const api = {
     if (!r.ok) throw new ApiError(j.error ?? '读取 GPX 失败', r.status);
     return j as { track: Array<[number, number]>; points: number; simplified: number };
   },
+  geocode: (q: string) => req<{ lnglat: [number, number]; name: string }>('GET', `/api/geocode?q=${encodeURIComponent(q)}`),
   exif: () => req<{ photos: number; withGps: number; stops: Array<{ lnglat: [number, number]; date?: string; count: number }> }>('GET', '/api/exif'),
 
   assets: () => req<{ assets: AssetInfo[] }>('GET', '/api/assets'),

@@ -349,6 +349,18 @@ export async function startStudio({ root, port = 4400, dev = false }) {
         const track = simplify(pts);
         return send(res, 200, { track, points: pts.length, simplified: track.length });
       }
+      /* ── 地名 → 坐标（OpenStreetMap 的 Nominatim）：Plus Code 短码要靠城市名补全。只在作者填坐标时查一次 ── */
+      if (req.method === 'GET' && p === '/api/geocode') {
+        const q = (url.searchParams.get('q') ?? '').trim();
+        if (!q || q.length > 200) return send(res, 400, { error: '没有地名' });
+        try {
+          const r = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=zh&q=${encodeURIComponent(q)}`, { headers: { 'User-Agent': 'MORI-Studio (local writing tool)' }, signal: AbortSignal.timeout(8000) });
+          if (!r.ok) throw new Error(`地名服务返回 ${r.status}`);
+          const hit = (await r.json())[0];
+          if (!hit) return send(res, 404, { error: `没查到“${q}”` });
+          return send(res, 200, { lnglat: [+hit.lon, +hit.lat], name: hit.display_name });
+        } catch (e) { return send(res, 502, { error: `查地名没成功：${e.message}` }); }
+      }
       if (req.method === 'GET' && p === '/api/exif') {
         const photos = [];
         for (const name of listAssets(root)) {
