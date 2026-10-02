@@ -39,8 +39,9 @@ export type MoriPublish =
  *  - mori：自建评论服务（packages/comments），文末评论 + 划词引用评论
  *  - 其余是第三方，只有文末评论，没有引用评论
  */
+export type MoriCommentsStatus = 'on' | 'readonly' | 'off';
 export type MoriComments =
-  | { provider: 'mori'; /** 评论服务的地址，如 https://comments.example.com */ endpoint: string; /** Cloudflare Turnstile 的站点密钥（公开的那个） */ turnstileSiteKey?: string; /** 是否开启划词引用评论，默认开 */ annotations?: boolean; /** 头像服务：'cravatar'（默认，国内能用）、'gravatar'、'none'（不显示），或含 {hash} 的自定义地址 */ avatar?: string }
+  | { provider: 'mori'; /** 开关：on（默认）开启；readonly 禁用但显示历史评论；off 禁用且评论区不显示。单篇文章可以在自己的 comments 里覆盖 */ status?: MoriCommentsStatus; /** 评论服务的地址，如 https://comments.example.com */ endpoint: string; /** Cloudflare Turnstile 的站点密钥（公开的那个） */ turnstileSiteKey?: string; /** 是否开启划词引用评论，默认开 */ annotations?: boolean; /** 头像服务：'cravatar'（默认，国内能用）、'gravatar'、'none'（不显示），或含 {hash} 的自定义地址 */ avatar?: string }
   | { provider: 'giscus'; repo: string; repoId: string; category: string; categoryId: string; mapping?: string }
   | { provider: 'waline'; serverURL: string }
   | { provider: 'twikoo'; envId: string }

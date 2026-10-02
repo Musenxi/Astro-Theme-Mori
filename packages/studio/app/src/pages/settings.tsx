@@ -89,6 +89,9 @@ export default function Settings() {
 
         {project?.comments.provider === 'mori' && (
           <Section title="评论"><Card>
+            <Field label="状态">
+              <Segmented value={edits['comments.status'] ?? cfg.comments?.status ?? 'on'} onValueChange={(v) => put('comments.status', v)} options={[{ value: 'on', label: '开启' }, { value: 'readonly', label: '禁用，显示历史评论' }, { value: 'off', label: '禁用，不显示' }]} />
+            </Field>
             <Field label="头像服务">
               <Segmented value={edits['comments.avatar'] ?? avatarKey} onValueChange={(v) => put('comments.avatar', v)} options={[{ value: 'cravatar', label: 'Cravatar' }, { value: 'gravatar', label: 'Gravatar' }, { value: 'none', label: '不显示' }]} />
             </Field>

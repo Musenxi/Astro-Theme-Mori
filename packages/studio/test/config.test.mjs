@@ -108,3 +108,14 @@ test('comments.avatar：只改评论块里的头像服务；没有启用自建�
   assert.equal(readFileSync(g, 'utf8').match(/avatar/g).length, 1);
   assert.throws(() => setConfigValue(g, 'comments.avatar', 'https://x.example/{hash}'), /只能是/);
 });
+
+test('comments.status：只接受 on / readonly / off，写进评论块里', () => {
+  const g = join(mkdtempSync(join(tmpdir(), 'mori-')), 'mori.config.ts');
+  writeFileSync(g, `export default defineMoriConfig({\n  comments: { provider: 'mori', endpoint: 'https://c.example.com' },\n});\n`);
+  setConfigValue(g, 'comments.status', 'readonly');
+  assert.match(readFileSync(g, 'utf8'), /comments: \{ status: 'readonly', provider: 'mori'/);
+  setConfigValue(g, 'comments.status', 'off');
+  assert.equal(readFileSync(g, 'utf8').match(/status/g).length, 1);
+  assert.match(readFileSync(g, 'utf8'), /status: 'off'/);
+  assert.throws(() => setConfigValue(g, 'comments.status', 'closed'), /只能是/);
+});

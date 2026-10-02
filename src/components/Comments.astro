@@ -10,11 +10,17 @@ import { avatarTemplate } from '../lib/avatar.mjs';
 interface Props {
   /** 评论按文章归档：posts/<id>（普通文章和游记都在 posts 下） */
   entry: string;
+  /** 这一篇自己的开关（覆盖站点的）；只对自建评论有效 */
+  status?: 'on' | 'readonly' | 'off';
 }
-const { entry } = Astro.props;
-const c = config.comments;
+const { entry, status: own } = Astro.props;
+// 开关只对自建评论有效，第三方评论一直开着
+const mori = config.comments?.provider === 'mori';
+// 这一篇自己设了就用它的，没设就跟站点
+const status = mori ? own ?? config.comments?.status ?? 'on' : 'on';
+const c = status === 'off' ? undefined : config.comments;
 // 前端拿到的是已经解析好的头像地址模板（空字符串 = 不显示头像）
-const pub = c?.provider === 'mori' ? { ...c, avatar: avatarTemplate(c.avatar) } : c;
+const pub = c?.provider === 'mori' ? { ...c, avatar: avatarTemplate(c.avatar), status } : c;
 ---
 
 {

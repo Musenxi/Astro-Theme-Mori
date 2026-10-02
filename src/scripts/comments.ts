@@ -40,6 +40,7 @@ function init() {
   const cfg = moriConfig();
   if (!cfg) return;
   section.dataset.ready = '1';
+  const readonly = cfg.status === 'readonly'; // 禁用但留着历史评论：不给表单，也不给回复
   const body = section.querySelector<HTMLElement>('[data-body]')!;
   const count = section.querySelector<HTMLElement>('[data-count]')!;
   let comments: MoriComment[] = [];
@@ -60,6 +61,11 @@ function init() {
     count.textContent = comments.length ? t('js.cmt.count', { n: comments.length }) : '';
     queueMicrotask(() => document.dispatchEvent(new CustomEvent('mori:comments-rendered', { detail: comments })));
     const list = h('ol', { class: 'cmt-list' }, ...top.map((c) => item(c, replies(c.id))));
+    if (readonly) {
+      section!.hidden = !comments.length;
+      body.replaceChildren(h('p', { class: 'cmt-none' }, t('js.cmt.closed')), list);
+      return;
+    }
     body.replaceChildren(form(cfg!, null), comments.length ? list : h('p', { class: 'cmt-none' }, t('js.cmt.none')));
   }
 
@@ -69,7 +75,7 @@ function init() {
       avatar(c),
       h('div', { class: 'cmt-main' },
         h('div', { class: 'cmt-meta' }, byline(c), h('time', { class: 'cmt-date' }, numDate(c.createdAt)),
-          h('button', { class: 'cmt-reply', type: 'button', onclick: (ev: Event) => toggleReply(li, c, ev.currentTarget as HTMLElement) }, t('js.cmt.reply'))),
+          readonly ? null : h('button', { class: 'cmt-reply', type: 'button', onclick: (ev: Event) => toggleReply(li, c, ev.currentTarget as HTMLElement) }, t('js.cmt.reply'))),
         c.block && c.quote ? quote(c) : null,
         h('div', { class: 'cmt-text' }, c.body),
         kids.length ? h('ol', { class: 'cmt-replies' }, ...kids.map((k) => item(k, []))) : null));

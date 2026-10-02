@@ -137,7 +137,7 @@ function on(target: EventTarget, type: string, fn: (e: any) => void, opts?: AddE
 
 function init() {
   const cfg = moriConfig();
-  if (!cfg || cfg.annotations === false) return;
+  if (!cfg || cfg.annotations === false || cfg.status === 'readonly') return;
   if (document.body.dataset.annoReady) return;
   document.body.dataset.annoReady = '1';
   off.forEach((f) => f()); off = [];

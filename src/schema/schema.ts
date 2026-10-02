@@ -218,6 +218,8 @@ export const postSchema = ({ image }: SchemaContext) =>
           direction: z.enum(['ltr', 'rtl']).default('ltr'),
         })
         .optional(),
+      /** 这一篇的评论开关，只对自建评论有效：on 开启 / readonly 禁用但显示历史评论 / off 禁用且不显示。不写就跟站点（mori.config.ts 的 comments.status） */
+      comments: z.enum(['on', 'readonly', 'off']).optional(),
       notes: z.record(id, noteSchema).default({}),
       blocks: z.array(postBlocks(image)),
     })

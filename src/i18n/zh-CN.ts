@@ -21,7 +21,7 @@ export default {
   'friends.lost': '已失联', 'comments.title': '评论',
   // ↓ 浏览器里的脚本用
   'js.theme.toLight': '昼', 'js.theme.toDark': '夜',
-  'js.cmt.loading': '评论加载中……', 'js.cmt.retry': '重试', 'js.cmt.count': '{n} 条', 'js.cmt.none': '还没有评论。', 'js.cmt.reply': '回复', 'js.cmt.cancelReply': '取消回复',
+  'js.cmt.loading': '评论加载中……', 'js.cmt.retry': '重试', 'js.cmt.count': '{n} 条', 'js.cmt.none': '还没有评论。', 'js.cmt.closed': '评论已关闭。', 'js.cmt.reply': '回复', 'js.cmt.cancelReply': '取消回复',
   'js.cmt.jump': '回到正文里的这一段', 'js.cmt.name': '昵称 *', 'js.cmt.email': '邮箱 *', 'js.cmt.url': '网站', 'js.cmt.write': '写下你的想法…', 'js.cmt.replyTo': '回复 {name}', 'js.cmt.send': '发表', 'js.cmt.sendReply': '发表回复',
   'js.cmt.sending': '发送中……', 'js.cmt.pending': '已收到。通过审核后会显示在这里。', 'js.cmt.loadFail': '评论加载失败（{status}）', 'js.cmt.postFail': '提交失败（{status}）', 'js.cmt.tsFail': '人机验证脚本加载失败',
   'js.cmt.scriptFail': '脚本加载失败：{src}', 'js.cmt.unknown': '不认识的评论服务：{provider}',

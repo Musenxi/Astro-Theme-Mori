@@ -20,7 +20,7 @@ export interface MoriComment {
 }
 export interface SendResult { status: 'approved' | 'pending'; comment?: MoriComment }
 
-export interface MoriCommentsConfig { provider: string; endpoint?: string; turnstileSiteKey?: string; annotations?: boolean; /** 头像地址模板，{hash} 会被换成评论的头像哈希；空 = 不显示 */ avatar?: string }
+export interface MoriCommentsConfig { provider: string; endpoint?: string; turnstileSiteKey?: string; annotations?: boolean; /** readonly：只显示历史评论，不能再发表 */ status?: string; /** 头像地址模板，{hash} 会被换成评论的头像哈希；空 = 不显示 */ avatar?: string }
 
 /** 当前页面的评论设置（评论区 section 上的 data-config）。没有评论区 / 不是自建评论就是 null */
 export function moriConfig(): (MoriCommentsConfig & { entry: string }) | null {

@@ -57,6 +57,11 @@ export function InfoPanel({ kind, doc, set, edit }: { kind: Kind; doc: Doc; set:
       <Group title="文章">
         <Field label="副标题"><Input value={doc.subtitle ?? ''} onChange={(e) => set({ subtitle: e.target.value || undefined })} /></Field>
         <Field label="公开度"><Segmented value={visibilityOf(doc)} onValueChange={(v) => set({ draft: v === 'draft' ? true : undefined, hidden: v === 'hidden' ? true : undefined })} options={VISIBILITY} /></Field>
+        {project?.comments.provider === 'mori' && (
+          <Field label="评论">
+            <OptionSelect value={doc.comments ?? 'inherit'} onValueChange={(v) => set({ comments: v === 'inherit' ? undefined : v })} options={[{ value: 'inherit', label: '跟随站点' }, { value: 'on', label: '开启' }, { value: 'readonly', label: '禁用，显示历史评论' }, { value: 'off', label: '禁用，不显示' }]} />
+          </Field>
+        )}
         <Field label="日期"><Input type="date" value={String(doc.date ?? '').slice(0, 10)} onChange={(e) => set({ date: e.target.value })} /></Field>
         <Field label="分类">
           <OptionSelect value={doc.category || undefined} onValueChange={(v) => set({ category: v })} placeholder="选择分类"

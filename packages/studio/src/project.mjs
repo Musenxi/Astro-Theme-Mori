@@ -155,7 +155,7 @@ export function saveAsset(root, name, buffer) {
 /* ───────────── mori.config.ts 里的单行字符串设置 ───────────── */
 const CONFIG_KEYS = new Set(['title', 'description', 'accent', 'accentDark', 'editorNote', 'actionsLayout']);
 /** 嵌套在 home / archive / feed 块里的设置：'home.style'、'home.direction'、'home.tocDirection'、'archive.direction'、'feed.content' */
-const BLOCK_KEYS = { 'home.style': ['quote', 'cover', 'list'], 'home.direction': ['h', 'v'], 'home.tocDirection': ['h', 'v'], 'archive.direction': ['h', 'v'], 'feed.content': ['excerpt', 'full'], 'comments.avatar': ['cravatar', 'gravatar', 'none'] };
+const BLOCK_KEYS = { 'home.style': ['quote', 'cover', 'list'], 'home.direction': ['h', 'v'], 'home.tocDirection': ['h', 'v'], 'archive.direction': ['h', 'v'], 'feed.content': ['excerpt', 'full'], 'comments.avatar': ['cravatar', 'gravatar', 'none'], 'comments.status': ['on', 'readonly', 'off'] };
 /** 数字取值的设置：[最小, 最大]，写进文件时不带引号 */
 const NUM_KEYS = { 'home.count': [1, 8] };
 const quote = (v) => `'${String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n')}'`;
@@ -202,7 +202,7 @@ function setBlockValue(configPath, dotted, value) {
   let src = readFileSync(configPath, 'utf8');
   const open = src.match(new RegExp(`^([ \\t]*)${block}[ \\t]*:[ \\t]*\\{`, 'm'));
   // 评论的块自己带着服务地址等设置，不能凭空新建一个只有头像的 comments
-  if (!open && block === 'comments') throw new Error('mori.config.ts 里还没有启用自建评论（comments: { provider: \'mori\', … }），先启用再选头像服务。');
+  if (!open && block === 'comments') throw new Error('mori.config.ts 里还没有启用自建评论（comments: { provider: \'mori\', … }），先启用评论再改这项设置。');
   if (!open) {
     const top = src.match(/(defineMoriConfig\(\{|export default \{)[ \t]*\n/);
     if (!top) throw new Error('没在 mori.config.ts 里找到配置对象的开头，请手动添加。');

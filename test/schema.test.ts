@@ -70,3 +70,8 @@ test('地图的三处显示可以分别关掉', () => {
   assert.equal(r.ok, true, JSON.stringify(r.errors));
   assert.equal(validateEntry('post', { ...post, map: true, mapView: { hero: 'no' } }).ok, false);
 });
+
+test('单篇文章的评论开关只接受 on / readonly / off', () => {
+  for (const v of ['on', 'readonly', 'off']) assert.equal(validateEntry('post', { ...post, comments: v }).ok, true);
+  assert.equal(validateEntry('post', { ...post, comments: 'closed' }).ok, false);
+});
