@@ -17,7 +17,7 @@ const { title, meta = [], sub, cover, coverAlt = '', center = false } = Astro.pr
 ---
 
 <header class="wrap g pt-[clamp(48px,9vw,120px)] pb-[clamp(40px,5.5vw,72px)] *:col-[3/11]">
-  <h1 class:list={[center ? 'text-center' : 'w-fit', 'text-title leading-[1.25] font-normal tracking-[.06em] [view-transition-name:title-post]']}>{title}</h1>
+  <h1 class:list={[center ? 'text-center' : 'w-fit', 'text-title leading-[1.25] font-normal tracking-[.06em]']}>{title}</h1>
   {sub && <p class:list={['mt-3 text-item leading-[1.6] tracking-[.04em] text-soft-foreground', center && 'text-center']}>{sub}</p>}
   {
     meta.length > 0 && (
