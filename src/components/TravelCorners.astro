@@ -24,10 +24,9 @@ const stopData = stops.map((s) => ({ id: s.id, name: s.name || coord(s.lnglat), 
 
 {
   allowed.length > 1 && (
-    <div class="lg lg-btn group/mc fixed right-[18px] bottom-[18px] z-20 flex flex-col p-[3px] [transition:transform_.6s_var(--ease-mori),opacity_.4s,background-color_.4s,box-shadow_.4s] narrow:right-3 narrow:bottom-3" id="mc" role="group" aria-label={t('travel.readingGroup')} data-modes={allowed.join(',')}>
+    <div class="lg lg-btn fixed right-[18px] bottom-[18px] z-20 flex flex-col p-[3px] [transition:transform_.6s_var(--ease-mori),opacity_.4s,background-color_.4s,box-shadow_.4s] narrow:right-3 narrow:bottom-3" id="mc" role="group" aria-label={t('travel.readingGroup')} data-modes={allowed.join(',')}>
       <i class="lg-lens lg-lens-v" aria-hidden="true" />
       {allowed.map((m) => <button class="relative z-1 size-[30px] rounded-[999px] text-aux text-(--lg-fg) transition-[color] duration-400 hover:text-(--lg-fg-on) aria-pressed:text-(--lg-fg-on)" type="button" data-m={m} aria-label={LABEL[m][1]}>{LABEL[m][0]}</button>)}
-      <span class="pointer-events-none absolute right-[calc(100%_+_10px)] bottom-1 text-meta whitespace-nowrap text-muted-foreground opacity-0 [transform:translateX(6px)] [transition:opacity_.3s,transform_.4s_var(--ease-mori)] group-hover/mc:opacity-100 group-hover/mc:[transform:none]" id="mc-tip">{t('travel.readingGroup')}</span>
     </div>
   )
 }

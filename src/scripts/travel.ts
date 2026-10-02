@@ -131,7 +131,6 @@ function init() {
     const m = mode();
     mc.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.m === m)));
     mc.style.setProperty('--i', String(allowed.indexOf(m)));
-    mc.querySelector('#mc-tip')!.textContent = t('js.travel.tip', { mode: t(`js.travel.mode.${m}`) });
   }
 
   function setMode(m: Mode) {
