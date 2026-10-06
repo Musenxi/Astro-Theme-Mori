@@ -159,7 +159,9 @@ function init() {
     const a = (e.target as Element).closest<HTMLAnchorElement>('a');
     if (!a) return;
     e.preventDefault();
-    const b = document.getElementById(a.getAttribute('href')!.slice(1))?.closest<HTMLElement>('.blk');
+    let b = document.getElementById(a.getAttribute('href')!.slice(1))?.closest<HTMLElement>('.blk') ?? null;
+    // 一列在横滚和竖滚里渲染了两份：标着地点的那份可能正藏着，滚到显示着的那份
+    if (b && b.offsetParent === null) b = [b.nextElementSibling, b.previousElementSibling].find((x): x is HTMLElement => x instanceof HTMLElement && x.classList.contains('blk') && x.offsetParent !== null) ?? b;
     if (b) scrollToBlock(b);
   });
 

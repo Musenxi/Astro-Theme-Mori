@@ -30,6 +30,7 @@
 
 /* ---------- 竖向 + 混合 ---------- */
 .travel:not([data-mode="h"]) .t-track{max-width:var(--maxw);margin:0 auto;padding:0 var(--gut);display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gap);row-gap:clamp(56px,9vw,128px)}
+.travel:not([data-mode="h"]) .ax-h,.travel[data-mode="h"] .ax-v{display:none}
 .travel:not([data-mode="h"]) .b-text{grid-column:3/9}
 .travel:not([data-mode="h"]) .b-text.v{grid-column:2/10;justify-self:end;height:min(21em,64vh);max-width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
 .travel:not([data-mode="h"]) .b-single{grid-column:1/-1}

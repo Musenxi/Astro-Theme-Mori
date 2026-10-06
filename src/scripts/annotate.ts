@@ -115,7 +115,11 @@ function highlight(range: Range) {
   }, 1800);
 }
 
-const blockOf = (id: string) => document.querySelector<HTMLElement>(`[data-b="${CSS.escape(id)}"]`);
+/** 同一列在横滚和竖滚里可能渲染了两份，取显示着的那份 */
+const blockOf = (id: string) => {
+  const all = [...document.querySelectorAll<HTMLElement>(`[data-b="${CSS.escape(id)}"]`)];
+  return all.find((el) => el.offsetParent !== null) ?? all[0] ?? null;
+};
 
 function markGone(list: MoriComment[]) {
   for (const c of list) {

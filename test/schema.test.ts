@@ -34,7 +34,7 @@ test('读法、地图、地点：每篇文章都能开；读法至少允许一�
 test('长卷的块：图组、自由排布、地图、竖排和位置都能出现在任何文章里', () => {
   const img = { src: 'a.jpg', alt: '' };
   const blocks = [
-    { id: 'b1', type: 'p', text: 'hi', writing: 'v', y: 0.3, scale: 1.2 },
+    { id: 'b1', type: 'p', text: 'hi', h: { writing: 'v', y: 0.3, scale: 1.2 }, v: { writing: 'h' } },
     { id: 'b2', type: 'pair', images: [img, img] },
     { id: 'b3', type: 'strip', images: [img, img] },
     { id: 'b4', type: 'grid', images: [img, img, img] },

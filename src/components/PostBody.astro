@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import type { Inline, PostData } from '../schema/schema.ts';
 import { numberNotes, renderInline, sideRefs } from '../lib/inline.ts';
+import { axisOf } from '../lib/flow.mjs';
 import { t, vertical } from '../lib/i18n.ts';
 
 interface Props {
@@ -17,12 +18,64 @@ let fig = 0;
 const main = 'col-[3/9] -mr-(--main-plus) narrow:mr-0';
 const p = 'mb-[1.1em] text-justify text-pretty';
 const li = "relative py-[.2em] pl-[1.6em] text-pretty before:absolute before:top-[1.12em] before:left-[.1em] before:h-px before:w-[.6em] before:bg-muted-foreground before:content-['']";
+
+/** 竖滚里竖排的块：挨着的几个竖排块排成一个竖排的框（和长卷竖向读法里的竖排列一样）；二级标题另起一个 */
+const isV = (b: { type: string }) => vertical && ['p', 'h', 'quote', 'list'].includes(b.type) && axisOf(b, 'v').writing === 'v';
+type Item = { group: typeof blocks } | { b: (typeof blocks)[number] };
+const items: Item[] = [];
+for (const b of blocks) {
+  const last = items.at(-1);
+  if (!isV(b)) items.push({ b });
+  else if (last && 'group' in last && !(b.type === 'h' && b.level !== 3)) last.group.push(b);
+  else items.push({ group: [b] });
+}
+const vcol = 'col-[2/10] my-[1.6em] h-[min(21em,64vh)] max-w-full justify-self-end overflow-x-auto overflow-y-hidden tracking-[.12em] leading-[2.05] [scrollbar-width:thin] [writing-mode:vertical-rl]';
+const vgap = '[margin-block-start:.9em] first:[margin-block-start:0]';
 const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref]?.text ?? [] }));
 ---
 
 <article class="wrap g prose pb-20 in-data-[page=page]:pb-6">
   {
-    blocks.map((b) => {
+    items.map((it) => {
+      // 单独一个竖排引用照旧（下面 quote 那一支）；其余竖排块成组
+      if ('group' in it && !(it.group.length === 1 && it.group[0].type === 'quote')) {
+        const notes_ = it.group.flatMap((g) => (g.type === 'p' ? sideRefs(g.text) : []));
+        return (
+          <Fragment>
+          <div class={vcol}>
+            {it.group.map((g) => {
+              switch (g.type) {
+                case 'h': return g.level === 3
+                  ? <h3 class={`${vgap} font-bold tracking-[.08em] scroll-mt-(--toc-top)`} id={g.id} data-b={g.id} set:html={html(g.text)} />
+                  : <h2 class={`${vgap} text-chapter font-bold tracking-[.18em] scroll-mt-(--toc-top) [margin-block-end:.8em]`} id={g.id} data-b={g.id} set:html={html(g.text)} />;
+                case 'quote': return (
+                  <blockquote class={`${vgap} border-r border-r-primary pr-[1.1em] text-soft-foreground`} data-b={g.id}>
+                    <Fragment set:html={html(g.text)} />
+                    {g.cite && <cite class="block text-meta text-muted-foreground [margin-block-start:.4em]" data-skip>{g.cite}</cite>}
+                  </blockquote>
+                );
+                case 'list': {
+                  const Tag = g.ordered ? 'ol' : 'ul';
+                  return <Tag class={`${vgap} [counter-reset:li]`} data-b={g.id}>{g.items.map((item) => <li class="[counter-increment:li] before:text-muted-foreground before:content-['・']" set:html={html(item)} />)}</Tag>;
+                }
+                default: return <p class={`${vgap} text-justify`} data-b={g.id} set:html={html((g as { text: Inline }).text)} />;
+              }
+            })}
+          </div>
+          {notes_.length > 0 && (
+            <div class="col-[3/9] flex flex-col gap-[.9em] [margin-block-end:1.4em]">
+              {notes_.map((ref) => (
+                <aside class="border-t border-t-border pt-[.35em] text-meta leading-[1.75] text-muted-foreground" id={`note-${ref}`}>
+                  <sup class="nref" data-skip>{numbers.side.get(ref)}</sup>
+                  <Fragment set:html={html(notes[ref]?.text ?? [])} />
+                </aside>
+              ))}
+            </div>
+          )}
+          </Fragment>
+        );
+      }
+      const b = 'group' in it ? it.group[0] : it.b;
       switch (b.type) {
         case 'p': {
           const refs = sideRefs(b.text);
@@ -51,7 +104,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
           );
         }
         case 'quote': {
-          const vq = b.writing === 'v' && vertical;
+          const vq = axisOf(b, 'v').writing === 'v' && vertical;
           return (
             <blockquote class:list={[main, !vq && "relative my-[1.6em] px-[4.2em] py-[.3em] text-center text-heading leading-[2.1] text-foreground before:absolute before:top-[-.1em] before:left-0 before:w-[.5em] before:text-[6em] before:leading-none before:text-foreground/20 before:[font-family:'Special_Elite',Georgia,serif] before:content-['“'] narrow:px-[1.6em] narrow:before:text-[2.6em]", vq && 'mt-[1.4em] mb-[2.2em] h-[12.5em] justify-self-center border-r border-r-primary pr-[1.1em] text-heading leading-[2.1] tracking-[.2em] text-soft-foreground [writing-mode:vertical-rl]']} data-b={b.id}>
               <Fragment set:html={html(b.text)} />

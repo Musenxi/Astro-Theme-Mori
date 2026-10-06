@@ -26,7 +26,7 @@ export interface FlowPlace {
 export interface FlowRegion { k: number; places: number[]; /** 区域里的路线（整趟路线里对应的一段） */ line: Array<[number, number]> }
 
 export type FlowColumn =
-  | { kind: 'text'; blocks: PostBlock[]; writing: 'h' | 'v'; y?: number; scale?: number; anchor?: boolean; place: number; places: number[] }
+  | { kind: 'text'; blocks: PostBlock[]; writing: 'h' | 'v'; vwriting: 'h' | 'v'; y?: number; scale?: number; anchor?: boolean; place: number; places: number[] }
   | { kind: 'block'; block: PostBlock; place: number; places: number[] };
 
 export interface Flow {

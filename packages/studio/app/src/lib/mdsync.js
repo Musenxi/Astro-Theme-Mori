@@ -103,9 +103,11 @@ const patchImage = (im, n) => {
 /** 版式和位置：Markdown 里写不出来，但属于块本身，改了文字也要带过去 */
 function carry(old, nb) {
   const out = {};
-  if (old.y !== undefined) out.y = old.y;
-  if (old.scale !== undefined) out.scale = old.scale;
-  if (old.writing === 'v' && WRITING_BLOCKS.has(nb.type)) out.writing = 'v';
+  for (const axis of ['h', 'v']) {
+    const o = { ...(old[axis] ?? {}) };
+    if (!WRITING_BLOCKS.has(nb.type)) delete o.writing;
+    if (Object.keys(o).length) out[axis] = o;
+  }
   if (old.type === 'image' && nb.type === 'image' && old.layout) out.layout = old.layout;
   return out;
 }

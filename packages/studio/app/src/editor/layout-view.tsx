@@ -21,20 +21,23 @@ import { useConfirm } from '@/components/confirm';
 import { Segmented } from '@/components/segmented';
 import { Tip } from '@/components/tip';
 import { LayoutBlockBody } from './layout-blocks';
+import type { LayoutHistory } from './layout-history';
 
-const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
-const r2 = (v: number) => Math.round(v * 100) / 100;
-const px = (n: number) => `${n}px`;
+export const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+export const r2 = (v: number) => Math.round(v * 100) / 100;
+export const px = (n: number) => `${n}px`;
 const SCALABLE = new Set(['image', 'pair', 'strip', 'grid', 'free', 'text']);
-const NAMES: Record<string, string> = { text: '文字', image: '单图', pair: '双图', strip: '图组', grid: '网格', free: '自由排布', map: '地图' };
+export const NAMES: Record<string, string> = { text: '文字', image: '单图', pair: '双图', strip: '图组', grid: '网格', free: '自由排布', map: '地图' };
 /** 舞台占可用高度的比例：小一点能一眼看到更多站 */
-const ZOOMS: Record<string, number> = { s: 0.5, m: 0.72, l: 1 };
-const ZOOM_KEY = 'mori-studio-layout-zoom';
+export const ZOOMS: Record<string, number> = { s: 0.5, m: 0.72, l: 1 };
+export const ZOOM_KEY = 'mori-studio-layout-zoom';
 const imgSrc =(src?: string) => (!src ? '' : /^(https?:|data:|\/)/.test(src) ? src : assetUrl(assetName(src), 900));
 
 interface Drag { key: string; y?: number; dx?: number; slot?: number | null; line?: number; scale?: number }
 
-export function LayoutView({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) => Doc) => void }) {
+/** 横向读法的排版：整篇排成一条横卷，块的上下位置和大小都在这里摆 */
+export function HorizontalLayout({ doc, hist, switcher }: { doc: Doc; hist: LayoutHistory; switcher?: ReactNode }) {
+  const { commit, undo, redo } = hist;
   const confirm = useConfirm();
   const area = useRef<HTMLDivElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
@@ -47,9 +50,6 @@ export function LayoutView({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) =>
   const [drag, setDrag] = useState<Drag | null>(null);
   const [detail, setDetail] = useState(false);
   const [lib, setLib] = useState(false);
-  const past = useRef<Doc[]>([]);
-  const future = useRef<Doc[]>([]);
-  const [, bump] = useState(0);
 
   // 舞台高度跟着可用空间走
   useLayoutEffect(() => {
@@ -67,13 +67,6 @@ export function LayoutView({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) =>
   const chapters = useMemo(() => { const m = new Map<string, number>(); let n = 0; for (const b of blocks) if (b.type === 'h' && b.level !== 3) m.set(b.id, ++n); return m; }, [blocks]);
   const selected = its.find((x) => x.key === sel) ?? null;
 
-  /** 改动：记进撤销栈（打字这类连续的小改动不记） */
-  const commit = (next: Doc, history = true) => {
-    if (history) { past.current.push(doc); if (past.current.length > 100) past.current.shift(); future.current = []; bump((n) => n + 1); }
-    setDoc(() => next);
-  };
-  const undo = () => { const prev = past.current.pop(); if (!prev) return; future.current.push(doc); setDoc(() => prev); bump((n) => n + 1); };
-  const redo = () => { const next = future.current.pop(); if (!next) return; past.current.push(doc); setDoc(() => next); bump((n) => n + 1); };
   /** 位置、缩放、竖排（一列文字写在每个块上） */
   const place = (key: string, p: Doc, history = true) => commit(ops.setPlace(doc, key, p), history);
   /** 一个块自己的字段（图片的版式、图注、图组里每张图……） */
@@ -184,12 +177,13 @@ export function LayoutView({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) =>
         {selected ? <BlockBar key={selected.key} b={selected} doc={doc} commit={commit} place={(p) => place(selected.key, p)} patch={(p) => patchBlock(selected.key, p)} onDetail={() => setDetail(true)} onRemove={() => void remove(selected)} />
           : <span />}
         <span className="ml-auto flex items-center gap-0.5">
+          {switcher}
           <Segmented size="sm" className="mr-1.5" value={zoom} onValueChange={setZoom} options={[{ value: 's', label: '小' }, { value: 'm', label: '中' }, { value: 'l', label: '大' }]} />
           <ToolBtn label="插入图片" onClick={() => setLib(true)}><ImagePlus size={15} /></ToolBtn>
           <ToolBtn label="插入地图" onClick={() => insert({ type: 'map', scope: 'region' })}><MapIcon size={15} /></ToolBtn>
           <span className="mx-1 h-4 w-px bg-border-strong" />
-          <ToolBtn label="撤销　⌘Z" disabled={!past.current.length} onClick={undo}><Undo2 size={15} /></ToolBtn>
-          <ToolBtn label="重做　⇧⌘Z" disabled={!future.current.length} onClick={redo}><Redo2 size={15} /></ToolBtn>
+          <ToolBtn label="撤销　⌘Z" disabled={!hist.canUndo} onClick={undo}><Undo2 size={15} /></ToolBtn>
+          <ToolBtn label="重做　⇧⌘Z" disabled={!hist.canRedo} onClick={redo}><Redo2 size={15} /></ToolBtn>
         </span>
       </div>
 
@@ -229,13 +223,13 @@ export function LayoutView({ doc, setDoc }: { doc: Doc; setDoc: (fn: (d: Doc) =>
 }
 
 /** 地图块读到的地点：这个块（含）之前最后一个地点 */
-function hereOf(blocks: Doc[], id: string, places: Array<{ n: number; block: string }>) {
+export function hereOf(blocks: Doc[], id: string, places: Array<{ n: number; block: string }>) {
   const at = blocks.findIndex((b) => b.id === id);
   const before = new Set(blocks.slice(0, at + 1).map((b) => b.id));
   return places.filter((p) => before.has(p.block)).at(-1)?.n;
 }
 
-function ToolBtn({ label, children, onClick, disabled, active }: { label: string; children: ReactNode; onClick: () => void; disabled?: boolean; active?: boolean }) {
+export function ToolBtn({ label, children, onClick, disabled, active }: { label: string; children: ReactNode; onClick: () => void; disabled?: boolean; active?: boolean }) {
   return (
     <Tip label={label}>
       <button type="button" aria-label={label} disabled={disabled} onClick={onClick}
@@ -248,7 +242,7 @@ function ToolBtn({ label, children, onClick, disabled, active }: { label: string
 
 /* ───────────── 选中块的工具条 ───────────── */
 
-function BlockBar({ b, doc, commit, place, patch, onDetail, onRemove }: { b: Doc; doc: Doc; commit: (d: Doc) => void; place: (p: Doc) => void; patch: (p: Doc) => void; onDetail: () => void; onRemove: () => void }) {
+export function BlockBar({ b, doc, commit, place, patch, onDetail, onRemove, axis = 'h' }: { axis?: 'h' | 'v'; b: Doc; doc: Doc; commit: (d: Doc) => void; place: (p: Doc) => void; patch: (p: Doc) => void; onDetail: () => void; onRemove: () => void }) {
   const layouts = ops.layoutsFor(b);
   const moved = b.y !== undefined || b.scale !== undefined;
   const text = b.type === 'text';
@@ -260,12 +254,12 @@ function BlockBar({ b, doc, commit, place, patch, onDetail, onRemove }: { b: Doc
       {layouts.length > 0 && (
         <Segmented size="sm" value={b.type} onValueChange={(t) => commit(ops.setLayout(doc, b.key, t))} options={layouts.map((t) => ({ value: t, label: NAMES[t] }))} />
       )}
-      {text && <Segmented size="sm" value={b.writing === 'v' ? 'v' : 'h'} onValueChange={(v) => place({ writing: v === 'v' ? 'v' : undefined })} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />}
+      {text && <Segmented size="sm" value={(axis === 'v' ? b.vwriting : b.writing) === 'v' ? 'v' : 'h'} onValueChange={(v) => place({ writing: v === 'v' ? 'v' : undefined })} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />}
       {b.type === 'map' && <Segmented size="sm" value={b.scope ?? 'region'} onValueChange={(v) => patch({ scope: v })} options={[{ value: 'region', label: '所在区域' }, { value: 'route', label: '全程' }, { value: 'near', label: '这一处' }]} />}
       {ops.canMergeNext(doc, b.key) && <Button size="sm" variant="ghost" onClick={() => commit(ops.mergeWithNext(doc, b.key))}><Merge size={14} />和后一块合并</Button>}
       {ops.isImageBlock(b) && b.type !== 'image' && <Button size="sm" variant="ghost" onClick={() => commit(ops.split(doc, b.key))}><Split size={14} />拆成单图</Button>}
-      <span className="mono px-1 text-11 text-muted-foreground">↕ {Math.round((b.y ?? 0.5) * 100)}%{b.type !== 'map' && ` · ${Math.round((b.scale ?? 1) * 100)}%`}</span>
-      {moved && <ToolBtn label="位置和大小复位" onClick={() => place({ y: undefined, scale: undefined })}><RotateCcw size={14} /></ToolBtn>}
+      {axis === 'h' && <span className="mono px-1 text-11 text-muted-foreground">↕ {Math.round((b.y ?? 0.5) * 100)}%{b.type !== 'map' && ` · ${Math.round((b.scale ?? 1) * 100)}%`}</span>}
+      {axis === 'h' && moved && <ToolBtn label="位置和大小复位" onClick={() => place({ y: undefined, scale: undefined })}><RotateCcw size={14} /></ToolBtn>}
       {b.type !== 'map' && !text && <ToolBtn label="细节：图注、替代文字……" onClick={onDetail}><Settings2 size={15} /></ToolBtn>}
       <ToolBtn label="删除这一块" onClick={onRemove}><Trash2 size={14} /></ToolBtn>
     </>
@@ -302,15 +296,15 @@ function BlockFrame({ b, g, seq, selected, drag, onDown, onScale, onOpen, childr
   );
 }
 
-function Img({ src, style, className }: { src?: string; style?: React.CSSProperties; className?: string }) {
+export function Img({ src, style, className }: { src?: string; style?: React.CSSProperties; className?: string }) {
   if (!src) return <span className={cn('grid aspect-[4/3] place-items-center bg-muted text-11 text-muted-foreground', className)} style={style}>没有图</span>;
   return <img src={imgSrc(src)} alt="" draggable={false} loading="lazy" className={cn('block max-w-none bg-muted object-cover', className)} style={style} />;
 }
 
-const caption = (list: Doc[]) => list.map((i) => i.caption).filter(Boolean).join(' / ');
+export const caption = (list: Doc[]) => list.map((i) => i.caption).filter(Boolean).join(' / ');
 
 /** 行内文字：粗、斜、代码、链接照样显示，旁注只留一个小记号，地点前面有个空心圆（和站点上一样） */
-function Spans({ text, dots = true }: { text: unknown; dots?: boolean }) {
+export function Spans({ text, dots = true }: { text: unknown; dots?: boolean }) {
   if (typeof text === 'string') return <>{text}</>;
   return <>{(text as Doc[] ?? []).map((s, i) => {
     const marks: string[] = (s.marks ?? []).map((m: Doc) => m.type);
@@ -346,7 +340,7 @@ const Knob = ({ onDown }: { onDown: (e: React.PointerEvent) => void }) => (
   <span onPointerDown={onDown} className="absolute -bottom-2.25 -right-2.25 z-30 grid h-4.5 w-4.5 cursor-nwse-resize place-items-center rounded-full bg-popover shadow-pop"><i className="h-1.5 w-1.5 rounded-full bg-primary" /></span>
 );
 
-function StripFace({ b, H, fs, rtl, active, onPatch }: { b: Doc; H: number; fs: number; rtl: boolean; active: boolean; onPatch: (p: Doc) => void }) {
+export function StripFace({ b, H, fs, rtl, active, onPatch }: { b: Doc; H: number; fs: number; rtl: boolean; active: boolean; onPatch: (p: Doc) => void }) {
   const { items, start } = useItemDrag<Doc>(b.images, (images) => onPatch({ images }));
   const put = (i: number, p: Doc) => items.map((x, k) => (k === i ? { ...x, ...p } : x));
   return (
@@ -365,7 +359,7 @@ function StripFace({ b, H, fs, rtl, active, onPatch }: { b: Doc; H: number; fs: 
   );
 }
 
-function FreeFace({ b, h, fs, active, onPatch }: { b: Doc; h: number; fs: number; active: boolean; onPatch: (p: Doc) => void }) {
+export function FreeFace({ b, h, fs, active, onPatch }: { b: Doc; h: number; fs: number; active: boolean; onPatch: (p: Doc) => void }) {
   const box = useRef<HTMLDivElement>(null);
   const { items, start } = useItemDrag<Doc>(b.items ?? [], (next) => onPatch({ items: next }));
   const W = h * (b.ar ?? 1.6);
@@ -396,10 +390,10 @@ function FreeFace({ b, h, fs, active, onPatch }: { b: Doc; h: number; fs: number
 }
 
 const spansPlain = (t: unknown) => (typeof t === 'string' ? t : ((t as Doc[]) ?? []).map((s) => s.t).join(''));
-const blockPlain = (p: Doc) => (p.type === 'list' ? (p.items as unknown[]).map(spansPlain).join('') : p.type === 'code' ? p.code ?? '' : spansPlain(p.text));
+export const blockPlain = (p: Doc) => (p.type === 'list' ? (p.items as unknown[]).map(spansPlain).join('') : p.type === 'code' ? p.code ?? '' : spansPlain(p.text));
 
 /** 一列文字里的一块：段落、标题、引用、列表、代码（版式和站点上的读法大致一样，不求逐像素） */
-function Para({ p, v, first, chapter, place, fs }: { p: Doc; v: boolean; first: boolean; chapter: number; place?: Doc; fs: number }) {
+export function Para({ p, v, first, chapter, place, fs }: { p: Doc; v: boolean; first: boolean; chapter: number; place?: Doc; fs: number }) {
   // 段与段之间隔开一点；竖排时“块开始”的一侧在右边
   const gap = first ? '' : v ? '[margin-block-start:.9em]' : 'mt-[.9em]';
   switch (p.type) {
@@ -435,7 +429,7 @@ function Para({ p, v, first, chapter, place, fs }: { p: Doc; v: boolean; first: 
   }
 }
 
-type PlaceInfo = { n: number; block: string; label: string; lnglat: [number, number]; en?: string; date?: string };
+export type PlaceInfo = { n: number; block: string; label: string; lnglat: [number, number]; en?: string; date?: string };
 
 function Face({ b, g, scale, places, chapters, here, active, onPatch }: { b: Doc; g: Geo; scale: number; places: PlaceInfo[]; chapters: Map<string, number>; here?: number; active: boolean; onPatch: (p: Doc) => void }) {
   const H = g.ph * scale, fs = g.fs;
@@ -477,7 +471,7 @@ function Face({ b, g, scale, places, chapters, here, active, onPatch }: { b: Doc
 }
 
 /** 地图块的示意：地点连线。真正的地图在预览里看 */
-function MiniMap({ places, here, w, h, fs }: { places: PlaceInfo[]; here?: number; w: number; h: number; fs: number }) {
+export function MiniMap({ places, here, w, h, fs }: { places: PlaceInfo[]; here?: number; w: number; h: number; fs: number }) {
   const xs = places.map((s) => s.lnglat[0]), ys = places.map((s) => s.lnglat[1]);
   const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
   const pad = 0.12, sx = (x1 - x0) || 1, sy = (y1 - y0) || 1, k = Math.min((w * (1 - 2 * pad)) / sx, (h * (1 - 2 * pad)) / sy);

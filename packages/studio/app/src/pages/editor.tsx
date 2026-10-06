@@ -19,7 +19,7 @@ import { normalizeDoc } from 'astro-mori/flow';
 
 const MarkdownView = lazy(() => import('@/editor/markdown-view').then((m) => ({ default: m.MarkdownView })));
 const BlocksView = lazy(() => import('@/editor/blocks-view').then((m) => ({ default: m.BlocksView })));
-const LayoutView = lazy(() => import('@/editor/layout-view').then((m) => ({ default: m.LayoutView })));
+const LayoutView = lazy(() => import('@/editor/layout-switch').then((m) => ({ default: m.LayoutView })));
 
 type Mode = 'md' | 'blocks' | 'raw';
 

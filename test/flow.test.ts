@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { columns, fromLegacyTravel, isLegacyTravel, parsePlaceHref, placeHref, placesOf, usesFlow } from '../src/lib/flow.mjs';
+import { columns, fromLegacyTravel, isLegacyTravel, normalizeDoc, parsePlaceHref, placeHref, placesOf, usesFlow } from '../src/lib/flow.mjs';
 
 const place = (lnglat: [number, number], extra = {}) => ({ type: 'place', lnglat, ...extra });
 
@@ -72,9 +72,9 @@ test('老游记：站点变成二级标题（站名上标着地点），块按�
   assert.deepEqual(d.blocks.map((b: any) => b.id), ['h-rey', 't1p1', 't1p2', 't1p3', 's1', 'm1', 'h-s2', 'p1']);
   assert.deepEqual(d.blocks[0], { id: 'h-rey', type: 'h', level: 2, text: [{ t: '雷克雅未克', marks: [place([-21.9, 64.1], { en: 'Reykjavík', date: '06.20' })] }] });
   // 竖排和位置抄到每个块上；代码没有竖排设置
-  assert.deepEqual(d.blocks[1], { id: 't1p1', type: 'p', text: '一', writing: 'v', y: 0.3 });
-  assert.deepEqual(d.blocks[2], { id: 't1p2', type: 'quote', text: '引', cite: '谁', writing: 'v', y: 0.3 });
-  assert.deepEqual(d.blocks[3], { id: 't1p3', type: 'code', code: 'x', y: 0.3 });
+  assert.deepEqual(d.blocks[1], { id: 't1p1', type: 'p', text: '一', h: { y: 0.3, writing: 'v' }, v: { writing: 'v' } });
+  assert.deepEqual(d.blocks[2], { id: 't1p2', type: 'quote', text: '引', cite: '谁', h: { y: 0.3, writing: 'v' }, v: { writing: 'v' } });
+  assert.deepEqual(d.blocks[3], { id: 't1p3', type: 'code', code: 'x', h: { y: 0.3 } });
   assert.deepEqual(d.blocks[4], { id: 's1', type: 'image', src: 'a.jpg', alt: '', layout: 'inline' });
   assert.deepEqual(d.blocks[5], { id: 'm1', type: 'map', scope: 'near' });
   // 没填经纬度的站只有标题；双图原样（去掉 stop）
@@ -143,4 +143,24 @@ test('整趟路线：同一区里直接连，跨区画弧，有轨迹用轨迹�
   assert.ok(t.at[2] - t.at[1] > 10); // 跨区：一段弧
   const withTrack = tripOf(ps as any, [0, 0, 1, 1], [[0, 0], [0.5, 0], [5, 3], [10, 0], [12, 1]]);
   assert.deepEqual(withTrack.line.slice(withTrack.at[1], withTrack.at[2] + 1), [[0.5, 0], [5, 3], [10, 0]]);
+});
+
+test('横滚和竖滚各存各的：老格式的 y / scale / writing 读取时挪进 h / v', () => {
+  const d = normalizeDoc({ blocks: [{ id: 'a', type: 'p', text: '1', writing: 'v', y: 0.3, scale: 1.2 }, { id: 'b', type: 'image', src: 'x', y: 0.6 }, { id: 'c', type: 'quote', text: 'q', writing: 'h' }, { id: 'd', type: 'p', text: '新', h: { writing: 'v' }, v: {} }] });
+  assert.deepEqual(d.blocks[0], { id: 'a', type: 'p', text: '1', h: { y: 0.3, scale: 1.2, writing: 'v' }, v: { writing: 'v' } });
+  assert.deepEqual(d.blocks[1], { id: 'b', type: 'image', src: 'x', h: { y: 0.6 } });
+  assert.deepEqual(d.blocks[2], { id: 'c', type: 'quote', text: 'q' });
+  assert.deepEqual(d.blocks[3], { id: 'd', type: 'p', text: '新', h: { writing: 'v' }, v: {} });
+});
+
+test('排成列：同一段文字横滚里竖排、竖滚里横排，两边写法不同就各自成列', () => {
+  const blocks = [
+    { id: 'a', type: 'p', text: '1', h: { writing: 'v' }, v: { writing: 'v' } },
+    { id: 'b', type: 'p', text: '2', h: { writing: 'v' } },
+    { id: 'c', type: 'p', text: '3', v: { writing: 'v' } },
+    { id: 'd', type: 'p', text: '4', h: { y: 0.4 } },
+  ];
+  const cols = columns(blocks) as any[];
+  assert.deepEqual(cols.map((c) => `${c.blocks.map((b: any) => b.id).join('')}:${c.writing}${c.vwriting}`), ['a:vv', 'b:vh', 'c:hv', 'd:hh']);
+  assert.equal(cols[3].y, 0.4);
 });

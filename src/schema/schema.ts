@@ -149,34 +149,34 @@ export const articleBlocks = (image: ImageFn) => {
 
 const unit = z.number().min(0).max(1);
 
-/** 横滚时的位置参数（spec §3.2）：用比例，不用像素，所以不同屏幕上构图一致 */
-const place = {
-  /** 横滚时在上下方向的位置：0 顶、1 底 */
-  y: unit.optional(),
-  scale: z.number().positive().optional(),
+/**
+ * 横滚和竖滚各存各的摆法（见 flow.mjs 的 migrateAxes）：
+ *   h：横滚读法——上下位置 y（0 顶、1 底，用比例所以不同屏幕上构图一致）、缩放 scale、writing 竖排（一列文字可以竖着写）
+ *   v：竖滚读法——writing（同一段文字可以在横滚里竖排、竖滚里横排）
+ */
+const axes = {
+  h: z.object({ y: unit.optional(), scale: z.number().positive().optional(), writing: z.enum(['h', 'v']).optional() }).optional(),
+  v: z.object({ writing: z.enum(['h', 'v']).optional() }).optional(),
 };
-
-/** 竖排：横滚时一列文字可以竖着写 */
-const writing = { writing: z.enum(['h', 'v']).optional() };
 
 /** 文章正文里的块：文字和图片，加上长卷（横滚）版式才有的图组、自由排布、地图 */
 export const postBlocks = (image: ImageFn) =>
   z.discriminatedUnion('type', [
-    z.object({ id, type: z.literal('p'), text: inlineSchema, ...writing, ...place }),
-    z.object({ id, type: z.literal('h'), level: z.union([z.literal(2), z.literal(3)]).default(2), text: inlineSchema, ...writing, ...place }),
-    z.object({ id, type: z.literal('quote'), text: inlineSchema, cite: z.string().optional(), writing: z.enum(['h', 'v']).default('h'), ...place }),
-    z.object({ id, type: z.literal('image'), ...picture(image), layout: z.enum(['wide', 'inline']).default('wide'), ...place }),
-    z.object({ id, type: z.literal('list'), ordered: z.boolean().default(false), items: z.array(inlineSchema), ...writing, ...place }),
-    z.object({ id, type: z.literal('code'), lang: z.string().optional(), code: z.string(), ...place }),
+    z.object({ id, type: z.literal('p'), text: inlineSchema, ...axes }),
+    z.object({ id, type: z.literal('h'), level: z.union([z.literal(2), z.literal(3)]).default(2), text: inlineSchema, ...axes }),
+    z.object({ id, type: z.literal('quote'), text: inlineSchema, cite: z.string().optional(), ...axes }),
+    z.object({ id, type: z.literal('image'), ...picture(image), layout: z.enum(['wide', 'inline']).default('wide'), ...axes }),
+    z.object({ id, type: z.literal('list'), ordered: z.boolean().default(false), items: z.array(inlineSchema), ...axes }),
+    z.object({ id, type: z.literal('code'), lang: z.string().optional(), code: z.string(), ...axes }),
     /** 双图并列 */
-    z.object({ id, type: z.literal('pair'), images: z.array(z.object(picture(image))).length(2), ...place }),
+    z.object({ id, type: z.literal('pair'), images: z.array(z.object(picture(image))).length(2), ...axes }),
     /** 横向图组：竖向读法里是可左右滑动的一行；每张图可以缩放、上下错开 */
     z.object({
       id, type: z.literal('strip'),
       images: z.array(z.object({ ...picture(image), scale: z.number().positive().default(1), offset: z.number().default(0) })).min(2),
-      ...place,
+      ...axes,
     }),
-    z.object({ id, type: z.literal('grid'), images: z.array(z.object(picture(image))).min(2), ...place }),
+    z.object({ id, type: z.literal('grid'), images: z.array(z.object(picture(image))).min(2), ...axes }),
     /** 自由排布：一幅画布，图（和一小段竖排文字）的 x / y / w 是占画布的比例 */
     z.object({
       id, type: z.literal('free'),
@@ -188,10 +188,10 @@ export const postBlocks = (image: ImageFn) =>
           z.object({ kind: z.literal('text'), text: inlineSchema, x: unit, y: unit }),
         ]),
       ),
-      ...place,
+      ...axes,
     }),
     /** 地图：region 当前读到的地点所在的区域（默认），route 全程路线，near 只看当前读到的地点附近 */
-    z.object({ id, type: z.literal('map'), scope: z.enum(['region', 'route', 'near']).default('region'), ...place }),
+    z.object({ id, type: z.literal('map'), scope: z.enum(['region', 'route', 'near']).default('region'), ...axes }),
   ]);
 
 export const postSchema = ({ image }: SchemaContext) =>

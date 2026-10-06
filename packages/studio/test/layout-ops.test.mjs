@@ -8,7 +8,7 @@ const doc = () => ({
     { id: 'h1', type: 'h', level: 2, text: 'A 章' },
     { id: 'b01', type: 'p', text: 'x' },
     { id: 'b02', type: 'p', text: 'y' },
-    { id: 's01', type: 'image', src: '1.jpg', alt: '', y: 0.2, layout: 'wide' },
+    { id: 's01', type: 'image', src: '1.jpg', alt: '', h: { y: 0.2 }, layout: 'wide' },
     { id: 's02', type: 'image', src: '2.jpg', alt: '', caption: '二' },
     { id: 'h2', type: 'h', level: 2, text: 'B 章' },
     { id: 'm01', type: 'map', scope: 'route' },
@@ -28,21 +28,32 @@ test('挪动：文字一列整体挪；左右挪一格', () => {
   assert.equal(order(ops.nudgeItem(doc(), 'h1', -1)), order(doc()));
 });
 
-test('位置、缩放、竖排：写在一列文字的每个块上；竖排只写在能竖排的块上，复位就去掉', () => {
+test('位置、缩放写在一列文字每个块的 h 里；竖排横滚、竖滚各写各的，复位就去掉', () => {
   let d = ops.setPlace(doc(), 'h1', { y: 0.3, scale: 1.1, writing: 'v' });
-  assert.deepEqual(d.blocks.slice(0, 3).map((b) => [b.y, b.scale, b.writing]), [[0.3, 1.1, 'v'], [0.3, 1.1, 'v'], [0.3, 1.1, 'v']]);
-  assert.equal(d.blocks[3].y, 0.2); // 别的块不受影响
-  d = ops.setPlace(d, 'h1', { y: undefined, scale: undefined, writing: 'h' });
+  assert.deepEqual(d.blocks.slice(0, 3).map((b) => b.h), [{ y: 0.3, scale: 1.1, writing: 'v' }, { y: 0.3, scale: 1.1, writing: 'v' }, { y: 0.3, scale: 1.1, writing: 'v' }]);
+  assert.equal(d.blocks[3].h.y, 0.2); // 别的块不受影响
+  assert.deepEqual(d.blocks.slice(0, 3).map((b) => b.v), [undefined, undefined, undefined]); // 竖滚那边没动
+  // 竖滚里单独设：横滚的不变
+  d = ops.setPlace(d, 'h1', { writing: 'v' }, 'v');
+  assert.deepEqual(d.blocks[1].v, { writing: 'v' });
+  assert.equal(d.blocks[1].h.writing, 'v');
+  assert.equal(ops.itemsOf(d)[0].writing, 'v');
+  assert.equal(ops.itemsOf(d)[0].vwriting, 'v');
+  d = ops.setPlace(d, 'h1', { writing: 'h' }, 'h');
+  assert.equal(ops.itemsOf(d)[0].writing, 'h');
+  assert.equal(ops.itemsOf(d)[0].vwriting, 'v');
+  d = ops.setPlace(d, 'h1', { y: undefined, scale: undefined, writing: 'h' }, 'v');
   assert.deepEqual(d.blocks.slice(0, 3).map((b) => Object.keys(b).sort().join()), ['id,level,text,type', 'id,text,type', 'id,text,type']);
   d = ops.setPlace(doc(), 's01', { y: 0.9 });
-  assert.equal(d.blocks[3].y, 0.9);
+  assert.equal(d.blocks[3].h.y, 0.9);
+  assert.equal(ops.itemsOf(d)[1].y, 0.9);
 });
 
 test('合并相邻两张单图成双图，保留第一块的 id 和位置；再拆开还原成两张单图', () => {
   const m = ops.mergeWithNext(doc(), 's01');
   const p = m.blocks.find((b) => b.id === 's01');
   assert.equal(p.type, 'pair');
-  assert.equal(p.y, 0.2);
+  assert.equal(p.h.y, 0.2);
   assert.deepEqual(p.images.map((i) => i.src), ['1.jpg', '2.jpg']);
   assert.ok(!m.blocks.some((b) => b.id === 's02'));
   const s = ops.split(m, 's01');

@@ -75,7 +75,9 @@ const vt = {
 
 let fig = 0;
 const nextFig = () => pad2(++fig);
-let chapter = 0;
+// 章号按出现顺序先算好：一列在横滚和竖滚里写法不同时会渲染两遍，章号不能重复计
+const chapters = new Map<string, number>();
+for (const c of columns) if (c.kind === 'text') for (const b of c.blocks) if (b.type === 'h' && b.level !== 3) chapters.set(b.id, chapters.size + 1);
 
 /** 每一列（块）共有的属性：读到第几个地点、位置和缩放 */
 const at = (c: { place: number; places: number[] }, y?: number, scale?: number) => ({
@@ -91,15 +93,20 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
       {
         columns.map((c) => {
           if (c.kind === 'text') {
-            const v = c.writing === 'v' && vertical;
+            // 同一列在横滚和竖滚里写法不同（比如横滚里竖排、竖滚里横排）就渲染两份，按读法显示其中一份
+            const same = c.writing === c.vwriting;
+            const start = counter.next;
+            return (same ? [{ axis: '', w: c.writing }] : [{ axis: 'h', w: c.writing }, { axis: 'v', w: c.vwriting }]).map((variant) => {
+            counter.next = start;
+            const v = variant.w === 'v' && vertical;
             const k = v ? vt : ht; // 竖排文字和横排文字的行内块样式不同，渲染时就选好
             return (
-              <section class:list={['blk', 'b-text', c.anchor && 'anchor', v && 'v tracking-[.12em] leading-[2.05] [writing-mode:vertical-rl]']} {...at(c, c.y, c.scale)}>
+              <section class:list={['blk', 'b-text', c.anchor && 'anchor', variant.axis && `ax-${variant.axis}`, v && 'v tracking-[.12em] leading-[2.05] [writing-mode:vertical-rl]']} {...at(c, c.y, c.scale)}>
                 {c.blocks.map((b, bi) => {
                   switch (b.type) {
                     case 'h': {
                       if (b.level === 3) return <h3 class={k.h3} data-b={b.id} set:html={html(b.text)} />;
-                      const n = ++chapter;
+                      const n = chapters.get(b.id) ?? 0;
                       const place = placeOfBlock(b.id);
                       return (
                         <header class={k.stop}>
@@ -140,9 +147,10 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
                 })}
               </section>
             );
+            });
           }
           const b = c.block;
-          const pos = at(c, b.y, b.scale);
+          const pos = at(c, b.h?.y, b.h?.scale);
           switch (b.type) {
             case 'image':
               return (

@@ -2,6 +2,7 @@
  * “排版”视图里的操作：都是纯函数，输入文档，返回新文档。
  * 视图按横向读法把整篇排成一条：相邻的文字是一列，图片、图组、地图各是一块（见 flow.mjs 的 columns）。
  * 一项的 key 是它第一个块的 id。
+ * 横滚和竖滚各存各的：块上的 h = { y, scale, writing }（横滚），v = { writing }（竖滚）。
  */
 import { columns, TEXT_BLOCKS, WRITING_BLOCKS } from 'astro-mori/flow';
 
@@ -14,13 +15,13 @@ const place = (o) => ({ ...(o.y !== undefined ? { y: o.y } : {}), ...(o.scale !=
  */
 export function itemsOf(doc) {
   return columns(doc.blocks ?? []).map((c) => (c.kind === 'text'
-    ? { key: c.blocks[0].id, type: 'text', writing: c.writing, ...place(c), blocks: c.blocks }
-    : { ...c.block, key: c.block.id }));
+    ? { key: c.blocks[0].id, type: 'text', writing: c.writing, vwriting: c.vwriting, ...place(c), blocks: c.blocks }
+    : { ...c.block, key: c.block.id, ...place(c.block.h ?? {}) }));
 }
 
 const blocksOfItem = (it) => (it.type === 'text' ? it.blocks : [it]);
-const flatten = (its) => its.flatMap((it) => (it.type === 'text' ? it.blocks : [stripKey(it)]));
-const stripKey = ({ key: _k, ...b }) => b;
+/** 项 → 原来的块（项上的 key / y / scale 是为视图算出来的，不写回块） */
+const flatten = (its, doc) => its.flatMap((it) => (it.type === 'text' ? it.blocks : [doc.blocks.find((b) => b.id === it.key)]));
 
 /** 把项挪到第 slot 个空位（按“去掉它之后”的序列计，0 是最前面） */
 export function moveItem(doc, key, slot) {
@@ -29,7 +30,7 @@ export function moveItem(doc, key, slot) {
   if (!moving) return doc;
   const rest = its.filter((x) => x !== moving);
   rest.splice(Math.max(0, Math.min(slot, rest.length)), 0, moving);
-  return { ...doc, blocks: flatten(rest) };
+  return { ...doc, blocks: flatten(rest, doc) };
 }
 
 /** 左右挪一格 */
@@ -43,17 +44,25 @@ export function nudgeItem(doc, key, dir) {
 
 /**
  * 改一项的位置、缩放、竖排。undefined 表示去掉这个设置。
+ * y / scale 是横滚的（写在块的 h 里）；writing 写在 axis 指的那一边（'h' 横滚 / 'v' 竖滚），另一边不动。
  * 一列文字里，位置和缩放写在每个块上（删掉第一个块也不丢）；竖排只写在能竖排的块上。
  */
-export function setPlace(doc, key, patch) {
+export function setPlace(doc, key, patch, axis = 'h') {
   const it = itemsOf(doc).find((x) => x.key === key);
   if (!it) return doc;
   const ids = new Set(blocksOfItem(it).map((b) => b.id));
+  const put = (o, side, change) => {
+    const next = { ...(o[side] ?? {}) };
+    for (const [k, v] of Object.entries(change)) { if (v === undefined) delete next[k]; else next[k] = v; }
+    if (Object.keys(next).length) o[side] = next; else delete o[side];
+  };
   return { ...doc, blocks: doc.blocks.map((b) => {
     if (!ids.has(b.id)) return b;
     const o = { ...b };
-    for (const k of ['y', 'scale']) if (k in patch) { if (patch[k] === undefined) delete o[k]; else o[k] = patch[k]; }
-    if ('writing' in patch && it.type === 'text' && WRITING_BLOCKS.has(b.type)) { if (patch.writing === 'v') o.writing = 'v'; else delete o.writing; }
+    const pos = {};
+    for (const k of ['y', 'scale']) if (k in patch) pos[k] = patch[k];
+    if (Object.keys(pos).length) put(o, 'h', pos);
+    if ('writing' in patch && it.type === 'text' && WRITING_BLOCKS.has(b.type)) put(o, axis, { writing: patch.writing === 'v' ? 'v' : undefined });
     return o;
   }) };
 }

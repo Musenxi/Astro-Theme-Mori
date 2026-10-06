@@ -199,31 +199,57 @@ export const isPlaceOnly = (b) => {
   return s.some((x) => (x.marks ?? []).some((m) => m.type === 'place')) && s.every((x) => !x.t.trim());
 };
 
+/* ───────────── 横滚和竖滚各存各的 ───────────── */
+
+/**
+ * 块上有两份“怎么摆”的设置：`h` 是横滚读法（上下位置 y、缩放 scale、writing 横排 / 竖排），`v` 是竖滚读法（writing）。
+ * 同一段文字可以在横滚里竖排、到了竖滚改成横排。以前写在块上的 y / scale / writing 是老格式：
+ * 读取时（migrateAxes）y、scale 归横滚，writing 两边都用，再从块上去掉。
+ */
+export const axisOf = (b, axis) => ({ ...(axis === 'h' ? { y: b.y, scale: b.scale } : {}), writing: b.writing, ...(b[axis] ?? {}) });
+
+/** 老格式的 y / scale / writing 挪进 h / v；已经是新格式的不动 */
+export function migrateAxes(doc) {
+  if (!doc || !Array.isArray(doc.blocks) || !doc.blocks.some((b) => 'y' in b || 'scale' in b || 'writing' in b)) return doc;
+  return { ...doc, blocks: doc.blocks.map((b) => {
+    if (!('y' in b || 'scale' in b || 'writing' in b)) return b;
+    const { y, scale, writing, ...rest } = b;
+    const w = writing === 'v' && WRITING_BLOCKS.has(b.type) ? 'v' : undefined;
+    const h = { ...(y !== undefined ? { y } : {}), ...(scale !== undefined ? { scale } : {}), ...(w ? { writing: w } : {}), ...(b.h ?? {}) };
+    const v = { ...(w ? { writing: w } : {}), ...(b.v ?? {}) };
+    return { ...rest, ...(Object.keys(h).length ? { h } : {}), ...(Object.keys(v).length ? { v } : {}) };
+  }) };
+}
+
 /* ───────────── 把块排成“列” ───────────── */
 
 /**
  * 横滚时，相邻的文字块排成一列文字；图片、地图各自一块。
  * 二级标题另起一列；竖排和横排不混在一列里（h / list 没有竖排设置，跟着所在的列走）。
  * 一列的上下位置和缩放取列里第一个设了的块（Studio 会写在列里每个块上，删掉第一个块也不丢）。
- * @returns {Array<{ kind: 'text', blocks: any[], writing: 'h' | 'v', y?: number, scale?: number, anchor?: boolean } | { kind: 'block', block: any }>}
+ * writing 是横滚读法里的写法，vwriting 是竖滚读法里的；两边任何一个不同就另起一列。
+ * @returns {Array<{ kind: 'text', blocks: any[], writing: 'h' | 'v', vwriting: 'h' | 'v', y?: number, scale?: number, anchor?: boolean } | { kind: 'block', block: any }>}
  */
 export function columns(blocks) {
   const out = [];
   let cur = null;
   for (const b of blocks ?? []) {
     if (!TEXT_BLOCKS.has(b.type)) { cur = null; out.push({ kind: 'block', block: b }); continue; }
-    // 段落和引用不写 writing 就是横排；标题和列表不写就跟着所在的列走；代码块永远横排，跟着走
-    const w = b.type === 'p' || b.type === 'quote' ? (b.writing === 'v' ? 'v' : 'h') : WRITING_BLOCKS.has(b.type) && b.writing ? (b.writing === 'v' ? 'v' : 'h') : undefined;
-    const split = !cur || (b.type === 'h' && b.level !== 3) || (w !== undefined && cur.writing !== undefined && w !== cur.writing);
-    if (split) { cur = { kind: 'text', blocks: [], writing: w }; out.push(cur); }
+    // 段落和引用不写 writing 就是横排；标题和列表不写就跟着所在的列走；代码块永远横排，跟着走。横滚和竖滚各看各的 writing
+    const wr = (axis) => { const x = axisOf(b, axis).writing; return b.type === 'p' || b.type === 'quote' ? (x === 'v' ? 'v' : 'h') : WRITING_BLOCKS.has(b.type) && x ? (x === 'v' ? 'v' : 'h') : undefined; };
+    const w = wr('h'), u = wr('v');
+    const split = !cur || (b.type === 'h' && b.level !== 3) || (w !== undefined && cur.writing !== undefined && w !== cur.writing) || (u !== undefined && cur.vwriting !== undefined && u !== cur.vwriting);
+    if (split) { cur = { kind: 'text', blocks: [], writing: w, vwriting: u }; out.push(cur); }
     cur.writing ??= w;
+    cur.vwriting ??= u;
     cur.blocks.push(b);
   }
   for (const c of out) {
     if (c.kind !== 'text') continue;
     c.writing = c.writing === 'v' ? 'v' : 'h';
+    c.vwriting = c.vwriting === 'v' ? 'v' : 'h';
     if (c.blocks.every(isPlaceOnly)) c.anchor = true; // 整列都是看不见的地点：只当一个锚点
-    const y = c.blocks.find((b) => b.y !== undefined)?.y, scale = c.blocks.find((b) => b.scale !== undefined)?.scale;
+    const y = c.blocks.map((b) => axisOf(b, 'h').y).find((n) => n !== undefined), scale = c.blocks.map((b) => axisOf(b, 'h').scale).find((n) => n !== undefined);
     if (y !== undefined) c.y = y;
     if (scale !== undefined) c.scale = scale;
   }
@@ -249,19 +275,20 @@ export function fromLegacyTravel(doc) {
   const { kind: _k, stops = [], blocks = [], reading, ...rest } = doc;
   const taken = new Set(blocks.flatMap((b) => [b.id, ...(b.paras ?? []).map((p) => p.id)]));
   const headId = (s) => { let id = `h-${s.id}`; while (taken.has(id)) id += '_'; taken.add(id); return id; };
-  const pos = (b) => ({ ...(b.y !== undefined ? { y: b.y } : {}), ...(b.scale !== undefined ? { scale: b.scale } : {}) });
+  const pos = (b) => (b.y !== undefined || b.scale !== undefined ? { h: { ...(b.y !== undefined ? { y: b.y } : {}), ...(b.scale !== undefined ? { scale: b.scale } : {}) } } : {});
 
   const convert = (b) => {
     switch (b.type) {
       case 'text': return (b.paras ?? []).map((p) => {
         const type = p.type ?? 'p';
-        const v = b.writing === 'v' && WRITING_BLOCKS.has(type) ? { writing: 'v' } : {};
+        const vert = b.writing === 'v' && WRITING_BLOCKS.has(type);
         const body = type === 'h' ? { level: 3, text: p.text }
           : type === 'quote' ? { text: p.text, ...(p.cite ? { cite: p.cite } : {}) }
           : type === 'list' ? { ordered: !!p.ordered, items: p.items }
           : type === 'code' ? { ...(p.lang ? { lang: p.lang } : {}), code: p.code }
           : { text: p.text };
-        return { id: p.id, type, ...body, ...v, ...pos(b) };
+        const h = { ...(b.y !== undefined ? { y: b.y } : {}), ...(b.scale !== undefined ? { scale: b.scale } : {}), ...(vert ? { writing: 'v' } : {}) };
+        return { id: p.id, type, ...body, ...(Object.keys(h).length ? { h } : {}), ...(vert ? { v: { writing: 'v' } } : {}) };
       });
       case 'single': return [{ id: b.id, type: 'image', src: b.src, alt: b.alt ?? '', ...(b.caption ? { caption: b.caption } : {}), layout: b.layout === 'inset' ? 'inline' : 'wide', ...pos(b) }];
       case 'map': return [{ id: b.id, type: 'map', scope: b.scope === 'stop' ? 'near' : 'route', ...pos(b) }];
@@ -280,4 +307,4 @@ export function fromLegacyTravel(doc) {
 }
 
 /** 读取时统一成现在的结构：老游记转换，其余原样 */
-export const normalizeDoc = (d) => (isLegacyTravel(d) ? fromLegacyTravel(d) : d);
+export const normalizeDoc = (d) => migrateAxes(isLegacyTravel(d) ? fromLegacyTravel(d) : d);
