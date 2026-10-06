@@ -26,6 +26,9 @@
 .lg-lens.snap{transition:none}
 /* 悬浮搜索：胶囊和页头的一样（.lg），只是自己的折射滤镜；结果板是同一块玻璃做成圆角大板，磨砂和底色多一点，底下的正文才不抢字 */
 :root.lg-refract .lg-srch{-webkit-backdrop-filter:url(#lg-f-srch) blur(4px) saturate(1.7) brightness(1.05);backdrop-filter:url(#lg-f-srch) blur(4px) saturate(1.7) brightness(1.05)}
+.lg-menu{border-radius:20px;--lg-panel:rgba(255,255,255,.42);background:var(--lg-panel);
+  -webkit-backdrop-filter:blur(16px) saturate(1.7) brightness(1.05);backdrop-filter:blur(16px) saturate(1.7) brightness(1.05);
+  @variant dark{--lg-panel:rgba(24,22,20,.5)}}
 .lg-panel{border-radius:24px;--lg-panel:rgba(255,255,255,.42);background:var(--lg-panel);
   -webkit-backdrop-filter:blur(16px) saturate(1.7) brightness(1.05);backdrop-filter:blur(16px) saturate(1.7) brightness(1.05);
   @variant dark{--lg-panel:rgba(24,22,20,.5)}}

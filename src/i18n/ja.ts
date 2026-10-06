@@ -1,7 +1,7 @@
 import type zhCN from './zh-CN.ts';
 /** 日本語 */
 const d: Record<keyof typeof zhCN, string> = {
-  'nav.posts': '記事', 'nav.travels': '旅の記', 'nav.archive': 'アーカイブ',
+  'nav.posts': '記事', 'nav.travels': '旅の記', 'nav.archive': 'アーカイブ', 'nav.category': 'カテゴリ',
   'a11y.mainNav': 'メインナビゲーション', 'theme.toggle': '昼夜の切り替え', 'theme.toLight': '昼', 'theme.toDark': '夜',
   'toc.title': '目次', 'toc.sub': 'Contents', 'toc.editor': '編集後記',
   'yearSeason': '{year}年 · {season}',

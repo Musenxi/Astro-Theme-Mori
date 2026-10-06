@@ -1,11 +1,16 @@
 ---
-import { t } from '../lib/i18n.ts';
+import { t, tn, fmt } from '../lib/i18n.ts';
 import config from 'virtual:mori/config';
 import { getPages } from '../lib/pages.ts';
 import { iconSvg } from '../lib/lucide.ts';
+import { getEntries } from '../lib/entries.ts';
 
 // 没有手动设定入口时：内置的几项 + 所有页面；设定过就完全按设定来
 const items = config.navCustom ? config.nav : [...config.nav, ...(await getPages()).map((p) => ({ label: p.data.title, href: `/${p.id}/` }))];
+// 指向分类总览的入口会带一个下拉：各分类和篇数（没有文章的分类不列）
+const hasDrop = items.some((n) => n.href === '/category/');
+const entries = hasDrop ? await getEntries() : [];
+const drop = config.categories.map((c) => ({ c, count: entries.filter((e) => e.category.id === c.id).length })).filter((s) => s.count > 0);
 const glyph = 'size-[19px]';
 const actions = config.actions;
 const split = config.actionsLayout === 'split';
@@ -21,9 +26,23 @@ const split = config.actionsLayout === 'split';
       const svg = n.icon ? iconSvg(n.icon, glyph) : null;
       return svg
         ? <a class="relative z-1 grid place-items-center rounded-[999px] px-[clamp(12px,1.4vw,17px)] py-2 text-(--lg-fg) transition-[color] duration-300 hover:text-(--lg-fg-on) aria-[current]:text-(--lg-fg-on) phone:flex-none" href={n.href} title={n.label} aria-label={n.label} set:html={svg} />
-        : <a class="relative z-1 rounded-[999px] px-[clamp(12px,1.4vw,17px)] py-2 text-aux leading-[1.3] tracking-[.08em] text-(--lg-fg) transition-[color] duration-300 hover:text-(--lg-fg-on) aria-[current]:text-(--lg-fg-on) phone:flex-none" href={n.href}>{n.label}</a>;
+        : <a class="relative z-1 rounded-[999px] px-[clamp(12px,1.4vw,17px)] py-2 text-aux leading-[1.3] tracking-[.08em] text-(--lg-fg) transition-[color] duration-300 hover:text-(--lg-fg-on) aria-[current]:text-(--lg-fg-on) phone:flex-none" href={n.href} data-drop={n.href === '/category/' && drop.length ? '' : undefined}>{n.label}</a>;
     })}
   </nav>
+  {drop.length > 0 && (
+    <div class="lg-drop invisible absolute left-0 z-2 pt-2 opacity-0 pointer-events-none! [transition:opacity_.25s,transform_.45s_cubic-bezier(.34,1.45,.5,1),visibility_0s_.25s] [transform:translateY(-4px)] phone:hidden [&.on]:visible [&.on]:pointer-events-auto! [&.on]:opacity-100 [&.on]:[transform:none] [&.on]:[transition-delay:0s]" id="lg-drop" aria-label={t('nav.category')}>
+      <ul class="lg lg-menu min-w-44 p-2">
+        {drop.map(({ c, count }) => (
+          <li>
+            <a class="relative flex items-baseline justify-between gap-6 rounded-[14px] px-3.5 py-2 text-aux leading-[1.3] tracking-[.08em] text-(--lg-fg) [transition:color_.3s,background-color_.3s] hover:bg-(--lg-lens) hover:text-(--lg-fg-on) focus-visible:bg-(--lg-lens) focus-visible:text-(--lg-fg-on)" href={`/category/${c.id}/`}>
+              <span>{c.zh}</span>
+              <span class="meta">{tn('count', count, { n: fmt.num(count) })}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
   {actions.length > 0 && (
     <div class:list={['flex justify-self-end', split ? 'gap-2' : 'lg lg-btn']} id="lg-actions">
       {actions.map((a) => {

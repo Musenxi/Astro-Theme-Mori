@@ -124,6 +124,7 @@ export function resolveConfig(c: MoriUserConfig): MoriConfig {
     nav: c.nav ?? [
       { label: t('nav.posts'), href: '/posts/' },
       { label: t('nav.archive'), href: '/archive/' },
+      { label: t('nav.category'), href: '/category/' },
     ],
     home: { style: c.home?.style ?? 'quote', count: Math.min(8, Math.max(1, Math.round(c.home?.count ?? 4) || 4)), direction: dir(c.home?.direction), tocDirection: dir(c.home?.tocDirection ?? c.home?.direction), editorNote: c.home?.editorNote ?? '' },
     archive: { direction: dir(c.archive?.direction ?? c.home?.direction) },

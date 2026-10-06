@@ -59,6 +59,8 @@ addEventListener('scroll', () => {
 const nav = $('#lg-nav');
 const lens = $('#lg-lens');
 const links = () => [...nav.querySelectorAll<HTMLAnchorElement>('a')];
+const drop = document.querySelector<HTMLElement>('#lg-drop');
+const dropTrigger = nav.querySelector<HTMLElement>('a[data-drop]');
 
 /** 当前栏目：地址落在某个导航项之下（/posts/xxx/ 属于 /posts/） */
 function markCurrent() {
@@ -84,6 +86,26 @@ nav.addEventListener('pointerover', (e) => { const a = (e.target as Element).clo
 nav.addEventListener('pointerleave', () => lgLens());
 nav.addEventListener('focusin', (e) => lgLens((e.target as Element).closest('a')));
 nav.addEventListener('focusout', () => lgLens());
+
+// 分类入口的下拉：悬停或键盘聚焦到“分类”时展开，对齐在它正下方；指针离开稍等一下再收，从入口移到列表的路上不会闪掉
+if (drop && dropTrigger) {
+  let timer = 0;
+  const open = () => {
+    clearTimeout(timer);
+    drop.style.left = nav.offsetLeft + dropTrigger.offsetLeft + dropTrigger.offsetWidth / 2 + 'px';
+    drop.style.top = nav.offsetTop + nav.offsetHeight + 'px';
+    drop.style.translate = '-50%';
+    drop.classList.add('on');
+  };
+  const close = () => { clearTimeout(timer); timer = window.setTimeout(() => drop.classList.remove('on'), 120); };
+  for (const el of [dropTrigger, drop]) {
+    el.addEventListener('pointerenter', open);
+    el.addEventListener('pointerleave', close);
+    el.addEventListener('focusin', open);
+    el.addEventListener('focusout', close);
+  }
+  document.addEventListener('astro:before-swap', () => { clearTimeout(timer); drop.classList.remove('on'); });
+}
 
 // 换页时才给页头起过渡名（vt-chrome.css），过渡结束就去掉：平时带着名字，玻璃的背景模糊会失效
 // 换页会把 <html> 的 class 换成新页面的，所以换完页（after-swap）过渡还没结束就再加回去

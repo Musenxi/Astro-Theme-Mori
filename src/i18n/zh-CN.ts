@@ -1,6 +1,6 @@
 /** 简体中文：词条的母版。其他语言必须覆盖同样的键（见 index.ts 的类型约束）。`{x}` 是占位符；`js.` 开头的会内嵌进页面给浏览器里的脚本用 */
 export default {
-  'nav.posts': '文章', 'nav.travels': '游记', 'nav.archive': '归档',
+  'nav.posts': '文章', 'nav.travels': '游记', 'nav.archive': '归档', 'nav.category': '分类',
   'a11y.mainNav': '主导航', 'theme.toggle': '切换昼夜', 'theme.toLight': '昼', 'theme.toDark': '夜',
   'toc.title': '目次', 'toc.sub': 'Contents', 'toc.editor': '编者按',
   'yearSeason': '{year}年 · {season}',

@@ -24,7 +24,7 @@ const cleanLink = ({ label, href, icon }: Link): Link => ({ label: label.trim(),
 const plainNav = (rows: Array<Keyed<NavItem>>) => rows.map(cleanLink);
 const plainActions = (rows: Array<Keyed<Action>>): Action[] => rows.map((r) => (r.type === 'theme' ? strip(r) : { type: 'link', ...cleanLink(r) }));
 /** 从文字改成图标时先给一个贴题的 */
-const guessIcon = (href: string) => ({ '/posts/': 'book-open', '/archive/': 'archive', '/search/': 'search', '/friends/': 'users', '/about/': 'info' })[href] ?? 'link';
+const guessIcon = (href: string) => ({ '/posts/': 'book-open', '/archive/': 'archive', '/category/': 'layers', '/search/': 'search', '/friends/': 'users', '/about/': 'info' })[href] ?? 'link';
 const DEFAULT_ACTIONS: Action[] = [{ type: 'theme' }];
 
 /** 一行链接：样式（文字 / 图标）、名字、地址；地址在候选里就只显示分组 */
@@ -51,7 +51,7 @@ export default function NavEditor() {
   const customActions = project?.config.actions ?? null;
 
   // 没设定过时，显示的是默认：文章、归档、再加上所有已发布的页面
-  const defaults = useMemo<NavItem[]>(() => [{ label: '文章', href: '/posts/' }, { label: '归档', href: '/archive/' }, ...(project?.pages ?? []).filter((p) => !p.draft).map((p) => ({ label: p.title, href: `/${p.id}/` }))], [project?.pages]);
+  const defaults = useMemo<NavItem[]>(() => [{ label: '文章', href: '/posts/' }, { label: '归档', href: '/archive/' }, { label: '分类', href: '/category/' }, ...(project?.pages ?? []).filter((p) => !p.draft).map((p) => ({ label: p.title, href: `/${p.id}/` }))], [project?.pages]);
   const effective = custom ?? defaults;
   const effectiveActions = customActions ?? DEFAULT_ACTIONS;
   const [rows, setRows] = useState<Array<Keyed<NavItem>>>([]);
@@ -66,7 +66,7 @@ export default function NavEditor() {
   const dirty = navDirty || actsDirty || layoutDirty;
 
   const candidates = useMemo(() => [
-    { group: '内置', label: '文章', href: '/posts/' }, { group: '内置', label: '归档', href: '/archive/' }, { group: '内置', label: '搜索', href: '/search/' },
+    { group: '内置', label: '文章', href: '/posts/' }, { group: '内置', label: '归档', href: '/archive/' }, { group: '内置', label: '分类', href: '/category/' }, { group: '内置', label: '搜索', href: '/search/' },
     ...(project?.config.categories ?? []).map((c) => ({ group: '分类', label: c.zh, href: `/category/${c.id}/` })),
     ...(project?.pages ?? []).map((p) => ({ group: '页面', label: p.title, href: `/${p.id}/` })),
   ], [project]);
