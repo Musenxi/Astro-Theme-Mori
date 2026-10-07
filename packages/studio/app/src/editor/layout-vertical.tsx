@@ -44,7 +44,7 @@ export function VerticalLayout({ doc, hist, switcher }: { doc: Doc; hist: Layout
   }, []);
   // 页宽：窄一点能一眼看到更多；字号跟着页宽走
   const W = Math.round(clamp((avail - 8) * ({ s: 0.62, m: 0.88, l: 1 }[zoom] ?? 0.88), 300, 960));
-  const fs = Math.max(12, W * 0.024);
+  const fs = Math.max(11, W * 0.019);
   const gap = W * 0.055;
 
   const blocks: Doc[] = useMemo(() => doc.blocks ?? [], [doc.blocks]);
