@@ -11,7 +11,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'post.prev': '前の記事', 'post.next': '次の記事', 'post.toc': '目次', 'post.nav': '前の記事 / 次の記事', 'post.meta': '{chars}字 · 約{min}分',
   'fig': '図 {n}', 'notes.foot': '脚注', 'notes.all': '注',
   'kind.travel': '旅行記', 'travel.stop': '第{n}地点', 'travel.stops': '地点', 'travel.itinerary': '行程',
-  'travel.left': '左へ', 'travel.right': '右へ', 'travel.readingGroup': '読み方',
+  'travel.readingGroup': '読み方',
   'travel.mode.v': '縦', 'travel.mode.h': '横', 'travel.mode.m': '混',
   'travel.modeLabel.v': '縦に読む', 'travel.modeLabel.h': '横に読む', 'travel.modeLabel.m': '混合で読む',
   'map.route': '経路：{list}', 'map.arctic': '北極圏 66°33′N', 'map.tropicN': '北回帰線 23°26′N', 'map.equator': '赤道 0°', 'map.tropicS': '南回帰線 23°26′S', 'map.antarctic': '南極圏 66°33′S', 'empty.all': '何も書いていない',

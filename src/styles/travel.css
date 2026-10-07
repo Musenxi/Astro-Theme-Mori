@@ -23,10 +23,6 @@
 
 .strip-track{display:flex;align-items:flex-start;gap:clamp(8px,1vw,14px);width:max-content}
 .strip-track img{width:auto;max-width:none;height:calc(var(--sh)*var(--s,1));margin-top:calc(var(--sh)*var(--o,0))}
-.strip-ctl{margin-left:auto;display:flex;gap:4px}
-.strip-ctl button{width:28px;height:24px;border:1px solid var(--border);border-radius:2px;color:var(--soft-foreground);display:grid;place-items:center}
-.strip-ctl .chev{margin:0;vertical-align:baseline}
-.strip-ctl button:hover{border-color:var(--muted-foreground);color:var(--foreground)}
 
 /* ---------- 竖向 + 混合 ---------- */
 .travel:not([data-mode="h"]) .t-track{max-width:var(--maxw);margin:0 auto;padding:0 var(--gut);display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gap);row-gap:clamp(56px,9vw,128px)}
@@ -49,14 +45,15 @@
 .travel:not([data-mode="h"]) .b-strip figcaption{max-width:var(--maxw);margin:10px auto 0;padding:0 var(--gut)}
 .travel:not([data-mode="h"]) .strip-track{padding:0 var(--edge)}
 .travel[data-mode="v"] .b-strip{--sh:min(58vh,70vw)}
-.travel[data-mode="v"] .strip-sc{overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:var(--border) transparent;overscroll-behavior-x:contain}
-.travel[data-mode="v"] .strip-track img{scroll-snap-align:center}
+.travel[data-mode="v"] .b-strip{width:min(1104px,100vw);margin-left:calc(50% - min(1104px,100vw)/2)}
+.travel[data-mode="v"] .b-strip figcaption{max-width:none;margin:10px 0 0;padding:0}
+.travel[data-mode="v"] .strip-sc{overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;overscroll-behavior-x:contain}
+.travel[data-mode="v"] .strip-track{padding:0;gap:14px}
 .travel[data-mode="m"] .b-strip{--sh:min(66vh,70vw)}
 .travel[data-mode="m"] .strip-vp{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
 .travel[data-mode="m"] .strip-track{will-change:transform}
 .travel[data-mode="m"] .b-strip figcaption{max-width:none;margin:12px 0 0;padding:0 var(--edge)}
-.travel[data-mode="m"] .strip-ctl,.travel[data-mode="h"] .strip-ctl{display:none}
-
+.travel[data-mode="m"] 
 /* ---------- 横向 ---------- */
 .travel[data-mode="h"]{--ph:min(66vh,64vw)}
 .travel[data-mode="h"] .t-vp{position:sticky;top:0;height:100vh;overflow:hidden}

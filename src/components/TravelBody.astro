@@ -1,5 +1,4 @@
 ---
-import Chevron from './Chevron.astro';
 /**
  * 长卷版式的正文：把文章的块排成“列”（相邻文字一列，图片、地图各自一块），有竖向、混合、横向三种读法。
  * 读到哪个地点由正文里的地点标记决定：每一列记着自己读到第几个地点（data-place），左下角的“当前位置”和行程表都按它走。
@@ -177,14 +176,7 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
                         {b.images.map((im) => <Image src={im.src} alt={im.alt} height={900} widths={[600, 900, 1400]} sizes="60vw" style={{ '--s': im.scale, '--o': im.offset }} />)}
                       </div>
                     </div>
-                    <figcaption class="flex items-baseline gap-3 text-meta text-muted-foreground">
-                      <span class="mono flex-none">{nextFig()}</span>
-                      {b.images.map((i) => i.caption).filter(Boolean).join(' / ')}
-                      <span class="strip-ctl">
-                        <button type="button" data-dir="-1" aria-label={t('travel.left')}><Chevron dir="left" /></button>
-                        <button type="button" data-dir="1" aria-label={t('travel.right')}><Chevron /></button>
-                      </span>
-                    </figcaption>
+                    {b.images.some((i) => i.caption) && <figcaption class="text-meta text-muted-foreground">{b.images.map((i) => i.caption).filter(Boolean).join(' / ')}</figcaption>}
                   </div>
                 </figure>
               );

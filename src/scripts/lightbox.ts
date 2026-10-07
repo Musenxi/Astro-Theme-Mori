@@ -8,13 +8,13 @@ let source: HTMLImageElement | null = null;
 const $lb = () => document.querySelector<HTMLElement>('#lb')!;
 const $img = () => $lb().querySelector<HTMLImageElement>('.lb-img')!;
 
-/** 图注：编号（.mono）+ 文字；横向图组里的左右钮不算 */
+/** 图注：编号（.mono）+ 文字 */
 function captionOf(img: HTMLImageElement): [string, string] {
   const fc = img.closest('figure')?.querySelector('figcaption');
   if (!fc) return ['', ''];
   const n = fc.querySelector('.mono')?.textContent ?? '';
   const t = [...fc.childNodes]
-    .filter((x) => !(x instanceof HTMLElement && (x.classList.contains('mono') || x.classList.contains('strip-ctl'))))
+    .filter((x) => !(x instanceof HTMLElement && x.classList.contains('mono')))
     .map((x) => x.textContent)
     .join('')
     .trim();

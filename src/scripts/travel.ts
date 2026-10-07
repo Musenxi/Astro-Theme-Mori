@@ -146,14 +146,6 @@ function init() {
   mc?.addEventListener('click', (e) => { const b = (e.target as Element).closest<HTMLButtonElement>('button'); if (b) setMode(b.dataset.m as Mode); });
   syncModeUI();
 
-  // 竖向读法里横向图组的左右钮
-  travel.addEventListener('click', (e) => {
-    const b = (e.target as Element).closest<HTMLButtonElement>('.strip-ctl button');
-    if (!b) return;
-    const sc = b.closest('.b-strip')!.querySelector<HTMLElement>('.strip-sc')!;
-    sc.scrollBy({ left: +b.dataset.dir! * sc.clientWidth * 0.7, behavior: 'smooth' });
-  });
-
   // 行程表：点某个地点，滚到正文里标着它的那一块（横向读法下换算成横轴位置）
   travel.querySelector('.itin')?.addEventListener('click', (e) => {
     const a = (e.target as Element).closest<HTMLAnchorElement>('a');

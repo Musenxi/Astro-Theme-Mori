@@ -11,7 +11,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'post.prev': 'Previous', 'post.next': 'Next', 'post.toc': 'Contents', 'post.nav': 'Previous / next', 'post.meta': '{chars} words · ~{min} min',
   'fig': 'Fig. {n}', 'notes.foot': 'Footnotes', 'notes.all': 'Notes',
   'kind.travel': 'Journey', 'travel.stop': 'Stop {n}', 'travel.stops': 'Places', 'travel.itinerary': 'Itinerary',
-  'travel.left': 'Left', 'travel.right': 'Right', 'travel.readingGroup': 'Reading mode',
+  'travel.readingGroup': 'Reading mode',
   'travel.mode.v': 'V', 'travel.mode.h': 'H', 'travel.mode.m': 'M',
   'travel.modeLabel.v': 'Vertical reading', 'travel.modeLabel.h': 'Horizontal reading', 'travel.modeLabel.m': 'Mixed reading',
   'map.route': 'Route: {list}', 'map.arctic': 'Arctic Circle 66°33′N', 'map.tropicN': 'Tropic of Cancer 23°26′N', 'map.equator': 'Equator 0°', 'map.tropicS': 'Tropic of Capricorn 23°26′S', 'map.antarctic': 'Antarctic Circle 66°33′S', 'empty.all': 'nothing written',
