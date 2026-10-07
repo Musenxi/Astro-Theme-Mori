@@ -17,7 +17,7 @@ import { useConfirm } from '@/components/confirm';
 import { Segmented } from '@/components/segmented';
 import { LayoutBlockBody } from './layout-blocks';
 import type { LayoutHistory } from './layout-history';
-import { BlockBar, FreeFace, hereOf, Img, MiniMap, NAMES, Para, StripFace, ToolBtn, ZOOM_KEY, blockPlain, caption, clamp, px, type PlaceInfo } from './layout-view';
+import { ALIGN, VPOS, BlockBar, FreeFace, hereOf, Img, MiniMap, NAMES, Para, StripFace, ToolBtn, ZOOM_KEY, blockPlain, caption, clamp, px, type PlaceInfo } from './layout-view';
 
 interface Drag { key: string; dy?: number; slot?: number; line?: number }
 
@@ -50,7 +50,6 @@ export function VerticalLayout({ doc, hist, switcher }: { doc: Doc; hist: Layout
   const blocks: Doc[] = useMemo(() => doc.blocks ?? [], [doc.blocks]);
   const its: Doc[] = useMemo(() => ops.itemsOf(doc), [doc]);
   const places = useMemo(() => placesOf(blocks) as PlaceInfo[], [blocks]);
-  const chapters = useMemo(() => { const m = new Map<string, number>(); let n = 0; for (const b of blocks) if (b.type === 'h' && b.level !== 3) m.set(b.id, ++n); return m; }, [blocks]);
   const selected = its.find((x) => x.key === sel) ?? null;
 
   /** 竖排只改竖滚这一边，横滚里的写法不动 */
@@ -147,7 +146,7 @@ export function VerticalLayout({ doc, hist, switcher }: { doc: Doc; hist: Layout
             {its.map((b, i) => (
               <VBlock key={b.key} b={b} W={W} seq={i} selected={sel === b.key} drag={drag?.key === b.key ? drag : null}
                 onDown={(e) => startMove(e, b)} onOpen={() => { setSel(b.key); if (b.type !== 'map' && b.type !== 'text') setDetail(true); }}>
-                <VFace b={b} W={W} fs={fs} places={places} chapters={chapters} here={b.type === 'map' ? hereOf(blocks, b.key, places) : undefined}
+                <VFace b={b} W={W} fs={fs} places={places} here={b.type === 'map' ? hereOf(blocks, b.key, places) : undefined}
                   active={sel === b.key && !drag} onPatch={(p) => patchBlock(b.key, p)} />
               </VBlock>
             ))}
@@ -194,16 +193,18 @@ function VBlock({ b, W, seq, selected, drag, onDown, onOpen, children }: {
   );
 }
 
-function VFace({ b, W, fs, places, chapters, here, active, onPatch }: { b: Doc; W: number; fs: number; places: PlaceInfo[]; chapters: Map<string, number>; here?: number; active: boolean; onPatch: (p: Doc) => void }) {
+function VFace({ b, W, fs, places, here, active, onPatch }: { b: Doc; W: number; fs: number; places: PlaceInfo[]; here?: number; active: boolean; onPatch: (p: Doc) => void }) {
   const cap = (text: string) => text && <p className="mt-2 max-w-full truncate text-(length:--fs) text-muted-foreground" style={{ '--fs': px(fs * 0.78) }}>{text}</p>;
   switch (b.type) {
     case 'text': {
       const v = b.vwriting === 'v';
       const list: Doc[] = b.blocks ?? [];
       return (
-        <div className={cn('serif text-(length:--fs) text-foreground', v ? 'ml-auto h-(--h) leading-[2.05] tracking-[.12em] [writing-mode:vertical-rl]' : 'leading-[1.9]')} style={{ '--fs': px(fs), '--h': px(fs * 21) }}>
-          {list.map((p, i) => <Para key={p.id} p={p} v={v} first={!i} chapter={chapters.get(p.id) ?? 0} place={places.find((x) => x.block === p.id)} fs={fs} />)}
-          {!list.some((p) => blockPlain(p).trim()) && <p className="text-muted-foreground">（空的文字，在 Markdown 里写）</p>}
+        <div className={cn(v && ['flex', VPOS[b.vpos as keyof typeof VPOS] ?? 'justify-end'])}>
+          <div className={cn('serif text-(length:--fs) text-foreground', ALIGN[b.valign as keyof typeof ALIGN], v ? 'h-(--h) leading-[2.05] tracking-[.12em] [writing-mode:vertical-rl]' : 'leading-[1.9]')} style={{ '--fs': px(fs), '--h': px(fs * 21) }}>
+            {list.map((p, i) => <Para key={p.id} p={p} v={v} first={!i} place={places.find((x) => x.block === p.id)} fs={fs} align={b.valign} />)}
+            {!list.some((p) => blockPlain(p).trim()) && <p className="text-muted-foreground">（空的文字，在 Markdown 里写）</p>}
+          </div>
         </div>
       );
     }

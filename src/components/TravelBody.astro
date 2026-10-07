@@ -62,7 +62,7 @@ const vt = {
   p: 'text-justify',
   pp: 'm-0 mr-[.9em]',
   h3: 'm-0 mr-[1.1em] text-[1.12em] font-bold tracking-[.08em]',
-  quote: 'm-0 mr-[.9em] border-r border-r-primary p-0 pb-[1em] text-soft-foreground',
+  quote: 'm-0 mr-[.9em] border-r border-r-primary p-0 pb-[1em] text-heading text-foreground',
   cite: 'm-0 mr-[.4em] block text-meta text-muted-foreground ',
   ul: 'm-0 mr-[.9em] [counter-reset:li]',
   ol: 'm-0 mr-[.9em] [counter-reset:li]',
@@ -87,14 +87,14 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
         columns.map((c) => {
           if (c.kind === 'text') {
             // 同一列在横滚和竖滚里写法不同（比如横滚里竖排、竖滚里横排）就渲染两份，按读法显示其中一份
-            const same = c.writing === c.vwriting;
+            const same = c.writing === c.vwriting && c.align === c.valign && c.pos === c.vpos;
             const start = counter.next;
             return (same ? [{ axis: '', w: c.writing }] : [{ axis: 'h', w: c.writing }, { axis: 'v', w: c.vwriting }]).map((variant) => {
             counter.next = start;
             const v = variant.w === 'v' && vertical;
             const k = v ? vt : ht; // 竖排文字和横排文字的行内块样式不同，渲染时就选好
             return (
-              <section class:list={['blk', 'b-text', c.anchor && 'anchor', variant.axis && `ax-${variant.axis}`, v && 'v tracking-[.12em] leading-[2.05] [writing-mode:vertical-rl]']} {...at(c, c.y, c.scale)}>
+              <section class:list={['blk', 'b-text', c.anchor && 'anchor', variant.axis && `ax-${variant.axis}`, v && 'v tracking-[.12em] leading-[2.05] [writing-mode:vertical-rl]']} data-align={variant.axis === 'v' ? c.valign : c.align} data-pos={variant.axis === 'v' ? c.vpos : c.pos} {...at(c, c.y, c.scale)}>
                 {c.blocks.map((b, bi) => {
                   switch (b.type) {
                     case 'h': {

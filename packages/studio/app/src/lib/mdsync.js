@@ -105,7 +105,7 @@ function carry(old, nb) {
   const out = {};
   for (const axis of ['h', 'v']) {
     const o = { ...(old[axis] ?? {}) };
-    if (!WRITING_BLOCKS.has(nb.type)) delete o.writing;
+    if (!WRITING_BLOCKS.has(nb.type)) { delete o.writing; delete o.align; delete o.pos; }
     if (Object.keys(o).length) out[axis] = o;
   }
   if (old.type === 'image' && nb.type === 'image' && old.layout) out.layout = old.layout;

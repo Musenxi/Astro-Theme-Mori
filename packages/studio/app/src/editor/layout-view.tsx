@@ -64,7 +64,6 @@ export function HorizontalLayout({ doc, hist, switcher }: { doc: Doc; hist: Layo
   const its: Doc[] = useMemo(() => ops.itemsOf(doc), [doc]);
   const places = useMemo(() => placesOf(blocks) as PlaceInfo[], [blocks]);
   // 每个二级标题是第几章（章节号）
-  const chapters = useMemo(() => { const m = new Map<string, number>(); let n = 0; for (const b of blocks) if (b.type === 'h' && b.level !== 3) m.set(b.id, ++n); return m; }, [blocks]);
   const selected = its.find((x) => x.key === sel) ?? null;
 
   /** 位置、缩放、竖排（一列文字写在每个块上） */
@@ -201,7 +200,7 @@ export function HorizontalLayout({ doc, hist, switcher }: { doc: Doc; hist: Layo
               <BlockFrame key={b.key} b={b} g={g} seq={i} selected={sel === b.key} drag={drag?.key === b.key ? drag : null}
                 onDown={(e) => startMove(e, b)} onScale={(e) => startScale(e, b)} onOpen={() => { setSel(b.key); if (b.type !== 'map' && b.type !== 'text') setDetail(true); }}>
                 <Face b={b} g={g} scale={drag?.key === b.key && drag?.scale !== undefined ? drag.scale : b.scale ?? 1}
-                  places={places} chapters={chapters} here={b.type === 'map' ? hereOf(blocks, b.key, places) : undefined}
+                  places={places} here={b.type === 'map' ? hereOf(blocks, b.key, places) : undefined}
                   active={sel === b.key && !drag} onPatch={(p) => patchBlock(b.key, p)} />
               </BlockFrame>
             ))}
@@ -255,6 +254,15 @@ export function BlockBar({ b, doc, commit, place, patch, onDetail, onRemove, axi
         <Segmented size="sm" value={b.type} onValueChange={(t) => commit(ops.setLayout(doc, b.key, t))} options={layouts.map((t) => ({ value: t, label: NAMES[t] }))} />
       )}
       {text && <Segmented size="sm" value={(axis === 'v' ? b.vwriting : b.writing) === 'v' ? 'v' : 'h'} onValueChange={(v) => place({ writing: v === 'v' ? 'v' : undefined })} options={[{ value: 'h', label: '横排' }, { value: 'v', label: '竖排' }]} />}
+      {text && (() => {
+        const vw = (axis === 'v' ? b.vwriting : b.writing) === 'v';
+        const labels = vw ? ['上', '中', '下', '两端'] : ['左', '中', '右', '两端'];
+        const cur = (axis === 'v' ? b.valign : b.align) ?? 'justify';
+        return <Segmented size="sm" value={cur} onValueChange={(v) => place({ align: v })} options={labels.map((label, i) => ({ value: ['start', 'center', 'end', 'justify'][i], label }))} />;
+      })()}
+      {text && axis === 'v' && b.vwriting === 'v' && (
+        <Segmented size="sm" value={b.vpos ?? 'end'} onValueChange={(v) => place({ pos: v })} options={[{ value: 'start', label: '靠左' }, { value: 'center', label: '居中' }, { value: 'end', label: '靠右' }]} />
+      )}
       {b.type === 'map' && <Segmented size="sm" value={b.scope ?? 'region'} onValueChange={(v) => patch({ scope: v })} options={[{ value: 'region', label: '所在区域' }, { value: 'route', label: '全程' }, { value: 'near', label: '这一处' }]} />}
       {ops.canMergeNext(doc, b.key) && <Button size="sm" variant="ghost" onClick={() => commit(ops.mergeWithNext(doc, b.key))}><Merge size={14} />和后一块合并</Button>}
       {ops.isImageBlock(b) && b.type !== 'image' && <Button size="sm" variant="ghost" onClick={() => commit(ops.split(doc, b.key))}><Split size={14} />拆成单图</Button>}
@@ -393,16 +401,15 @@ const spansPlain = (t: unknown) => (typeof t === 'string' ? t : ((t as Doc[]) ??
 export const blockPlain = (p: Doc) => (p.type === 'list' ? (p.items as unknown[]).map(spansPlain).join('') : p.type === 'code' ? p.code ?? '' : spansPlain(p.text));
 
 /** 一列文字里的一块：段落、标题、引用、列表、代码（版式和站点上的读法大致一样，不求逐像素） */
-export function Para({ p, v, first, chapter, place, fs }: { p: Doc; v: boolean; first: boolean; chapter: number; place?: Doc; fs: number }) {
+export function Para({ p, v, first, place, fs, align }: { p: Doc; v: boolean; first: boolean; place?: Doc; fs: number; align?: string }) {
   // 段与段之间隔开一点；竖排时“块开始”的一侧在右边
   const gap = first ? '' : v ? '[margin-block-start:.9em]' : 'mt-[.9em]';
   switch (p.type) {
     case 'h': {
       if (p.level === 3) return <h3 className={cn('text-em-112 font-bold tracking-[.08em]', !first && (v ? '[margin-block-start:1.1em]' : 'mt-[1.3em]'))}><Spans text={p.text} dots={false} /></h3>;
-      const no = `${String(chapter).padStart(2, '0')}${place?.date ? ` · ${place.date}` : ''}`;
       return (
         <header className={cn(v ? '[margin-block-end:1.2em]' : 'mb-(--mb)', !first && (v ? '[margin-block-start:1.2em]' : 'mt-[1.4em]'))} style={{ '--mb': px(fs * 0.8) }}>
-          <span className={cn('mono block text-(length:--fs) text-muted-foreground', v ? 'mb-0' : 'mb-(--mb)')} style={{ '--fs': px(fs * 0.66), '--mb': px(fs * 0.3) }}>{no}</span>
+          {place?.date && <span className={cn('mono block text-(length:--fs) text-muted-foreground', v ? 'mb-0' : 'mb-(--mb)')} style={{ '--fs': px(fs * 0.66), '--mb': px(fs * 0.3) }}>{place.date}</span>}
           <span className={cn('text-(length:--fs)', v ? 'block tracking-[.18em]' : 'tracking-[.08em]')} style={{ '--fs': px(fs * (v ? 1.6 : 1.75)) }}><Spans text={p.text} dots={false} /></span>
           {place?.en && <span className={cn('text-(length:--fs) text-muted-foreground', v ? 'ml-0' : 'ml-(--ml)')} style={{ '--fs': px(fs * 0.85), '--ml': px(fs * 0.6) }}>{place.en}</span>}
         </header>
@@ -410,7 +417,7 @@ export function Para({ p, v, first, chapter, place, fs }: { p: Doc; v: boolean; 
     }
     case 'quote':
       return (
-        <blockquote className={cn('text-soft-foreground', gap, v ? 'border-r border-r-muted-foreground [padding-inline-end:1em]' : 'border-l border-l-muted-foreground pl-[1em]')}>
+        <blockquote className={cn('text-(length:--fs) text-foreground', gap, v ? 'border-r border-r-muted-foreground [padding-inline-end:1em]' : 'border-l border-l-muted-foreground pl-[1em]')} style={{ '--fs': px(fs * 1.4) }}>
           <Spans text={p.text} />
           {p.cite && <cite className={cn('block text-em-85 not-italic text-muted-foreground', v ? '[margin-block-start:.4em]' : 'mt-[.3em]')}>{p.cite}</cite>}
         </blockquote>
@@ -425,13 +432,18 @@ export function Para({ p, v, first, chapter, place, fs }: { p: Doc; v: boolean; 
       );
     case 'code':
       return <pre className={cn('mono overflow-hidden px-[.8em] py-[.6em] text-em-80 leading-1-7 tracking-[0] whitespace-pre-wrap bg-foreground/[.05] text-soft-foreground [writing-mode:horizontal-tb]', !first && 'mt-[.9em]', v && 'w-[16em]')}>{p.code}</pre>;
-    default: return <p className={cn('text-justify', gap)}><Spans text={p.text} /></p>;
+    default: return <p className={cn(ALIGN[align as keyof typeof ALIGN] ?? 'text-justify', gap)}><Spans text={p.text} /></p>;
   }
 }
 
+/** 横排文字的行内对齐 */
+export const ALIGN = { start: 'text-start', center: 'text-center', end: 'text-end', justify: 'text-justify' } as const;
+/** 竖排的一组字在框里的位置（靠左 / 居中 / 靠右） */
+export const VPOS = { start: 'justify-start', center: 'justify-center', end: 'justify-end' } as const;
+
 export type PlaceInfo = { n: number; block: string; label: string; lnglat: [number, number]; en?: string; date?: string };
 
-function Face({ b, g, scale, places, chapters, here, active, onPatch }: { b: Doc; g: Geo; scale: number; places: PlaceInfo[]; chapters: Map<string, number>; here?: number; active: boolean; onPatch: (p: Doc) => void }) {
+function Face({ b, g, scale, places, here, active, onPatch }: { b: Doc; g: Geo; scale: number; places: PlaceInfo[]; here?: number; active: boolean; onPatch: (p: Doc) => void }) {
   const H = g.ph * scale, fs = g.fs;
   const cap = (text: string) => text && <p className="mt-2 max-w-full truncate text-(length:--fs) text-muted-foreground" style={{ '--fs': px(fs * 0.72) }}>{text}</p>;
   switch (b.type) {
@@ -439,8 +451,8 @@ function Face({ b, g, scale, places, chapters, here, active, onPatch }: { b: Doc
       const v = b.writing === 'v';
       const blocks: Doc[] = b.blocks ?? [];
       return (
-        <div className={cn('serif text-(length:--fs) text-foreground', v ? 'h-(--h) leading-[2.05] tracking-[.12em] [writing-mode:vertical-rl]' : 'w-(--w) leading-[1.9]')} style={{ '--fs': px(fs), '--h': px(g.ph * 0.92 * scale), '--w': px(fs * 23) }}>
-          {blocks.map((p, i) => <Para key={p.id} p={p} v={v} first={!i} chapter={chapters.get(p.id) ?? 0} place={places.find((x) => x.block === p.id)} fs={fs} />)}
+        <div className={cn('serif text-(length:--fs) text-foreground', ALIGN[b.align as keyof typeof ALIGN], v ? 'h-(--h) leading-[2.05] tracking-[.12em] [writing-mode:vertical-rl]' : 'w-(--w) leading-[1.9]')} style={{ '--fs': px(fs), '--h': px(g.ph * 0.92 * scale), '--w': px(fs * 23) }}>
+          {blocks.map((p, i) => <Para key={p.id} p={p} v={v} first={!i} place={places.find((x) => x.block === p.id)} fs={fs} align={b.align} />)}
           {!blocks.some((p) => blockPlain(p).trim()) && <p className="text-muted-foreground">（空的文字，在 Markdown 里写）</p>}
         </div>
       );

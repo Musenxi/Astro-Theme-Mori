@@ -148,15 +148,19 @@ export const articleBlocks = (image: ImageFn) => {
 };
 
 const unit = z.number().min(0).max(1);
+/** 文字自己的对齐（排版软件那样）：start 横排靠左 / 竖排靠上，end 靠右 / 靠下，justify 两端对齐；不写是各块自己的默认 */
+const alignSchema = z.enum(['start', 'center', 'end', 'justify']);
+/** 一组文字在块的框里的位置：start 靠左，center 居中，end 靠右（竖排的字不写是靠右）；横排的字撑满框，没有位置可调 */
+const posSchema = z.enum(['start', 'center', 'end']);
 
 /**
  * 横滚和竖滚各存各的摆法（见 flow.mjs 的 migrateAxes）：
- *   h：横滚读法——上下位置 y（0 顶、1 底，用比例所以不同屏幕上构图一致）、缩放 scale、writing 竖排（一列文字可以竖着写）
- *   v：竖滚读法——writing（同一段文字可以在横滚里竖排、竖滚里横排）
+ *   h：横滚读法——上下位置 y（0 顶、1 底，用比例所以不同屏幕上构图一致）、缩放 scale、writing 竖排（一列文字可以竖着写）、align 对齐、pos 位置
+ *   v：竖滚读法——writing（同一段文字可以在横滚里竖排、竖滚里横排）、align、pos
  */
 const axes = {
-  h: z.object({ y: unit.optional(), scale: z.number().positive().optional(), writing: z.enum(['h', 'v']).optional() }).optional(),
-  v: z.object({ writing: z.enum(['h', 'v']).optional() }).optional(),
+  h: z.object({ y: unit.optional(), scale: z.number().positive().optional(), writing: z.enum(['h', 'v']).optional(), align: alignSchema.optional(), pos: posSchema.optional() }).optional(),
+  v: z.object({ writing: z.enum(['h', 'v']).optional(), align: alignSchema.optional(), pos: posSchema.optional() }).optional(),
 };
 
 /** 文章正文里的块：文字和图片，加上长卷（横滚）版式才有的图组、自由排布、地图 */

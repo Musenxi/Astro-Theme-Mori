@@ -20,6 +20,9 @@ const p = 'mb-[1.1em] text-justify text-pretty';
 const li = "relative py-[.2em] pl-[1.6em] text-pretty before:absolute before:top-[1.12em] before:left-[.1em] before:h-px before:w-[.6em] before:bg-muted-foreground before:content-['']";
 
 /** 竖滚里竖排的块：挨着的几个竖排块排成一个竖排的框（和长卷竖向读法里的竖排列一样）；二级标题另起一个 */
+/** 文字块在竖滚里的对齐（Studio 的排版里设；不写是各块自己的默认） */
+const al = (b: object) => axisOf(b as never, 'v').align as string | undefined;
+const pos = (b: object) => axisOf(b as never, 'v').pos as string | undefined;
 const isV = (b: { type: string }) => vertical && ['p', 'h', 'quote', 'list'].includes(b.type) && axisOf(b, 'v').writing === 'v';
 type Item = { group: typeof blocks } | { b: (typeof blocks)[number] };
 const items: Item[] = [];
@@ -42,14 +45,14 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         const notes_ = it.group.flatMap((g) => (g.type === 'p' ? sideRefs(g.text) : []));
         return (
           <Fragment>
-          <div class={vcol}>
+          <div class={vcol} data-vcol data-pos={it.group.map(pos).find(Boolean)}>
             {it.group.map((g) => {
               switch (g.type) {
                 case 'h': return g.level === 3
-                  ? <h3 class={`${vgap} font-bold tracking-[.08em] scroll-mt-(--toc-top)`} id={g.id} data-b={g.id} set:html={html(g.text)} />
-                  : <h2 class={`${vgap} text-chapter font-bold tracking-[.18em] scroll-mt-(--toc-top) [margin-block-end:.8em]`} id={g.id} data-b={g.id} set:html={html(g.text)} />;
+                  ? <h3 class={`${vgap} font-bold tracking-[.08em] scroll-mt-(--toc-top)`} id={g.id} data-b={g.id} data-align={al(g)} set:html={html(g.text)} />
+                  : <h2 class={`${vgap} text-chapter font-bold tracking-[.18em] scroll-mt-(--toc-top) [margin-block-end:.8em]`} id={g.id} data-b={g.id} data-align={al(g)} set:html={html(g.text)} />;
                 case 'quote': return (
-                  <blockquote class={`${vgap} border-r border-r-primary pr-[1.1em] text-soft-foreground`} data-b={g.id}>
+                  <blockquote class={`${vgap} border-r border-r-primary pr-[1.1em] text-heading text-foreground`} data-b={g.id} data-align={al(g)}>
                     <Fragment set:html={html(g.text)} />
                     {g.cite && <cite class="block text-meta text-muted-foreground [margin-block-start:.4em]" data-skip>{g.cite}</cite>}
                   </blockquote>
@@ -58,7 +61,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
                   const Tag = g.ordered ? 'ol' : 'ul';
                   return <Tag class={`${vgap} [counter-reset:li]`} data-b={g.id}>{g.items.map((item) => <li class="[counter-increment:li] before:text-muted-foreground before:content-['・']" set:html={html(item)} />)}</Tag>;
                 }
-                default: return <p class={`${vgap} text-justify`} data-b={g.id} set:html={html((g as { text: Inline }).text)} />;
+                default: return <p class={`${vgap} text-justify`} data-b={g.id} data-align={al(g)} set:html={html((g as { text: Inline }).text)} />;
               }
             })}
           </div>
@@ -81,7 +84,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
           const refs = sideRefs(b.text);
           return refs.length ? (
             <div class="col-[3/13] grid grid-cols-subgrid narrow:block">
-              <p class={`col-[1/7] -mr-(--main-plus) narrow:mr-0 ${p}`} data-b={b.id} set:html={html(b.text)} />
+              <p class={`col-[1/7] -mr-(--main-plus) narrow:mr-0 ${p}`} data-b={b.id} data-align={al(b)} set:html={html(b.text)} />
               <div class="col-[8/11] flex flex-col gap-[.9em] narrow:mt-[-.4em] narrow:mb-[1.4em]">
                 {refs.map((ref) => (
                   <aside class="border-t border-t-border pt-[.35em] text-meta leading-[1.75] text-muted-foreground narrow:pt-[.5em]" id={`note-${ref}`}>
@@ -92,13 +95,13 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
               </div>
             </div>
           ) : (
-            <p class={`${main} ${p}`} data-b={b.id} set:html={html(b.text)} />
+            <p class={`${main} ${p}`} data-b={b.id} data-align={al(b)} set:html={html(b.text)} />
           );
         }
         case 'h': {
-          if (b.level === 3) return <h3 class={`${main} scroll-mt-(--toc-top)`} id={b.id} data-b={b.id} set:html={html(b.text)} />;
+          if (b.level === 3) return <h3 class={`${main} scroll-mt-(--toc-top)`} id={b.id} data-b={b.id} data-align={al(b)} set:html={html(b.text)} />;
           return (
-            <h2 class={`${main} mt-[2.6em] mb-[.9em] scroll-mt-(--toc-top) text-chapter leading-[1.5] font-bold tracking-[.08em]`} id={b.id} data-b={b.id}>
+            <h2 class={`${main} mt-[2.6em] mb-[.9em] scroll-mt-(--toc-top) text-chapter leading-[1.5] font-bold tracking-[.08em]`} id={b.id} data-b={b.id} data-align={al(b)}>
               <Fragment set:html={html(b.text)} />
             </h2>
           );
@@ -106,7 +109,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         case 'quote': {
           const vq = axisOf(b, 'v').writing === 'v' && vertical;
           return (
-            <blockquote class:list={[main, !vq && "relative my-[1.6em] px-[4.2em] py-[.3em] text-center text-heading leading-[2.1] text-foreground before:absolute before:top-[-.1em] before:left-0 before:w-[.5em] before:text-[6em] before:leading-none before:text-foreground/20 before:[font-family:'Special_Elite',Georgia,serif] before:content-['“'] narrow:px-[1.6em] narrow:before:text-[2.6em]", vq && 'mt-[1.4em] mb-[2.2em] h-[12.5em] justify-self-center border-r border-r-primary pr-[1.1em] text-heading leading-[2.1] tracking-[.2em] text-soft-foreground [writing-mode:vertical-rl]']} data-b={b.id}>
+            <blockquote class:list={[main, !vq && "relative my-[1.6em] px-[4.2em] py-[.3em] text-center text-heading leading-[2.1] text-foreground before:absolute before:top-[-.1em] before:left-0 before:w-[.5em] before:text-[6em] before:leading-none before:text-foreground/20 before:[font-family:'Special_Elite',Georgia,serif] before:content-['“'] narrow:px-[1.6em] narrow:before:text-[2.6em]", vq && 'mt-[1.4em] mb-[2.2em] h-[12.5em] justify-self-center border-r border-r-primary pr-[1.1em] text-heading leading-[2.1] tracking-[.2em] text-foreground [writing-mode:vertical-rl]']} data-b={b.id} data-align={al(b)}>
               <Fragment set:html={html(b.text)} />
               {b.cite && <cite class={vq ? 'block text-end text-meta text-muted-foreground  [margin-block-start:.4em]' : 'mt-[.6em] block text-center text-meta text-muted-foreground'} data-skip>{b.cite}</cite>}
             </blockquote>

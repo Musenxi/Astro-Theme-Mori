@@ -228,7 +228,7 @@ export function migrateAxes(doc) {
  * 二级标题另起一列；竖排和横排不混在一列里（h / list 没有竖排设置，跟着所在的列走）。
  * 一列的上下位置和缩放取列里第一个设了的块（Studio 会写在列里每个块上，删掉第一个块也不丢）。
  * writing 是横滚读法里的写法，vwriting 是竖滚读法里的；两边任何一个不同就另起一列。
- * @returns {Array<{ kind: 'text', blocks: any[], writing: 'h' | 'v', vwriting: 'h' | 'v', y?: number, scale?: number, anchor?: boolean } | { kind: 'block', block: any }>}
+ * @returns {Array<{ kind: 'text', blocks: any[], writing: 'h' | 'v', vwriting: 'h' | 'v', align?: string, valign?: string, pos?: string, vpos?: string, y?: number, scale?: number, anchor?: boolean } | { kind: 'block', block: any }>}
  */
 export function columns(blocks) {
   const out = [];
@@ -249,6 +249,16 @@ export function columns(blocks) {
     c.writing = c.writing === 'v' ? 'v' : 'h';
     c.vwriting = c.vwriting === 'v' ? 'v' : 'h';
     if (c.blocks.every(isPlaceOnly)) c.anchor = true; // 整列都是看不见的地点：只当一个锚点
+    // 对齐：横滚、竖滚各一份，取列里第一个设了的块（Studio 写在列里每个块上）
+    const al = (axis) => c.blocks.filter((b) => WRITING_BLOCKS.has(b.type)).map((b) => axisOf(b, axis).align).find((a) => a !== undefined);
+    const ah = al('h'), av = al('v');
+    if (ah) c.align = ah;
+    if (av) c.valign = av;
+    // 位置（一组字在框里靠左 / 居中 / 靠右）同样各取一份
+    const ps = (axis) => c.blocks.filter((b) => WRITING_BLOCKS.has(b.type)).map((b) => axisOf(b, axis).pos).find((a) => a !== undefined);
+    const ph = ps('h'), pv = ps('v');
+    if (ph) c.pos = ph;
+    if (pv) c.vpos = pv;
     const y = c.blocks.map((b) => axisOf(b, 'h').y).find((n) => n !== undefined), scale = c.blocks.map((b) => axisOf(b, 'h').scale).find((n) => n !== undefined);
     if (y !== undefined) c.y = y;
     if (scale !== undefined) c.scale = scale;

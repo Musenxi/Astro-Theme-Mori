@@ -155,3 +155,11 @@ main:is([data-page="post"],[data-page="travel"]) svg.map{
 @media (max-width:760px){
   main:is([data-page="post"],[data-page="travel"]){--text-body:18px}
 }
+
+/* 普通文章里文字块的对齐（Studio 的排版里设）：比各块自己的默认更优先 */
+[data-b][data-align="start"]{text-align:start!important}
+[data-b][data-align="center"]{text-align:center!important}
+[data-b][data-align="end"]{text-align:end!important}
+[data-b][data-align="justify"]{text-align:justify!important}
+[data-vcol][data-pos="start"]{justify-self:start!important}
+[data-vcol][data-pos="center"]{justify-self:center!important}

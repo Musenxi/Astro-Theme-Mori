@@ -26,6 +26,13 @@
 
 /* ---------- 竖向 + 混合 ---------- */
 .travel:not([data-mode="h"]) .t-track{max-width:var(--maxw);margin:0 auto;padding:0 var(--gut);display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gap);row-gap:clamp(56px,9vw,128px)}
+/* 文字自己的对齐（左 / 中 / 右 / 两端，竖排是上 / 中 / 下 / 两端）和一组字在块的框里的位置（竖排的字不写是靠右）都在 Studio 的排版里设。工具类在更高的层里，所以要 !important */
+.b-text[data-align="start"] :is(p,header,h3,blockquote,cite){text-align:start!important}
+.b-text[data-align="center"] :is(p,header,h3,blockquote,cite){text-align:center!important}
+.b-text[data-align="end"] :is(p,header,h3,blockquote,cite){text-align:end!important}
+.b-text[data-align="justify"] :is(p,header,h3,blockquote,cite){text-align:justify!important}
+.travel:not([data-mode="h"]) .b-text.v[data-pos="start"]{justify-self:start!important}
+.travel:not([data-mode="h"]) .b-text.v[data-pos="center"]{justify-self:center!important}
 .travel:not([data-mode="h"]) .ax-h,.travel[data-mode="h"] .ax-v{display:none}
 .travel:not([data-mode="h"]) .b-text{grid-column:3/9}
 .travel:not([data-mode="h"]) .b-text.v{grid-column:2/10;justify-self:end;height:min(21em,64vh);max-width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
