@@ -35,7 +35,7 @@ const stopData = stops.map((s) => ({ id: s.id, name: s.name || coord(s.lnglat), 
     <MiniMap flow={flow!} />
   </div>
   <div class="leading-[1.35] whitespace-nowrap">
-    <span class="mono text-muted-foreground narrow:hidden" id="rb-n">01 / {String(stops.length).padStart(2, '0')}</span>
+    <span class="mono text-muted-foreground narrow:hidden empty:hidden" id="rb-n">{stopData[0].date}</span>
     <b class="block text-aux font-normal" id="rb-name">{stopData[0].name}</b>
   </div>
 </div>}

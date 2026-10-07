@@ -7,6 +7,7 @@ import { t, vertical } from '../lib/i18n.ts';
 import TravelBody from './TravelBody.astro';
 import PostHeader from './PostHeader.astro';
 import RouteMap from './RouteMap.astro';
+import PostToc from './PostToc.astro';
 import type { Entry } from '../lib/entries.ts';
 import type { PostData } from '../schema/schema.ts';
 import type { Flow } from '../lib/flow.ts';
@@ -46,5 +47,8 @@ const { chars, minutes } = readingOf(d);
       </div>
     )
   }
-  <TravelBody post={d} flow={flow} />
+  <div class="relative">
+    <PostToc blocks={d.blocks} />
+    <TravelBody post={d} flow={flow} />
+  </div>
 </article>

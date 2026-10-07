@@ -13,7 +13,6 @@ import { zoomPath, tileFit, type Cam } from '../lib/fly.ts';
 type Mode = 'v' | 'h' | 'm';
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
-const pad = (n: number) => String(n).padStart(2, '0');
 const store = {
   get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } },
   set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch {} },
@@ -247,7 +246,7 @@ function init() {
     if (i === lastStop) return;
     goTo(i, lastStop);
     lastStop = i;
-    rbN.textContent = `${pad(i + 1)} / ${pad(stops.length)}${stops[i].date ? ` · ${stops[i].date}` : ''}`;
+    rbN.textContent = stops[i].date ?? '';
     rbName.textContent = stops[i].name;
   }
 

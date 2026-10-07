@@ -54,6 +54,9 @@
 .travel[data-mode="m"] .strip-track{will-change:transform}
 .travel[data-mode="m"] .b-strip figcaption{max-width:none;margin:12px 0 0;padding:0 var(--edge)}
 .travel[data-mode="m"] 
+/* 侧边目录只给竖滚（竖向、混合读法）；横向读法是横着滚的，放不下 */
+.travel[data-mode="h"] [data-toc]{display:none}
+
 /* ---------- 横向 ---------- */
 .travel[data-mode="h"]{--ph:min(66vh,64vw)}
 .travel[data-mode="h"] .t-vp{position:sticky;top:0;height:100vh;overflow:hidden}
