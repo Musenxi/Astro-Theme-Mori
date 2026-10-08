@@ -1,5 +1,5 @@
 /* 长卷（横滚、地图）：三种读法（竖向 / 混合 / 横向）的版式、图片块、进场显现。由 <div.travel data-mode> 的属性驱动，所以留在 CSS 里；文字、封面、行程表、角落控件的样式在各自的组件里 */
-.t-body,.t-vp,.t-track,.blk{position:relative}
+.t-body,.t-vp,.t-track,.blk,.hgroup{position:relative}
 
 /* 正文里的地点：地名用主题色，前面一个定位图标（lucide 的 map-pin，用 mask 着色）；标题里的保持标题的样子 */
 .place{color:var(--primary)}
@@ -36,6 +36,14 @@
 .travel:not([data-mode="h"]) .ax-h,.travel[data-mode="h"] .ax-v{display:none}
 .travel:not([data-mode="h"]) .b-text{grid-column:3/9}
 .travel:not([data-mode="h"]) .b-text.v{grid-column:2/10;justify-self:end;height:min(21em,64vh);max-width:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+/* 标题和后面那列文字：竖滚里紧挨着摞在一起（只留标题自己的下边距）；两边都竖排时并排，标题在右 */
+.travel:not([data-mode="h"]) .hgroup{display:contents}
+.travel:not([data-mode="h"]) .hgroup > .b-text:not(.b-head){margin-top:calc(-1*clamp(56px,9vw,128px))}
+.travel:not([data-mode="h"]) .hgroup.vv{display:flex;flex-direction:row-reverse;grid-column:2/10;justify-self:end;height:min(21em,64vh);max-width:100%}
+.travel:not([data-mode="h"]) .hgroup.vv[data-pos="start"]{justify-self:start}
+.travel:not([data-mode="h"]) .hgroup.vv[data-pos="center"]{justify-self:center}
+.travel:not([data-mode="h"]) .hgroup.vv > .b-text{margin-top:0;height:100%;min-width:0;flex:0 1 auto}
+.travel:not([data-mode="h"]) .hgroup.vv > .b-head{flex:none}
 .travel:not([data-mode="h"]) .b-single{grid-column:1/-1}
 .travel:not([data-mode="h"]) .b-single.inset{grid-column:3/11}
 .travel:not([data-mode="h"]) .b-single img{width:100%}
@@ -71,6 +79,18 @@
 /* --y：块在上下方向的位置（0 顶 / 1 底），--s：缩放。默认居中、原尺寸 */
 .travel[data-mode="h"] .blk{flex:none;top:calc(var(--y,.5)*100%);transform:translateY(calc(var(--y,.5)*-100%))}
 .travel[data-mode="h"] .b-text:not(.v){width:min(23em,84vw)}
+.travel[data-mode="h"] .b-head:not(.v){width:max-content;max-width:min(14em,60vw)}
+.travel[data-mode="h"] .b-text.b-head.v{height:max-content;max-height:calc(var(--ph)*.92)}
+/* 标题的框按字的长短，没设上下位置就在顶上（和以前标题在一列文字开头的位置一样） */
+.travel[data-mode="h"] .b-head{top:calc(var(--y,0)*100%);transform:translateY(calc(var(--y,0)*-100%))}
+/* 标题和后面那列文字挨着：竖排的文字（或右→左的手卷）标题在右边，横排在左边。
+   标题没设上下位置：两块顶端对齐，一起按文字的 --y 摆；设了（.own）就各按各的 --y */
+.travel[data-mode="h"] .hgroup{flex:none;display:flex;align-items:flex-start;top:calc(var(--y,.5)*100%);transform:translateY(calc(var(--y,.5)*-100%))}
+.travel[data-mode="h"] .hgroup.hh{column-gap:2.4em}
+.travel[data-mode="h"] .hgroup.tv,.travel[data-dir="rtl"][data-mode="h"] .hgroup{flex-direction:row-reverse}
+.travel[data-mode="h"] .hgroup > .blk{top:0;transform:none}
+.travel[data-mode="h"] .hgroup.own{align-self:stretch;top:0;transform:none}
+.travel[data-mode="h"] .hgroup.own > .blk{top:calc(var(--y,.5)*100%);transform:translateY(calc(var(--y,.5)*-100%))}
 /* 长文字：脚本把它排成并排的几栏（scripts/travel.ts 的 flowText），高度用满、从顶部开始 */
 .travel[data-mode="h"] .b-text.cols{top:0;transform:none;column-width:var(--col-w);column-gap:var(--col-gap);column-fill:auto}
 .b-text.cols header,.b-text.cols h3,.b-text.cols blockquote,.b-text.cols pre,.b-text.cols li{break-inside:avoid}
@@ -101,7 +121,7 @@
 .travel:not([data-mode="h"]) .b-map{grid-column:2/12}
 .travel[data-mode="h"] .b-map{width:min(78vh,60vw)}
 @media (max-width:760px){
-  .travel:not([data-mode="h"]) .t-track > *{grid-column:1/-1!important}
+  .travel:not([data-mode="h"]) :is(.t-track > *,.hgroup > *){grid-column:1/-1!important}
   .travel:not([data-mode="h"]) .b-strip{width:100vw;margin-left:calc(-1*var(--gut))}
   .travel:not([data-mode="h"]) .b-free .canvas{aspect-ratio:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .travel:not([data-mode="h"]) .fi,.travel:not([data-mode="h"]) .fnote{position:static;width:100%}

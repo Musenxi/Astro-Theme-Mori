@@ -34,7 +34,7 @@ test('长卷版式：开了地图、设了读法或用了长卷的块才走长�
   assert.equal(usesFlow({ blocks: [...blocks, { id: 'b2', type: 'map' }] }), true);
 });
 
-test('排成列：相邻文字一列，二级标题另起，图片单独，竖排和横排不混', () => {
+test('排成列：相邻文字一列，二级标题自己一块，图片单独，竖排和横排不混', () => {
   const blocks = [
     { id: 'a', type: 'p', text: '1', y: 0.2 }, { id: 'b', type: 'p', text: '2' }, { id: 'c', type: 'h', level: 3, text: '小' },
     { id: 'd', type: 'image', src: 'x' },
@@ -42,8 +42,23 @@ test('排成列：相邻文字一列，二级标题另起，图片单独，竖�
   ];
   const cols = columns(blocks);
   const show = (c: any) => (c.kind === 'text' ? `${c.blocks.map((b: any) => b.id).join('')}:${c.writing}` : c.block.id);
-  assert.deepEqual(cols.map(show), ['abc:h', 'd', 'efg:v', 'h:h']);
+  assert.deepEqual(cols.map(show), ['abc:h', 'd', 'e:v', 'fg:v', 'h:h']);
   assert.equal(cols[0].kind === 'text' && cols[0].y, 0.2);
+});
+
+test('二级标题：没设的写法、对齐跟着后面的文字；上下位置和文字一样就当没设', () => {
+  const H = (h?: object, v?: object) => ({ id: 'h', type: 'h', level: 2, text: '章', ...(h ? { h } : {}), ...(v ? { v } : {}) });
+  const P = { id: 'p', type: 'p', text: '字', h: { writing: 'v', y: 0.3, scale: 0.8, align: 'end' }, v: { writing: 'v', pos: 'center' } };
+  let [h, t] = columns([H(), P]) as any[];
+  assert.deepEqual([h.head, h.lead, h.writing, h.vwriting, h.align, h.vpos, h.scale, h.y], [true, true, 'v', 'v', 'end', 'center', undefined, undefined]);
+  assert.equal(t.y, 0.3);
+  [h] = columns([H({ y: 0.3 }), P]) as any[];
+  assert.equal(h.y, undefined);
+  [h] = columns([H({ y: 0.1, writing: 'h' }, { writing: 'h' }), P]) as any[];
+  assert.deepEqual([h.y, h.writing, h.vwriting], [0.1, 'h', 'h']);
+  // 后面不是文字：自己一块，不跟谁
+  [h] = columns([H(), { id: 'm', type: 'map' }]) as any[];
+  assert.deepEqual([h.lead, h.writing], [undefined, 'h']);
 });
 
 const legacy = {

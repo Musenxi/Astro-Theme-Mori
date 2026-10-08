@@ -83,8 +83,8 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
 <div class="t-body">
   <div class="t-vp">
     <div class="t-track">
-      {
-        columns.map((c) => {
+      {(() => {
+        const col = (c: Flow['columns'][number]) => {
           if (c.kind === 'text') {
             // 同一列在横滚和竖滚里写法不同（比如横滚里竖排、竖滚里横排）就渲染两份，按读法显示其中一份
             const same = c.writing === c.vwriting && c.align === c.valign && c.pos === c.vpos;
@@ -94,7 +94,7 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
             const v = variant.w === 'v' && vertical;
             const k = v ? vt : ht; // 竖排文字和横排文字的行内块样式不同，渲染时就选好
             return (
-              <section class:list={['blk', 'b-text', c.anchor && 'anchor', variant.axis && `ax-${variant.axis}`, v && 'v tracking-[.12em] leading-[2.05] [writing-mode:vertical-rl]']} data-align={variant.axis === 'v' ? c.valign : c.align} data-pos={variant.axis === 'v' ? c.vpos : c.pos} {...at(c, c.y, c.scale)}>
+              <section class:list={['blk', 'b-text', c.head && 'b-head', c.anchor && 'anchor', variant.axis && `ax-${variant.axis}`, v && 'v tracking-[.12em] leading-[2.05] [writing-mode:vertical-rl]']} data-align={variant.axis === 'v' ? c.valign : c.align} data-pos={variant.axis === 'v' ? c.vpos : c.pos} {...at(c, c.y, c.scale)}>
                 {c.blocks.map((b, bi) => {
                   switch (b.type) {
                     case 'h': {
@@ -207,8 +207,22 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
                 </div>
               ) : null;
           }
-        })
-      }
+        };
+        // 标题和紧跟着的那列文字挨着排（.hgroup）：标题没设上下位置就和文字一起挪，顶端对齐
+        const out = [];
+        for (let i = 0; i < columns.length; i++) {
+          const c = columns[i], t = columns[i + 1];
+          if (c.kind === 'text' && c.lead && t?.kind === 'text') {
+            i++;
+            out.push(
+              <div class:list={['hgroup', c.y !== undefined && 'own', t.writing === 'v' && 'tv', c.writing !== 'v' && 'hh', c.vwriting === 'v' && t.vwriting === 'v' && 'vv']} data-pos={t.vpos} style={{ '--y': t.y }}>
+                {col(c)}{col(t)}
+              </div>,
+            );
+          } else out.push(col(c));
+        }
+        return out;
+      })()}
     </div>
     <div class="h-progress"><i></i></div>
   </div>

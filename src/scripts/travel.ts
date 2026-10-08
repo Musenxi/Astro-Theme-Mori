@@ -47,7 +47,7 @@ function init() {
   if (saved && allowed.includes(saved)) travel.dataset.mode = saved;
 
   // 横向读法里，横排的长文字排成并排的几栏（高度用满，宽度按栏数撑开）；短的一列就保持原样，按 y 摆
-  const texts = [...travel.querySelectorAll<HTMLElement>('.b-text:not(.v)')];
+  const texts = [...travel.querySelectorAll<HTMLElement>('.b-text:not(.v):not(.b-head)')];
   function flowText() {
     for (const el of texts) { el.classList.remove('cols'); el.style.width = ''; el.style.height = ''; }
     if (mode() !== 'h') return;
