@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { setConfigValue } from '../src/project.mjs';
+import { setConfigValue, setHead } from '../src/project.mjs';
 
 const make = () => {
   const f = join(mkdtempSync(join(tmpdir(), 'mori-')), 'mori.config.ts');
@@ -118,4 +118,19 @@ test('comments.status：只接受 on / readonly / off，写进评论块里', () 
   assert.equal(readFileSync(g, 'utf8').match(/status/g).length, 1);
   assert.match(readFileSync(g, 'utf8'), /status: 'off'/);
   assert.throws(() => setConfigValue(g, 'comments.status', 'closed'), /只能是/);
+});
+
+test('head：多行代码写成模板字符串，引号、反引号、${、反斜杠读回来不变；再改是整段替换；空的删掉', async () => {
+  const f = make();
+  const code = `<script async src="https://www.googletagmanager.com/gtag/js?id=G-X"></script>\n<script>\n  gtag('config', 'G-X'); const s = \`a\${1}\\n\`;\n</script>`;
+  setHead(f, `  ${code}\n`);
+  const read = async () => (await import(`data:text/javascript,${encodeURIComponent(readFileSync(f, 'utf8').replace(/^import.*\n/, '').replace('defineMoriConfig(', '('))}`)).default;
+  assert.equal((await read()).head, code);
+  assert.equal((await read()).title, 'MORI');
+  setHead(f, '<meta name="x">');
+  assert.equal((await read()).head, '<meta name="x">');
+  assert.equal(readFileSync(f, 'utf8').match(/head:/g).length, 1);
+  setHead(f, '   ');
+  assert.doesNotMatch(readFileSync(f, 'utf8'), /head:/);
+  assert.equal((await read()).home.editorNote, '这一期"没有"主题。');
 });

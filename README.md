@@ -67,6 +67,7 @@ export default defineMoriConfig({
   ],
   home: { style: 'quote', count: 4, direction: 'h', editorNote: '……' },   // 首页版式：quote 引文开篇 / cover 封面版 / list 文章列表；count 展示几篇（1–8），置顶的排前面，不够用最新的补；排法：h 横排 / v 竖排；目次旁的编者按
   archive: { direction: 'h' },                   // 归档 / 分类刻度页的排法
+  head: `<script async src="https://www.googletagmanager.com/gtag/js?id=G-…"></script>`,   // 原样插进每页 <head> 的代码（统计脚本之类），只在构建出的站点里有；Studio 设定页里也能改
 });
 ```
 

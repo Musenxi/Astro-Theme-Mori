@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import sharp from 'sharp';
 import { avatarTemplate } from 'astro-mori/avatar';
-import { RESERVED_SLUGS, assetUsage, trashAsset, loadConfig, setConfigValue, setCategories, setPublish, setNav, setActions, listPages, readFriends, writeFriends, readFriendsLost, writeFriendsLost, formatFriends, parseFriends, renameCategoryInEntries, renameTag, countPages, listEntries, readEntry, writeEntry, entryExists, skeleton, trashEntry, publishEntry, unpublishEntry, discardDraft, listAssets, saveAsset, isId, KINDS, IMAGE_EXT } from './project.mjs';
+import { RESERVED_SLUGS, assetUsage, trashAsset, loadConfig, setConfigValue, setHead, setCategories, setPublish, setNav, setActions, listPages, readFriends, writeFriends, readFriendsLost, writeFriendsLost, formatFriends, parseFriends, renameCategoryInEntries, renameTag, countPages, listEntries, readEntry, writeEntry, entryExists, skeleton, trashEntry, publishEntry, unpublishEntry, discardDraft, listAssets, saveAsset, isId, KINDS, IMAGE_EXT } from './project.mjs';
 import { validateEntry } from 'astro-mori/validate';
 import { locate } from 'astro-mori/anchor';
 import { normalizeDoc } from 'astro-mori/flow';
@@ -199,7 +199,7 @@ export async function startStudio({ root, port = 4400, dev = false }) {
         const cn = await commentNumbers(); // 侧栏上的未读数量；评论服务连不上就当 0
         const pending = cn?.unread ?? 0;
         return send(res, 200, {
-          root, configPath, config: { title: config.title ?? 'MORI', description: config.description ?? '', accent: config.accent ?? '#002fa7', accentDark: config.accentDark, categories: config.categories ?? [], home: config.home, archive: config.archive, feed: config.feed, comments: config.comments?.provider === 'mori' ? { avatar: config.comments.avatar, status: config.comments.status ?? 'on' } : undefined, nav: config.nav ?? null, actions: config.actions ?? null, actionsLayout: config.actionsLayout === 'split' ? 'split' : 'merged', lang: config.lang ?? 'zh-CN' },
+          root, configPath, config: { title: config.title ?? 'MORI', description: config.description ?? '', accent: config.accent ?? '#002fa7', accentDark: config.accentDark, categories: config.categories ?? [], home: config.home, archive: config.archive, feed: config.feed, comments: config.comments?.provider === 'mori' ? { avatar: config.comments.avatar, status: config.comments.status ?? 'on' } : undefined, nav: config.nav ?? null, actions: config.actions ?? null, actionsLayout: config.actionsLayout === 'split' ? 'split' : 'merged', lang: config.lang ?? 'zh-CN', head: typeof config.head === 'string' ? config.head : '' },
           entries: listEntries(root), pages: listPages(root), assets: listAssets(root), dev, preview: { port: preview.port, url: await previewUrl(preview.port) }, publish: config.publish ?? null, comments: { provider: config.comments?.provider ?? null, avatar: avatarTemplate(config.comments?.avatar), endpoint: commentsEndpoint(), hasToken: !!adminToken(), pending },
         });
       }
@@ -274,7 +274,9 @@ export async function startStudio({ root, port = 4400, dev = false }) {
       if (req.method === 'PUT' && p === '/api/config') {
         const { key, value } = await readJson(req);
         const wasUp = await isUp(preview.port);
-        setConfigValue(configPath, key, value);
+        try {
+          if (key === 'head') setHead(configPath, value); else setConfigValue(configPath, key, value);
+        } catch (e) { return send(res, 400, { error: e.message }); }
         config = (await loadConfig(root)).config;
         await restartPreview(wasUp, true); // 预览开着就让它读新配置
         return send(res, 200, { ok: true, config });

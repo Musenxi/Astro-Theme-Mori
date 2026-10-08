@@ -222,6 +222,38 @@ function setBlockValue(configPath, dotted, value) {
   writeFileSync(configPath, src.slice(0, from) + next + src.slice(end));
 }
 
+/* ───────────── 自定义 <head> 代码：mori.config.ts 里的 head ───────────── */
+
+/** 写成模板字符串（多行、带引号都不用转义）；反斜杠、反引号、${ 要转义 */
+const tpl = (v) => `\`${String(v).replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${')}\``;
+
+/** 整段替换 head 的值；空的就删掉这一项。只认顶层（两格缩进或不缩进）的 head，不碰别的块 */
+export function setHead(configPath, code) {
+  const value = String(code ?? '').trim();
+  if (value.length > 20_000) throw new Error('代码太长了（最多 2 万字）');
+  const src = readFileSync(configPath, 'utf8');
+  const key = src.match(/^([ \t]{0,2})head[ \t]*:[ \t]*(['"`])/m);
+  if (key) {
+    const end = closeString(src, key.index + key[0].length, key[2]);
+    const rest = src.slice(end).replace(/^[ \t]*,?[ \t]*\n?/, '');
+    writeFileSync(configPath, value ? `${src.slice(0, key.index)}${key[1]}head: ${tpl(value)},\n${rest}` : src.slice(0, key.index) + rest);
+    return;
+  }
+  if (!value) return;
+  const top = src.match(/(defineMoriConfig\(\{|export default \{)[ \t]*\n/);
+  if (!top) throw new Error('没在 mori.config.ts 里找到配置对象的开头，请手动添加 head。');
+  writeFileSync(configPath, src.replace(top[0], `${top[0]}  head: ${tpl(value)},\n`));
+}
+
+/** from 是开引号之后；返回闭引号的下一位 */
+function closeString(src, from, quote) {
+  for (let i = from; i < src.length; i++) {
+    if (src[i] === '\\') i++;
+    else if (src[i] === quote) return i + 1;
+  }
+  throw new Error('mori.config.ts 里 head 的字符串没有结尾');
+}
+
 /* ───────────── 分类：mori.config.ts 里的 categories 数组 ───────────── */
 
 const q = (v) => `'${String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n')}'`;

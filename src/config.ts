@@ -88,6 +88,8 @@ export interface MoriUserConfig {
   };
   publish?: MoriPublish;
   comments?: MoriComments;
+  /** 原样插进每个页面 <head> 末尾的代码，如 Google Analytics 之类的统计脚本。只在构建出来的站点里有，astro dev 的预览里没有（免得把自己的访问也统计进去） */
+  head?: string;
 }
 
 export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'accent' | 'categories' | 'nav'>> {
@@ -103,6 +105,7 @@ export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'acc
   actions: MoriAction[];
   actionsLayout: 'merged' | 'split';
   feed: { content: 'excerpt' | 'full' };
+  head: string;
 }
 
 export const defineMoriConfig = (c: MoriUserConfig) => c;
@@ -132,5 +135,6 @@ export function resolveConfig(c: MoriUserConfig): MoriConfig {
     actions: c.actions ?? [{ type: 'theme' }],
     actionsLayout: c.actionsLayout === 'split' ? 'split' : 'merged',
     feed: { content: c.feed?.content === 'full' ? 'full' : 'excerpt' },
+    head: typeof c.head === 'string' ? c.head.trim() : '',
   };
 }

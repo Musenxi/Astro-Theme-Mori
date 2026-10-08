@@ -5,6 +5,7 @@ import { useProject, useRefresh } from '@/lib/hooks';
 import { Field } from '@/components/field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Body, Card, PageHeader, Section } from '@/components/page';
 import { Segmented } from '@/components/segmented';
 import { SwitchField } from '@/components/switch-field';
@@ -22,6 +23,7 @@ export default function Settings() {
   const cfg = project?.config;
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [head, setHead] = useState('');
   const [accent, setAccent] = useState('#002fa7');
   const [accentDark, setAccentDark] = useState('');
   const [override, setOverride] = useState(false);
@@ -29,6 +31,7 @@ export default function Settings() {
   const [edits, setEdits] = useState<Record<string, string>>({}); // 还没保存的、用选项改的设定（键是配置路径）
   const [busy, setBusy] = useState(false);
   useEffect(() => { if (cfg) { setTitle(cfg.title); setDescription(cfg.description ?? ''); setAccent(cfg.accent); setAccentDark(cfg.accentDark ?? ''); setOverride(!!cfg.accentDark); } }, [cfg?.title, cfg?.description, cfg?.accent, cfg?.accentDark]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (cfg) setHead(cfg.head ?? ''); }, [cfg?.head]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!cfg) return null;
   const rawAvatar = cfg.comments?.avatar;
   const avatarKey = rawAvatar == null || rawAvatar === '' ? 'cravatar' : rawAvatar; // 配置里是自定义地址时，三个选项都不亮
@@ -36,7 +39,7 @@ export default function Settings() {
   const put = (key: string, value: string) => setEdits((e) => ({ ...e, [key]: value }));
   const autoN = Math.min(3600, Math.max(1, Math.round(Number(auto)) || 60));
   const accentDarkNow = override ? accentDark : '';
-  const dirty = (title && title !== cfg.title) || description !== (cfg.description ?? '') || accent !== cfg.accent || accentDarkNow !== (cfg.accentDark ?? '') || Object.keys(edits).length > 0 || autoN !== autosaveSeconds();
+  const dirty = (title && title !== cfg.title) || description !== (cfg.description ?? '') || accent !== cfg.accent || accentDarkNow !== (cfg.accentDark ?? '') || Object.keys(edits).length > 0 || autoN !== autosaveSeconds() || head.trim() !== (cfg.head ?? '');
 
   const save = async () => {
     setBusy(true);
@@ -46,6 +49,7 @@ export default function Settings() {
       if (accent !== cfg.accent) await api.setConfig('accent', accent);
       if (accentDarkNow !== (cfg.accentDark ?? '')) await api.setConfig('accentDark', accentDarkNow || null);
       for (const [k, v] of Object.entries(edits)) await api.setConfig(k, v);
+      if (head.trim() !== (cfg.head ?? '')) await api.setConfig('head', head.trim() || null);
       setAutosaveSeconds(autoN); setAuto(String(autoN));
       setEdits({});
       await refresh();
@@ -97,6 +101,12 @@ export default function Settings() {
             </Field>
           </Card></Section>
         )}
+
+        <Section title="自定义代码"><Card>
+          <Field label="<head>" hint="只在构建出的站点里生效，预览里没有。">
+            <Textarea variant="code" rows={6} spellCheck={false} value={head} onChange={(e) => setHead(e.target.value)} />
+          </Field>
+        </Card></Section>
 
         <Section title="编辑器"><Card>
           <Field label="自动保存间隔">

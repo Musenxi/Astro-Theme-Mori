@@ -88,6 +88,8 @@ const canonical = config.site ? new URL(Astro.url.pathname, config.site).href : 
     </script>
     <script type="application/json" id="mori-i18n" is:inline set:html={clientJson} />
     <ClientRouter />
+    <!-- 设定里填的自定义代码（统计脚本之类）：只放进构建出来的站点 -->
+    {import.meta.env.PROD && config.head && <Fragment set:html={config.head} />}
   </head>
   <body data-stats={stats} data-entry={stats && entry}>
     <Header />

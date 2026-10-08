@@ -44,6 +44,7 @@ export interface Project {
     nav: NavItem[] | null;
     actions: Action[] | null;
     actionsLayout: 'merged' | 'split';
+    head: string;
   };
   entries: EntrySummary[];
   pages: PageSummary[];
