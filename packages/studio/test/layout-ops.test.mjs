@@ -16,37 +16,44 @@ const doc = () => ({
 });
 const order = (d) => d.blocks.map((b) => b.id).join(' ');
 
-test('项：相邻文字一列，二级标题另起，图片各自一项', () => {
-  assert.deepEqual(ops.itemsOf(doc()).map((x) => `${x.key}:${x.type}`), ['h1:text', 's01:image', 's02:image', 'h2:text', 'm01:map']);
-  assert.deepEqual(ops.itemsOf(doc())[0].blocks.map((b) => b.id), ['h1', 'b01', 'b02']);
+test('项：相邻文字一列，二级标题自己一项，图片各自一项', () => {
+  assert.deepEqual(ops.itemsOf(doc()).map((x) => `${x.key}:${x.type}`), ['h1:head', 'b01:text', 's01:image', 's02:image', 'h2:head', 'm01:map']);
+  assert.deepEqual(ops.itemsOf(doc())[1].blocks.map((b) => b.id), ['b01', 'b02']);
+  assert.deepEqual(ops.itemsOf(doc()).map((x) => !!x.lead), [true, false, false, false, false, false]);
 });
 
-test('挪动：文字一列整体挪；左右挪一格', () => {
-  assert.equal(order(ops.moveItem(doc(), 'h1', 2)), 's01 s02 h1 b01 b02 h2 m01');
+test('挪动：文字一列整体挪，标题单独挪；左右挪一格', () => {
+  assert.equal(order(ops.moveItem(doc(), 'b01', 3)), 'h1 s01 s02 b01 b02 h2 m01');
+  assert.equal(order(ops.moveItem(doc(), 'h1', 2)), 'b01 b02 s01 h1 s02 h2 m01');
   assert.equal(order(ops.nudgeItem(doc(), 's02', 1)), 'h1 b01 b02 s01 h2 s02 m01');
   assert.equal(order(ops.nudgeItem(doc(), 'm01', -1)), 'h1 b01 b02 s01 s02 m01 h2');
   assert.equal(order(ops.nudgeItem(doc(), 'h1', -1)), order(doc()));
 });
 
 test('位置、缩放写在一列文字每个块的 h 里；竖排横滚、竖滚各写各的，复位就去掉', () => {
-  let d = ops.setPlace(doc(), 'h1', { y: 0.3, scale: 1.1, writing: 'v' });
-  assert.deepEqual(d.blocks.slice(0, 3).map((b) => b.h), [{ y: 0.3, scale: 1.1, writing: 'v' }, { y: 0.3, scale: 1.1, writing: 'v' }, { y: 0.3, scale: 1.1, writing: 'v' }]);
+  let d = ops.setPlace(doc(), 'b01', { y: 0.3, scale: 1.1, writing: 'v' });
+  assert.deepEqual(d.blocks.slice(0, 3).map((b) => b.h), [undefined, { y: 0.3, scale: 1.1, writing: 'v' }, { y: 0.3, scale: 1.1, writing: 'v' }]);
   assert.equal(d.blocks[3].h.y, 0.2); // 别的块不受影响
   assert.deepEqual(d.blocks.slice(0, 3).map((b) => b.v), [undefined, undefined, undefined]); // 竖滚那边没动
   // 竖滚里单独设：横滚的不变
-  d = ops.setPlace(d, 'h1', { writing: 'v' }, 'v');
+  d = ops.setPlace(d, 'b01', { writing: 'v' }, 'v');
   assert.deepEqual(d.blocks[1].v, { writing: 'v' });
   assert.equal(d.blocks[1].h.writing, 'v');
-  assert.equal(ops.itemsOf(d)[0].writing, 'v');
-  assert.equal(ops.itemsOf(d)[0].vwriting, 'v');
-  d = ops.setPlace(d, 'h1', { writing: 'h' }, 'h');
-  assert.equal(ops.itemsOf(d)[0].writing, 'h');
-  assert.equal(ops.itemsOf(d)[0].vwriting, 'v');
-  d = ops.setPlace(d, 'h1', { y: undefined, scale: undefined, writing: 'h' }, 'v');
+  assert.equal(ops.itemsOf(d)[1].writing, 'v');
+  assert.equal(ops.itemsOf(d)[1].vwriting, 'v');
+  // 标题没设就跟着后面的文字；设了横排要写明
+  assert.deepEqual([ops.itemsOf(d)[0].writing, ops.itemsOf(d)[0].scale], ['v', undefined]);
+  const head = ops.setPlace(d, 'h1', { writing: 'h', y: 0.1 });
+  assert.deepEqual(head.blocks[0].h, { y: 0.1, writing: 'h' });
+  assert.deepEqual([ops.itemsOf(head)[0].writing, ops.itemsOf(head)[0].y, ops.itemsOf(head)[1].y], ['h', 0.1, 0.3]);
+  d = ops.setPlace(d, 'b01', { writing: 'h' }, 'h');
+  assert.equal(ops.itemsOf(d)[1].writing, 'h');
+  assert.equal(ops.itemsOf(d)[1].vwriting, 'v');
+  d = ops.setPlace(d, 'b01', { y: undefined, scale: undefined, writing: 'h' }, 'v');
   assert.deepEqual(d.blocks.slice(0, 3).map((b) => Object.keys(b).sort().join()), ['id,level,text,type', 'id,text,type', 'id,text,type']);
   d = ops.setPlace(doc(), 's01', { y: 0.9 });
   assert.equal(d.blocks[3].h.y, 0.9);
-  assert.equal(ops.itemsOf(d)[1].y, 0.9);
+  assert.equal(ops.itemsOf(d)[2].y, 0.9);
 });
 
 test('合并相邻两张单图成双图，保留第一块的 id 和位置；再拆开还原成两张单图', () => {
@@ -73,11 +80,12 @@ test('换版式：双图 → 图组 → 自由排布 → 网格，图不丢；�
 });
 
 test('插入：放在选中项后面（一列文字是最后一个块之后），没选中放最后；删一列就是删它所有的块', () => {
-  const a = ops.insertAfter(doc(), 'h1', { type: 'map', scope: 'near' });
+  const a = ops.insertAfter(doc(), 'b01', { type: 'map', scope: 'near' });
   assert.equal(a.doc.blocks[3].id, a.id);
   const b = ops.insertAfter(doc(), null, { type: 'image', src: 'n.jpg', alt: '', layout: 'wide' });
   assert.equal(b.doc.blocks.at(-1).id, b.id);
-  assert.equal(order(ops.removeItem(doc(), 'h1')), 's01 s02 h2 m01');
+  assert.equal(order(ops.removeItem(doc(), 'b01')), 'h1 s01 s02 h2 m01');
+  assert.equal(order(ops.removeItem(doc(), 'h1')), 'b01 b02 s01 s02 h2 m01');
 });
 
 /* ───────────── 地点 ───────────── */

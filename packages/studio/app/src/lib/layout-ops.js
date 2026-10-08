@@ -11,17 +11,19 @@ const place = (o) => ({ ...(o.y !== undefined ? { y: o.y } : {}), ...(o.scale !=
 /**
  * 排版视图里的项，按顺序。每项：{ key, type, y?, scale?, ... }
  *   文字：type 'text'，writing 'h' | 'v'，blocks（列里的块）
+ *   二级标题：type 'head'，blocks 只有它自己；lead 表示后面紧跟着一列文字（和它挨着排），没设的写法、对齐等跟着那列
  *   其余：就是那个块本身（加 key）
  */
 export function itemsOf(doc) {
   return columns(doc.blocks ?? []).map((c) => (c.kind === 'text'
-    ? { key: c.blocks[0].id, type: 'text', writing: c.writing, vwriting: c.vwriting, align: c.align, valign: c.valign, pos: c.pos, vpos: c.vpos, ...place(c), blocks: c.blocks }
+    ? { key: c.blocks[0].id, type: c.head ? 'head' : 'text', writing: c.writing, vwriting: c.vwriting, align: c.align, valign: c.valign, pos: c.pos, vpos: c.vpos, ...place(c), ...(c.lead ? { lead: true } : {}), blocks: c.blocks }
     : { ...c.block, key: c.block.id, ...place(c.block.h ?? {}) }));
 }
 
-const blocksOfItem = (it) => (it.type === 'text' ? it.blocks : [it]);
+export const isTextItem = (it) => it?.type === 'text' || it?.type === 'head';
+const blocksOfItem = (it) => (isTextItem(it) ? it.blocks : [it]);
 /** 项 → 原来的块（项上的 key / y / scale 是为视图算出来的，不写回块） */
-const flatten = (its, doc) => its.flatMap((it) => (it.type === 'text' ? it.blocks : [doc.blocks.find((b) => b.id === it.key)]));
+const flatten = (its, doc) => its.flatMap((it) => (isTextItem(it) ? it.blocks : [doc.blocks.find((b) => b.id === it.key)]));
 
 /** 把项挪到第 slot 个空位（按“去掉它之后”的序列计，0 是最前面） */
 export function moveItem(doc, key, slot) {
@@ -62,9 +64,11 @@ export function setPlace(doc, key, patch, axis = 'h') {
     const pos = {};
     for (const k of ['y', 'scale']) if (k in patch) pos[k] = patch[k];
     if (Object.keys(pos).length) put(o, 'h', pos);
-    if ('writing' in patch && it.type === 'text' && WRITING_BLOCKS.has(b.type)) put(o, axis, { writing: patch.writing === 'v' ? 'v' : undefined });
-    if ('align' in patch && it.type === 'text' && WRITING_BLOCKS.has(b.type)) put(o, axis, { align: patch.align });
-    if ('pos' in patch && it.type === 'text' && WRITING_BLOCKS.has(b.type)) put(o, axis, { pos: patch.pos });
+    const text = isTextItem(it) && WRITING_BLOCKS.has(b.type);
+    // 标题的写法存“横排”也要写明（不写就跟着后面的文字）
+    if ('writing' in patch && text) put(o, axis, { writing: patch.writing === 'v' ? 'v' : patch.writing === 'h' && it.type === 'head' ? 'h' : undefined });
+    if ('align' in patch && text) put(o, axis, { align: patch.align });
+    if ('pos' in patch && text) put(o, axis, { pos: patch.pos });
     return o;
   }) };
 }

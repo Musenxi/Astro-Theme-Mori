@@ -21,7 +21,7 @@ export default defineConfig([
   },
   {
     // 排版视图照着主题的读法版式排：em、字距、行距都是主题里的原值
-    files: ['app/src/editor/layout-view.tsx', 'app/src/editor/layout-vertical.tsx'],
+    files: ['app/src/editor/layout-view.tsx', 'app/src/editor/layout-vertical.tsx', 'app/src/editor/layout-inspector.tsx'],
     rules: { 'shadcn/no-arbitrary-values': 'off' },
   },
 ]);
