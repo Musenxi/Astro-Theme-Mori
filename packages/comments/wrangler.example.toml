@@ -1,6 +1,6 @@
 # Cloudflare Workers + D1 部署评论服务
 #   1) wrangler d1 create mori-comments      （把输出的 database_id 填到下面）
-#   2) wrangler d1 execute mori-comments --file=schema.sql --remote
+#   2) wrangler d1 execute mori-comments --file=schema.sql --remote   （升级后再执行一次，补上新表；可以重复执行）
 #   3) wrangler secret put ADMIN_TOKEN       （管理令牌，Studio 里用它审核评论）
 #      wrangler secret put TURNSTILE_SECRET  （可选：人机验证的密钥）
 #   4) wrangler deploy
@@ -12,6 +12,15 @@ compatibility_date = "2025-09-01"
 binding = "DB"
 database_name = "mori-comments"
 database_id = "填 wrangler d1 create 输出的 id"
+
+# 在线访客：WebSocket 连接交给一个 Durable Object 管（免费套餐可用，要用 SQLite 版的类）
+[[durable_objects.bindings]]
+name = "ONLINE"
+class_name = "OnlinePresence"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["OnlinePresence"]
 
 [vars]
 ALLOW_ORIGIN = "https://你的站点"   # 允许调用评论接口的站点，多个用逗号分隔

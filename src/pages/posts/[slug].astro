@@ -33,7 +33,7 @@ const { chars, minutes } = readingOf(p);
 const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | 'm';
 ---
 
-<Base title={d.title} description={d.excerpt} type="article">
+<Base title={d.title} description={d.excerpt} type="article" entry={`posts/${entry.id}`}>
   {flow ? (
     <main data-page="travel">
       <TravelArticle entry={entry} flow={flow} />
@@ -43,7 +43,7 @@ const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | '
     </main>
   ) : (
     <main data-page="post">
-      <PostHeader title={d.title} sub={d.subtitle || undefined} cover={d.cover} coverAlt={d.coverAlt} meta={[{ label: entry.category.zh, href: `/category/${entry.category.id}/` }, numDate(d.date), ...t('post.meta', { chars: chars.toLocaleString('en-US'), min: minutes }).split(' · ')]} />
+      <PostHeader title={d.title} sub={d.subtitle || undefined} cover={d.cover} coverAlt={d.coverAlt} meta={[{ label: entry.category.zh, href: `/category/${entry.category.id}/` }, numDate(d.date), ...t('post.meta', { chars: chars.toLocaleString('en-US'), min: minutes }).split(' · ')]} views />
       <div class="relative">
         <PostToc blocks={p.blocks} />
         <PostBody blocks={p.blocks} notes={p.notes} />

@@ -22,5 +22,19 @@ CREATE INDEX IF NOT EXISTS idx_comments_entry ON comments (entry, status, create
 CREATE INDEX IF NOT EXISTS idx_comments_ip ON comments (ip_hash, created_at);
 CREATE INDEX IF NOT EXISTS idx_comments_status ON comments (status, created_at);
 
+-- 阅读量：每篇一行，累计次数。entry 和评论的一样：posts/<id>、pages/<id>
+CREATE TABLE IF NOT EXISTS views (
+  entry  TEXT    PRIMARY KEY,
+  count  INTEGER NOT NULL DEFAULT 0
+);
+-- 最近一次被计数的阅读：同一位读者短时间内重复打开同一篇只算一次；过期的行随时删掉
+CREATE TABLE IF NOT EXISTS view_recent (
+  visitor TEXT    NOT NULL,                  -- 读者标识的加盐哈希（浏览器里随机生成的 id；没有就用 IP + UA）
+  entry   TEXT    NOT NULL,
+  at      INTEGER NOT NULL,
+  PRIMARY KEY (visitor, entry)
+);
+CREATE INDEX IF NOT EXISTS idx_view_recent_at ON view_recent (at);
+
 -- 游记并入文章之前评论记的是 travels/<id>，改成 posts/<id>（可重复执行）
 UPDATE comments SET entry = 'posts/' || substr(entry, 9) WHERE entry LIKE 'travels/%';

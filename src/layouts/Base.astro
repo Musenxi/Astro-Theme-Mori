@@ -21,8 +21,12 @@ interface Props {
   direction?: 'h' | 'v';
   /** 文章页的 og:type 等 */
   type?: 'website' | 'article';
+  /** 文章、页面的 posts/<id>、pages/<id>：用来记阅读量 */
+  entry?: string;
 }
-const { title, description = config.description, direction, type = 'website' } = Astro.props;
+const { title, description = config.description, direction, type = 'website', entry } = Astro.props;
+// 阅读量、在线访客记在自建评论服务里
+const stats = config.comments?.provider === 'mori' ? config.comments.endpoint : undefined;
 const fullTitle = title ? `${title} · ${config.title}` : config.title;
 const canonical = config.site ? new URL(Astro.url.pathname, config.site).href : undefined;
 ---
@@ -85,7 +89,7 @@ const canonical = config.site ? new URL(Astro.url.pathname, config.site).href : 
     <script type="application/json" id="mori-i18n" is:inline set:html={clientJson} />
     <ClientRouter />
   </head>
-  <body>
+  <body data-stats={stats} data-entry={stats && entry}>
     <Header />
     <slot />
     <Footer />
@@ -95,6 +99,7 @@ const canonical = config.site ? new URL(Astro.url.pathname, config.site).href : 
       import '../scripts/chrome.ts';
       import '../scripts/lightbox.ts';
       import '../scripts/search.ts';
+      import '../scripts/stats.ts';
     </script>
   </body>
 </html>

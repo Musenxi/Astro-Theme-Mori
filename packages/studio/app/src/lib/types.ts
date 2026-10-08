@@ -58,7 +58,7 @@ export interface Friend { id?: string; name: string; url: string; desc?: string;
 export interface Stats {
   pages: number; categories: number; words: number;
   comments: { total: number; unread: number } | null;
-  views: number | null; likes: number | null;
+  views: number | null; online: number | null; likes: number | null;
 }
 
 /** 内容 JSON（文章、游记、页面）：编辑器里当作松散的对象处理，校验交给服务端 */

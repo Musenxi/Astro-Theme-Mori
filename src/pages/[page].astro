@@ -20,7 +20,7 @@ const { page } = Astro.props as { page: PageEntry };
 const d = page.data;
 ---
 
-<Base title={d.title} description={d.excerpt || undefined}>
+<Base title={d.title} description={d.excerpt || undefined} entry={`pages/${page.id}`}>
   <main data-page="page">
     <PostHeader title={d.title} sub={d.subtitle || undefined} center />
     {d.blocks.length > 0 && <PostBody blocks={d.blocks} notes={d.notes} />}

@@ -25,6 +25,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'js.cmt.jump': 'Back to this passage in the text', 'js.cmt.name': 'Name *', 'js.cmt.email': 'Email *', 'js.cmt.url': 'Website', 'js.cmt.write': 'Write your thoughts…', 'js.cmt.replyTo': 'Reply to {name}', 'js.cmt.send': 'Post', 'js.cmt.sendReply': 'Post reply',
   'js.cmt.sending': 'Sending…', 'js.cmt.pending': 'Received. It will appear here once approved.', 'js.cmt.loadFail': 'Could not load comments ({status})', 'js.cmt.postFail': 'Could not post ({status})', 'js.cmt.tsFail': 'Could not load the human-verification script',
   'js.cmt.scriptFail': 'Failed to load script: {src}', 'js.cmt.unknown': 'Unknown comment provider: {provider}',
+  'js.views': '{n} views', 'js.views.one': '1 view',
   'js.anno.btn': 'Quote', 'js.anno.email': 'Email *', 'js.anno.write': 'Write your thoughts…', 'js.anno.cancel': 'Cancel', 'js.anno.posted': 'Posted — see the comments at the end', 'js.anno.pending': 'Received — it will appear in the comments once approved',
   'js.search.count': '{n} found', 'js.search.none': 'Nothing found. Try another word?',
   'js.travel.mode.v': 'Vertical', 'js.travel.mode.h': 'Horizontal', 'js.travel.mode.m': 'Mixed', 'js.travel.tip': 'Reading: {mode}',

@@ -43,6 +43,19 @@ export interface Store {
   countRecentByIp(ipHash: string, since: number): Promise<number>;
   /** 这个人以前有没有被通过的评论（决定要不要先审后发） */
   hasApprovedBefore(emailHash: string | null, name: string, ipHash: string | null): Promise<boolean>;
+
+  /* 阅读量（在线访客不进数据库，见 presence.ts） */
+  /** 这位读者上一次被计数地读这一篇是什么时候；没有就是 null */
+  lastView(visitor: string, entry: string): Promise<number | null>;
+  /** 记一次阅读：这一篇的次数加一，记下时间 */
+  addView(visitor: string, entry: string, at: number): Promise<void>;
+  /** 删掉 before 之前的“最近阅读”记录 */
+  pruneViews(before: number): Promise<void>;
+  viewsOf(entry: string): Promise<number>;
+  /** 全站阅读量 */
+  totalViews(): Promise<number>;
+  /** 每篇的阅读量，多的在前 */
+  listViews(): Promise<Array<{ entry: string; views: number }>>;
 }
 
 /** SQL 的公共部分：SQLite 和 D1 都是 `?` 占位符 */
@@ -59,6 +72,14 @@ export const SQL = {
   countRecentByIp: `SELECT COUNT(*) AS n FROM comments WHERE ip_hash = ? AND created_at > ?`,
   approvedByEmail: `SELECT 1 AS x FROM comments WHERE email_hash = ? AND status = 'approved' LIMIT 1`,
   approvedByNameIp: `SELECT 1 AS x FROM comments WHERE name = ? AND ip_hash = ? AND status = 'approved' LIMIT 1`,
+
+  lastView: `SELECT at FROM view_recent WHERE visitor = ? AND entry = ?`,
+  markView: `INSERT INTO view_recent (visitor, entry, at) VALUES (?, ?, ?) ON CONFLICT (visitor, entry) DO UPDATE SET at = excluded.at`,
+  addView: `INSERT INTO views (entry, count) VALUES (?, 1) ON CONFLICT (entry) DO UPDATE SET count = count + 1`,
+  pruneViews: `DELETE FROM view_recent WHERE at < ?`,
+  viewsOf: `SELECT count FROM views WHERE entry = ?`,
+  listViews: `SELECT entry, count AS views FROM views ORDER BY count DESC, entry ASC`,
+  totalViews: `SELECT COALESCE(SUM(count), 0) AS n FROM views`,
 };
 
 /** 数据库列 → 驼峰 */

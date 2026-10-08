@@ -204,13 +204,13 @@ export async function startStudio({ root, port = 4400, dev = false }) {
         });
       }
 
-      /* ── 仪表盘数字：本地能算的现算；阅读量和点赞要评论服务记录，还没有，给 null ── */
+      /* ── 仪表盘数字：本地能算的现算；阅读量、在线访客来自评论服务（连不上给 null）；点赞还没有 ── */
       if (req.method === 'GET' && p === '/api/stats') {
         const entries = listEntries(root);
-        const cn = await commentNumbers();
+        const [cn, tr] = await Promise.all([commentNumbers(), commentsEndpoint() && adminToken() ? admin('GET', '/traffic').catch(() => null) : null]);
         return send(res, 200, {
           pages: countPages(root), categories: (config.categories ?? []).length, words: entries.reduce((a, e) => a + (e.words ?? 0), 0),
-          comments: cn ? { total: cn.total, unread: cn.unread } : null, views: null, likes: null,
+          comments: cn ? { total: cn.total, unread: cn.unread } : null, views: tr?.views ?? null, online: tr?.online ?? null, likes: null,
         });
       }
 

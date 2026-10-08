@@ -2,7 +2,7 @@
 FROM node:24-alpine
 WORKDIR /app
 COPY packages/comments/package.json ./package.json
-RUN npm install --omit=dev --no-audit --no-fund hono @hono/node-server
+RUN npm install --omit=dev --no-audit --no-fund hono @hono/node-server ws
 COPY packages/comments/src ./src
 COPY packages/comments/bin ./bin
 COPY packages/comments/schema.sql ./schema.sql

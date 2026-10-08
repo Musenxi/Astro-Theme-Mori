@@ -1,7 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router';
 import { ArrowUpRight, RefreshCw } from 'lucide-react';
 import { api, type CommentRow } from '@/lib/api';
+import type { Stats } from '@/lib/types';
 import { cn } from '@/lib/cn';
 import { wan } from '@/lib/format';
 import { useProject } from '@/lib/hooks';
@@ -17,6 +19,8 @@ interface Cell { label: string; value: string | number | null | undefined; to?: 
 export default function Dashboard() {
   const { data: project } = useProject();
   const { data: s, isFetching, refetch, error } = useQuery({ queryKey: ['stats'], queryFn: api.stats, staleTime: 10_000 });
+  useLive(project?.comments.provider === 'mori' ? project.comments.endpoint : '');
+  const online = s?.online;
   const c = s?.comments;
   const offline = s && !c ? '评论服务未连接' : undefined;
   const cells: Cell[] = [
@@ -24,7 +28,7 @@ export default function Dashboard() {
     { label: '分类', value: s?.categories, to: '/taxonomy' },
     { label: '全部评论', value: s ? (c ? c.total : null) : undefined, to: '/comments', hint: offline },
     { label: '未读评论', value: s ? (c ? c.unread : null) : undefined, to: '/comments', hint: offline, alert: !!c?.unread },
-    { label: '总阅读量', value: s?.views, hint: s ? '暂未统计' : undefined },
+    { label: '总阅读量', value: s?.views, hint: offline },
     { label: '文章点赞', value: s?.likes, hint: s ? '暂未统计' : undefined },
   ];
   const entries = project?.entries ?? [];
@@ -43,12 +47,24 @@ export default function Dashboard() {
         {error ? <p className="text-destructive">{(error as Error).message}</p> : (
           <>
             {/* 主角：全站字数，只靠字号说话 */}
-            <div className="px-2 pb-8 pt-4">
-              <div className="text-13 text-muted-foreground">全站字数</div>
-              <div className="mt-1 text-64 font-semibold leading-none tracking-tighter tnum">{s ? wan(s.words) : <span className="text-muted-foreground/40">·</span>}</div>
-              <p className="mt-4 text-13 text-muted-foreground">
-                共 {entries.length} 篇文章{drafts > 0 && <>，其中 {drafts} 篇还是草稿</>}
-              </p>
+            <div className="flex items-start gap-6 px-2 pb-8 pt-4">
+              <div className="min-w-0 flex-1">
+                <div className="text-13 text-muted-foreground">全站字数</div>
+                <div className="mt-1 text-64 font-semibold leading-none tracking-tighter tnum">{s ? wan(s.words) : <span className="text-muted-foreground/40">·</span>}</div>
+                <p className="mt-4 text-13 text-muted-foreground">
+                  共 {entries.length} 篇文章{drafts > 0 && <>，其中 {drafts} 篇还是草稿</>}
+                </p>
+              </div>
+              {/* 在线访客：评论服务连上了才显示 */}
+              {online != null && (
+                <div className="shrink-0 pr-3 text-right">
+                  <div className="flex items-center justify-end gap-1.5 text-13 text-muted-foreground">
+                    {online > 0 && <i aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                    在线访客
+                  </div>
+                  <div className="mt-1 text-32 font-semibold leading-none tracking-tight tnum">{online}</div>
+                </div>
+              )}
             </div>
 
             {/* 其余统计：一整块浅色面，数字之间只留白 */}
@@ -111,6 +127,29 @@ export default function Dashboard() {
       </Body>
     </>
   );
+}
+
+/** 实时数字：连着评论服务的 /online/ws（只看，不算在线）。在线人数、全站阅读量一变就推过来，直接改进仪表盘的数据里；断了自己重连 */
+function useLive(endpoint: string) {
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (!endpoint) return;
+    let ws: WebSocket | null = null, timer = 0, ping = 0, retry = 0, stop = false;
+    const patch = (d: Partial<Stats>) => qc.setQueryData<Stats>(['stats'], (s) => (s ? { ...s, ...d } : s));
+    const open = () => {
+      try { ws = new WebSocket(`${endpoint.replace(/^http/, 'ws')}/online/ws?watch=1`); } catch { return; }
+      ws.onopen = () => { retry = 0; ping = window.setInterval(() => ws?.readyState === 1 && ws.send('ping'), 45_000); };
+      ws.onmessage = (e) => {
+        let d: any;
+        try { d = JSON.parse(e.data); } catch { return; } // pong
+        if (typeof d.online === 'number') patch({ online: d.online });
+        if (typeof d.views === 'number') patch({ views: d.views });
+      };
+      ws.onclose = () => { clearInterval(ping); if (!stop) timer = window.setTimeout(open, Math.min(60_000, 2000 * 2 ** retry++)); };
+    };
+    open();
+    return () => { stop = true; clearTimeout(timer); clearInterval(ping); ws?.close(); };
+  }, [endpoint, qc]);
 }
 
 function Recent({ title, more, children }: { title: string; more?: { to: string; label: string }; children: React.ReactNode }) {

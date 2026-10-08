@@ -29,5 +29,11 @@ export function sqliteStore(path: string): Store {
       if (emailHash) return !!one(SQL.approvedByEmail, emailHash);
       return ipHash ? !!one(SQL.approvedByNameIp, name, ipHash) : false;
     },
+    async lastView(visitor, entry) { return one(SQL.lastView, visitor, entry)?.at ?? null; },
+    async addView(visitor, entry, at) { db.prepare(SQL.markView).run(visitor, entry, at); db.prepare(SQL.addView).run(entry); },
+    async pruneViews(before) { db.prepare(SQL.pruneViews).run(before); },
+    async viewsOf(entry) { return one(SQL.viewsOf, entry)?.count ?? 0; },
+    async totalViews() { return one(SQL.totalViews).n; },
+    async listViews() { return all(SQL.listViews).map((r) => ({ entry: r.entry, views: r.views })); },
   };
 }

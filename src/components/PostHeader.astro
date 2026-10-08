@@ -12,8 +12,10 @@ interface Props {
   coverAlt?: string;
   /** 标题、副题、附属信息居中（独立页面用） */
   center?: boolean;
+  /** 附属信息末尾留出阅读量的位置（stats.ts 取到数字后填上；取不到就一直不显示） */
+  views?: boolean;
 }
-const { title, meta = [], sub, cover, coverAlt = '', center = false } = Astro.props;
+const { title, meta = [], sub, cover, coverAlt = '', center = false, views = false } = Astro.props;
 ---
 
 <header class="wrap g pt-[clamp(48px,9vw,120px)] pb-[clamp(40px,5.5vw,72px)] *:col-[3/11]">
@@ -28,6 +30,7 @@ const { title, meta = [], sub, cover, coverAlt = '', center = false } = Astro.pr
             {typeof m === 'string' ? <span>{m}</span> : <a class="transition-[color] duration-300 hover:text-primary" href={m.href}>{m.label}</a>}
           </>
         ))}
+        {views && <><span data-views hidden aria-hidden="true">·</span><span data-views hidden /></>}
       </p>
     )
   }

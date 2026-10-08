@@ -4,8 +4,15 @@
  *
  *   GET    /comments?entry=posts/xxx         某篇文章下已通过的评论（含划词引用评论）
  *   POST   /comments                         提交评论 / 引用评论 / 回复
+ *   POST   /views     {entry, visitor}       记一次阅读，返回这一篇的阅读量
+ *   GET    /views?entry=posts/xxx            某篇的阅读量
+ *   GET    /online                           在线人数
+ *   GET    /online/ws?visitor=…              WebSocket：连着就算在线，人数一变就推 {"online": n}；
+ *                                            ?watch=1 只看、不算在线（Studio 仪表盘），另外每记一次阅读推 {"views": 全站阅读量}
+ *                                            （升级请求不经过这里：Node 见 node.ts，Workers 见 worker.ts）
  *   GET    /admin/comments?status=&entry=    管理：列表        ┐ 只接受管理令牌
  *   GET    /admin/stats                      管理：各状态数量  │ Authorization: Bearer <token>
+ *   GET    /admin/traffic                    管理：总阅读量、每篇阅读量、在线人数 │
  *   PATCH  /admin/comments/:id  {status}     管理：通过 / 隐藏 │
  *   DELETE /admin/comments/:id               管理：删除        ┘
  */
@@ -26,6 +33,10 @@ export interface AppOptions {
   salt?: string;
   /** 新评论要不要先审：returning（默认）＝第一次留言的人先审后发，以前通过过的直接发；all 全部直接发；none 全部先审 */
   autoApprove?: 'returning' | 'all' | 'none';
+  /** 在线人数从哪里来（Node 是内存里的 Presence，Workers 是 Durable Object）；不给就是 null */
+  online?: () => Promise<number | null>;
+  /** 记了一次阅读之后调用，参数是全站阅读量（推给只看的连接） */
+  onView?: (total: number) => void | Promise<void>;
   now?: () => number;
   fetchImpl?: typeof fetch;
 }
@@ -33,6 +44,22 @@ export interface AppOptions {
 export const LIMITS = { name: 40, email: 120, url: 200, body: 4000, quote: 600, context: 200, perMinute: 3, perDay: 20 };
 const ENTRY = /^(posts|pages)\/[A-Za-z0-9][A-Za-z0-9_-]*$/;
 const BLOCK = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
+/** 浏览器里随机生成、存在 localStorage 里的读者 id */
+const VISITOR = /^[A-Za-z0-9_-]{16,64}$/;
+/** 同一位读者多久之内重复打开同一篇只算一次阅读 */
+export const VIEW_WINDOW = 30 * 60_000;
+const BOT = /bot|spider|crawl|slurp|preview|headless|lighthouse|monitor|curl|wget|python|java\/|go-http/i;
+export const isBot = (ua: string | null | undefined) => BOT.test(ua ?? '');
+
+/** 读者标识只存加盐哈希；页面没带 id（禁用了 localStorage）就用 IP + UA 凑一个 */
+export const visitorKey = (salt: string, id: unknown, ip: string, ua: string) =>
+  sha256(`${salt}|visitor|${typeof id === 'string' && VISITOR.test(id) ? id : `${ip}|${ua}`}`);
+
+/** 来源在不在允许的站点里（allowOrigin 同 AppOptions） */
+export const originAllowed = (allowOrigin: string | undefined, origin: string | null | undefined) => {
+  const list = (allowOrigin ?? '*').split(',').map((s) => s.trim()).filter(Boolean);
+  return list.includes('*') || (!!origin && list.includes(origin));
+};
 
 /** 对外的字段：不含加盐的邮箱哈希、IP 哈希、状态之外的内部信息。avatar 是头像哈希（Gravatar 那种），url 是读者留的网址 */
 export const publicOf = (c: CommentRow) => ({
@@ -73,9 +100,9 @@ export function createApp(opts: AppOptions) {
   const doFetch = opts.fetchImpl ?? fetch;
   const app = new Hono();
 
-  const origins = (opts.allowOrigin ?? '*').split(',').map((s) => s.trim()).filter(Boolean);
+  const anyOrigin = originAllowed(opts.allowOrigin, null); // 只有设成 * 时，没有来源也算允许
   app.use('*', cors({
-    origin: (o) => (origins.includes('*') ? '*' : origins.includes(o) ? o : ''),
+    origin: (o) => (anyOrigin ? '*' : originAllowed(opts.allowOrigin, o) ? o : ''),
     allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
     maxAge: 86400,
@@ -152,6 +179,36 @@ export function createApp(opts: AppOptions) {
     return c.json({ status, comment: status === 'approved' ? publicOf(saved) : undefined }, 201);
   });
 
+  /* ───────────── 阅读量、在线访客 ─────────────
+     页面用不带 Content-Type 的 fetch 发（浏览器当作 text/plain，跨域不用预检），所以这里自己解析正文 */
+
+  const bodyOf = async (c: any) => { try { return JSON.parse(await c.req.text()); } catch { return null; } };
+  const online = async () => (opts.online ? opts.online().catch(() => null) : null);
+
+  app.post('/views', async (c) => {
+    const b = await bodyOf(c);
+    const entry = typeof b?.entry === 'string' ? b.entry : '';
+    if (!ENTRY.test(entry)) return c.json({ error: 'entry 不合法' }, 400);
+    if (!isBot(c.req.header('user-agent'))) {
+      const visitor = await visitorKey(salt, b.visitor, ipOf(c), c.req.header('user-agent') ?? ''), t = now();
+      const last = await store.lastView(visitor, entry);
+      if (last === null || last <= t - VIEW_WINDOW) {
+        await store.addView(visitor, entry, t);
+        await store.pruneViews(t - VIEW_WINDOW);
+        if (opts.onView) await Promise.resolve(opts.onView(await store.totalViews())).catch(() => {});
+      }
+    }
+    return c.json({ views: await store.viewsOf(entry) });
+  });
+
+  app.get('/views', async (c) => {
+    const entry = c.req.query('entry') ?? '';
+    if (!ENTRY.test(entry)) return c.json({ error: 'entry 不合法' }, 400);
+    return c.json({ views: await store.viewsOf(entry) });
+  });
+
+  app.get('/online', async (c) => c.json({ online: await online() }));
+
   /* ───────────── 管理接口 ───────────── */
 
   const admin = new Hono();
@@ -170,6 +227,10 @@ export function createApp(opts: AppOptions) {
     return c.json({ comments: (await store.listAdmin(status, limit, entry && ENTRY.test(entry) ? entry : undefined)).map((r) => ({ ...publicOf(r), entry: r.entry, status: r.status })) });
   });
   admin.get('/stats', async (c) => c.json(await store.countByStatus()));
+  admin.get('/traffic', async (c) => {
+    const entries = await store.listViews();
+    return c.json({ views: entries.reduce((a, e) => a + e.views, 0), online: await online(), entries });
+  });
   admin.patch('/comments/:id', async (c) => {
     const id = Number(c.req.param('id'));
     const { status } = await c.req.json().catch(() => ({}));
@@ -187,8 +248,10 @@ export function createApp(opts: AppOptions) {
 
 /** 客户端 IP：Cloudflare 和常见反向代理的头，其次是 Node 的连接地址 */
 function ipOf(c: any): string {
-  return c.req.header('cf-connecting-ip') ?? c.req.header('x-forwarded-for')?.split(',')[0].trim() ?? c.env?.incoming?.socket?.remoteAddress ?? '';
+  return ipFrom((k) => c.req.header(k), c.env?.incoming?.socket?.remoteAddress);
 }
+export const ipFrom = (header: (k: string) => string | null | undefined, remote?: string) =>
+  header('cf-connecting-ip') ?? header('x-forwarded-for')?.split(',')[0].trim() ?? remote ?? '';
 
 async function verifyTurnstile(doFetch: typeof fetch, secret: string, token: string, ip: string) {
   if (!token) return false;
