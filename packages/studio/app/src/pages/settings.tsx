@@ -127,7 +127,7 @@ export default function Settings() {
           </div>
           <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
             <Swatch bg={light(accent)} paper="#f3f0e8" ink="#1d1b18" label="亮色" />
-            <Swatch bg={override && accentDark ? accentDark : dark(accent)} paper="#151412" ink="#e8e3d9" label="暗色" />
+            <Swatch bg={override && accentDark ? accentDark : dark(accent)} paper="#151412" ink="#ececec" label="暗色" />
           </div>
           <div className="mt-4 flex items-center gap-3">
             <SwitchField checked={override} label="手动指定暗色版本" onCheckedChange={(v) => { setOverride(v); if (v && !accentDark) setAccentDark('#7f9bff'); }} />

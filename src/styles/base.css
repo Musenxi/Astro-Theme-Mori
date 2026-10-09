@@ -32,9 +32,9 @@
   @variant dark {
     --background: #000000;
     --muted: #151412;
-    --foreground: #e8e3d9;
-    --soft-foreground: #b2ab9f;
-    --muted-foreground: #857f74;
+    --foreground: #ececec;
+    --soft-foreground: #ababab;
+    --muted-foreground: #808080;
     --border: #34302b;
     --primary: var(--accent-dark, oklch(from var(--accent-base) max(l, 0.7) min(c, 0.18) h));
     --land: #2a2723;
