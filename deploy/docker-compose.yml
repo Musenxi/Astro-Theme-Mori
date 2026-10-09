@@ -21,7 +21,7 @@ services:
       PORT: "8787"
       DB_PATH: /data/comments.db
       ADMIN_TOKEN: ${ADMIN_TOKEN:?在 .env 里填 ADMIN_TOKEN（管理令牌，用长一点的随机字符串）}
-      SALT: ${SALT:?在 .env 里填 SALT（随机字符串，给邮箱和 IP 做哈希）}
+      SALT: ${SALT:?在 .env 里填 SALT（随机字符串，给读者标识做哈希）}
       ALLOW_ORIGIN: https://${SITE_DOMAIN}
       TURNSTILE_SECRET: ${TURNSTILE_SECRET:-}
       AUTO_APPROVE: ${AUTO_APPROVE:-returning}
