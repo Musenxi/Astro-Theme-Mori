@@ -5,6 +5,7 @@
 import { t } from './i18n.ts';
 import { mountEmbed } from './cmt-embed.ts';
 import { avatarUrl } from '../lib/avatar.mjs';
+import { parseComment } from '../lib/comment-md.mjs';
 import { moriConfig, listComments, sendComment, mountTurnstile, remember, numDate, type MoriComment, type MoriCommentsConfig } from './cmt-api.ts';
 
 type Child = Node | string | null | false | undefined;
@@ -16,6 +17,27 @@ function h<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, 
   }
   for (const c of kids) if (c) e.append(c);
   return e;
+}
+
+/** 评论正文（Markdown 节点，见 comment-md.mjs）→ DOM。全部用 createElement 和文字节点，不经过 innerHTML */
+function md(nodes: any[]): Node[] {
+  const items = (list: any[][]) => list.map((it) => h('li', {}, ...md(it)));
+  return nodes.map((n): Node => {
+    switch (n.type) {
+      case 'text': return document.createTextNode(n.text);
+      case 'br': return h('br');
+      case 'code': return h('code', {}, n.text);
+      case 'pre': return h('pre', {}, h('code', {}, n.text));
+      case 'a': return h('a', { href: n.href, rel: 'nofollow ugc noopener noreferrer', target: '_blank' }, ...md(n.children));
+      case 'ul': return h('ul', {}, ...items(n.items));
+      case 'ol': return h('ol', { start: n.start === 1 ? undefined : String(n.start) }, ...items(n.items));
+      case 'quote': return h('blockquote', {}, ...md(n.children));
+      case 'b': return h('strong', {}, ...md(n.children));
+      case 'i': return h('em', {}, ...md(n.children));
+      case 'del': return h('del', {}, ...md(n.children));
+      default: return h('p', {}, ...md(n.children));
+    }
+  });
 }
 
 let offAdded: (() => void) | null = null;
@@ -77,7 +99,7 @@ function init() {
         h('div', { class: 'cmt-meta' }, byline(c), h('time', { class: 'cmt-date' }, numDate(c.createdAt)),
           readonly ? null : h('button', { class: 'cmt-reply', type: 'button', onclick: (ev: Event) => toggleReply(li, c, ev.currentTarget as HTMLElement) }, t('js.cmt.reply'))),
         c.block && c.quote ? quote(c) : null,
-        h('div', { class: 'cmt-text' }, c.body),
+        h('div', { class: 'cmt-text' }, ...md(parseComment(c.body))),
         kids.length ? h('ol', { class: 'cmt-replies' }, ...kids.map((k) => item(k, []))) : null));
     return li;
   }

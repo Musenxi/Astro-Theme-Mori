@@ -16,6 +16,7 @@
     "./markdown": "./src/lib/markdown.mjs",
     "./flow": "./src/lib/flow.mjs",
     "./avatar": "./src/lib/avatar.mjs",
+    "./comment-md": "./src/lib/comment-md.mjs",
     "./lucide": "./src/lib/lucide.ts"
   },
   "bin": {

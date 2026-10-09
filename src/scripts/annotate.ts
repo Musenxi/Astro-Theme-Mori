@@ -10,6 +10,7 @@ import { t } from './i18n.ts';
 import { chevronHtml } from '../lib/chevron.ts';
 import { locate, contextOf, type Anchor } from '../lib/anchor-text.ts';
 import { moriConfig, listComments, sendComment, mountTurnstile, remember, type MoriComment } from './cmt-api.ts';
+import { commentText } from '../lib/comment-md.mjs';
 
 /** 能划词的块：普通文章的段落 / 标题 / 引用，游记的文字块里的段落 */
 const SELECTABLE = '.prose p[data-b], .prose h2[data-b], .prose h3[data-b], .prose blockquote[data-b], .b-text p[data-b], .b-text h2[data-b], .b-text h3[data-b], .b-text blockquote[data-b]';
@@ -182,8 +183,8 @@ function init() {
     const el = (tag: string, cls: string, text: string) => { const n = document.createElement(tag); n.className = cls; n.textContent = text; return n; };
     seen.replaceChildren(...list.map((c) => {
       const d = el('div', 'anno-seen-i', '');
-      d.append(el('b', '', c.name), el('p', 'anno-seen-t', c.body));
-      for (const r of known.filter((x) => x.parentId === c.id)) { const p = el('p', 'anno-seen-r', ''); p.append(el('b', '', r.name), document.createTextNode(`  ${r.body}`)); d.append(p); }
+      d.append(el('b', '', c.name), el('p', 'anno-seen-t', commentText(c.body)));
+      for (const r of known.filter((x) => x.parentId === c.id)) { const p = el('p', 'anno-seen-r', ''); p.append(el('b', '', r.name), document.createTextNode(`  ${commentText(r.body)}`)); d.append(p); }
       return d;
     }));
   }
