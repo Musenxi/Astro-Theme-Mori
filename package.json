@@ -23,10 +23,9 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "dev:all": "pnpm --parallel --include-workspace-root --filter astro-mori --filter mori-comments --filter mori-studio run dev",
+    "dev:all": "pnpm --parallel --include-workspace-root --filter astro-mori --filter mori-comments run dev",
     "build": "astro build",
     "preview": "astro preview",
-    "studio": "node packages/studio/bin/mori-studio.mjs",
     "comments": "pnpm --filter mori-comments dev",
     "check": "astro sync && tsc -p . && pnpm -r --if-present check",
     "test": "node --test test/*.test.ts && pnpm -r --if-present test",

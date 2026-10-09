@@ -18,7 +18,7 @@ pnpm dev        # http://localhost:4321
 ```
 
 3. 改 `mori.config.ts`（刊名、分类、主题色……只写要改的项，其余用默认值，每一项的说明在 `src/config.ts`）。
-4. 在 `src/content/` 里写文章，图片放 `src/assets/`。可以直接编辑 JSON（格式见 [写作指南](docs/写作指南.md)），也可以用 Studio：`pnpm studio`。
+4. 在 `src/content/` 里写文章，图片放 `src/assets/`。可以直接编辑 JSON（格式见 [写作指南](docs/写作指南.md)），也可以用 [Studio](#studio)。
 5. 以后主题有更新：`pnpm theme:update`（从模板仓库拉更新，合并到当前分支）。
 
 ## 目录
@@ -29,7 +29,6 @@ src/assets/        内容里用到的图片
 mori.config.ts     站点配置
 src/               主题：页面（pages/，普通的 Astro 文件路由）、组件、样式、脚本、内容格式（schema/）
 public/            原样复制到站点根目录的文件
-packages/studio    Studio：本地写作与排版编辑器（读写 src/content 里的文件）
 packages/comments  自建评论服务（Hono；Node + SQLite / Cloudflare Workers + D1）
 deploy/            VPS 的 Docker Compose + Caddy 模板、GitHub Actions 模板
 design/style-probe 风格试样（所有视觉决定的实物参照）
@@ -40,14 +39,13 @@ docs/              需求草案、写作指南
 
 ```bash
 pnpm dev           # 站点 http://localhost:4321
-pnpm dev:all       # 站点 + 本地评论服务 http://127.0.0.1:8787 + Studio（开发模式）http://127.0.0.1:4400
+pnpm dev:all       # 站点 + 本地评论服务 http://127.0.0.1:8787
 pnpm build         # 静态构建到 dist/
 pnpm preview       # 预览构建结果
-pnpm studio        # Studio（正常模式），http://127.0.0.1:4400
 pnpm comments      # 只跑评论服务（开发用管理令牌是 dev-token，数据库在 packages/comments/.data/）
 pnpm check         # TypeScript 检查
 pnpm lint          # Tailwind 类名检查（@shadcn/lint：不存在的类名、原始色值、行内样式）
-pnpm test          # 测试（主题、Studio、评论服务）
+pnpm test          # 测试（主题、评论服务）
 pnpm theme:update  # 从模板仓库合并主题更新
 ```
 
@@ -76,25 +74,13 @@ export default defineMoriConfig({
 
 ## Studio
 
+写作与排版编辑器是单独的项目 [Mori-Studio](https://github.com/Musenxi/Mori-Studio)：
+
 ```bash
-pnpm studio          # 正常模式；默认 http://127.0.0.1:4400
-pnpm dev:all         # 开发模式（和站点、评论服务一起启动），等于 mori-studio --dev
+node <Mori-Studio 目录>/bin/mori-studio.mjs --root .
 ```
 
-开发模式和正常模式的区别：开发模式下，构建（或构建并发布）完成后会自动重启预览用的 `astro dev`，发布目标里多一个“本地文件夹”，用来在本机试发布流程；正常模式没有这两项。
-
-界面是 React + Tailwind + Radix（源码在 `packages/studio/app/`），第一次运行会自动构建一次（几秒钟）；改界面时用 `pnpm --filter mori-studio dev:ui`（热更新，接口转发给本机的 Studio）。
-
-- 读写项目里的内容 JSON，自动保存；保存时用主题同一份 schema 校验，问题会列出来（不阻止保存）。删除是移进 `.mori-trash/`。
-- 文章：默认用 Markdown 写（一个大文本框，标题是第一行 `# 标题`，拖入图片、旁注），分类、标签、摘要、封面、首页置顶在右侧“信息”面板；也可以切到 JSON 源码。
-- 读法和地图：每篇都能开。“信息”里的“读法”勾选允许读者选哪几种（竖向 / 横向 / 混合）、默认哪种、横滚方向；“地图”是一个开关，开了以后封面有路线图、左下角显示读到哪里、文末有行程表。
-- 地点：在 Markdown 里选中一个词，点工具栏的“地点”，填坐标（“纬度, 经度”，也认 Google 地图的 Plus Code / Open Location Code 和地图网址；短码用上一个地点补全；地名可以留空，只让读到这里时地图跟着变）、英文名、日期，文字就变成 `[地名](geo:纬度,经度)`，是地图上的一个点；不绑定标题，想标在哪就标在哪。坐标、英文名、日期之后在“信息”里改；路线（GPX 轨迹、按照片拍摄地点建议）也在“信息”里。
-- 排版：“排版”视图按横向读法把整篇排成一条（相邻的文字是一列，二级标题另起一列），直接拖：上下拖调位置，左右拖换顺序，右下角圆点改大小，选中后在上方切换单图 / 双图 / 图组 / 网格 / 自由排布、合并或拆开、插地图、文字横排或竖排；自由排布和图组里的图也能直接拖。
-- 页面：“关于”“留言”这样的独立页（网址 `/页面名/`）；“页头入口”决定网站顶部玻璃胶囊里放哪些入口；“友人帐”粘贴网址自动带出站名、简介和头像。
-- 文件：所有图片，谁在引用、没被引用的，上传和删除。
-- 仪表盘、分类 / 标签、草稿箱、评论管理、设定（刊名、首页版式与排法、订阅内容、主题色）。
-- “预览”用项目自己的 `astro dev` 渲染真实主题（项目已经在跑 dev 就直接复用）。
-- 构建与发布：在 `mori.config.ts` 里加发布目标，然后在 Studio 里点“构建并发布”：
+“构建并发布”的目标写在 `mori.config.ts` 里：
 
 ```ts
 publish: { target: 'rsync', dest: 'user@host:/var/www/site/' }                  // VPS（需要本机能 ssh 过去）
