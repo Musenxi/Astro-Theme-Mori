@@ -15,9 +15,7 @@ services:
     depends_on: [comments]
 
   comments:
-    build:
-      context: ..
-      dockerfile: deploy/comments.Dockerfile
+    build: https://github.com/Musenxi/Mori-Comment.git#main
     restart: unless-stopped
     environment:
       PORT: "8787"

@@ -9,7 +9,7 @@ MORI 输出的是纯静态文件（`dist/`），有两条路：Cloudflare Pages�
 - 在 `mori.config.ts` 里加 `publish: { target: 'cloudflare-pages', project: '项目名' }`，本机先 `wrangler login`，然后在 Studio 里点“构建并发布”（直接上传 `dist/`，不需要 git）。
 - RSS 订阅地址是 `/feed`（`/rss.xml` 是它的别名）。它没有扩展名，Pages 需要一个 `public/_headers` 告诉浏览器它是 RSS，模板里已经有了。
 - 限制：免费版每个站点最多 20,000 个文件、单个文件 25 MiB。游记图片会按多种尺寸输出，照片很多时接近上限——把图片放到 R2、页面留在 Pages（Studio 的分步上传还没做）。
-- 自建评论跑在 Workers + D1：见 `packages/comments/wrangler.example.toml` 顶部的四步。
+- 自建评论跑在 Workers + D1：见 [Mori-Comment](https://github.com/Musenxi/Mori-Comment) 的 `wrangler.example.toml` 顶部的四步。
 
 ## 二、VPS（Docker Compose）
 

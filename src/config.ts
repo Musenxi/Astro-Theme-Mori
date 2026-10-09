@@ -36,7 +36,7 @@ export type MoriPublish =
 
 /**
  * 评论（spec §5）：二选一，互相隔离。
- *  - mori：自建评论服务（packages/comments），文末评论 + 划词引用评论
+ *  - mori：自建评论服务（Mori-Comment），文末评论 + 划词引用评论
  *  - 其余是第三方，只有文末评论，没有引用评论
  */
 export type MoriCommentsStatus = 'on' | 'readonly' | 'off';

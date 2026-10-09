@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.1",
   "description": "MORI — a quiet, editorial Astro blog theme with vertical text and travel journals.",
-  "license": "GPL-3.0-only",
+  "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@10.30.1",
   "exports": {
@@ -23,13 +23,11 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "dev:all": "pnpm --parallel --include-workspace-root --filter astro-mori --filter mori-comments run dev",
     "build": "astro build",
     "preview": "astro preview",
-    "comments": "pnpm --filter mori-comments dev",
-    "check": "astro sync && tsc -p . && pnpm -r --if-present check",
-    "test": "node --test test/*.test.ts && pnpm -r --if-present test",
-    "lint": "eslint src && pnpm -r --if-present lint",
+    "check": "astro sync && tsc -p .",
+    "test": "node --test test/*.test.ts",
+    "lint": "eslint src",
     "theme:update": "node scripts/update-theme.mjs"
   },
   "dependencies": {

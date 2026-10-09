@@ -29,7 +29,6 @@ src/assets/        内容里用到的图片
 mori.config.ts     站点配置
 src/               主题：页面（pages/，普通的 Astro 文件路由）、组件、样式、脚本、内容格式（schema/）
 public/            原样复制到站点根目录的文件
-packages/comments  自建评论服务（Hono；Node + SQLite / Cloudflare Workers + D1）
 deploy/            VPS 的 Docker Compose + Caddy 模板、GitHub Actions 模板
 design/style-probe 风格试样（所有视觉决定的实物参照）
 docs/              需求草案、写作指南
@@ -39,13 +38,11 @@ docs/              需求草案、写作指南
 
 ```bash
 pnpm dev           # 站点 http://localhost:4321
-pnpm dev:all       # 站点 + 本地评论服务 http://127.0.0.1:8787
 pnpm build         # 静态构建到 dist/
 pnpm preview       # 预览构建结果
-pnpm comments      # 只跑评论服务（开发用管理令牌是 dev-token，数据库在 packages/comments/.data/）
 pnpm check         # TypeScript 检查
 pnpm lint          # Tailwind 类名检查（@shadcn/lint：不存在的类名、原始色值、行内样式）
-pnpm test          # 测试（主题、评论服务）
+pnpm test          # 测试
 pnpm theme:update  # 从模板仓库合并主题更新
 ```
 
@@ -97,12 +94,10 @@ comments: { provider: 'giscus', repo: '…', repoId: '…', category: '…', cat
 // 也支持 waline（serverURL）、twikoo（envId）、artalk（server、site）
 ```
 
-- **自建评论**（`packages/comments`）：读者选中正文里的一段文字就能针对这段发表评论；引用评论和普通评论一起显示在文末评论区，带着引用的原文，点一下回到正文并临时高亮，正文里不留记号。文章改动后按“块 id + 位置 → 原文 + 前后文”重新定位，找不到的引用旁标“原文已修改”。
+- **自建评论**（单独的项目 [Mori-Comment](https://github.com/Musenxi/Mori-Comment)，部署和升级见那边）：读者选中正文里的一段文字就能针对这段发表评论；引用评论和普通评论一起显示在文末评论区，带着引用的原文，点一下回到正文并临时高亮，正文里不留记号。文章改动后按“块 id + 位置 → 原文 + 前后文”重新定位，找不到的引用旁标“原文已修改”。
 - 第一次留言的人先审后发；蜜罐、按 IP 限流、可选 Turnstile。邮箱和 IP 只存加盐哈希。
 - **昵称、邮箱、网站**：读者留言时昵称和邮箱必填（表单里带 `*`），网站可不填（只收 http / https，名字会带上链接，`nofollow ugc`）。邮箱用来显示头像，不公开；头像用 Gravatar 那一套：评论服务对外只给“小写邮箱的 MD5”，站点按 `comments.avatar` 拼图片地址——`'cravatar'`（默认，Gravatar 的国内镜像）、`'gravatar'`、`'none'`（不显示），或含 `{hash}` 的自己的服务地址（如 `'https://avatars.example.com/{hash}'`）；没设过头像的读者显示几何图案（identicon）。也可以在 Studio 的“设定 → 评论”里选。注意：头像哈希是公开的，和 Gravatar 一样，知道某个邮箱的人能核对它是不是这位读者。
 - **阅读量、在线访客**：也记在自建评论服务里。文章、页面打开时记一次阅读（同一位读者半小时内重复打开只算一次，爬虫不计），阅读量显示在文章页头。在线访客用 WebSocket：页面开着就连着 `/online/ws`，连着就算在线，人数一变就推送，Studio 仪表盘上实时显示。读者只用浏览器里随机生成的 id 区分，服务端存的是加盐哈希。Node 版在线名单放在内存里；Cloudflare 版要绑定一个 Durable Object（见 `wrangler.example.toml`），反向代理要放行 WebSocket（Caddy 默认就行）。
-- **升级**：Node + SQLite 的评论服务启动时自动给旧库补上头像、网址两列和阅读量的表。Cloudflare D1 上已经建好的库要手动执行：`wrangler d1 execute <库名> --file=packages/comments/migrations-001-profile.sql`（加头像、网址两列，只执行一次），再执行一次 `--file=packages/comments/schema.sql`（建阅读量的表，可以重复执行）。新建的库只用 `schema.sql`。
-- 本地开发：`pnpm dev:all` 会一起启动评论服务（管理令牌 `dev-token`，Studio 的“评论”页里填这个）。正式部署用环境变量 `ADMIN_TOKEN`。部署：VPS 见 [deploy/](deploy/README.md)，Cloudflare 见 `packages/comments/wrangler.example.toml`。
 - 管理在 Studio 的“评论”页：待审列表、通过 / 隐藏 / 删除；保存文章时，如果改动会让已有引用评论找不到原文，会先提醒。
 
 ## 从 Markdown 迁移
@@ -116,4 +111,4 @@ pnpm exec mori-md export src/content/posts/某篇.json --out 备份目录
 
 ## 许可
 
-代码：GPL-3.0。地图数据来自 Natural Earth（公有领域）。
+代码：MIT。地图数据来自 Natural Earth（公有领域）。
