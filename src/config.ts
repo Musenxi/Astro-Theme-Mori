@@ -52,6 +52,8 @@ export interface MoriUserConfig {
   site?: string;
   /** 刊名，页头左上角的纯文字。默认 MORI */
   title?: string;
+  /** 作者（博主）。Studio 里以博主身份评论时用：名字、邮箱（只用来换成头像）、网址 */
+  author?: { name?: string; email?: string; url?: string };
   /** 界面语言：zh-CN（默认）/ zh-TW / en / ja。英文站自动关闭竖排和手卷方向 */
   lang?: Lang;
   description?: string;

@@ -54,6 +54,7 @@ import { defineMoriConfig } from './src/config.ts';
 
 export default defineMoriConfig({
   title: 'MORI',                       // 刊名，页头左上角
+  author: { name: '…', email: '…', url: '…' },   // 作者：Studio 里以博主身份评论时用（邮箱只用来换成头像）；这些评论在站点上带“博主”标记
   lang: 'zh-CN',                       // 界面语言：zh-CN / zh-TW / en / ja（英文站自动关闭竖排和手卷方向）
   accent: '#002fa7',                   // 唯一的强调色；亮暗两个版本由 OKLCH 自动推出
   categories: [                        // 分类；文章的 category 引用这里的 id

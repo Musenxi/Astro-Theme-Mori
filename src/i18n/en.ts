@@ -21,7 +21,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'search.title': 'Search', 'search.cats': 'Categories', 'search.clear': 'Clear',
   'friends.lost': 'Lost contact', 'comments.title': 'Comments',
   'js.theme.toLight': 'Day', 'js.theme.toDark': 'Night',
-  'js.cmt.loading': 'Loading comments…', 'js.cmt.retry': 'Retry', 'js.cmt.count': '{n} comments', 'js.cmt.none': 'No comments yet.', 'js.cmt.closed': 'Comments are closed.', 'js.cmt.reply': 'Reply', 'js.cmt.cancelReply': 'Cancel reply',
+  'js.cmt.loading': 'Loading comments…', 'js.cmt.retry': 'Retry', 'js.cmt.count': '{n} comments', 'js.cmt.none': 'No comments yet.', 'js.cmt.closed': 'Comments are closed.', 'js.cmt.reply': 'Reply', 'js.cmt.author': 'Author', 'js.cmt.cancelReply': 'Cancel reply',
   'js.cmt.jump': 'Back to this passage in the text', 'js.cmt.name': 'Name *', 'js.cmt.email': 'Email *', 'js.cmt.url': 'Website', 'js.cmt.write': 'Write your thoughts…', 'js.cmt.replyTo': 'Reply to {name}', 'js.cmt.send': 'Post', 'js.cmt.sendReply': 'Post reply',
   'js.cmt.sending': 'Sending…', 'js.cmt.pending': 'Received. It will appear here once approved.', 'js.cmt.loadFail': 'Could not load comments ({status})', 'js.cmt.postFail': 'Could not post ({status})', 'js.cmt.tsFail': 'Could not load the human-verification script',
   'js.cmt.scriptFail': 'Failed to load script: {src}', 'js.cmt.unknown': 'Unknown comment provider: {provider}',

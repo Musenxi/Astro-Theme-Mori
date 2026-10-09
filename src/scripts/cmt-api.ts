@@ -2,6 +2,8 @@
 import { t } from './i18n.ts';
 
 export interface MoriComment {
+  /** 博主发的 */
+  author?: boolean;
   id: number;
   block: string | null;
   start: number | null;

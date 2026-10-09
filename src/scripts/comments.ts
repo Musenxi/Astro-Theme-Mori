@@ -93,10 +93,11 @@ function init() {
     return img;
   }
 
-  /** 名字；读者留了网址就是链接（nofollow ugc：不给外链传递权重，新窗口打开） */
+  /** 名字；读者留了网址就是链接（nofollow ugc：不给外链传递权重，新窗口打开）。博主发的后面带“博主” */
   function byline(c: MoriComment) {
     const name = h('b', {}, c.name);
-    return c.url && /^https?:\/\//i.test(c.url) ? h('a', { class: 'cmt-by', href: c.url, rel: 'nofollow ugc noopener noreferrer', target: '_blank' }, name) : name;
+    const by = c.url && /^https?:\/\//i.test(c.url) ? h('a', { class: 'cmt-by', href: c.url, rel: 'nofollow ugc noopener noreferrer', target: '_blank' }, name) : name;
+    return c.author ? h('span', { class: 'cmt-who' }, by, h('span', { class: 'cmt-author' }, t('js.cmt.author'))) : by;
   }
 
   /** 引用评论带着引用的原文（细线引用样式，过长截断）；点一下回到正文里那一段 */

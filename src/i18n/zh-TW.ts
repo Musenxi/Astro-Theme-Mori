@@ -21,7 +21,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'search.title': '搜尋', 'search.cats': '分類', 'search.clear': '清除',
   'friends.lost': '已失聯', 'comments.title': '留言',
   'js.theme.toLight': '晝', 'js.theme.toDark': '夜',
-  'js.cmt.loading': '留言載入中……', 'js.cmt.retry': '重試', 'js.cmt.count': '{n} 則', 'js.cmt.none': '還沒有留言。', 'js.cmt.closed': '留言已關閉。', 'js.cmt.reply': '回覆', 'js.cmt.cancelReply': '取消回覆',
+  'js.cmt.loading': '留言載入中……', 'js.cmt.retry': '重試', 'js.cmt.count': '{n} 則', 'js.cmt.none': '還沒有留言。', 'js.cmt.closed': '留言已關閉。', 'js.cmt.reply': '回覆', 'js.cmt.author': '博主', 'js.cmt.cancelReply': '取消回覆',
   'js.cmt.jump': '回到正文裡的這一段', 'js.cmt.name': '暱稱 *', 'js.cmt.email': '信箱 *', 'js.cmt.url': '網站', 'js.cmt.write': '寫下你的想法…', 'js.cmt.replyTo': '回覆 {name}', 'js.cmt.send': '發表', 'js.cmt.sendReply': '發表回覆',
   'js.cmt.sending': '傳送中……', 'js.cmt.pending': '已收到。通過審核後會顯示在這裡。', 'js.cmt.loadFail': '留言載入失敗（{status}）', 'js.cmt.postFail': '送出失敗（{status}）', 'js.cmt.tsFail': '人機驗證腳本載入失敗',
   'js.cmt.scriptFail': '腳本載入失敗：{src}', 'js.cmt.unknown': '不認識的留言服務：{provider}',

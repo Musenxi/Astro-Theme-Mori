@@ -21,7 +21,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'search.title': '検索', 'search.cats': 'カテゴリー', 'search.clear': 'クリア',
   'friends.lost': '音信不通', 'comments.title': 'コメント',
   'js.theme.toLight': '昼', 'js.theme.toDark': '夜',
-  'js.cmt.loading': 'コメントを読み込み中……', 'js.cmt.retry': '再試行', 'js.cmt.count': '{n}件', 'js.cmt.none': 'まだコメントはありません。', 'js.cmt.closed': 'コメントは受け付けていません。', 'js.cmt.reply': '返信', 'js.cmt.cancelReply': '返信をやめる',
+  'js.cmt.loading': 'コメントを読み込み中……', 'js.cmt.retry': '再試行', 'js.cmt.count': '{n}件', 'js.cmt.none': 'まだコメントはありません。', 'js.cmt.closed': 'コメントは受け付けていません。', 'js.cmt.reply': '返信', 'js.cmt.author': '筆者', 'js.cmt.cancelReply': '返信をやめる',
   'js.cmt.jump': '本文のこの箇所へ戻る', 'js.cmt.name': '名前 *', 'js.cmt.email': 'メール *', 'js.cmt.url': 'ウェブサイト', 'js.cmt.write': '感想を書く…', 'js.cmt.replyTo': '{name} さんへ返信', 'js.cmt.send': '投稿', 'js.cmt.sendReply': '返信を投稿',
   'js.cmt.sending': '送信中……', 'js.cmt.pending': '受け付けました。承認されるとここに表示されます。', 'js.cmt.loadFail': 'コメントを読み込めませんでした（{status}）', 'js.cmt.postFail': '投稿できませんでした（{status}）', 'js.cmt.tsFail': '認証スクリプトを読み込めませんでした',
   'js.cmt.scriptFail': 'スクリプトを読み込めませんでした：{src}', 'js.cmt.unknown': '不明なコメントサービス：{provider}',
