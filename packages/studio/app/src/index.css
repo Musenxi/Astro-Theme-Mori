@@ -187,6 +187,7 @@
   --animate-rise: rise .34s var(--ease-out) both;
   --animate-pop: pop .18s var(--ease-out) both;
   --animate-slide-in: slide-in .3s var(--ease-out) both;
+  --animate-breathe: breathe 2.4s ease-in-out infinite;
 }
 
 /* 命名工具类：任意值写一次，起个名字 */
@@ -202,6 +203,7 @@
 @keyframes rise { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
 @keyframes pop { from { opacity: 0; transform: translateY(-4px) scale(.965) } to { opacity: 1; transform: none } }
 @keyframes slide-in { from { transform: translateX(14px); opacity: 0 } to { transform: none; opacity: 1 } }
+@keyframes breathe { 50% { opacity: .2 } }
 
 @layer base {
   html, body, #root { height: 100%; }

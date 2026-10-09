@@ -59,7 +59,7 @@ export default function Dashboard() {
               {online != null && (
                 <div className="shrink-0 pr-3 text-right">
                   <div className="flex items-center justify-end gap-1.5 text-13 text-muted-foreground">
-                    {online > 0 && <i aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                    {online > 0 && <i aria-hidden className="h-1.5 w-1.5 animate-breathe rounded-full bg-primary motion-reduce:animate-none" />}
                     在线访客
                   </div>
                   <div className="mt-1 text-32 font-semibold leading-none tracking-tight tnum">{online}</div>
