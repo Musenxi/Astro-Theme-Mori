@@ -42,8 +42,11 @@ export async function listComments(c: MoriCommentsConfig, entry: string): Promis
   return ((await r.json()) as { comments: MoriComment[] }).comments;
 }
 
+/** 这一页的标题（页面上的 h1），评论服务只拿它写进邮件提醒里 */
+const pageTitle = () => document.querySelector('h1')?.textContent?.trim().slice(0, 200) || undefined;
+
 export async function sendComment(c: MoriCommentsConfig, payload: Record<string, unknown>): Promise<SendResult> {
-  const r = await fetch(`${base(c)}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).catch(offline(c));
+  const r = await fetch(`${base(c)}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: pageTitle(), ...payload }) }).catch(offline(c));
   const j = (await r.json().catch(() => ({}))) as any;
   if (!r.ok) throw new Error(j.error ?? t('js.cmt.postFail', { status: r.status }));
   return j as SendResult;
