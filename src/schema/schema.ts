@@ -181,7 +181,7 @@ export const postBlocks = (image: ImageFn) =>
       ...axes,
     }),
     z.object({ id, type: z.literal('grid'), images: z.array(z.object(picture(image))).min(2), ...axes }),
-    /** 自由排布：一幅画布，图（和一小段竖排文字）的 x / y / w 是占画布的比例 */
+    /** 自由排布：一幅画布，图和文本框的 x / y / w 是占画布的比例 */
     z.object({
       id, type: z.literal('free'),
       /** 画布宽高比 = 宽 / 高 */
@@ -189,7 +189,8 @@ export const postBlocks = (image: ImageFn) =>
       items: z.array(
         z.discriminatedUnion('kind', [
           z.object({ kind: z.literal('image'), ...picture(image), x: unit, y: unit, w: z.number().positive().max(1), z: z.number().int().default(1) }),
-          z.object({ kind: z.literal('text'), text: inlineSchema, x: unit, y: unit }),
+          /** 文本框：竖排（默认，一行小字）或横排；横排的 w 是框宽占画布的比例 */
+          z.object({ kind: z.literal('text'), text: inlineSchema, x: unit, y: unit, writing: z.enum(['h', 'v']).default('v'), w: z.number().positive().max(1).optional() }),
         ]),
       ),
       ...axes,

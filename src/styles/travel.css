@@ -20,9 +20,13 @@
 .canvas{position:relative}
 .fi{position:absolute;left:calc(var(--x)*100%);top:calc(var(--y)*100%);width:calc(var(--w)*100%);height:auto;z-index:var(--z,1)}
 .fnote{position:absolute;left:calc(var(--x)*100%);top:calc(var(--y)*100%);writing-mode:vertical-rl;font-size:var(--text-aux);letter-spacing:.26em;line-height:1.9;color:var(--soft-foreground);z-index:3}
+.fnote.h{writing-mode:horizontal-tb;width:calc(var(--w)*100%);letter-spacing:.04em;line-height:1.8}
 
 .strip-track{display:flex;align-items:flex-start;gap:clamp(8px,1vw,14px);width:max-content}
-.strip-track img{width:auto;max-width:none;height:calc(var(--sh)*var(--s,1));margin-top:calc(var(--sh)*var(--o,0))}
+.strip-track figure{flex:none;margin-top:calc(var(--sh)*var(--o,0))}
+.strip-track img{width:auto;max-width:none;height:calc(var(--sh)*var(--s,1))}
+/* 每张图自己的图注在图下面，宽度跟着图走，不把图撑宽 */
+.imgs figcaption,.strip-track figcaption{width:0;min-width:100%}
 
 /* ---------- 竖向 + 混合 ---------- */
 .travel:not([data-mode="h"]) .t-track{max-width:var(--maxw);margin:0 auto;padding:0 var(--gut);display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gap);row-gap:clamp(56px,9vw,128px)}
@@ -50,24 +54,24 @@
 .travel:not([data-mode="h"]) .b-pair{grid-column:2/12}
 .travel:not([data-mode="h"]) .b-pair .imgs{display:grid;grid-template-columns:1fr 1fr;gap:clamp(8px,1.2vw,16px)}
 .travel:not([data-mode="h"]) .b-pair img{width:100%}
+.imgs > figure{min-width:0}
 .travel:not([data-mode="h"]) .b-grid{grid-column:1/-1}
 .travel:not([data-mode="h"]) .b-grid .imgs{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(6px,.9vw,12px)}
-.travel:not([data-mode="h"]) .b-grid img{width:100%;height:100%;aspect-ratio:4/3}
-.travel:not([data-mode="h"]) .b-grid img:first-child{grid-column:span 2;grid-row:span 2}
+.b-grid .imgs > figure{display:flex;flex-direction:column}
+.b-grid .imgs img{flex:1 1 auto;min-height:0}
+.travel:not([data-mode="h"]) .b-grid img{width:100%;aspect-ratio:4/3}
+.travel:not([data-mode="h"]) .b-grid .imgs > figure:first-child{grid-column:span 2;grid-row:span 2}
 .travel:not([data-mode="h"]) .b-free{grid-column:1/-1}
 .travel:not([data-mode="h"]) .b-free .canvas{width:100%;aspect-ratio:var(--ar)}
 .travel:not([data-mode="h"]) .b-strip{grid-column:1/-1;width:100vw;margin-left:calc(50% - 50vw)}
-.travel:not([data-mode="h"]) .b-strip figcaption{max-width:var(--maxw);margin:10px auto 0;padding:0 var(--gut)}
 .travel:not([data-mode="h"]) .strip-track{padding:0 var(--edge)}
 .travel[data-mode="v"] .b-strip{--sh:min(58vh,70vw)}
 .travel[data-mode="v"] .b-strip{width:min(1104px,100vw);margin-left:calc(50% - min(1104px,100vw)/2)}
-.travel[data-mode="v"] .b-strip figcaption{max-width:none;margin:10px 0 0;padding:0}
 .travel[data-mode="v"] .strip-sc{overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;overscroll-behavior-x:contain}
 .travel[data-mode="v"] .strip-track{padding:0;gap:14px}
 .travel[data-mode="m"] .b-strip{--sh:min(66vh,70vw)}
 .travel[data-mode="m"] .strip-vp{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
 .travel[data-mode="m"] .strip-track{will-change:transform}
-.travel[data-mode="m"] .b-strip figcaption{max-width:none;margin:12px 0 0;padding:0 var(--edge)}
 .travel[data-mode="m"] 
 /* 侧边目录只给竖滚（竖向、混合读法）；横向读法是横着滚的，放不下 */
 .travel[data-mode="h"] [data-toc]{display:none}
@@ -100,12 +104,11 @@
 .travel[data-mode="h"] .b-pair .imgs{display:flex;gap:14px}
 .travel[data-mode="h"] .b-pair img{height:calc(var(--ph)*var(--s,1));width:auto}
 .travel[data-mode="h"] .b-grid .imgs{display:grid;grid-template-rows:repeat(2,calc(var(--ph)*var(--s,1)/2 - 5px));grid-auto-flow:column;grid-auto-columns:calc((var(--ph)*var(--s,1)/2 - 5px)*4/3);gap:10px}
-.travel[data-mode="h"] .b-grid img{width:100%;height:100%}
-.travel[data-mode="h"] .b-grid img:first-child{grid-row:span 2;grid-column:span 2}
-.travel[data-mode="h"] .b-grid img:last-child{grid-row:span 2}
+.travel[data-mode="h"] .b-grid img{width:100%;height:0}
+.travel[data-mode="h"] .b-grid .imgs > figure:first-child{grid-row:span 2;grid-column:span 2}
+.travel[data-mode="h"] .b-grid .imgs > figure:last-child{grid-row:span 2}
 .travel[data-mode="h"] .b-free .canvas{height:calc(var(--ph)*1.04*var(--s,1));width:calc(var(--ph)*1.04*var(--s,1)*var(--ar))}
 .travel[data-mode="h"] .b-strip{--sh:calc(var(--ph)*var(--s,1))}
-.travel[data-mode="h"] .b-strip figcaption{margin:12px 0 0}
 .h-progress{display:none}
 .travel[data-mode="h"] .h-progress{display:block;position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--border)}
 .h-progress i{position:absolute;inset:0;background:var(--primary);transform-origin:0 50%;transform:scaleX(0)}
@@ -114,7 +117,7 @@
 .travel[data-dir="rtl"][data-mode="h"] .t-vp{direction:rtl}
 .travel[data-dir="rtl"][data-mode="h"] .t-track > *{direction:ltr}
 .travel[data-dir="rtl"] .strip-sc,.travel[data-dir="rtl"][data-mode="m"] .strip-vp{direction:rtl}
-.travel[data-dir="rtl"] .b-strip figcaption{direction:ltr}
+.travel[data-dir="rtl"] .strip-track figcaption{direction:ltr}
 .travel[data-dir="rtl"] .h-progress i{transform-origin:100% 50%}
 
 /* —— 以下是主题包自己加的 —— */
@@ -126,5 +129,6 @@
   .travel:not([data-mode="h"]) .b-free .canvas{aspect-ratio:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .travel:not([data-mode="h"]) .fi,.travel:not([data-mode="h"]) .fnote{position:static;width:100%}
   .travel:not([data-mode="h"]) .fnote{height:9em;justify-self:center}
+  .travel:not([data-mode="h"]) .fnote.h{height:auto;justify-self:stretch;grid-column:1/-1}
   .travel[data-mode="h"]{--ph:min(60vh,116vw)}
 }

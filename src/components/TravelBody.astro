@@ -155,9 +155,8 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
               return (
                 <figure class="blk b-pair rv" data-b={b.id} {...pos}>
                   <div class="imgs">
-                    {b.images.map((im) => <Image src={im.src} alt={im.alt} widths={[600, 900, 1400]} sizes="(max-width: 760px) 50vw, 45vw" />)}
+                    {b.images.map((im) => <figure><Image src={im.src} alt={im.alt} widths={[600, 900, 1400]} sizes="(max-width: 760px) 50vw, 45vw" />{im.caption && <figcaption class="mt-2 text-meta text-muted-foreground">{im.caption}</figcaption>}</figure>)}
                   </div>
-                  {b.images.some((i) => i.caption) && <figcaption class="mt-2.5 text-meta text-muted-foreground">{b.images.map((i) => i.caption).filter(Boolean).join(' / ')}</figcaption>}
                 </figure>
               );
             case 'strip':
@@ -166,10 +165,9 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
                   <div class="strip-vp">
                     <div class="strip-sc">
                       <div class="strip-track">
-                        {b.images.map((im) => <Image src={im.src} alt={im.alt} height={900} widths={[600, 900, 1400]} sizes="60vw" style={{ '--s': im.scale, '--o': im.offset }} />)}
+                        {b.images.map((im) => <figure style={{ '--s': im.scale, '--o': im.offset }}><Image src={im.src} alt={im.alt} height={900} widths={[600, 900, 1400]} sizes="60vw" />{im.caption && <figcaption class="mt-2 text-meta text-muted-foreground">{im.caption}</figcaption>}</figure>)}
                       </div>
                     </div>
-                    {b.images.some((i) => i.caption) && <figcaption class="text-meta text-muted-foreground">{b.images.map((i) => i.caption).filter(Boolean).join(' / ')}</figcaption>}
                   </div>
                 </figure>
               );
@@ -177,9 +175,8 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
               return (
                 <figure class="blk b-grid rv" data-b={b.id} {...pos}>
                   <div class="imgs">
-                    {b.images.map((im, i) => <Image src={im.src} alt={im.alt} widths={[500, 900, 1400]} sizes={i === 0 ? '66vw' : '33vw'} />)}
+                    {b.images.map((im, i) => <figure><Image src={im.src} alt={im.alt} widths={[500, 900, 1400]} sizes={i === 0 ? '66vw' : '33vw'} />{im.caption && <figcaption class="mt-2 text-meta text-muted-foreground">{im.caption}</figcaption>}</figure>)}
                   </div>
-                  {b.images.some((i) => i.caption) && <figcaption class="mt-2.5 text-meta text-muted-foreground">{b.images.map((i) => i.caption).filter(Boolean).join(' / ')}</figcaption>}
                 </figure>
               );
             case 'free':
@@ -190,7 +187,7 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
                       it.kind === 'image' ? (
                         <Image class="fi" src={it.src} alt={it.alt} widths={[400, 800, 1400]} sizes={`${Math.round(it.w * 100)}vw`} style={{ '--x': it.x, '--y': it.y, '--w': it.w, '--z': it.z, '--i': i }} />
                       ) : (
-                        <p class="fnote" style={{ '--x': it.x, '--y': it.y }} set:html={plainHtml(it.text)} />
+                        <p class:list={['fnote', it.writing === 'h' && 'h']} style={{ '--x': it.x, '--y': it.y, '--w': it.w ?? 0.3 }} set:html={plainHtml(it.text)} />
                       ),
                     )}
                   </div>
