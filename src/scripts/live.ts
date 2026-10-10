@@ -14,10 +14,10 @@ interface Player extends HTMLElement {
   play(): void;
   stop(): void;
   beginFinishingPlaybackEarly(): void;
-  updateSize(w: number, h: number): void;
+  updateSize(w?: number, h?: number): void;
 }
 interface Kit {
-  Player(el?: HTMLElement): Player;
+  augmentElementAsPlayer(el: HTMLElement): Player;
   PlaybackStyle: { FULL: string };
 }
 declare global { interface Window { LivePhotosKit?: Kit } }
@@ -54,6 +54,9 @@ function layout(img: HTMLImageElement, box: HTMLElement, player: Player) {
   const x = (w - pw) * fx, y = (h - ph) * fy;
   player.style.left = `${x}px`;
   player.style.top = `${y}px`;
+  // 尺寸要写在元素上，LivePhotosKit 量的是元素自己的大小（为 0 就不渲染）
+  player.style.width = `${pw}px`;
+  player.style.height = `${ph}px`;
   player.style.setProperty('--vx', `${Math.max(0, -x)}px`);
   player.style.setProperty('--vy', `${Math.max(0, -y)}px`);
   player.updateSize(pw, ph);
@@ -63,9 +66,12 @@ function bind(img: HTMLImageElement, Kit: Kit) {
   const box = document.createElement('div');
   box.className = 'live-box';
   box.setAttribute('aria-hidden', 'true');
-  const player = Kit.Player();
-  box.append(player);
+  const el = document.createElement('div');
+  el.style.width = `${img.offsetWidth}px`; // 先给个尺寸，不然创建时 LivePhotosKit 会警告宽高为 0；准确的位置和大小由 layout 摆
+  el.style.height = `${img.offsetHeight}px`;
+  box.append(el);
   img.after(box);
+  const player = Kit.augmentElementAsPlayer(el);
 
   const time = Number(img.dataset.photoTime) || undefined;
   // 换视频时 LivePhotosKit 会清掉 photoTime，视频载入后再设一次；没记时间点就取视频中间
