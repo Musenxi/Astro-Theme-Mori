@@ -15,6 +15,7 @@
 @import "./travel.css" layer(components);
 @import "./comments.css" layer(components);
 @import "./transitions.css" layer(components);
+@import "./live.css" layer(components);
 /* 第三方评论框自己的样式是不进层的，改写它们的规则也不能进层，否则会被压过 */
 @import "./embed.css";
 @import "./vt-chrome.css";

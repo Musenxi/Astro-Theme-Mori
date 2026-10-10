@@ -1,0 +1,7 @@
+/* 实况照片（scripts/live.ts）：盖在图片上的 LivePhotosKit 播放器，外框裁切；“LIVE”标记放在看得见的左上角 */
+img[data-live]{-webkit-touch-callout:none}
+.live-box{position:absolute;overflow:hidden;pointer-events:none;transition:opacity .8s ease}
+.live-box .lpk-live-photo-player{position:absolute!important}
+.live-box .lpk-badge{left:calc(var(--vx,0px) + 10px)!important;top:calc(var(--vy,0px) + 10px)!important}
+.rv:not(.in) .live-box{opacity:0}
+img[data-live][style*="visibility: hidden"]+.live-box{visibility:hidden}

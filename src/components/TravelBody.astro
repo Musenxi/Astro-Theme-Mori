@@ -3,7 +3,7 @@
  * 长卷版式的正文：把文章的块排成“列”（相邻文字一列，图片、地图各自一块），有竖向、混合、横向三种读法。
  * 读到哪个地点由正文里的地点标记决定：每一列记着自己读到第几个地点（data-place），左下角的“当前位置”和行程表都按它走。
  */
-import { Image } from 'astro:assets';
+import Image from './Photo.astro';
 import type { Inline, PostData } from '../schema/schema.ts';
 import type { Flow } from '../lib/flow.ts';
 import { numberNotes, renderInline } from '../lib/inline.ts';

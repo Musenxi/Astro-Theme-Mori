@@ -1,0 +1,12 @@
+---
+/** 正文里的图片：和 astro:assets 的 Image 一样；是实况照片的话带上视频地址和静态照片的时间点（播放见 scripts/live.ts） */
+import { Image } from 'astro:assets';
+import type { ComponentProps } from 'astro/types';
+import { liveOf } from '../lib/live.ts';
+
+type Props = ComponentProps<typeof Image>;
+const props = Astro.props;
+const live = liveOf(props.src);
+---
+
+<Image {...props} data-live={live?.video} data-photo-time={live?.time} />
