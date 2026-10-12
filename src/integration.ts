@@ -1,5 +1,6 @@
 import type { AstroIntegration } from 'astro';
-import { statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { basename, extname, join } from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
 import { resolveConfig, type MoriUserConfig } from './config.ts';
@@ -42,6 +43,30 @@ export default function mori(userConfig: MoriUserConfig): AstroIntegration {
           },
         });
       },
+      'astro:build:done': ({ dir, logger }) => dropUploadedOriginals(fileURLToPath(dir), logger),
     },
   };
+}
+
+/**
+ * 上传到图床的图，页面里用的是图床外链；但内容集合引用的图片 Astro 构建时总会把原图复制进 _astro/。
+ * 这里把这些原图删掉：名字对得上图床清单里的图（原名.哈希.扩展名），并且产物里没有任何文件引用它
+ */
+function dropUploadedOriginals(out: string, logger: { info: (m: string) => void }) {
+  const manifest = join(process.cwd(), 'src/assets/cdn.json');
+  const astroDir = join(out, '_astro');
+  if (!existsSync(manifest) || !existsSync(astroDir)) return;
+  const uploaded = new Set(Object.keys((JSON.parse(readFileSync(manifest, 'utf8')) as { images: Record<string, unknown> }).images).map((p) => `${basename(p, extname(p))}|${extname(p).toLowerCase()}`));
+  const candidates = readdirSync(astroDir).filter((f) => {
+    const m = /^(.+)\.[\w-]{8}(\.[a-z0-9]+)$/i.exec(f);
+    return m && uploaded.has(`${m[1]}|${m[2].toLowerCase()}`);
+  });
+  if (!candidates.length) return;
+  // 产物里的文本文件（页面、订阅、脚本、样式）有没有提到它
+  const texts: string[] = [];
+  const walk = (d: string) => { for (const e of readdirSync(d, { withFileTypes: true })) { const f = join(d, e.name); if (e.isDirectory()) walk(f); else if (/\.(html|xml|json|js|css|txt)$/.test(e.name)) texts.push(readFileSync(f, 'utf8')); } };
+  walk(out);
+  const unused = candidates.filter((f) => !texts.some((t) => t.includes(f)));
+  for (const f of unused) rmSync(join(astroDir, f));
+  if (unused.length) logger.info(`图床：去掉 ${unused.length} 张已上传的原图`);
 }

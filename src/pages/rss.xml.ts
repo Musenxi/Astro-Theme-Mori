@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getImage } from 'astro:assets';
+import { remoteOf } from '../lib/cdn.ts';
 import config from 'virtual:mori/config';
 import { getEntries } from '../lib/entries.ts';
 import { siteUrl, xmlEscape } from '../lib/site.ts';
@@ -16,7 +17,8 @@ export const GET: APIRoute = async ({ site }) => {
   const ctx = {
     base,
     // 订阅里的图不能太大：缩到 1200 宽的 jpeg，并换成绝对地址
-    image: async (src: any) => { const im = await getImage({ src, width: 1200, format: 'jpeg' }); return im.src.startsWith('/') ? base + im.src : im.src; },
+    // 上传到图床的直接用外链；其余由 Astro 压一张 1200 宽的
+    image: async (src: any) => { const r = remoteOf(src); if (r) return r.url(1200); const im = await getImage({ src, width: 1200, format: 'jpeg' }); return im.src.startsWith('/') ? base + im.src : im.src; },
   };
   const bodies = full ? await Promise.all(entries.map((e) => postHtml(e.data, ctx))) : [];
   // 每篇的 guid 是文章的固定网址（isPermaLink="true"）：读者的阅读器靠它判断“读过没有”，所以只要网址不变它就不变

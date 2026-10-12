@@ -4,7 +4,7 @@ import Chevron from './Chevron.astro';
  * 首页“引文开篇”（spec §2 · F 期刊·引文版）：左侧窄栏（本期特稿 + 目录）+ 舞台（封面图，引文压在图上）+ 篇名信息。
  * 置顶可以有好几篇，由读者点左边目录切换；只有一篇时没有目录，就是一张静止的封面。
  */
-import { Image } from 'astro:assets';
+import Image from './Photo.astro';
 import type { Entry } from '../lib/entries.ts';
 import { readingOf } from '../lib/inline.ts';
 import { numDate, pad2, pad3 } from '../lib/zh.ts';
