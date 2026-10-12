@@ -109,8 +109,8 @@ function placeMap(e: Exif) {
   a.dataset.at = `${lng},${lat}`;
   a.setAttribute('aria-label', t('js.lb.place'));
   a.append(el('div', 'absolute inset-0 size-full')); // MapLibre 的样式会把容器改成 relative，靠 size-full 撑满
-  // 拍摄地点：主题色的点，外面一圈底色描边和一圈淡晕
-  a.append(el('span', 'pointer-events-none absolute top-1/2 left-1/2 size-7 -translate-1/2 rounded-[999px] bg-primary opacity-20'));
+  // 拍摄地点：主题色的点，外面一圈底色描边，一圈晕在呼吸
+  a.append(el('span', 'breathe pointer-events-none absolute top-1/2 left-1/2 size-7 rounded-[999px] bg-primary'));
   a.append(el('span', 'pointer-events-none absolute top-1/2 left-1/2 size-3.5 -translate-1/2 rounded-[999px] border-2 border-background bg-primary shadow-[0_1px_3px_rgba(0,0,0,.35)]'));
   // 数据署名不占版面，放在悬停提示里
   a.title = '© OpenStreetMap · OpenFreeMap';
