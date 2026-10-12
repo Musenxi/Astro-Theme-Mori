@@ -62,7 +62,11 @@ function layout(img: HTMLImageElement, box: HTMLElement, player: Player) {
   player.updateSize(pw, ph);
 }
 
-function bind(img: HTMLImageElement, Kit: Kit) {
+export interface LiveHandle { place(): void; play(): void; destroy(): void }
+
+/** 给一张图接上播放器；photo 是播放器显示的照片（不给就用图片当前那张）。destroy 拆掉播放器和所有监听 */
+function bind(img: HTMLImageElement, Kit: Kit, photo?: string): LiveHandle {
+  const ac = new AbortController(), on = { signal: ac.signal };
   const box = document.createElement('div');
   box.className = 'live-box';
   box.setAttribute('aria-hidden', 'true');
@@ -76,26 +80,44 @@ function bind(img: HTMLImageElement, Kit: Kit) {
   const time = Number(img.dataset.photoTime) || undefined;
   // 换视频时 LivePhotosKit 会清掉 photoTime，视频载入后再设一次；没记时间点就取视频中间
   const setTime = () => { player.photoTime = time ?? (player.video?.duration ? player.video.duration / 2 : player.photoTime); };
-  player.addEventListener('videoload', setTime);
+  player.addEventListener('videoload', setTime, on);
   player.proactivelyLoadsVideo = true;
-  player.photoSrc = img.currentSrc || img.src;
+  player.photoSrc = photo ?? (img.currentSrc || img.src);
   player.videoSrc = img.dataset.live!;
   setTime();
 
   const place = () => layout(img, box, player);
   place();
-  new ResizeObserver(place).observe(img);
-  addEventListener('resize', place);
+  const ro = new ResizeObserver(place);
+  ro.observe(img);
+  addEventListener('resize', place, on);
 
   const play = () => { player.playbackStyle = Kit.PlaybackStyle.FULL; player.play(); };
   const end = () => { if (player.isPlaying) player.beginFinishingPlaybackEarly(); };
-  img.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') play(); });
-  img.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') end(); });
+  img.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') play(); }, on);
+  img.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') end(); }, on);
   // 触屏：按住 0.3 秒开始放，松手收尾
   let hold = 0;
-  img.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') hold = window.setTimeout(play, 300); });
-  for (const type of ['pointerup', 'pointercancel'] as const) img.addEventListener(type, (e) => { if (e.pointerType !== 'mouse') { clearTimeout(hold); end(); } });
-  img.addEventListener('contextmenu', (e) => { if (player.isPlaying) e.preventDefault(); });
+  img.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') hold = window.setTimeout(play, 300); }, on);
+  for (const type of ['pointerup', 'pointercancel'] as const) img.addEventListener(type, (e) => { if (e.pointerType !== 'mouse') { clearTimeout(hold); end(); } }, on);
+  img.addEventListener('contextmenu', (e) => { if (player.isPlaying) e.preventDefault(); }, on);
+
+  return {
+    place,
+    play,
+    destroy() {
+      ac.abort();
+      ro.disconnect();
+      clearTimeout(hold);
+      try { player.stop(); } catch { /* 还没载好 */ }
+      box.remove();
+    },
+  };
+}
+
+/** 看大图时给大图接播放器（scripts/lightbox.ts 用）：载不到 LivePhotosKit 就是 undefined，只显示照片 */
+export function attachLive(img: HTMLImageElement, photo?: string): Promise<LiveHandle | undefined> {
+  return kit().then((Kit) => bind(img, Kit, photo), () => undefined);
 }
 
 /** 图片快进入视口时才建播放器（会预先下载视频） */
@@ -117,5 +139,3 @@ function init() {
   for (const img of imgs) io.observe(img);
 }
 document.addEventListener('astro:page-load', init);
-
-export {};

@@ -238,3 +238,4 @@ export async function miniTile(cam: Cam): Promise<MiniTile> {
   return { cam, k, x: cx - W / 2 * k, y: cy - H / 2 * k, land };
 }
 
+

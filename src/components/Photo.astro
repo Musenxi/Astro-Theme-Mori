@@ -1,17 +1,20 @@
 ---
 /**
  * 内容里的图片：上传到图床的（src/assets/cdn.json 里有记录）直接用图床外链和几种宽度；其余和 astro:assets 的 Image 一样。
- * 是实况照片的话带上视频地址和静态照片的时间点（播放见 scripts/live.ts）
+ * 是实况照片的话带上视频地址和静态照片的时间点（播放见 scripts/live.ts）；有 EXIF 的带上拍摄参数（看大图时显示，见 lib/exif.ts）
  */
 import { Image } from 'astro:assets';
 import type { ComponentProps } from 'astro/types';
 import { remoteOf } from '../lib/cdn.ts';
 import { liveOf } from '../lib/live.ts';
+import { exifOf } from '../lib/exif.ts';
 
 type Props = ComponentProps<typeof Image>;
 const props = Astro.props;
 const remote = remoteOf(props.src);
 const live = liveOf(props.src);
+const ex = await exifOf(props.src);
+const exif = ex && JSON.stringify(ex);
 const { class: cls, style, alt, sizes, width, height, loading } = props as Props & { class?: string; style?: unknown };
 // 只给了一边尺寸（图组里按高度排）：另一边按原图比例算
 const w = remote && (width ? Number(width) : height ? Math.round((Number(height) * remote.width) / remote.height) : remote.width);
@@ -21,7 +24,7 @@ const h = remote && (height ? Number(height) : width ? Math.round((Number(width)
 {remote ? (
   // style 是调用方写的 CSS 变量（自由排布的位置），在调用方那里已经检查过，这里只是转交
   // eslint-disable-next-line shadcn/no-inline-styles
-  <img src={remote.url(1600)} srcset={remote.srcset || undefined} sizes={sizes} width={w} height={h} alt={alt} class={cls} style={style} loading={loading ?? 'lazy'} decoding="async" data-live={live?.video} data-photo-time={live?.time} />
+  <img src={remote.url(1600)} srcset={remote.srcset || undefined} sizes={sizes} width={w} height={h} alt={alt} class={cls} style={style} loading={loading ?? 'lazy'} decoding="async" data-live={live?.video} data-photo-time={live?.time} data-exif={exif} />
 ) : (
-  <Image {...props} data-live={live?.video} data-photo-time={live?.time} />
+  <Image {...props} data-live={live?.video} data-photo-time={live?.time} data-exif={exif} />
 )}
