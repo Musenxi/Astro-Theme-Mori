@@ -1,7 +1,7 @@
 /* 实况照片（scripts/live.ts）：盖在图片上的 LivePhotosKit 播放器；“LIVE”标记放在照片的左上角 */
 img[data-live]{-webkit-touch-callout:none}
 /* 实况照片不裁：正文里按原比例；游记网格的格子大小不变，照片在格子里完整显示（压过 aspect-video / object-cover） */
-img[data-live]{object-fit:contain!important}
+img[data-live]:not([data-lb]){object-fit:contain!important}
 .prose img[data-live]{aspect-ratio:auto!important}
 .live-box{position:absolute;overflow:hidden;pointer-events:none;transition:opacity .8s ease}
 .live-box .lpk-live-photo-player{position:absolute!important}

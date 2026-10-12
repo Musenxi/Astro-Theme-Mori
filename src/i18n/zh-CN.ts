@@ -22,7 +22,7 @@ export default {
   'js.lb.prog1': '手动', 'js.lb.prog2': '程序自动', 'js.lb.prog3': '光圈优先', 'js.lb.prog4': '快门优先',
   'js.lb.meter1': '平均', 'js.lb.meter2': '中央重点', 'js.lb.meter3': '点测光', 'js.lb.meter4': '多点', 'js.lb.meter5': '多区', 'js.lb.meter6': '局部',
   'js.lb.wb0': '自动', 'js.lb.wb1': '手动', 'js.lb.flash0': '未闪光', 'js.lb.flash1': '闪光',
-  'notfound.title': '找不到这一页', 'notfound.h': '这一页不在目次里。', 'notfound.back': '回到目次',
+  'nav.map': '地图', 'js.map.n': '{n} 张照片', 'map.spots': '{n} 处', 'map.locate': '我的位置', 'map.sw': '西南', 'map.ne': '东北', 'map.area': '约 {n} km²', 'map.empty': '还没有带位置的照片。', 'map.zoomIn': '放大', 'map.zoomOut': '缩小', 'map.fit': '看全部', 'notfound.title': '找不到这一页', 'notfound.h': '这一页不在目次里。', 'notfound.back': '回到目次',
   'search.title': '搜索', 'search.cats': '分类', 'search.clear': '清除',
   'friends.lost': '已失联', 'comments.title': '评论',
   // ↓ 浏览器里的脚本用

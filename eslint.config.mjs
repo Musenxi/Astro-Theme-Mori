@@ -11,6 +11,8 @@ import { defineConfig } from 'eslint/config';
 const hooks = [
   // 脚本（scripts/*.ts）用来找元素的类名，没有样式
   'dg', 'dot', 'f-sec', 'f-sh', 'fcon', 'fo-more', 'he', 'he-item', 'here', 'itin', 'lab', 'lb-img', 'map', 'mark', 'route-p', 't-end', 't-hero',
+  // 地图页：样式写在不进层的 styles/atlas.css 里（要压过 MapLibre 自带的样式）
+  'atlas-i', 'atlas-info', 'atlas-info-sep', 'atlas-info-chev',
 ];
 
 export default defineConfig([

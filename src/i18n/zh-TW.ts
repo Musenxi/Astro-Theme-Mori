@@ -23,7 +23,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'js.lb.prog1': '手動', 'js.lb.prog2': '程式自動', 'js.lb.prog3': '光圈優先', 'js.lb.prog4': '快門優先',
   'js.lb.meter1': '平均', 'js.lb.meter2': '中央重點', 'js.lb.meter3': '點測光', 'js.lb.meter4': '多點', 'js.lb.meter5': '多區', 'js.lb.meter6': '局部',
   'js.lb.wb0': '自動', 'js.lb.wb1': '手動', 'js.lb.flash0': '未閃光', 'js.lb.flash1': '閃光',
-  'notfound.title': '找不到這一頁', 'notfound.h': '這一頁不在目次裡。', 'notfound.back': '回到目次',
+  'nav.map': '地圖', 'js.map.n': '{n} 張照片', 'map.spots': '{n} 處', 'map.locate': '我的位置', 'map.sw': '西南', 'map.ne': '東北', 'map.area': '約 {n} km²', 'map.empty': '還沒有帶位置的照片。', 'map.zoomIn': '放大', 'map.zoomOut': '縮小', 'map.fit': '看全部', 'notfound.title': '找不到這一頁', 'notfound.h': '這一頁不在目次裡。', 'notfound.back': '回到目次',
   'search.title': '搜尋', 'search.cats': '分類', 'search.clear': '清除',
   'friends.lost': '已失聯', 'comments.title': '留言',
   'js.theme.toLight': '晝', 'js.theme.toDark': '夜',

@@ -233,7 +233,7 @@ export const postSchema = ({ image }: SchemaContext) =>
 /* ───────────── 页面（关于、留言……）与友人帐 ───────────── */
 
 /** 页面的网址就是文件名：/about/。这些名字已经被站点自己用了，页面不能取 */
-export const RESERVED_SLUGS = ['posts', 'archive', 'category', 'search', 'travels', 'feed', 'rss', '404', 'sitemap', 'robots', 'favicon', '_astro', 'api', 'live'];
+export const RESERVED_SLUGS = ['posts', 'archive', 'category', 'search', 'travels', 'feed', 'rss', '404', 'sitemap', 'robots', 'favicon', '_astro', 'api', 'live', 'map'];
 
 /** 独立页面：正文和文章用同一套块。template 为 friends 的页面，正文后面接友人帐 */
 export const pageSchema = ({ image }: SchemaContext) =>

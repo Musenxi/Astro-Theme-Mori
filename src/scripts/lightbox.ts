@@ -5,7 +5,7 @@
  * 实况照片在放大（或翻页）落定后给大图接上播放器，挪动时先藏起来，关的时候拆掉。
  * 事件挂在 document 上，只绑一次；每次都现查 #lb，因为换页后它是新节点。
  */
-import { lgFilter, lgSpec } from './lg.ts';
+import { glassButtons } from './lg.ts';
 import { t } from './i18n.ts';
 import { attachLive, type LiveHandle } from './live.ts';
 import { drawMap } from './photo-map.ts';
@@ -13,7 +13,7 @@ import { drawMap } from './photo-map.ts';
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const narrow = matchMedia('(max-width: 760px)');
 const EASE = 'cubic-bezier(.2,.75,.15,1)';
-const SEL = '.blk img, .prose figure img';
+const SEL = '.blk img, .prose figure img, img[data-lb]'; // data-lb：别处想用灯箱的图（地图页的卡片）
 let source: HTMLImageElement | null = null;
 let list: HTMLImageElement[] = [];
 let anim: Animation | null = null;
@@ -75,16 +75,8 @@ function infoPref() {
   return !narrow.matches;
 }
 
-/** 圆钮的玻璃：高光贴图，Chromium 里再加折射（几个钮一样大，共用一个滤镜） */
-function glass() {
-  const btns = [...$lb().querySelectorAll<HTMLElement>('.lg')].filter((el) => el.offsetWidth);
-  if (!btns.length) return;
-  const spec = `url(${lgSpec(Math.round(btns[0].offsetWidth), Math.round(btns[0].offsetHeight))})`;
-  btns.forEach((el) => el.style.setProperty('--lg-spec', spec));
-  if (!document.documentElement.classList.contains('lg-refract')) return;
-  $('#lg-defs-lb').innerHTML = lgFilter('lg-f-lb', btns[0]);
-  btns.forEach((el) => el.style.setProperty('--lg-f', 'url(#lg-f-lb) blur(4px) saturate(1.7) brightness(1.05)'));
-}
+/** 圆钮的玻璃（几个钮一样大，共用一个滤镜） */
+const glass = () => glassButtons([...$lb().querySelectorAll<HTMLElement>('.lg')], $lb().querySelector('#lg-defs-lb'), 'lg-f-lb');
 
 // —— 信息栏 ——
 interface Exif {
@@ -108,13 +100,11 @@ function figure(value: string, unit: string, label: string, pre = '') {
   return cell;
 }
 
-/** 位置图的框（地图本身等信息栏看得见时再画，见 showMap）；点开在 OpenStreetMap 看 */
+/** 位置图的框（地图本身等信息栏看得见时再画，见 showMap）；点开去站点的地图页，定位到这里（/map/?at=经度,纬度） */
 function placeMap(e: Exif) {
   const [lng, lat] = e.gps!;
   const a = el('a', 'relative mt-3 block aspect-[16/10] overflow-hidden rounded-[10px] border border-(--glass-line) bg-background');
-  a.href = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;
-  a.target = '_blank';
-  a.rel = 'noopener';
+  a.href = `/map/?at=${lng},${lat}`;
   a.id = 'lb-map';
   a.dataset.at = `${lng},${lat}`;
   a.setAttribute('aria-label', t('js.lb.place'));

@@ -71,3 +71,14 @@ export function lgFilter(id: string, el: HTMLElement, r?: number) {
 
 // backdrop-filter:url() 只有 Chromium 支持；其他浏览器退回轻模糊 + 高光，边缘不弯
 export const refractOk = !!(navigator as any).userAgentData && CSS.supports('backdrop-filter', 'url(#a)');
+
+/** 一组一样大的玻璃圆钮（灯箱、地图页的控件）：高光贴图，Chromium 里再加折射，共用一个滤镜 id，写进 defs */
+export function glassButtons(btns: HTMLElement[], defs: Element | null, id: string) {
+  btns = btns.filter((el) => el.offsetWidth);
+  if (!btns.length) return;
+  const spec = `url(${lgSpec(Math.round(btns[0].offsetWidth), Math.round(btns[0].offsetHeight))})`;
+  btns.forEach((el) => el.style.setProperty('--lg-spec', spec));
+  if (!document.documentElement.classList.contains('lg-refract') || !defs) return;
+  defs.innerHTML = lgFilter(id, btns[0]);
+  btns.forEach((el) => el.style.setProperty('--lg-f', `url(#${id}) blur(4px) saturate(1.7) brightness(1.05)`));
+}

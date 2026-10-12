@@ -23,7 +23,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'js.lb.prog1': 'Manual', 'js.lb.prog2': 'Program AE', 'js.lb.prog3': 'Aperture priority', 'js.lb.prog4': 'Shutter priority',
   'js.lb.meter1': 'Average', 'js.lb.meter2': 'Center-weighted', 'js.lb.meter3': 'Spot', 'js.lb.meter4': 'Multi-spot', 'js.lb.meter5': 'Pattern', 'js.lb.meter6': 'Partial',
   'js.lb.wb0': 'Auto', 'js.lb.wb1': 'Manual', 'js.lb.flash0': 'Off', 'js.lb.flash1': 'Fired',
-  'notfound.title': 'Page not found', 'notfound.h': 'This page is not in the contents.', 'notfound.back': 'Back to contents',
+  'nav.map': 'Map', 'js.map.n': '{n} photos', 'map.spots': '{n} places', 'map.locate': 'My location', 'map.sw': 'SW', 'map.ne': 'NE', 'map.area': '~{n} km²', 'map.empty': 'No geotagged photos yet.', 'map.zoomIn': 'Zoom in', 'map.zoomOut': 'Zoom out', 'map.fit': 'Show all', 'notfound.title': 'Page not found', 'notfound.h': 'This page is not in the contents.', 'notfound.back': 'Back to contents',
   'search.title': 'Search', 'search.cats': 'Categories', 'search.clear': 'Clear',
   'friends.lost': 'Lost contact', 'comments.title': 'Comments',
   'js.theme.toLight': 'Day', 'js.theme.toDark': 'Night',

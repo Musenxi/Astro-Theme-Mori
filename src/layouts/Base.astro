@@ -23,8 +23,10 @@ interface Props {
   type?: 'website' | 'article';
   /** 文章、页面的 posts/<id>、pages/<id>：用来记阅读量 */
   entry?: string;
+  /** 整屏的页面（地图）：不要页脚 */
+  bare?: boolean;
 }
-const { title, description = config.description, direction, type = 'website', entry } = Astro.props;
+const { title, description = config.description, direction, type = 'website', entry, bare } = Astro.props;
 // 阅读量、在线访客记在自建评论服务里
 const stats = config.comments?.provider === 'mori' ? config.comments.endpoint : undefined;
 const fullTitle = title ? `${title} · ${config.title}` : config.title;
@@ -94,7 +96,7 @@ const canonical = config.site ? new URL(Astro.url.pathname, config.site).href : 
   <body data-stats={stats} data-entry={stats && entry}>
     <Header />
     <slot />
-    <Footer />
+    {!bare && <Footer />}
     <Lightbox />
     <SearchPanel />
     <script>

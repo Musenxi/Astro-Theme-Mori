@@ -23,7 +23,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'js.lb.prog1': 'マニュアル', 'js.lb.prog2': 'プログラムAE', 'js.lb.prog3': '絞り優先', 'js.lb.prog4': 'シャッター優先',
   'js.lb.meter1': '平均', 'js.lb.meter2': '中央重点', 'js.lb.meter3': 'スポット', 'js.lb.meter4': 'マルチスポット', 'js.lb.meter5': 'マルチパターン', 'js.lb.meter6': '部分',
   'js.lb.wb0': 'オート', 'js.lb.wb1': 'マニュアル', 'js.lb.flash0': '発光なし', 'js.lb.flash1': '発光',
-  'notfound.title': 'ページが見つかりません', 'notfound.h': 'このページは目次にありません。', 'notfound.back': '目次へ戻る',
+  'nav.map': '地図', 'js.map.n': '写真 {n} 枚', 'map.spots': '{n} か所', 'map.locate': '現在地', 'map.sw': '南西', 'map.ne': '北東', 'map.area': '約 {n} km²', 'map.empty': '位置情報のある写真はまだありません。', 'map.zoomIn': '拡大', 'map.zoomOut': '縮小', 'map.fit': 'すべて表示', 'notfound.title': 'ページが見つかりません', 'notfound.h': 'このページは目次にありません。', 'notfound.back': '目次へ戻る',
   'search.title': '検索', 'search.cats': 'カテゴリー', 'search.clear': 'クリア',
   'friends.lost': '音信不通', 'comments.title': 'コメント',
   'js.theme.toLight': '昼', 'js.theme.toDark': '夜',
