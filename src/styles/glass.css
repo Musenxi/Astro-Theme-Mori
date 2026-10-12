@@ -5,8 +5,8 @@
 /* 液态玻璃（做法参考 kube.io/blog/liquid-glass-css-svg）：轻模糊 + 提饱和；边缘一圈按 squircle 斜面和斯涅尔定律算出折射位移（SVG 位移贴图），
    再叠一张按边的朝向算出的高光贴图。backdrop-filter:url() 只有 Chromium 支持，其余浏览器退回轻模糊 + 高光，边缘不弯。 */
 :root{
-  --lg-tint:rgba(255,255,255,.2);--lg-spec-o:1;--lg-rim:rgba(255,255,255,.95);--lg-rim-2:rgba(60,45,30,.16);--lg-glow:rgba(255,255,255,.55);--lg-drop:rgba(60,45,30,.3);--lg-lens:rgba(255,255,255,.62);--lg-lens-rim:rgba(255,255,255,1);--lg-fg:var(--soft-foreground);--lg-fg-on:var(--foreground);
-  @variant dark{--lg-tint:rgba(24,22,20,.3);--lg-spec-o:.7;--lg-rim:rgba(255,255,255,.34);--lg-rim-2:rgba(255,255,255,.12);--lg-glow:rgba(255,255,255,.05);--lg-drop:rgba(0,0,0,.55);--lg-lens:rgba(255,255,255,.12);--lg-lens-rim:rgba(255,255,255,.3)}
+  --lg-tint:rgba(255,255,255,.2);--lg-spec-o:1;--lg-rim:rgba(255,255,255,.95);--lg-rim-2:rgba(60,45,30,.16);--lg-glow:rgba(255,255,255,.55);--lg-drop:rgba(60,45,30,.3);--lg-lens:rgba(255,255,255,.62);--lg-lens-rim:rgba(255,255,255,1);--lg-fg:#000;--lg-fg-on:#000;
+  @variant dark{--lg-fg:#fff;--lg-fg-on:#fff;--lg-tint:rgba(24,22,20,.3);--lg-spec-o:.7;--lg-rim:rgba(255,255,255,.34);--lg-rim-2:rgba(255,255,255,.12);--lg-glow:rgba(255,255,255,.05);--lg-drop:rgba(0,0,0,.55);--lg-lens:rgba(255,255,255,.12);--lg-lens-rim:rgba(255,255,255,.3)}
 }
 .lg{position:relative;border-radius:999px;background:var(--lg-tint);
   -webkit-backdrop-filter:blur(5px) saturate(1.7) brightness(1.05);backdrop-filter:blur(5px) saturate(1.7) brightness(1.05);
