@@ -15,7 +15,3 @@ a:hover .ul,a.ul:hover{background-size:100% 1px}
 @media (max-width:760px){
   .g > *,.prose > *{grid-column:1/-1!important}
 }
-/* 位置点的呼吸：一圈晕慢慢放大、淡出（灯箱位置图） */
-@keyframes breathe{0%{transform:translate(-50%,-50%) scale(.6);opacity:.45}70%,100%{transform:translate(-50%,-50%) scale(1.9);opacity:0}}
-.breathe{animation:breathe 2.4s cubic-bezier(.2,.6,.3,1) infinite}
-@media (prefers-reduced-motion:reduce){.breathe{animation:none;opacity:.2}}
