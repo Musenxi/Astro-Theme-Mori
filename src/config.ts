@@ -1,6 +1,7 @@
 /** mori.config.ts 的形状（spec §9）。只放可序列化的值——它会通过虚拟模块 `virtual:mori/config` 送到页面里 */
 
 import { makeT, verticalOk, type Lang } from './i18n/index.ts';
+import { DEFAULT_ICON } from './lib/site-icon.mjs';
 export type { Lang } from './i18n/index.ts';
 
 export interface MoriCategory {
@@ -52,6 +53,8 @@ export interface MoriUserConfig {
   site?: string;
   /** 刊名，页头左上角的纯文字。默认 MORI */
   title?: string;
+  /** 站点图标（favicon）：navy（默认）/ blue / ink / paper 四种预设，或者 public/ 里的图片地址，如 /icon.png */
+  icon?: string;
   /** 作者（博主）。Studio 里以博主身份评论时用：名字、邮箱（只用来换成头像）、网址 */
   author?: { name?: string; email?: string; url?: string };
   /** 界面语言：zh-CN（默认）/ zh-TW / en / ja。英文站自动关闭竖排和手卷方向 */
@@ -94,7 +97,7 @@ export interface MoriUserConfig {
   head?: string;
 }
 
-export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'accent' | 'categories' | 'nav'>> {
+export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'icon' | 'accent' | 'categories' | 'nav'>> {
   site?: string;
   lang: Lang;
   accentDark?: string;
@@ -121,6 +124,7 @@ export function resolveConfig(c: MoriUserConfig): MoriConfig {
     site: c.site,
     lang,
     title: c.title ?? 'MORI',
+    icon: c.icon?.trim() || DEFAULT_ICON,
     description: c.description ?? '',
     accent: c.accent ?? '#002fa7',
     accentDark: c.accentDark,

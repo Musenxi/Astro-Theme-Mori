@@ -17,7 +17,8 @@
     "./flow": "./src/lib/flow.mjs",
     "./avatar": "./src/lib/avatar.mjs",
     "./comment-md": "./src/lib/comment-md.mjs",
-    "./lucide": "./src/lib/lucide.ts"
+    "./lucide": "./src/lib/lucide.ts",
+    "./site-icon": "./src/lib/site-icon.mjs"
   },
   "bin": {
     "mori-md": "./bin/mori-md.mjs"
