@@ -49,8 +49,8 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
             {it.group.map((g) => {
               switch (g.type) {
                 case 'h': return g.level === 3
-                  ? <h3 class={`${vgap} font-normal tracking-[.08em] scroll-mt-(--toc-top)`} id={g.id} data-b={g.id} data-align={al(g)} set:html={html(g.text)} />
-                  : <h2 class={`${vgap} text-chapter font-normal tracking-[.18em] scroll-mt-(--toc-top) [margin-block-end:.8em]`} id={g.id} data-b={g.id} data-align={al(g)} set:html={html(g.text)} />;
+                  ? <h3 class={`${vgap} font-bold tracking-[.08em] scroll-mt-(--toc-top)`} id={g.id} data-b={g.id} data-align={al(g)} set:html={html(g.text)} />
+                  : <h2 class={`${vgap} text-chapter font-bold tracking-[.18em] scroll-mt-(--toc-top) [margin-block-end:.8em]`} id={g.id} data-b={g.id} data-align={al(g)} set:html={html(g.text)} />;
                 case 'quote': return (
                   <blockquote class={`${vgap} border-r border-r-primary pr-[1.1em] text-heading text-foreground`} data-b={g.id} data-align={al(g)}>
                     <Fragment set:html={html(g.text)} />
@@ -101,7 +101,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         case 'h': {
           if (b.level === 3) return <h3 class={`${main} scroll-mt-(--toc-top)`} id={b.id} data-b={b.id} data-align={al(b)} set:html={html(b.text)} />;
           return (
-            <h2 class={`${main} mt-[2.6em] mb-[.9em] scroll-mt-(--toc-top) text-chapter leading-[1.5] font-normal tracking-[.08em]`} id={b.id} data-b={b.id} data-align={al(b)}>
+            <h2 class={`${main} mt-[2.6em] mb-[.9em] scroll-mt-(--toc-top) text-chapter leading-[1.5] font-bold tracking-[.08em]`} id={b.id} data-b={b.id} data-align={al(b)}>
               <Fragment set:html={html(b.text)} />
             </h2>
           );
