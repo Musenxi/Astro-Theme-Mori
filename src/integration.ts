@@ -3,6 +3,7 @@ import { existsSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs
 import { basename, extname, join } from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
+import { preloadFonts } from './lib/font-preload.mjs';
 import { resolveConfig, type MoriUserConfig } from './config.ts';
 
 export { defineMoriConfig } from './config.ts';
@@ -43,7 +44,10 @@ export default function mori(userConfig: MoriUserConfig): AstroIntegration {
           },
         });
       },
-      'astro:build:done': ({ dir, logger }) => dropUploadedOriginals(fileURLToPath(dir), logger),
+      'astro:build:done': ({ dir, logger }) => {
+        dropUploadedOriginals(fileURLToPath(dir), logger);
+        preloadFonts(fileURLToPath(dir), logger);
+      },
     },
   };
 }
