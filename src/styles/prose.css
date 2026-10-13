@@ -1,3 +1,7 @@
+/* 字重：正文用 Light，标题用 Regular（标题在 PostBody / TravelBody 里写 font-normal）；作者标的粗体仍是 Bold */
+.prose,.b-text{font-weight:300}
+.prose strong,.prose b,.b-text strong,.b-text b{font-weight:700}
+
 /* 文章正文里的行内内容：上标编号、行内代码、链接。块级版式在 PostBody.astro 里 */
 .prose sup{font-size:var(--text-meta);color:var(--primary);margin-right:4px}
 .b-text sup.nref{font-size:var(--text-meta)}
