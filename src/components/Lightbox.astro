@@ -14,7 +14,7 @@ const glyph = 'size-[18px]';
 
 <div class="lb group/lb fixed inset-0 z-50 cursor-zoom-out [--pr:0px] before:absolute before:inset-0 before:bg-(image:--grain) before:bg-lightbox before:opacity-0 before:backdrop-blur-[28px] before:backdrop-saturate-[1.3] before:transition-[opacity] before:duration-[450ms] before:content-[''] [&.ex.info]:[--pr:360px] narrow:[&.ex.info]:[--pr:0px] [&.on]:before:opacity-100" id="lb" hidden>
   <svg class="absolute" width="0" height="0" aria-hidden="true"><defs id="lg-defs-lb"></defs></svg>
-  <div class="absolute inset-0 grid place-items-center pt-[72px] pr-[calc(88px_+_var(--pr))] pb-[64px] pl-[88px] narrow:pt-[64px] narrow:pr-3 narrow:pb-[60px] narrow:pl-3" id="lb-stage">
+  <div class="absolute inset-0 isolate z-0 grid place-items-center pt-[72px] pr-[calc(88px_+_var(--pr))] pb-[64px] pl-[88px] narrow:pt-[64px] narrow:pr-3 narrow:pb-[60px] narrow:pl-3" id="lb-stage">
     <img class="lb-img relative block h-auto max-h-full w-auto max-w-full object-contain will-change-[transform,clip-path]" alt="" />
   </div>
 
@@ -22,7 +22,7 @@ const glyph = 'size-[18px]';
     <span class="mono empty:hidden" id="lb-n"></span><span class="min-w-0 overflow-hidden text-ellipsis empty:hidden" id="lb-t"></span><span class="meta empty:hidden" id="lb-k"></span>
   </p>
 
-  <div class="absolute top-[18px] right-[calc(18px_+_var(--pr))] flex gap-2.5 opacity-0 [transition:opacity_.4s_ease_.12s,right_.55s_var(--ease-mori)] group-[.on]/lb:opacity-100 narrow:top-3 narrow:right-3" id="lb-ctl">
+  <div class="absolute z-20 top-[18px] right-[calc(18px_+_var(--pr))] flex gap-2.5 opacity-0 [transition:opacity_.4s_ease_.12s,right_.55s_var(--ease-mori)] group-[.on]/lb:opacity-100 narrow:top-3 narrow:right-3" id="lb-ctl">
     <button class:list={[btn, 'hidden group-[.ex]/lb:grid aria-pressed:bg-(--lg-lens) aria-pressed:text-(--lg-fg-on)']} id="lb-i" type="button" aria-pressed="false" aria-controls="lb-info" title={t('js.lb.info')} aria-label={t('js.lb.info')} set:html={iconSvg('info', glyph)} />
     <button class={btn} id="lb-x" type="button" title={t('js.lb.close')} aria-label={t('js.lb.close')} set:html={iconSvg('x', glyph)} />
   </div>
@@ -30,7 +30,7 @@ const glyph = 'size-[18px]';
   <button class:list={[btn, 'absolute top-1/2 left-[22px] -mt-5 opacity-0 group-[.on]/lb:opacity-100 disabled:pointer-events-none disabled:opacity-0! narrow:hidden [&_.chev]:m-0']} id="lb-prev" type="button" title={t('js.lb.prev')} aria-label={t('js.lb.prev')} disabled><Chevron dir="left" /></button>
   <button class:list={[btn, 'absolute top-1/2 right-[calc(22px_+_var(--pr))] -mt-5 opacity-0 group-[.on]/lb:opacity-100 disabled:pointer-events-none disabled:opacity-0! narrow:hidden [&_.chev]:m-0']} id="lb-next" type="button" title={t('js.lb.next')} aria-label={t('js.lb.next')} disabled><Chevron /></button>
 
-  <aside class="pointer-events-none absolute top-0 right-0 bottom-0 w-[360px] cursor-auto overflow-y-auto overscroll-contain border-l border-(--glass-line) bg-(--glass) px-8 pt-[78px] pb-10 opacity-0 [transform:translateX(24px)] [transition:opacity_.35s_ease,transform_.55s_var(--ease-mori)] group-[.ex.info.on]/lb:pointer-events-auto group-[.ex.info.on]/lb:opacity-100 group-[.ex.info.on]/lb:[transform:none] narrow:top-auto narrow:left-0 narrow:max-h-[64vh] narrow:w-auto narrow:rounded-t-[20px] narrow:border-t narrow:border-l-0 narrow:px-5 narrow:pt-6 narrow:pb-[calc(24px_+_env(safe-area-inset-bottom))] narrow:backdrop-blur-[18px] narrow:backdrop-saturate-[1.4] narrow:[transform:translateY(100%)] narrow:group-[.ex.info.on]/lb:[transform:none]" id="lb-info" aria-label={t('js.lb.info')}>
+  <aside class="pointer-events-none absolute z-10 top-0 right-0 bottom-0 w-[360px] cursor-auto overflow-y-auto overscroll-contain border-l border-(--glass-line) bg-(--glass) px-8 pt-[78px] pb-10 opacity-0 [transform:translateX(24px)] [transition:opacity_.35s_ease,transform_.55s_var(--ease-mori)] group-[.ex.info.on]/lb:pointer-events-auto group-[.ex.info.on]/lb:opacity-100 group-[.ex.info.on]/lb:[transform:none] narrow:top-auto narrow:left-0 narrow:max-h-[64vh] narrow:w-auto narrow:rounded-t-[20px] narrow:border-t narrow:border-l-0 narrow:px-5 narrow:pt-6 narrow:pb-[calc(24px_+_env(safe-area-inset-bottom))] narrow:backdrop-blur-[18px] narrow:backdrop-saturate-[1.4] narrow:[transform:translateY(100%)] narrow:group-[.ex.info.on]/lb:[transform:none]" id="lb-info" aria-label={t('js.lb.info')}>
     <p class="text-item leading-[1.4] text-foreground empty:hidden" id="lb-cam"></p>
     <p class="mt-1 text-aux leading-[1.5] text-soft-foreground empty:hidden" id="lb-lens"></p>
     <div class="mt-7 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-(--glass-line) pt-6 empty:hidden" id="lb-par"></div>
