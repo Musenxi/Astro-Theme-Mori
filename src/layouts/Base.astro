@@ -110,6 +110,7 @@ const iconType = ({ svg: 'image/svg+xml', png: 'image/png', ico: 'image/x-icon',
       })();
     </script>
     <script type="application/json" id="mori-i18n" is:inline set:html={clientJson} />
+    <slot name="head" />
     <ClientRouter />
     <!-- 设定里填的自定义代码（统计脚本之类）：只放进构建出来的站点 -->
     {import.meta.env.PROD && config.head && <Fragment set:html={config.head} />}

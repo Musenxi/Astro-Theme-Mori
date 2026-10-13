@@ -6,6 +6,7 @@ import PostBody from '../../components/PostBody.astro';
 import PostToc from '../../components/PostToc.astro';
 import TravelArticle from '../../components/TravelArticle.astro';
 import TravelCorners from '../../components/TravelCorners.astro';
+import CommentStyles from '../../components/CommentStyles.astro';
 import Comments from '../../components/Comments.astro';
 import EntryNav from '../../components/EntryNav.astro';
 import { getEntries } from '../../lib/entries.ts';
@@ -34,6 +35,7 @@ const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | '
 ---
 
 <Base title={d.title} description={d.excerpt} type="article" entry={`posts/${entry.id}`}>
+  <CommentStyles slot="head" />
   {flow ? (
     <main data-page="travel">
       <TravelArticle entry={entry} flow={flow} />

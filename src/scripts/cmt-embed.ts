@@ -1,7 +1,7 @@
 /**
  * 第三方评论（spec §5.2）：giscus / waline / twikoo / artalk / disqus。只有文末评论，没有划词引用评论。
  * 都是进入视口才加载脚本；每次换页都用新的页面标识重新加载；昼夜切换时同步给评论框。
- * 脚本和样式来自各家的 CDN（jsdelivr / unpkg / giscus.app）。
+ * 脚本来自各家的 CDN（jsdelivr / unpkg / giscus.app）；Waline、Artalk 的样式表在构建时写进 <head>（CommentStyles.astro）。
  */
 import { t } from './i18n.ts';
 type Cfg = Record<string, any> & { provider: string };
@@ -20,12 +20,6 @@ function loadScript(src: string) {
   }));
   return loaded.get(src)!;
 }
-function loadCss(href: string) {
-  if (document.querySelector(`link[href="${href}"]`)) return;
-  const l = document.createElement('link');
-  l.rel = 'stylesheet'; l.href = href;
-  document.head.appendChild(l);
-}
 
 /** 昼夜切换时通知评论框（<html data-theme> 变了） */
 function onThemeChange(fn: () => void) {
@@ -35,7 +29,28 @@ function onThemeChange(fn: () => void) {
   return () => mo.disconnect();
 }
 
-export async function mountEmbed(cfg: Cfg, host: HTMLElement, page: { entry: string; title: string }) {
+/**
+ * 评论框的脚本只加载一次，但有的（Twikoo）是在脚本载入时把样式写进 <head>。
+ * 换页时 Astro 会把新页面没有的 <head> 元素都清掉，样式就没了，脚本又不会再写一遍：评论框没样式，要整页刷新才好。
+ * 所以挂载期间记下它们加进 <head> 的样式，之后每次挂载前补回去。
+ */
+const injected = new Set<Element>();
+function keepHead(run: () => Promise<void>) {
+  for (const n of injected) if (!n.isConnected) document.head.append(n);
+  const mo = new MutationObserver((list) => {
+    for (const r of list) r.addedNodes.forEach((n) => {
+      if (n instanceof HTMLStyleElement || (n instanceof HTMLLinkElement && n.rel === 'stylesheet')) injected.add(n);
+    });
+  });
+  mo.observe(document.head, { childList: true });
+  return run().finally(() => setTimeout(() => mo.disconnect(), 500));
+}
+
+export function mountEmbed(cfg: Cfg, host: HTMLElement, page: { entry: string; title: string }) {
+  return keepHead(() => mount(cfg, host, page));
+}
+
+async function mount(cfg: Cfg, host: HTMLElement, page: { entry: string; title: string }) {
   host.replaceChildren();
   const box = document.createElement('div');
   box.className = 'cmt-embed';
@@ -61,7 +76,6 @@ export async function mountEmbed(cfg: Cfg, host: HTMLElement, page: { entry: str
       break;
     }
     case 'waline': {
-      loadCss('https://unpkg.com/@waline/client@v3/dist/waline.css');
       await loadScript('https://unpkg.com/@waline/client@v3/dist/waline.umd.js');
       (window as any).Waline.init({ el: box, serverURL: cfg.serverURL, path, lang: 'zh-CN', dark: 'html[data-theme="dark"]', pageview: false, comment: false });
       break;
@@ -73,7 +87,6 @@ export async function mountEmbed(cfg: Cfg, host: HTMLElement, page: { entry: str
       break;
     }
     case 'artalk': {
-      loadCss('https://cdn.jsdelivr.net/npm/artalk@2/dist/Artalk.css');
       await loadScript('https://cdn.jsdelivr.net/npm/artalk@2/dist/Artalk.js');
       const artalk = (window as any).Artalk.init({ el: box, server: cfg.server, site: cfg.site ?? location.hostname, pageKey: path, pageTitle: page.title, darkMode: isDark() });
       onThemeChange(() => artalk.setDarkMode?.(isDark()));

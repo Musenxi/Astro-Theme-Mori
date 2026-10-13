@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import PostHeader from '../components/PostHeader.astro';
 import PostBody from '../components/PostBody.astro';
 import Friends from '../components/Friends.astro';
+import CommentStyles from '../components/CommentStyles.astro';
 import Comments from '../components/Comments.astro';
 import { getPages } from '../lib/pages.ts';
 import type { PageEntry } from '../lib/pages.ts';
@@ -21,6 +22,7 @@ const d = page.data;
 ---
 
 <Base title={d.title} description={d.excerpt || undefined} entry={`pages/${page.id}`}>
+  {d.comments && <CommentStyles slot="head" />}
   <main data-page="page">
     <PostHeader title={d.title} sub={d.subtitle || undefined} center />
     {d.blocks.length > 0 && <PostBody blocks={d.blocks} notes={d.notes} />}

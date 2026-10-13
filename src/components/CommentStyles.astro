@@ -1,0 +1,16 @@
+---
+/**
+ * 第三方评论框的样式表：按 mori.config.ts 里选的评论服务，构建时直接写进 <head>。
+ * 放在 <head> 里的样式表换页时 Astro 会留着，不用等评论脚本来加。不挡首屏：先当 print 载入，载完再套上。
+ * 只有 Waline、Artalk 有独立的样式表；Twikoo 的样式在它的脚本里（cmt-embed.ts 管），Giscus、Disqus 在各自的 iframe 里。
+ */
+import config from 'virtual:mori/config';
+
+const SHEETS: Record<string, string> = {
+  waline: 'https://unpkg.com/@waline/client@v3/dist/waline.css',
+  artalk: 'https://cdn.jsdelivr.net/npm/artalk@2/dist/Artalk.css',
+};
+const href = SHEETS[config.comments?.provider ?? ''];
+---
+
+{href && <link rel="stylesheet" href={href} media="print" onload="this.media='all'" />}
