@@ -20,6 +20,10 @@
 @import "./embed.css";
 @import "./vt-chrome.css";
 
+/* 东观体到之前用系统宋体顶上；直接写 "Songti SC" 时 Chrome 画不出它的细体，所以按字重指名 */
+@font-face { font-family: "Mori Songti"; src: local("STSongti-SC-Light"); font-weight: 100 450; }
+@font-face { font-family: "Mori Songti"; src: local("STSongti-SC-Bold"); font-weight: 451 1000; }
+
 /* 昼夜：<html data-theme> 手动切换优先；没有手动选择时跟系统 */
 @custom-variant dark {
   &:where([data-theme="dark"], [data-theme="dark"] *) {
@@ -48,9 +52,9 @@
 
 @theme static {
   /* 西文和数字用 EB Garamond（只认拉丁字符，见 fonts/EBGaramond/font.css），中文用东观体 */
-  --font-serif: "EB Garamond", "STDongGuanTi", "Songti SC", "Noto Serif SC", serif;
+  --font-serif: "EB Garamond", "STDongGuanTi", "Mori Songti", "Songti SC", "Noto Serif SC", serif;
   /* 等宽只给代码；其中的中文落回正文的宋体，不掉到系统黑体上 */
-  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, "STDongGuanTi", "Songti SC", monospace;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, "STDongGuanTi", "Mori Songti", "Songti SC", monospace;
   /* 字号：以正文 17px 为基准，全站只用这些，不再写 text-[Npx]。最小 14px，没有更小的字。
      em 写的相对字号（行内 code、注号、游记里的 h3/引注）跟着所在段落走，不算在内。 */
   --text-meta: 14px; /* 附属：日期、分类、计数、图注、引注、刻度、坐标、编号 */
