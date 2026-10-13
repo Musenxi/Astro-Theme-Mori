@@ -9,9 +9,6 @@ import Lightbox from '../components/Lightbox.astro';
 import SearchPanel from '../components/SearchPanel.astro';
 
 import '../../fonts/EBGaramond/font.css';
-import '../../fonts/STD/light/font.css';
-import '../../fonts/STD/regular/font.css';
-import '../../fonts/STD/bold/font.css';
 import '@fontsource/special-elite/latin-400.css';
 import '../styles/mori.css';
 
@@ -27,7 +24,7 @@ interface Props {
   /** 整屏的页面（地图）：不要页脚 */
   bare?: boolean;
 }
-const { title, description = config.description, direction, type = 'website', entry, bare } = Astro.props;
+const { title, description = config.description || config.title, direction, type = 'website', entry, bare } = Astro.props;
 // 阅读量、在线访客记在自建评论服务里
 const stats = config.comments?.provider === 'mori' ? config.comments.endpoint : undefined;
 const fullTitle = title ? `${title} · ${config.title}` : config.title;
@@ -51,6 +48,26 @@ const iconType = ({ svg: 'image/svg+xml', png: 'image/png', ico: 'image/x-icon',
     {description && <meta property="og:description" content={description} />}
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href={iconHref} type={iconType} />
+    <!-- 东观体：@font-face 有四百多条（unicode-range 切片），放进首屏样式表要多传两百多 KB，字体文件本身也要几百 KB。
+         所以首屏先用系统的宋体，页面 load 之后再载入东观体（单独成文件，在 public/fonts/ 下）；换页时留着已经载入的。
+         <meta> 是占位：Astro 换页时靠它认出“这个元素新页面里也有”，不去动它 -->
+    {['regular', 'light', 'bold'].map((w) => <meta data-astro-transition-persist={`font-std-${w}`} />)}
+    <script is:inline>
+      (() => {
+        const load = () => {
+          for (const w of ['regular', 'light', 'bold']) {
+            if (document.querySelector(`link[data-astro-transition-persist="font-std-${w}"]`)) continue;
+            const l = document.createElement('link');
+            l.rel = 'stylesheet';
+            l.href = `/fonts/STD/${w}/font.css`;
+            l.dataset.astroTransitionPersist = `font-std-${w}`;
+            document.head.append(l);
+          }
+        };
+        if (document.readyState === 'complete') setTimeout(load, 0);
+        else addEventListener('load', () => setTimeout(load, 0), { once: true });
+      })();
+    </script>
     <link rel="alternate" type="application/rss+xml" title={config.title} href="/feed" />
     <!-- 昼夜：先于首次绘制，避免闪一下；换页时 <html> 的属性会被换掉，所以每次换页后再补上 -->
     <script is:inline>
