@@ -23,7 +23,7 @@ const rest = list.slice(1);
     <h1 class="sr-only">{config.title}</h1>
     {latest ? (
       <>
-        {config.home.style === 'cover' ? <Cover feature={list[0]} rest={rest} entries={entries} latest={latest} /> : plain ? <List entries={list} /> : <Opening pinned={list} latest={latest} />}
+        {config.home.style === 'cover' ? <Cover feature={list[0]} rest={rest} entries={entries} latest={latest} /> : plain ? <List entries={list} latest={latest} /> : <Opening pinned={list} latest={latest} />}
         <Contents entries={entries} latest={latest} />
       </>
     ) : (

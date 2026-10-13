@@ -10,10 +10,12 @@ import { t, fmt } from '../lib/i18n.ts';
 interface Props {
   /** 要排的文章，已按先后排好 */
   entries: Entry[];
+  /** 最新一篇，左栏的年份季节取它 */
+  latest: Entry;
 }
-const { entries: list } = Astro.props;
+const { entries: list, latest } = Astro.props;
 const label = t('home.region');
-const ld = list[0].data.date;
+const ld = latest.data.date;
 ---
 
 <section class="wrap fo pt-[clamp(36px,8vh,110px)] pb-[clamp(64px,13vh,160px)] narrow:pt-0" id="fo">
