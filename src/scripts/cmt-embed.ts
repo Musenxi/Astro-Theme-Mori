@@ -1,5 +1,5 @@
 /**
- * 第三方评论（spec §5.2）：giscus / waline / twikoo / artalk。只有文末评论，没有划词引用评论。
+ * 第三方评论（spec §5.2）：giscus / waline / twikoo / artalk / disqus。只有文末评论，没有划词引用评论。
  * 都是进入视口才加载脚本；每次换页都用新的页面标识重新加载；昼夜切换时同步给评论框。
  * 脚本和样式来自各家的 CDN（jsdelivr / unpkg / giscus.app）。
  */
@@ -77,6 +77,16 @@ export async function mountEmbed(cfg: Cfg, host: HTMLElement, page: { entry: str
       await loadScript('https://cdn.jsdelivr.net/npm/artalk@2/dist/Artalk.js');
       const artalk = (window as any).Artalk.init({ el: box, server: cfg.server, site: cfg.site ?? location.hostname, pageKey: path, pageTitle: page.title, darkMode: isDark() });
       onThemeChange(() => artalk.setDarkMode?.(isDark()));
+      break;
+    }
+    case 'disqus': {
+      box.id = 'disqus_thread';
+      box.style.colorScheme = isDark() ? 'dark' : 'light';
+      const w = window as any;
+      const config = function (this: any) { this.page.url = location.origin + path; this.page.identifier = path; };
+      if (w.DISQUS) w.DISQUS.reset({ reload: true, config });
+      else { w.disqus_config = config; await loadScript(`https://${cfg.shortname}.disqus.com/embed.js`); }
+      onThemeChange(() => { box.style.colorScheme = isDark() ? 'dark' : 'light'; w.DISQUS?.reset({ reload: true, config }); });
       break;
     }
     default:

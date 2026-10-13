@@ -92,7 +92,7 @@ publish: { target: 'cloudflare-pages', project: 'my-site' }                     
 ```ts
 comments: { provider: 'mori', endpoint: 'https://你的域名/_comments', turnstileSiteKey: '…' }   // 自建：文末评论 + 划词引用评论
 comments: { provider: 'giscus', repo: '…', repoId: '…', category: '…', categoryId: '…' }        // 第三方：只有文末评论
-// 也支持 waline（serverURL）、twikoo（envId）、artalk（server、site）
+// 也支持 waline（serverURL）、twikoo（envId）、artalk（server、site）、disqus（shortname）
 ```
 
 - **自建评论**（单独的项目 [Mori-Comment](https://github.com/Musenxi/Mori-Comment)，部署和升级见那边）：读者选中正文里的一段文字就能针对这段发表评论；引用评论和普通评论一起显示在文末评论区，带着引用的原文，点一下回到正文并临时高亮，正文里不留记号。文章改动后按“块 id + 位置 → 原文 + 前后文”重新定位，找不到的引用旁标“原文已修改”。

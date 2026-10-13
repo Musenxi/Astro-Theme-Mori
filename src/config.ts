@@ -46,7 +46,8 @@ export type MoriComments =
   | { provider: 'giscus'; repo: string; repoId: string; category: string; categoryId: string; mapping?: string }
   | { provider: 'waline'; serverURL: string }
   | { provider: 'twikoo'; envId: string }
-  | { provider: 'artalk'; server: string; site?: string };
+  | { provider: 'artalk'; server: string; site?: string }
+  | { provider: 'disqus'; shortname: string };
 
 export interface MoriUserConfig {
   /** 站点根地址，用于 canonical / RSS；部署时填 */
