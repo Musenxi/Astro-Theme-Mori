@@ -49,21 +49,23 @@ const iconType = ({ svg: 'image/svg+xml', png: 'image/png', ico: 'image/x-icon',
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" href={iconHref} type={iconType} />
     <!-- 东观体：@font-face 有四百多条（unicode-range 切片），放进首屏样式表要多传两百多 KB，字体文件本身也要几百 KB。
-         所以首屏先用系统的宋体，页面 load 之后再载入东观体（单独成文件，在 public/fonts/ 下）；换页时留着已经载入的。
-         <meta> 是占位：Astro 换页时靠它认出“这个元素新页面里也有”，不去动它 -->
-    {['regular', 'light', 'bold'].map((w) => <meta data-astro-transition-persist={`font-std-${w}`} />)}
+         所以首屏先用系统的宋体，页面 load 之后再载入东观体（单独成文件，在 public/fonts/ 下）。
+         换页时 Astro 会删掉新页面 <head> 里没有的元素，所以换页前把这几个 <link> 抄进新页面，它就认作同一个、原样留着 -->
     <script is:inline>
       (() => {
         const load = () => {
           for (const w of ['regular', 'light', 'bold']) {
-            if (document.querySelector(`link[data-astro-transition-persist="font-std-${w}"]`)) continue;
+            if (document.querySelector(`link[data-font-std="${w}"]`)) continue;
             const l = document.createElement('link');
             l.rel = 'stylesheet';
             l.href = `/fonts/STD/${w}/font.css`;
-            l.dataset.astroTransitionPersist = `font-std-${w}`;
+            l.dataset.fontStd = w;
             document.head.append(l);
           }
         };
+        document.addEventListener('astro:before-swap', (e) => {
+          for (const l of document.querySelectorAll('link[data-font-std]')) e.newDocument.head.append(l.cloneNode());
+        });
         if (document.readyState === 'complete') setTimeout(load, 0);
         else addEventListener('load', () => setTimeout(load, 0), { once: true });
       })();
