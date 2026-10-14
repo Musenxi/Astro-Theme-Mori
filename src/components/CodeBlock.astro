@@ -1,0 +1,20 @@
+---
+/** 正文里的代码块：顶上一条标头写语言，下面是构建时高亮好的代码。box 是外框（位置、底色、字体，--pad 是左右留白，标头和代码对齐用），pre 是滚动区 */
+import { highlight, langName } from '../lib/highlight.ts';
+
+interface Props {
+  id: string;
+  code: string;
+  lang?: string;
+  box: string;
+  pre: string;
+}
+const { id, code, lang, box, pre } = Astro.props;
+const name = langName(lang);
+const body = await highlight(code, lang);
+---
+
+<figure class={box} data-lang={lang}>
+  {name && <figcaption class="px-(--pad) pt-[12px] -mb-[6px] font-serif text-meta leading-[1.6] tracking-[.06em] text-muted-foreground">{name}</figcaption>}
+  <pre class={pre} data-b={id}><code set:html={body} /></pre>
+</figure>

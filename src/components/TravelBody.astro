@@ -4,6 +4,7 @@
  * 读到哪个地点由正文里的地点标记决定：每一列记着自己读到第几个地点（data-place），左下角的“当前位置”和行程表都按它走。
  */
 import Image from './Photo.astro';
+import CodeBlock from './CodeBlock.astro';
 import type { Inline, PostData } from '../schema/schema.ts';
 import type { Flow } from '../lib/flow.ts';
 import { numberNotes, renderInline } from '../lib/inline.ts';
@@ -52,7 +53,8 @@ const ht = {
   ol: 'my-[.9em] [counter-reset:li]',
   uli: `${li} py-[.2em] pl-[1.6em] before:absolute before:top-[1.05em] before:left-0 before:h-px before:w-[.7em] before:bg-muted-foreground before:content-['']`,
   oli: `${li} py-[.2em] pl-[1.6em] before:absolute before:top-[.3em] before:left-0 before:text-meta before:leading-[2] before:text-muted-foreground before:content-[counter(li)]`,
-  pre: 'my-[1em] overflow-x-auto rounded-[6px] bg-muted px-[1.1em] py-[.9em] text-soft-foreground [font:.8em/1.75_var(--font-mono)]',
+  code: 'my-[1em] overflow-hidden rounded-[6px] bg-muted text-(--code-foreground) [--pad:16px] [font:.8em/1.75_var(--font-mono)]',
+  pre: 'overflow-x-auto px-(--pad) py-[.9em]',
 };
 const vt = {
   stop: 'm-0 ml-[1.2em]',
@@ -68,7 +70,8 @@ const vt = {
   ol: 'm-0 mr-[.9em] [counter-reset:li]',
   uli: `${li} border-0 p-0 before:static before:top-[1.05em] before:left-0 before:inline before:h-auto before:w-auto before:bg-transparent before:content-['・']`,
   oli: `${li} border-0 p-0 before:static before:top-[.3em] before:left-0 before:[font-family:inherit] before:text-[1em] before:leading-[inherit] before:text-muted-foreground before:content-[counter(li,cjk-ideographic)_'、']`,
-  pre: 'm-0 mt-[.9em] max-h-full w-[22em] overflow-auto rounded-[6px] bg-muted px-[1.1em] py-[.9em] tracking-[0] text-soft-foreground [font:.8em/1.75_var(--font-mono)] [writing-mode:horizontal-tb]',
+  code: 'm-0 mt-[.9em] flex max-h-full w-[22em] flex-col overflow-hidden rounded-[6px] bg-muted tracking-[0] text-(--code-foreground) [--pad:16px] [font:.8em/1.75_var(--font-mono)] [writing-mode:horizontal-tb]',
+  pre: 'min-h-0 overflow-auto px-(--pad) py-[.9em]',
 };
 
 
@@ -129,7 +132,7 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
                       const Tag = b.ordered ? 'ol' : 'ul';
                       return <Tag class={b.ordered ? k.ol : k.ul} data-b={b.id}>{b.items.map((item) => <li class={b.ordered ? k.oli : k.uli} set:html={html(item)} />)}</Tag>;
                     }
-                    case 'code': return <pre class={k.pre} data-b={b.id} data-lang={b.lang}><code>{b.code}</code></pre>;
+                    case 'code': return <CodeBlock id={b.id} code={b.code} lang={b.lang} box={k.code} pre={k.pre} />;
                     default: {
                       const prev = c.blocks[bi - 1];
                       const afterP = prev?.type === 'p'; // 紧跟在另一段后面的段落隔开一点

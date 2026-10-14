@@ -27,6 +27,17 @@
   --glass-line: color-mix(in srgb, var(--foreground) 11%, transparent);
   --glass-hi: rgba(255, 255, 255, 0.5);
   /* 灯箱直方图的三个通道：浅色正片叠底，深色滤色，重叠处混出灰 / 白 */
+  /* 代码高亮（Shiki 的 css-variables 主题）：墨色为底，几种低饱和的颜色，函数名用主题色 */
+  --code-foreground: #3d3934;
+  --code-token-comment: #8f887c;
+  --code-token-keyword: #a3473a;
+  --code-token-string: #5b7a3a;
+  --code-token-string-expression: #5b7a3a;
+  --code-token-constant: #8c6516;
+  --code-token-function: var(--primary);
+  --code-token-parameter: #3d3934;
+  --code-token-punctuation: #7a7368;
+  --code-token-link: var(--primary);
   --hist-r: #d4573f;
   --hist-g: #55a05c;
   --hist-b: #4a72c4;
@@ -47,6 +58,14 @@
     --land-edge: #3d3832;
     --glass: color-mix(in srgb, var(--background) 56%, transparent);
     --glass-hi: rgba(255, 255, 255, 0.07);
+    --code-foreground: #d4d4d4;
+    --code-token-comment: #8a8a8a;
+    --code-token-keyword: #e3907d;
+    --code-token-string: #a9c98d;
+    --code-token-string-expression: #a9c98d;
+    --code-token-constant: #dcb767;
+    --code-token-parameter: #d4d4d4;
+    --code-token-punctuation: #9a9a9a;
     --hist-r: #e0604a;
     --hist-g: #5cb865;
     --hist-b: #5a86e0;

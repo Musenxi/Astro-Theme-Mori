@@ -1,5 +1,6 @@
 ---
 import Image from './Photo.astro';
+import CodeBlock from './CodeBlock.astro';
 import type { Inline, PostData } from '../schema/schema.ts';
 import { numberNotes, renderInline, sideRefs } from '../lib/inline.ts';
 import { axisOf } from '../lib/flow.mjs';
@@ -139,7 +140,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         }
         case 'code':
           return (
-            <pre class={`${main} mt-[.4em] mb-[1.6em] overflow-x-auto rounded-[6px] bg-muted px-[22px] py-[18px] text-soft-foreground [font:calc(var(--text-body)*.8)/1.8_var(--font-mono)]`} data-b={b.id} data-lang={b.lang}><code>{b.code}</code></pre>
+            <CodeBlock id={b.id} code={b.code} lang={b.lang} box={`${main} mt-[.4em] mb-[1.6em] overflow-hidden rounded-[6px] bg-muted text-(--code-foreground) [--pad:22px] [font:calc(var(--text-body)*.8)/1.8_var(--font-mono)]`} pre="overflow-x-auto px-(--pad) py-[18px]" />
           );
       }
     })
