@@ -1,0 +1,11 @@
+/* 代码块里的行（CodeBlock.astro 输出，每行一个 span.line）：行铺满整个滚动宽度，高亮、增删的底色才能一直拉到右边 */
+.code pre code{display:grid;min-width:max-content}
+.code .line{position:relative;padding-inline:var(--pad)}
+.code .line:empty::after{content:"\200b"}
+.code .highlighted{background:color-mix(in srgb,var(--primary) 9%,transparent);box-shadow:inset 2px 0 0 var(--primary)}
+.code .diff::before{position:absolute;left:calc(var(--pad) * .3)}
+.code .diff.add{background:color-mix(in srgb,var(--code-token-string) 13%,transparent)}
+.code .diff.add::before{content:"+";color:var(--code-token-string)}
+.code .diff.remove{background:color-mix(in srgb,var(--code-token-keyword) 11%,transparent)}
+.code .diff.remove::before{content:"−";color:var(--code-token-keyword)}
+.code .diff.remove > span{opacity:.6}

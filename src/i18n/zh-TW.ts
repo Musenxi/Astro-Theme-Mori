@@ -33,6 +33,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'js.cmt.scriptFail': '腳本載入失敗：{src}', 'js.cmt.unknown': '不認識的留言服務：{provider}',
   'js.views': '{n} 次閱讀', 'js.views.one': '1 次閱讀',
   'js.online': '{n} 人在讀',
+  'js.code.copy': '複製', 'js.code.copied': '已複製',
   'js.anno.btn': '引用留言', 'js.anno.email': '信箱 *', 'js.anno.write': '寫下你的想法…', 'js.anno.cancel': '取消', 'js.anno.posted': '留言已發表，在文末留言區', 'js.anno.pending': '已收到，通過審核後會顯示在文末留言區',
   'js.search.count': '{n} 篇', 'js.search.none': '沒有找到。換個詞試試？',
   'js.travel.mode.v': '直向', 'js.travel.mode.h': '橫向', 'js.travel.mode.m': '混合', 'js.travel.tip': '讀法：{mode}',

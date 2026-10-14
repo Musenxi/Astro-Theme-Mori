@@ -140,7 +140,7 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         }
         case 'code':
           return (
-            <CodeBlock id={b.id} code={b.code} lang={b.lang} box={`${main} mt-[.4em] mb-[1.6em] overflow-hidden rounded-[6px] bg-muted text-(--code-foreground) [--pad:22px] [font:calc(var(--text-body)*.8)/1.8_var(--font-mono)]`} pre="overflow-x-auto px-(--pad) py-[18px]" />
+            <CodeBlock id={b.id} code={b.code} lang={b.lang} filename={b.filename} highlight={b.highlight} box={`${main} mt-[.4em] mb-[1.6em] overflow-hidden rounded-[6px] bg-muted text-(--code-foreground) [--pad:16px] [font:calc(var(--text-body)*.8)/1.8_var(--font-mono)]`} pre="overflow-x-auto py-[18px]" />
           );
       }
     })

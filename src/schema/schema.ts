@@ -128,6 +128,14 @@ const picture = (image: ImageFn) => ({
 
 const noteSchema = z.object({ text: inlineSchema });
 
+/** 代码块：lang 语言；filename 标头上的文件名；highlight 要高亮的行（"1,3-5"）。行里也可以写 // [!code ++] [!code --] [!code highlight] 标出增删和高亮 */
+const codeFields = {
+  lang: z.string().optional(),
+  filename: z.string().optional(),
+  highlight: z.string().regex(/^\d+(-\d+)?(,\d+(-\d+)?)*$/, '高亮的行写成 1,3-5').optional(),
+  code: z.string(),
+};
+
 /** 普通文章（和页面）正文里的块 */
 export const articleBlocks = (image: ImageFn) => {
   return z.discriminatedUnion('type', [
@@ -143,7 +151,7 @@ export const articleBlocks = (image: ImageFn) => {
       layout: z.enum(['wide', 'inline']).default('wide'),
     }),
     z.object({ id, type: z.literal('list'), ordered: z.boolean().default(false), items: z.array(inlineSchema) }),
-    z.object({ id, type: z.literal('code'), lang: z.string().optional(), code: z.string() }),
+    z.object({ id, type: z.literal('code'), ...codeFields }),
   ]);
 };
 
@@ -171,7 +179,7 @@ export const postBlocks = (image: ImageFn) =>
     z.object({ id, type: z.literal('quote'), text: inlineSchema, cite: z.string().optional(), ...axes }),
     z.object({ id, type: z.literal('image'), ...picture(image), layout: z.enum(['wide', 'inline']).default('wide'), ...axes }),
     z.object({ id, type: z.literal('list'), ordered: z.boolean().default(false), items: z.array(inlineSchema), ...axes }),
-    z.object({ id, type: z.literal('code'), lang: z.string().optional(), code: z.string(), ...axes }),
+    z.object({ id, type: z.literal('code'), ...codeFields, ...axes }),
     /** 双图并列 */
     z.object({ id, type: z.literal('pair'), images: z.array(z.object(picture(image))).length(2), ...axes }),
     /** 横向图组：竖向读法里是可左右滑动的一行；每张图可以缩放、上下错开 */

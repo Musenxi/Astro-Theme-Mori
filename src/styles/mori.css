@@ -12,6 +12,7 @@
 @import "./opening.css" layer(components);
 @import "./cover.css" layer(components);
 @import "./prose.css" layer(components);
+@import "./code.css" layer(components);
 @import "./travel.css" layer(components);
 @import "./comments.css" layer(components);
 @import "./transitions.css" layer(components);

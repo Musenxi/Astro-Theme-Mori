@@ -305,7 +305,7 @@ export function fromLegacyTravel(doc) {
         const body = type === 'h' ? { level: 3, text: p.text }
           : type === 'quote' ? { text: p.text, ...(p.cite ? { cite: p.cite } : {}) }
           : type === 'list' ? { ordered: !!p.ordered, items: p.items }
-          : type === 'code' ? { ...(p.lang ? { lang: p.lang } : {}), code: p.code }
+          : type === 'code' ? { ...(p.lang ? { lang: p.lang } : {}), ...(p.filename ? { filename: p.filename } : {}), ...(p.highlight ? { highlight: p.highlight } : {}), code: p.code }
           : { text: p.text };
         const h = { ...(b.y !== undefined ? { y: b.y } : {}), ...(b.scale !== undefined ? { scale: b.scale } : {}), ...(vert ? { writing: 'v' } : {}) };
         return { id: p.id, type, ...body, ...(Object.keys(h).length ? { h } : {}), ...(vert ? { v: { writing: 'v' } } : {}) };

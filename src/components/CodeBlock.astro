@@ -1,20 +1,40 @@
 ---
-/** 正文里的代码块：顶上一条标头写语言，下面是构建时高亮好的代码。box 是外框（位置、底色、字体，--pad 是左右留白，标头和代码对齐用），pre 是滚动区 */
+/**
+ * 正文里的代码块：有文件名或语言时顶上一条标头（左边文件名，右边语言；没有文件名就只写语言），下面是构建时高亮好的代码。
+ * box 是外框（位置、底色、字体，--pad 是左右留白，标头和每一行都按它对齐），pre 是滚动区。行的样式在 code.css
+ * 悬停时代码区右上角出现复制按钮（触屏上一直显示），点了由 scripts/code.ts 复制
+ */
 import { highlight, langName } from '../lib/highlight.ts';
+import { iconSvg } from '../lib/lucide.ts';
+import { t } from '../lib/i18n.ts';
 
 interface Props {
   id: string;
   code: string;
   lang?: string;
+  filename?: string;
+  highlight?: string;
   box: string;
   pre: string;
 }
-const { id, code, lang, box, pre } = Astro.props;
+const { id, code, lang, filename, highlight: lines, box, pre } = Astro.props;
 const name = langName(lang);
-const body = await highlight(code, lang);
+const body = await highlight(code, lang, lines);
+const glyph = 'size-[15px]';
 ---
 
-<figure class={box} data-lang={lang}>
-  {name && <figcaption class="px-(--pad) pt-[12px] -mb-[6px] font-serif text-meta leading-[1.6] tracking-[.06em] text-muted-foreground">{name}</figcaption>}
-  <pre class={pre} data-b={id}><code set:html={body} /></pre>
+<figure class:list={['code group/code', box]} data-lang={lang}>
+  {(filename || name) && (
+    <figcaption class="flex items-baseline justify-between gap-4 border-b border-(--glass-line) px-(--pad) py-[5px] text-[.85em] leading-[1.6]">
+      {filename ? <span class="min-w-0 truncate text-soft-foreground">{filename}</span> : <span class="font-serif tracking-[.06em] text-muted-foreground">{name}</span>}
+      {filename && name && <span class="shrink-0 font-serif tracking-[.06em] text-muted-foreground">{name}</span>}
+    </figcaption>
+  )}
+  <div class="relative flex min-h-0 flex-col">
+    <pre class={pre} data-b={id}><code set:html={body} /></pre>
+    <button class="code-copy lg lg-btn absolute top-[7px] right-[7px] grid size-[30px] cursor-pointer place-items-center text-(--lg-fg) opacity-0 [transition:color_.3s,opacity_.25s,transform_.4s_cubic-bezier(.34,1.45,.5,1)] group-hover/code:opacity-100 hover:text-(--lg-fg-on) focus-visible:opacity-100 active:[transform:scale(.92)] pointer-coarse:opacity-100 [&.done_[data-copy]]:hidden [&.done_[data-done]]:grid" type="button" title={t('js.code.copy')} aria-label={t('js.code.copy')}>
+      <span class="grid place-items-center" data-copy set:html={iconSvg('copy', glyph)} />
+      <span class="hidden place-items-center" data-done set:html={iconSvg('check', glyph)} />
+    </button>
+  </div>
 </figure>

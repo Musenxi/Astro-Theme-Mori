@@ -59,12 +59,12 @@ export function parseBlocks(body) {
     const fn = line.match(/^\[\^([^\]]+)\]:\s*(.*)$/); // 脚注定义
     if (fn) { notes[fn[1]] = { text: parseInline(fn[2]) }; i++; continue; }
 
-    const fence = line.match(/^```(\w*)/);
+    const fence = line.match(/^```([^\s{]*)\s*(.*)$/);
     if (fence) {
       const code = [];
       for (i++; i < lines.length && !lines[i].startsWith('```'); i++) code.push(lines[i]);
       i++;
-      blocks.push({ id: id(), type: 'code', ...(fence[1] ? { lang: fence[1] } : {}), code: code.join('\n') });
+      blocks.push({ id: id(), type: 'code', ...(fence[1] ? { lang: fence[1] } : {}), ...fenceMeta(fence[2]), code: code.join('\n') });
       continue;
     }
 
@@ -147,6 +147,13 @@ export const inlineMd = (spans) =>
     .join('');
 
 /** 一个文字块或图片 → Markdown；图组、地图这类长卷的块没有对应的写法，返回空 */
+/** 代码围栏后面的说明：```ts filename="a.ts" {1,3-5}（filename 也可以写成 title） */
+function fenceMeta(meta) {
+  const name = meta.match(/(?:filename|title)="([^"]*)"/)?.[1];
+  const lines = meta.match(/\{([\d,\s-]+)\}/)?.[1].replace(/\s/g, '');
+  return { ...(name ? { filename: name } : {}), ...(lines ? { highlight: lines } : {}) };
+}
+
 export function blockMd(b) {
   switch (b.type) {
     case 'p': return inlineMd(b.text);
@@ -154,7 +161,7 @@ export function blockMd(b) {
     case 'quote': return `> ${inlineMd(b.text)}${b.cite ? `\n> —— ${b.cite}` : ''}`;
     case 'image': return `![${b.alt ?? ''}](${b.src}${b.caption ? ` "${b.caption}"` : ''})`;
     case 'list': return b.items.map((it, k) => `${b.ordered ? `${k + 1}.` : '-'} ${inlineMd(it)}`).join('\n');
-    case 'code': return `\`\`\`${b.lang ?? ''}\n${b.code}\n\`\`\``;
+    case 'code': return `\`\`\`${[b.lang ?? '', b.filename ? `filename="${b.filename}"` : '', b.highlight ? `{${b.highlight}}` : ''].filter(Boolean).join(' ')}\n${b.code}\n\`\`\``;
     default: return '';
   }
 }
