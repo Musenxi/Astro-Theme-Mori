@@ -1,19 +1,19 @@
 /* 令牌 / 重置 —— 令牌用 shadcn 的语义命名，值是站点原来的纸、墨、细线。@layer base 里的规则在工具类之下 */
 :root {
-  --background: #f3f0e9;
-  --muted: #e9e5db;
+  --background: #f9f8f5;
+  --muted: #ebe9e4;
   --foreground: #1d1b18;
   --soft-foreground: #55504a;
   --muted-foreground: #726b60;
-  --border: #d7d0c3;
+  --border: #d9d6cf;
   --destructive: #b0442b;
   /* 主题色：作者在编辑器里改，默认克莱因蓝。亮色下压暗、暗色下提亮到可读的亮度，色相和饱和度不变 */
   --accent-base: #002fa7;
   --primary: oklch(from var(--accent-base) min(l, 0.52) c h);
   --primary-foreground: var(--background);
   --ring: var(--primary);
-  --land: #e0d9cb;
-  --land-edge: #c8bfae;
+  --land: #e4e1da;
+  --land-edge: #cdc9c0;
   --gut: clamp(16px, 4vw, 56px);
   --maxw: 1360px;
   --gap: clamp(12px, 2vw, 28px);
@@ -47,8 +47,8 @@
   color-scheme: light;
 
   @variant dark {
-    --background: #000000;
-    --muted: #151412;
+    --background: #191919;
+    --muted: #282828;
     --foreground: #ececec;
     --soft-foreground: #ababab;
     --muted-foreground: #808080;
