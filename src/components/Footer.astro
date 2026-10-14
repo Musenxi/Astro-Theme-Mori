@@ -1,10 +1,21 @@
 ---
 import { t } from '../lib/i18n.ts';
 import config from 'virtual:mori/config';
+import { getPages } from '../lib/pages.ts';
 const year = new Date().getFullYear();
+const link = 'text-soft-foreground underline decoration-border underline-offset-4 transition-[color] duration-300 hover:text-primary aria-[current]:text-primary';
+// 在线访客记在自建评论服务里；悬停时列出在读的页面，文章标题从 /search.json 取，其余页面的名字在这里给
+const stats = config.comments?.provider === 'mori';
+const names = stats ? Object.fromEntries([
+  ['/', config.title],
+  ...config.nav.map((n) => [n.href, n.label]),
+  ...(await getPages()).map((p) => [`/${p.id}/`, p.data.title]),
+  ...config.categories.map((c) => [`/category/${c.id}/`, c.zh]),
+  ['/search/', t('search.title')],
+]) : null;
 ---
 
 <footer class="wrap meta mt-10 flex flex-wrap justify-between gap-5 border-t border-t-border pt-7 pb-[90px]">
-  <span>© {year} {config.title} · <a class="text-soft-foreground underline decoration-border underline-offset-4 transition-[color] duration-300 hover:text-primary aria-[current]:text-primary" href="/search/">{t('footer.search')}</a> · <a class="text-soft-foreground underline decoration-border underline-offset-4 transition-[color] duration-300 hover:text-primary aria-[current]:text-primary" href="/feed">{t('footer.rss')}</a></span>
+  <span class="relative">© {year} {config.title} · <a class={link} href="/search/">{t('footer.search')}</a> · <a class={link} href="/feed">{t('footer.rss')}</a>{stats && <span class="group/online relative phone:static" id="online" data-names={JSON.stringify(names)} hidden> · <button class="cursor-default text-soft-foreground" type="button" aria-describedby="online-pages" data-n></button><span class="invisible absolute bottom-full left-0 z-10 pb-2 opacity-0 transition-[opacity,visibility] duration-200 group-hover/online:visible group-hover/online:opacity-100 group-focus-within/online:visible group-focus-within/online:opacity-100" id="online-pages" role="tooltip"><ul class="max-h-[50vh] w-max max-w-[min(340px,calc(100vw-32px))] overflow-y-auto rounded-[14px] border border-(--glass-line) bg-(--glass) p-2 shadow-[0_12px_32px_-18px_rgba(0,0,0,.5)] backdrop-blur-[20px] backdrop-saturate-150" data-list></ul></span></span>}</span>
   <span>Astro · MORI</span>
 </footer>

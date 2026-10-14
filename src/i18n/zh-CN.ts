@@ -32,6 +32,7 @@ export default {
   'js.cmt.sending': '发送中……', 'js.cmt.pending': '已收到。通过审核后会显示在这里。', 'js.cmt.loadFail': '评论加载失败（{status}）', 'js.cmt.postFail': '提交失败（{status}）', 'js.cmt.tsFail': '人机验证脚本加载失败',
   'js.cmt.scriptFail': '脚本加载失败：{src}', 'js.cmt.unknown': '不认识的评论服务：{provider}',
   'js.views': '{n} 次阅读', 'js.views.one': '1 次阅读',
+  'js.online': '{n} 人在读',
   'js.anno.btn': '引用评论', 'js.anno.email': '邮箱 *', 'js.anno.write': '写下你的想法…', 'js.anno.cancel': '取消', 'js.anno.posted': '评论已发表，在文末评论区', 'js.anno.pending': '已收到，通过审核后会显示在文末评论区',
   'js.search.count': '{n} 篇', 'js.search.none': '没有找到。换个词试试？',
   'js.travel.mode.v': '竖向', 'js.travel.mode.h': '横向', 'js.travel.mode.m': '混合', 'js.travel.tip': '读法：{mode}',
