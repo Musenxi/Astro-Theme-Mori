@@ -6,6 +6,7 @@ import { t } from './i18n.ts';
 import { mountEmbed } from './cmt-embed.ts';
 import { avatarUrl } from '../lib/avatar.mjs';
 import { parseComment } from '../lib/comment-md.mjs';
+import emoji from 'virtual:mori/emoji';
 import { moriConfig, listComments, sendComment, mountTurnstile, remember, numDate, type MoriComment, type MoriCommentsConfig } from './cmt-api.ts';
 
 type Child = Node | string | null | false | undefined;
@@ -26,6 +27,10 @@ function md(nodes: any[]): Node[] {
     switch (n.type) {
       case 'text': return document.createTextNode(n.text);
       case 'br': return h('br');
+      case 'emoji': {
+        const url = emoji.map[n.name];
+        return url ? h('img', { class: 'emoji', src: url, alt: `:[${n.name}]`, title: n.name, loading: 'lazy', decoding: 'async', referrerpolicy: 'no-referrer' }) : document.createTextNode(`:[${n.name}]`);
+      }
       case 'code': return h('code', {}, n.text);
       case 'pre': return h('pre', {}, h('code', {}, n.text));
       case 'a': return h('a', { href: n.href, rel: 'nofollow ugc noopener noreferrer', target: '_blank' }, ...md(n.children));

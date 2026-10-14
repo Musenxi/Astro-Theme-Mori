@@ -4,7 +4,7 @@
  * 处理的块：段落、## / ### 标题、引用、图片、列表、围栏代码；行内的 **粗** *斜* `码` [链接](地址)、[^id] 脚注，
  * 和地点 [地名](geo:纬度,经度)（geo URI，可以带 ?en=英文名&date=日期）。
  * 扩展语法：提示框 > [!NOTE]（也认 ::: warning 和 ::: banner {error} 的写法）、公式块 $$…$$、单独一行的知名网站链接（做成卡片）；
- * 行内的 ||剧透||、$公式$、提及 [名字]{GH@用户名}（存成主页链接）、<网址> 和裸网址。
+ * 行内的 ||剧透||、$公式$、表情 :[包名_表情名]、提及 [名字]{GH@用户名}（存成主页链接）、<网址> 和裸网址。
  * 图组、双图、自由排布里的图在文本里只是一行行图片；地图、位置、缩放、竖排这些版式信息不出现在文本里，由 Studio 保存时对回原来的块。
  */
 import { parsePlaceHref, placeHref } from './flow.mjs';
@@ -18,6 +18,7 @@ const INLINE = new RegExp([
   /(\$(?!\s)([^$\n]+?)(?<!\s)\$(?!\d))/, // 公式：$ 里外都不贴空格，后面不跟数字（免得把 $5 和 $10 当成公式）
   /(<(https?:\/\/[^>\s]+)>)/, /(https?:\/\/(?:[\w\-.~:/?#@!$&'*+,;=%]|\([\w\-.~:/?#@!$&'*+,;=%]*\))+)/, // <网址>、裸网址（只认网址里能出现的字符，后面紧跟的中文不算；成对的括号算）
   /((?<![\p{L}\p{N}_])_([^_\n]+)_(?![\p{L}\p{N}_]))/, // _斜体_（前后贴着字母数字的不算，免得把 snake_case 拆开）
+  /(:\[([^\]\n]+)\](?![({]))/, // 表情 :[包名_表情名]
 ].map((r) => r.source).join('|'), 'u');
 /** 裸网址末尾的标点不算网址 */
 const URL_TAIL = /[.,;:!?'"。，、；：！？”’]+$/;
@@ -47,6 +48,7 @@ export function parseInline(text, marks = []) {
       continue;
     }
     else if (m[25]) spans.push(...parseInline(m[26], [...marks, { type: 'em' }]));
+    else if (m[27]) push(m[28], [...marks, { type: 'emoji' }]);
     last = m.index + m[0].length;
   }
   push(text.slice(last), marks);
@@ -211,6 +213,7 @@ export const inlineMd = (spans) =>
         case 'link': return t === m.href && /^https?:\/\//.test(t) ? `<${t}>` : `[${t}](${m.href})`;
         case 'spoiler': return `||${t}||`;
         case 'math': return `$${t}$`;
+        case 'emoji': return `:[${t}]`;
         case 'place': return `[${t}](${placeHref(m)})`;
         case 'note': case 'fn': return `${t}[^${m.ref}]`;
         default: return t; // tcy 等只影响排版

@@ -3,11 +3,11 @@
  * 站点和 Studio 各自把节点变成 DOM / React 元素，读者写的任何 HTML 都只会是文字。
  *
  * 块：段落（段落里单个换行就是换行）、> 引用、- / * / + / 1. 列表、``` 代码块
- * 行内：**粗体**、*斜体* / _斜体_、~~删除线~~、`代码`、[文字](网址)、直接写出的网址；\ 转义
+ * 行内：:[包名_表情名]、**粗体**、*斜体* / _斜体_、~~删除线~~、`代码`、[文字](网址)、直接写出的网址；\ 转义
  * 链接只认 http / https。
  *
  * 块：{ type: 'p', children } | { type: 'quote', children: 块[] } | { type: 'ul' | 'ol', start?, items: 行内[][] } | { type: 'pre', text }
- * 行内：{ type: 'text', text } | { type: 'br' } | { type: 'b' | 'i' | 'del', children } | { type: 'code', text } | { type: 'a', href, children }
+ * 行内：{ type: 'text', text } | { type: 'br' } | { type: 'b' | 'i' | 'del', children } | { type: 'code', text } | { type: 'a', href, children } | { type: 'emoji', name }
  */
 
 const FENCE = /^\s*```/;
@@ -82,6 +82,11 @@ function inline(s, depth) {
       if (end > i) { flush(); out.push({ type: 'code', text: s.slice(i + run.length, end).trim() || s.slice(i + run.length, end) }); i = end + run.length; continue; }
       text += run; i += run.length; continue;
     }
+    // 表情 :[包名_表情名]（登记没登记由显示的一方决定）
+    if (ch === ':' && s[i + 1] === '[') {
+      const m = s.slice(i).match(/^:\[([^\]\n]{1,40})\](?![({])/);
+      if (m) { flush(); out.push({ type: 'emoji', name: m[1] }); i += m[0].length; continue; }
+    }
     // [文字](网址)
     if (ch === '[') {
       const m = s.slice(i).match(/^\[([^\]\n]+)\]\(([^)\s]+)\)/);
@@ -131,6 +136,6 @@ function merge(nodes) {
 
 /** 节点 → 纯文字（小地方只放得下一行字时用；块之间、换行处用空格隔开） */
 export function commentText(src) {
-  const flat = (n) => (n.type === 'text' || n.type === 'code' || n.type === 'pre' ? n.text : n.type === 'br' ? ' ' : n.items ? n.items.map((it) => it.map(flat).join('')).join(' ') : (n.children ?? []).map(flat).join(n.type === 'quote' ? ' ' : ''));
+  const flat = (n) => (n.type === 'text' || n.type === 'code' || n.type === 'pre' ? n.text : n.type === 'emoji' ? `:[${n.name}]` : n.type === 'br' ? ' ' : n.items ? n.items.map((it) => it.map(flat).join('')).join(' ') : (n.children ?? []).map(flat).join(n.type === 'quote' ? ' ' : ''));
   return (Array.isArray(src) ? src : parseComment(src)).map(flat).join(' ').replace(/\s+/g, ' ').trim();
 }

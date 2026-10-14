@@ -4,11 +4,13 @@ import { basename, extname, join } from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
 import { resolveConfig, type MoriUserConfig } from './config.ts';
+import { scanEmoji } from './lib/emoji.mjs';
 
 export { defineMoriConfig } from './config.ts';
 export type { MoriUserConfig, MoriCategory, MoriNavItem, MoriAction, MoriPublish, MoriComments } from './config.ts';
 
 const VIRTUAL = 'virtual:mori/config';
+const VIRTUAL_EMOJI = 'virtual:mori/emoji';
 
 /**
  * 读 mori.config.ts。astro.config.mjs 里用它代替普通的 import：
@@ -29,7 +31,8 @@ export default function mori(userConfig: MoriUserConfig): AstroIntegration {
   return {
     name: 'astro-mori',
     hooks: {
-      'astro:config:setup': ({ updateConfig }) => {
+      'astro:config:setup': ({ config: astro, logger, updateConfig }) => {
+        const publicDir = fileURLToPath(astro.publicDir);
         updateConfig({
           vite: {
             plugins: [
@@ -38,6 +41,23 @@ export default function mori(userConfig: MoriUserConfig): AstroIntegration {
                 name: 'mori-config',
                 resolveId: (id) => (id === VIRTUAL ? `\0${VIRTUAL}` : undefined),
                 load: (id) => (id === `\0${VIRTUAL}` ? `export default ${JSON.stringify(config)}` : undefined),
+              },
+              {
+                // 表情包：public/emoji/ 里有增删就重新扫描
+                name: 'mori-emoji',
+                resolveId: (id) => (id === VIRTUAL_EMOJI ? `\0${VIRTUAL_EMOJI}` : undefined),
+                load: (id) => (id === `\0${VIRTUAL_EMOJI}` ? `export default ${JSON.stringify(scanEmoji(publicDir, (m) => logger.warn(m)))}` : undefined),
+                configureServer(server) {
+                  const dir = join(publicDir, 'emoji');
+                  server.watcher.add(dir);
+                  const changed = (f: string) => {
+                    if (!f.startsWith(dir)) return;
+                    const mod = server.moduleGraph.getModuleById(`\0${VIRTUAL_EMOJI}`);
+                    if (mod) server.moduleGraph.invalidateModule(mod);
+                    server.ws.send({ type: 'full-reload' });
+                  };
+                  for (const ev of ['add', 'unlink', 'change'] as const) server.watcher.on(ev, changed);
+                },
               },
             ],
           },

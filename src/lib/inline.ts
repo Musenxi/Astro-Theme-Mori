@@ -2,6 +2,7 @@ import katex from 'katex';
 import type { Inline, Mark, Span } from '../schema/schema.ts';
 import { brandOf } from './sites.mjs';
 import { brandSvg } from './site-icons.ts';
+import { emojiHtml } from './emoji.ts';
 
 const escapeHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -57,7 +58,7 @@ function wrap(html: string, mark: Mark, numbers: NoteNumbers): string {
       return `<a href="${escapeHtml(mark.href)}"${url} target="_blank" rel="noopener noreferrer">${body}</a>`;
     }
     case 'spoiler': return `<span class="spoiler" tabindex="0">${html}</span>`;
-    case 'math': return html; // 公式在 renderInline 里排好
+    case 'math': case 'emoji': return html; // 公式、表情在 renderInline 里排好
     case 'note': return `${html}<sup class="nref" data-skip><a href="#note-${mark.ref}" id="ref-${mark.ref}">${numbers.side.get(mark.ref) ?? '?'}</a></sup>`;
     case 'fn': return `${html}<sup class="nref" data-skip><a href="#fn-${mark.ref}" id="ref-${mark.ref}">${numbers.foot.get(mark.ref) ?? '?'}</a></sup>`;
   }
@@ -70,7 +71,7 @@ export function renderInline(spans: Inline, numbers: NoteNumbers): string {
   let prev = '', at = -1;
   return spans
     .map((s) => {
-      const base = s.marks?.some((m) => m.type === 'math') ? texHtml(s.t, false) : escapeHtml(s.t).replace(/\n/g, '<br>');
+      const base = s.marks?.some((m) => m.type === 'math') ? texHtml(s.t, false) : s.marks?.some((m) => m.type === 'emoji') ? emojiHtml(s.t) : escapeHtml(s.t).replace(/\n/g, '<br>');
       const html = (s.marks ?? []).reduceRight((h, mark) => wrap(h, mark, numbers), base);
       const place = (s.marks ?? []).find((m) => m.type === 'place');
       if (!place || !numbers.place) { prev = ''; return html; }
@@ -101,7 +102,7 @@ export function countChars(node: unknown): { cjk: number; words: number } {
   const collect = (v: unknown) => {
     if (Array.isArray(v)) {
       // 一段行内文字：span 之间直接相连（一个词可能被标注拆成几个 span）
-      if (v.length && v.every((x) => typeof x?.t === 'string')) parts.push((v as Span[]).map((s) => (s.marks?.some((m) => m.type === 'math') ? '' : s.t)).join(''));
+      if (v.length && v.every((x) => typeof x?.t === 'string')) parts.push((v as Span[]).map((s) => (s.marks?.some((m) => m.type === 'math' || m.type === 'emoji') ? '' : s.t)).join(''));
       else v.forEach(collect);
     } else if (v && typeof v === 'object' && (v as { type?: string }).type !== 'math') for (const x of Object.values(v)) if (typeof x === 'object') collect(x);
   };

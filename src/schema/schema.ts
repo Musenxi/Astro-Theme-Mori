@@ -40,6 +40,8 @@ export const markSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('spoiler') }),
   /** 行内公式：文字是 TeX，构建时排成公式 */
   z.object({ type: z.literal('math') }),
+  /** 表情：文字是 包名_表情名，渲染成图 */
+  z.object({ type: z.literal('emoji') }),
 ]);
 
 export const spanSchema = z.object({

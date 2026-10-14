@@ -15,6 +15,9 @@
 .math-block math{font-size:1.12em}
 .prose math,.b-text math{font-family:"STIX Two Math","Latin Modern Math","Cambria Math",math}
 
+/* 表情：跟着字号，竖排里也站在字的位置上 */
+.emoji{display:inline-block;height:1.5em;width:auto;margin:0 .1em;vertical-align:text-bottom;object-fit:contain}
+
 /* 剧透：文字盖在一片细密流动的小点下面（三层随机小点的遮罩，按不同方向、速度循环漂移；每一行各盖各的），悬停、聚焦（点一下）时小点撤掉、文字浮现（底色不渐变：小点一撤，渐变中的底色会闪出一整条色块）。
    小点是遮罩，颜色就是文字色，昼夜自动跟着变；减少动态效果时小点不动 */
 .spoiler{border-radius:2px;color:transparent;cursor:pointer;background-color:color-mix(in srgb,var(--foreground) 82%,transparent);
