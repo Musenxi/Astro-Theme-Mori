@@ -108,7 +108,7 @@ pnpm exec mori-md import 旧文章.md --out src/content/posts --category essays
 pnpm exec mori-md export src/content/posts/某篇.json --out 备份目录
 ```
 
-处理段落、标题、引用、图片、列表、代码、行内粗斜体链接、脚注和地点（`[地名](geo:纬度,经度)`）。图组里的图导出成一行行图片；位置、缩放、竖排、自由排布、地图没有 Markdown 对应物，不导出。
+处理段落、标题、引用、图片、列表、代码、行内粗斜体链接、脚注和地点（`[地名](geo:纬度,经度)`），以及提示框、公式、剧透、提及、网站卡片这些扩展语法（见[写作指南](docs/写作指南.md#五markdown-扩展语法)）。图组里的图导出成一行行图片；位置、缩放、竖排、自由排布、地图没有 Markdown 对应物，不导出。
 
 ## 许可
 

@@ -7,7 +7,7 @@
  */
 
 /** 一列文字里能放的块 */
-export const TEXT_BLOCKS = new Set(['p', 'h', 'quote', 'list', 'code']);
+export const TEXT_BLOCKS = new Set(['p', 'h', 'quote', 'list', 'code', 'callout', 'math', 'embed']);
 /** 只有长卷版式才有的块 */
 export const LAYOUT_BLOCKS = new Set(['pair', 'strip', 'grid', 'free', 'map']);
 /** 能竖排的文字块 */

@@ -36,7 +36,7 @@ const iconType = ({ svg: 'image/svg+xml', png: 'image/png', ico: 'image/x-icon',
 
 <!doctype html>
 <!-- 主题色：写在 <html> 的自定义属性上（base.css 里有默认值），行内样式的优先级最高，不靠谁排在后面 -->
-<html lang={lang} data-hdir={direction} data-hdir-cfg={direction} style={{ '--accent-base': config.accent, '--accent-dark': config.accentDark }}>
+<html lang={lang} data-hdir={direction} data-hdir-cfg={direction} data-spoiler={config.spoiler} style={{ '--accent-base': config.accent, '--accent-dark': config.accentDark }}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -126,6 +126,7 @@ const iconType = ({ svg: 'image/svg+xml', png: 'image/png', ico: 'image/x-icon',
     <script>
       import '../scripts/chrome.ts';
       import '../scripts/code.ts';
+      import '../scripts/embed.ts';
       import '../scripts/lightbox.ts';
       import '../scripts/live.ts';
       import '../scripts/search.ts';

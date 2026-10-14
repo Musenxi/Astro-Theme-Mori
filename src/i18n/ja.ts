@@ -26,6 +26,8 @@ const d: Record<keyof typeof zhCN, string> = {
   'nav.map': '地図', 'js.map.n': '写真 {n} 枚', 'map.spots': '{n} か所', 'map.locate': '現在地', 'map.sw': '南西', 'map.ne': '北東', 'map.area': '約 {n} km²', 'map.empty': '位置情報のある写真はまだありません。', 'map.zoomIn': '拡大', 'map.zoomOut': '縮小', 'map.fit': 'すべて表示', 'notfound.title': 'ページが見つかりません', 'notfound.h': 'このページは目次にありません。', 'notfound.back': '目次へ戻る',
   'search.title': '検索', 'search.cats': 'カテゴリー', 'search.clear': 'クリア',
   'friends.lost': '音信不通', 'comments.title': 'コメント',
+  'callout.note': 'メモ', 'callout.tip': 'ヒント', 'callout.important': '重要', 'callout.warning': '注意', 'callout.caution': '警告',
+  'embed.open': 'オープン', 'embed.closed': 'クローズ', 'embed.merged': 'マージ済み', 'embed.play': '再生',
   'js.theme.toLight': '昼', 'js.theme.toDark': '夜',
   'js.cmt.loading': 'コメントを読み込み中……', 'js.cmt.retry': '再試行', 'js.cmt.count': '{n}件', 'js.cmt.none': 'まだコメントはありません。', 'js.cmt.closed': 'コメントは受け付けていません。', 'js.cmt.reply': '返信', 'js.cmt.author': '筆者', 'js.cmt.cancelReply': '返信をやめる',
   'js.cmt.jump': '本文のこの箇所へ戻る', 'js.cmt.name': '名前 *', 'js.cmt.email': 'メール *', 'js.cmt.url': 'ウェブサイト', 'js.cmt.write': '感想を書く…', 'js.cmt.replyTo': '{name} さんへ返信', 'js.cmt.send': '投稿', 'js.cmt.sendReply': '返信を投稿',

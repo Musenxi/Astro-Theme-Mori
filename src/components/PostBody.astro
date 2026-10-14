@@ -1,8 +1,10 @@
 ---
 import Image from './Photo.astro';
 import CodeBlock from './CodeBlock.astro';
+import Callout from './Callout.astro';
+import Embed from './Embed.astro';
 import type { Inline, PostData } from '../schema/schema.ts';
-import { numberNotes, renderInline, sideRefs } from '../lib/inline.ts';
+import { numberNotes, renderInline, sideRefs, texHtml } from '../lib/inline.ts';
 import { axisOf } from '../lib/flow.mjs';
 import { t, vertical } from '../lib/i18n.ts';
 
@@ -18,6 +20,9 @@ let fig = 0;
 /** 正文栏：第 3–8 栏，右边再放出三个字宽（窄屏占满一行，不放） */
 const main = 'col-[3/9] -mr-(--main-plus) narrow:mr-0';
 const p = 'mb-[1.1em] text-justify text-pretty';
+/** 代码块的外框和滚动区（网站卡片里的 GitHub 文件、Gist 也用） */
+const codeBox = 'mt-[.4em] mb-[1.6em] overflow-hidden rounded-[6px] bg-muted text-(--code-foreground) [--pad:16px] [font:calc(var(--text-body)*.8)/1.8_var(--font-mono)]';
+const codePre = 'overflow-x-auto py-[18px]';
 const li = "relative py-[.2em] pl-[1.6em] text-pretty before:absolute before:top-[1.12em] before:left-[.1em] before:h-px before:w-[.6em] before:bg-muted-foreground before:content-['']";
 
 /** 竖滚里竖排的块：挨着的几个竖排块排成一个竖排的框（和长卷竖向读法里的竖排列一样）；二级标题另起一个 */
@@ -140,8 +145,14 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         }
         case 'code':
           return (
-            <CodeBlock id={b.id} code={b.code} lang={b.lang} filename={b.filename} highlight={b.highlight} box={`${main} mt-[.4em] mb-[1.6em] overflow-hidden rounded-[6px] bg-muted text-(--code-foreground) [--pad:16px] [font:calc(var(--text-body)*.8)/1.8_var(--font-mono)]`} pre="overflow-x-auto py-[18px]" />
+            <CodeBlock id={b.id} code={b.code} lang={b.lang} filename={b.filename} highlight={b.highlight} box={`${main} ${codeBox}`} pre={codePre} />
           );
+        case 'callout':
+          return <Callout id={b.id} kind={b.kind} paras={b.text.map(html)} class={main} />;
+        case 'math':
+          return <div class={`math-block ${main}`} data-b={b.id} set:html={texHtml(b.tex, true)} />;
+        case 'embed':
+          return <Embed id={b.id} url={b.url} class={main} code={{ box: codeBox, pre: codePre }} />;
       }
     })
   }

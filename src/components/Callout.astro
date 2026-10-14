@@ -1,0 +1,14 @@
+---
+/** 提示框：左边一道细色条、很淡的同色底，第一行图标和类型名，下面一段段文字（已渲染好的 HTML）。颜色是 base.css 的 --callout-* */
+import { iconSvg } from '../lib/lucide.ts';
+import { t } from '../lib/i18n.ts';
+
+interface Props { id: string; kind: 'note' | 'tip' | 'important' | 'warning' | 'caution'; paras: string[]; class?: string }
+const { id, kind, paras, class: cls } = Astro.props;
+const ICON = { note: 'info', tip: 'lightbulb', important: 'message-square-warning', warning: 'triangle-alert', caution: 'octagon-alert' } as const;
+---
+
+<aside class:list={['callout', cls]} data-kind={kind} data-b={id}>
+  <p class="callout-label" data-skip><Fragment set:html={iconSvg(ICON[kind], 'size-[1.05em] shrink-0')} />{t(`callout.${kind}`)}</p>
+  {paras.map((p) => <p set:html={p} />)}
+</aside>

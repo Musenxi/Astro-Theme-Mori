@@ -14,10 +14,12 @@ interface Props {
   lang?: string;
   filename?: string;
   highlight?: string;
+  /** 文件名链接到哪里（GitHub 文件、Gist 卡片） */
+  href?: string;
   box: string;
   pre: string;
 }
-const { id, code, lang, filename, highlight: lines, box, pre } = Astro.props;
+const { id, code, lang, filename, highlight: lines, href, box, pre } = Astro.props;
 const name = langName(lang);
 const body = await highlight(code, lang, lines);
 const glyph = 'size-[15px]';
@@ -26,7 +28,7 @@ const glyph = 'size-[15px]';
 <figure class:list={['code group/code', box]} data-lang={lang}>
   {(filename || name) && (
     <figcaption class="flex items-baseline justify-between gap-4 border-b border-(--glass-line) px-(--pad) py-[5px] text-[.85em] leading-[1.6]">
-      {filename ? <span class="min-w-0 truncate text-soft-foreground">{filename}</span> : <span class="font-serif tracking-[.06em] text-muted-foreground">{name}</span>}
+      {filename ? (href ? <a class="min-w-0 truncate text-soft-foreground transition-[color] duration-300 hover:text-primary" href={href} target="_blank" rel="noopener noreferrer">{filename}</a> : <span class="min-w-0 truncate text-soft-foreground">{filename}</span>) : <span class="font-serif tracking-[.06em] text-muted-foreground">{name}</span>}
       {filename && name && <span class="shrink-0 font-serif tracking-[.06em] text-muted-foreground">{name}</span>}
     </figcaption>
   )}

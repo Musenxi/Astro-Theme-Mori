@@ -1,0 +1,72 @@
+---
+/**
+ * 网站卡片（单独一行的知名网站链接）：数据在构建时取（lib/embed-data.ts）。
+ * GitHub 仓库 / Issue / PR / 提交、X 的帖子是一张链接卡；GitHub 文件、Gist 直接显示代码；YouTube、哔哩哔哩先显示封面，点了才加载播放器（scripts/embed.ts）。
+ * 数据取不到时退成只有网址的链接卡。
+ */
+import { getCard } from '../lib/embed-data.ts';
+import { brandSvg, brandTitle } from '../lib/site-icons.ts';
+import { brandOf } from '../lib/sites.mjs';
+import { iconSvg } from '../lib/lucide.ts';
+import { t } from '../lib/i18n.ts';
+import CodeBlock from './CodeBlock.astro';
+
+interface Props {
+  id: string;
+  url: string;
+  class?: string;
+  /** 代码卡片用的外框、滚动区样式（和正文代码块一样） */
+  code: { box: string; pre: string };
+}
+const { id, url, class: cls, code } = Astro.props;
+const card = await getCard(url);
+const brand = brandOf(url);
+const icon = brandSvg(brand, 'size-[1.05em] shrink-0');
+const site = card?.site === 'gist' ? 'Gist' : brandTitle(brand);
+const STATE: Record<string, string> = { open: t('embed.open'), closed: t('embed.closed'), merged: t('embed.merged') };
+const meta = (card?.meta ?? []).map((m) => STATE[m] ?? m);
+const shortUrl = url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+---
+
+{
+  card?.ok && card.files ? (
+    <div class:list={['embed-code', cls]} data-b={id}>
+      {card.files.map((f) => <CodeBlock id={`${id}-${f.filename}`} code={f.code} lang={f.lang} filename={f.filename} href={url} box={code.box} pre={`${code.pre} max-h-[32em] overflow-y-auto`} />)}
+    </div>
+  ) : card?.ok && card.player ? (
+    <figure class:list={['embed-video', cls]} data-b={id}>
+      <button class="group/play relative block aspect-video w-full cursor-pointer overflow-hidden rounded-[8px] bg-muted" type="button" data-player={card.player} aria-label={`${t('embed.play')}：${card.title}`}>
+        {card.thumb && <img class="absolute inset-0 size-full object-cover transition-[filter] duration-300 group-hover/play:brightness-90" src={card.thumb} alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" />}
+        <span class="lg lg-btn absolute top-1/2 left-1/2 grid size-[54px] -translate-1/2 place-items-center text-(--lg-fg) transition-transform duration-300 group-hover/play:scale-105" set:html={iconSvg('play', 'size-[20px] translate-x-[1px]')} />
+      </button>
+      <figcaption class="meta mt-2.5 flex items-baseline gap-2">
+        <Fragment set:html={icon} />
+        <a class="min-w-0 truncate transition-[color] duration-300 hover:text-primary" href={url} target="_blank" rel="noopener noreferrer">{card.title}</a>
+        {meta.length > 0 && <span class="shrink-0">· {meta.join(' · ')}</span>}
+      </figcaption>
+    </figure>
+  ) : (
+    <a class:list={['embed-card', cls]} href={url} target="_blank" rel="noopener noreferrer" data-b={id}>
+      <span class="embed-site"><Fragment set:html={icon} />{site}{card?.ok && card.kind !== 'repo' && card.desc && card.site === 'github' ? <span class="min-w-0 truncate">· {card.desc}</span> : null}</span>
+      {card?.ok && card.author ? (
+        <>
+          <span class="embed-author">
+            {card.author.avatar && <img src={card.author.avatar} alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" />}
+            <span class="text-foreground">{card.author.name}</span>
+            <span>@{card.author.handle}</span>
+          </span>
+          <span class="embed-text">{card.desc}</span>
+          {card.date && <span class="embed-meta">{card.date}</span>}
+        </>
+      ) : card?.ok ? (
+        <>
+          <span class="embed-title">{card.title}</span>
+          {card.kind === 'repo' && card.desc && <span class="embed-desc">{card.desc}</span>}
+          {meta.length > 0 && <span class="embed-meta">{meta.join(' · ')}</span>}
+        </>
+      ) : (
+        <span class="embed-title">{shortUrl}</span>
+      )}
+    </a>
+  )
+}

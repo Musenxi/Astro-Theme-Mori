@@ -71,6 +71,8 @@ export interface MoriUserConfig {
   actions?: MoriAction[];
   /** 页头右侧的操作：merged 合并成一个胶囊（默认）/ split 每个单独一个胶囊 */
   actionsLayout?: 'merged' | 'split';
+  /** 正文里剧透（||…||）的样子：particles 细密流动的颗粒（默认）/ blur 模糊 / ink 墨块 */
+  spoiler?: 'particles' | 'blur' | 'ink';
   home?: {
     /** 首页版式：quote 引文开篇（默认）/ cover 封面版（墨色封面 + 满版刊名，往下滚时刊名缩进页头）/ list 文章列表 */
     style?: 'quote' | 'cover' | 'list';
@@ -110,6 +112,7 @@ export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'ico
   navCustom: boolean;
   actions: MoriAction[];
   actionsLayout: 'merged' | 'split';
+  spoiler: 'particles' | 'blur' | 'ink';
   feed: { content: 'excerpt' | 'full' };
   head: string;
 }
@@ -141,6 +144,7 @@ export function resolveConfig(c: MoriUserConfig): MoriConfig {
     navCustom: !!c.nav,
     actions: c.actions ?? [{ type: 'theme' }],
     actionsLayout: c.actionsLayout === 'split' ? 'split' : 'merged',
+    spoiler: c.spoiler === 'blur' || c.spoiler === 'ink' ? c.spoiler : 'particles',
     feed: { content: c.feed?.content === 'full' ? 'full' : 'excerpt' },
     head: typeof c.head === 'string' ? c.head.trim() : '',
   };

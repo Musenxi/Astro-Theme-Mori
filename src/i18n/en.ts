@@ -26,6 +26,8 @@ const d: Record<keyof typeof zhCN, string> = {
   'nav.map': 'Map', 'js.map.n': '{n} photos', 'map.spots': '{n} places', 'map.locate': 'My location', 'map.sw': 'SW', 'map.ne': 'NE', 'map.area': '~{n} km²', 'map.empty': 'No geotagged photos yet.', 'map.zoomIn': 'Zoom in', 'map.zoomOut': 'Zoom out', 'map.fit': 'Show all', 'notfound.title': 'Page not found', 'notfound.h': 'This page is not in the contents.', 'notfound.back': 'Back to contents',
   'search.title': 'Search', 'search.cats': 'Categories', 'search.clear': 'Clear',
   'friends.lost': 'Lost contact', 'comments.title': 'Comments',
+  'callout.note': 'Note', 'callout.tip': 'Tip', 'callout.important': 'Important', 'callout.warning': 'Warning', 'callout.caution': 'Caution',
+  'embed.open': 'Open', 'embed.closed': 'Closed', 'embed.merged': 'Merged', 'embed.play': 'Play',
   'js.theme.toLight': 'Day', 'js.theme.toDark': 'Night',
   'js.cmt.loading': 'Loading comments…', 'js.cmt.retry': 'Retry', 'js.cmt.count': '{n} comments', 'js.cmt.none': 'No comments yet.', 'js.cmt.closed': 'Comments are closed.', 'js.cmt.reply': 'Reply', 'js.cmt.author': 'Author', 'js.cmt.cancelReply': 'Cancel reply',
   'js.cmt.jump': 'Back to this passage in the text', 'js.cmt.name': 'Name *', 'js.cmt.email': 'Email *', 'js.cmt.url': 'Website', 'js.cmt.write': 'Write your thoughts…', 'js.cmt.replyTo': 'Reply to {name}', 'js.cmt.send': 'Post', 'js.cmt.sendReply': 'Post reply',

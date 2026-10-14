@@ -25,6 +25,8 @@ export default {
   'nav.map': '地图', 'js.map.n': '{n} 张照片', 'map.spots': '{n} 处', 'map.locate': '我的位置', 'map.sw': '西南', 'map.ne': '东北', 'map.area': '约 {n} km²', 'map.empty': '还没有带位置的照片。', 'map.zoomIn': '放大', 'map.zoomOut': '缩小', 'map.fit': '看全部', 'notfound.title': '找不到这一页', 'notfound.h': '这一页不在目次里。', 'notfound.back': '回到目次',
   'search.title': '搜索', 'search.cats': '分类', 'search.clear': '清除',
   'friends.lost': '已失联', 'comments.title': '评论',
+  'callout.note': '说明', 'callout.tip': '提示', 'callout.important': '重要', 'callout.warning': '注意', 'callout.caution': '警告',
+  'embed.open': '进行中', 'embed.closed': '已关闭', 'embed.merged': '已合并', 'embed.play': '播放',
   // ↓ 浏览器里的脚本用
   'js.theme.toLight': '昼', 'js.theme.toDark': '夜',
   'js.cmt.loading': '评论加载中……', 'js.cmt.retry': '重试', 'js.cmt.count': '{n} 条', 'js.cmt.none': '还没有评论。', 'js.cmt.closed': '评论已关闭。', 'js.cmt.reply': '回复', 'js.cmt.author': '博主', 'js.cmt.cancelReply': '取消回复',

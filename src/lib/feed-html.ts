@@ -2,7 +2,11 @@
  * RSS 里的全文：把文章的块转成一段自包含的 HTML（放进 content:encoded）。
  * 和站内页面不同：链接和图片都要是绝对地址；旁注和脚注没有页内锚点可跳，统一成 [1] 这样的编号，文末列出正文。
  */
+import katex from 'katex';
 import type { Inline, Mark, PostData } from '../schema/schema.ts';
+
+/** 公式在订阅里也用 MathML（多数阅读器能显示，显示不了的会露出 TeX 原文） */
+const tex = (s: string, display: boolean) => katex.renderToString(s, { output: 'mathml', displayMode: display, throwOnError: false });
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -11,6 +15,8 @@ export interface FeedCtx {
   base: string;
   /** 把内容里的图片（Astro 的 ImageMetadata）变成可以放进订阅的绝对图片地址 */
   image: (src: any) => Promise<string>;
+  /** 词条（提示框的类型名）；不给就用键名 */
+  t?: (key: string) => string;
 }
 
 /** 收集所有 note / fn 引用，按出现顺序统一编号（旁注和脚注不再分开数） */
@@ -38,7 +44,7 @@ function wrap(html: string, m: Mark, base: string, nums: Map<string, number>): s
     case 'em': return `<em>${html}</em>`;
     case 'strong': return `<strong>${html}</strong>`;
     case 'code': return `<code>${html}</code>`;
-    case 'tcy': case 'place': return html;
+    case 'tcy': case 'place': case 'spoiler': case 'math': return html;
     case 'link': return `<a href="${esc(abs(base, m.href))}">${html}</a>`;
     case 'note':
     case 'fn': return `${html}<sup>[${nums.get(m.ref) ?? '?'}]</sup>`;
@@ -46,7 +52,7 @@ function wrap(html: string, m: Mark, base: string, nums: Map<string, number>): s
 }
 
 export const inline = (spans: Inline, base: string, nums: Map<string, number>) =>
-  spans.map((s) => (s.marks ?? []).reduceRight((h, m) => wrap(h, m, base, nums), esc(s.t).replace(/\n/g, '<br />'))).join('');
+  spans.map((s) => (s.marks ?? []).reduceRight((h, m) => wrap(h, m, base, nums), s.marks?.some((m) => m.type === 'math') ? tex(s.t, false) : esc(s.t).replace(/\n/g, '<br />'))).join('');
 
 async function figure(ctx: FeedCtx, src: unknown, alt: string, caption?: string) {
   return `<figure><img src="${esc(await ctx.image(src))}" alt="${esc(alt)}" />${caption ? `<figcaption>${esc(caption)}</figcaption>` : ''}</figure>`;
@@ -73,6 +79,9 @@ export async function postHtml(d: PostData, ctx: FeedCtx): Promise<string> {
         break;
       }
       case 'code': out.push(`<pre><code>${esc(b.code)}</code></pre>`); break;
+      case 'callout': out.push(`<blockquote><p><strong>${esc(ctx.t?.(`callout.${b.kind}`) ?? b.kind)}</strong></p>${b.text.map((p) => `<p>${inline(p, ctx.base, nums)}</p>`).join('')}</blockquote>`); break;
+      case 'math': out.push(tex(b.tex, true)); break;
+      case 'embed': out.push(`<p><a href="${esc(b.url)}">${esc(b.url)}</a></p>`); break;
       case 'pair': case 'strip': case 'grid': for (const im of b.images) out.push(await figure(ctx, im.src, im.alt, im.caption)); break;
       case 'free':
         for (const it of b.items) out.push(it.kind === 'image' ? await figure(ctx, it.src, it.alt, it.caption) : `<p>${inline(it.text, ctx.base, nums)}</p>`);

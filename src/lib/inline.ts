@@ -1,4 +1,7 @@
+import katex from 'katex';
 import type { Inline, Mark, Span } from '../schema/schema.ts';
+import { brandOf } from './sites.mjs';
+import { brandSvg } from './site-icons.ts';
 
 const escapeHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -42,17 +45,33 @@ function wrap(html: string, mark: Mark, numbers: NoteNumbers): string {
     case 'code': return `<code>${html}</code>`;
     case 'tcy': return `<span class="tcy">${html}</span>`;
     case 'place': return html; // 地点的序号和包裹在 renderInline 里处理
-    case 'link': return /^(https?:)?\/\//i.test(mark.href) ? `<a href="${escapeHtml(mark.href)}" target="_blank" rel="noopener noreferrer">${html}</a>` : `<a href="${escapeHtml(mark.href)}">${html}</a>`;
+    case 'link': {
+      if (!/^(https?:)?\/\//i.test(mark.href)) return `<a href="${escapeHtml(mark.href)}">${html}</a>`;
+      // 知名网站的链接前面放一个网站的小图标
+      const icon = brandSvg(brandOf(mark.href.startsWith('//') ? `https:${mark.href}` : mark.href), 'link-ico');
+      // 图标和文字的第一个字绑在一起，图标不会单独留在上一行的行尾
+      const first = icon ? html.match(/^(&[#\w]+;|[^<&])/u)?.[0] : undefined;
+      const body = first ? `<span class="link-lead">${icon}${first}</span>${html.slice(first.length)}` : icon + html;
+      // 文字就是网址的（裸网址、<网址>）可以在任意处断行，不会整段挤到下一行、把上一行的字距撑开
+      const url = html === escapeHtml(mark.href) ? ' class="link-url"' : '';
+      return `<a href="${escapeHtml(mark.href)}"${url} target="_blank" rel="noopener noreferrer">${body}</a>`;
+    }
+    case 'spoiler': return `<span class="spoiler" tabindex="0">${html}</span>`;
+    case 'math': return html; // 公式在 renderInline 里排好
     case 'note': return `${html}<sup class="nref" data-skip><a href="#note-${mark.ref}" id="ref-${mark.ref}">${numbers.side.get(mark.ref) ?? '?'}</a></sup>`;
     case 'fn': return `${html}<sup class="nref" data-skip><a href="#fn-${mark.ref}" id="ref-${mark.ref}">${numbers.foot.get(mark.ref) ?? '?'}</a></sup>`;
   }
 }
 
+/** TeX → MathML（浏览器原生排公式，不用加载 KaTeX 的样式和字体）；写错了显示原文，不让整页构建失败 */
+export const texHtml = (tex: string, display: boolean) => katex.renderToString(tex, { output: 'mathml', displayMode: display, throwOnError: false });
+
 export function renderInline(spans: Inline, numbers: NoteNumbers): string {
   let prev = '', at = -1;
   return spans
     .map((s) => {
-      const html = (s.marks ?? []).reduceRight((h, mark) => wrap(h, mark, numbers), escapeHtml(s.t).replace(/\n/g, '<br>'));
+      const base = s.marks?.some((m) => m.type === 'math') ? texHtml(s.t, false) : escapeHtml(s.t).replace(/\n/g, '<br>');
+      const html = (s.marks ?? []).reduceRight((h, mark) => wrap(h, mark, numbers), base);
       const place = (s.marks ?? []).find((m) => m.type === 'place');
       if (!place || !numbers.place) { prev = ''; return html; }
       // 被粗体之类拆开的同一个地点只编一个号，id 只给第一段
@@ -76,15 +95,15 @@ export const plainText = (spans: Inline) => spans.map((s) => s.t).join('');
 const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/gu;
 const WORD = /[\p{L}\p{N}]+(?:['’.\-][\p{L}\p{N}]+)*/gu;
 
-/** 正文字数：数所有 span 的文字（代码块不算）。汉字、假名一字算一个，英文单词和数字一串算一个，空格和标点不算 */
+/** 正文字数：数所有 span 的文字（代码块、公式不算）。汉字、假名一字算一个，英文单词和数字一串算一个，空格和标点不算 */
 export function countChars(node: unknown): { cjk: number; words: number } {
   const parts: string[] = [];
   const collect = (v: unknown) => {
     if (Array.isArray(v)) {
       // 一段行内文字：span 之间直接相连（一个词可能被标注拆成几个 span）
-      if (v.length && v.every((x) => typeof x?.t === 'string')) parts.push((v as Span[]).map((s) => s.t).join(''));
+      if (v.length && v.every((x) => typeof x?.t === 'string')) parts.push((v as Span[]).map((s) => (s.marks?.some((m) => m.type === 'math') ? '' : s.t)).join(''));
       else v.forEach(collect);
-    } else if (v && typeof v === 'object') for (const x of Object.values(v)) if (typeof x === 'object') collect(x);
+    } else if (v && typeof v === 'object' && (v as { type?: string }).type !== 'math') for (const x of Object.values(v)) if (typeof x === 'object') collect(x);
   };
   collect(node);
   const text = parts.join(' ');

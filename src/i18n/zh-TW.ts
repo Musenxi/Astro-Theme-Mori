@@ -26,6 +26,8 @@ const d: Record<keyof typeof zhCN, string> = {
   'nav.map': '地圖', 'js.map.n': '{n} 張照片', 'map.spots': '{n} 處', 'map.locate': '我的位置', 'map.sw': '西南', 'map.ne': '東北', 'map.area': '約 {n} km²', 'map.empty': '還沒有帶位置的照片。', 'map.zoomIn': '放大', 'map.zoomOut': '縮小', 'map.fit': '看全部', 'notfound.title': '找不到這一頁', 'notfound.h': '這一頁不在目次裡。', 'notfound.back': '回到目次',
   'search.title': '搜尋', 'search.cats': '分類', 'search.clear': '清除',
   'friends.lost': '已失聯', 'comments.title': '留言',
+  'callout.note': '說明', 'callout.tip': '提示', 'callout.important': '重要', 'callout.warning': '注意', 'callout.caution': '警告',
+  'embed.open': '進行中', 'embed.closed': '已關閉', 'embed.merged': '已合併', 'embed.play': '播放',
   'js.theme.toLight': '晝', 'js.theme.toDark': '夜',
   'js.cmt.loading': '留言載入中……', 'js.cmt.retry': '重試', 'js.cmt.count': '{n} 則', 'js.cmt.none': '還沒有留言。', 'js.cmt.closed': '留言已關閉。', 'js.cmt.reply': '回覆', 'js.cmt.author': '博主', 'js.cmt.cancelReply': '取消回覆',
   'js.cmt.jump': '回到正文裡的這一段', 'js.cmt.name': '暱稱 *', 'js.cmt.email': '信箱 *', 'js.cmt.url': '網站', 'js.cmt.write': '寫下你的想法…', 'js.cmt.replyTo': '回覆 {name}', 'js.cmt.send': '發表', 'js.cmt.sendReply': '發表回覆',

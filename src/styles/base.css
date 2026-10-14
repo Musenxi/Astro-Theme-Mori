@@ -38,6 +38,12 @@
   --code-token-parameter: #3d3934;
   --code-token-punctuation: #7a7368;
   --code-token-link: var(--primary);
+  /* 提示框：说明 / 提示 / 重要 / 注意 / 警告 */
+  --callout-note: var(--primary);
+  --callout-tip: #4f7a3a;
+  --callout-important: #7a5aa6;
+  --callout-warning: #9a6a12;
+  --callout-caution: #b0442b;
   --hist-r: #d4573f;
   --hist-g: #55a05c;
   --hist-b: #4a72c4;
@@ -66,6 +72,10 @@
     --code-token-constant: #dcb767;
     --code-token-parameter: #d4d4d4;
     --code-token-punctuation: #9a9a9a;
+    --callout-tip: #9cc583;
+    --callout-important: #b9a0e3;
+    --callout-warning: #dcb767;
+    --callout-caution: #e8907c;
     --hist-r: #e0604a;
     --hist-g: #5cb865;
     --hist-b: #5a86e0;

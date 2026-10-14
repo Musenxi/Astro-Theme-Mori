@@ -36,6 +36,10 @@ export const markSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('note'), ref: id }),
   /** 脚注：文末统一列出 */
   z.object({ type: z.literal('fn'), ref: id }),
+  /** 剧透：盖住，悬停或点一下才显示 */
+  z.object({ type: z.literal('spoiler') }),
+  /** 行内公式：文字是 TeX，构建时排成公式 */
+  z.object({ type: z.literal('math') }),
 ]);
 
 export const spanSchema = z.object({
@@ -136,6 +140,16 @@ const codeFields = {
   code: z.string(),
 };
 
+/** 提示框：note 说明 / tip 提示 / important 重要 / warning 注意 / caution 警告；text 是一段一段的文字 */
+const calloutFields = {
+  kind: z.enum(['note', 'tip', 'important', 'warning', 'caution']).default('note'),
+  text: z.array(inlineSchema).min(1),
+};
+/** 公式块：TeX */
+const mathFields = { tex: z.string() };
+/** 网站卡片：单独一行的知名网站链接（GitHub、YouTube 等），构建时取标题、简介做成卡片；认不出的网站当普通链接 */
+const embedFields = { url: z.string().url() };
+
 /** 普通文章（和页面）正文里的块 */
 export const articleBlocks = (image: ImageFn) => {
   return z.discriminatedUnion('type', [
@@ -152,6 +166,9 @@ export const articleBlocks = (image: ImageFn) => {
     }),
     z.object({ id, type: z.literal('list'), ordered: z.boolean().default(false), items: z.array(inlineSchema) }),
     z.object({ id, type: z.literal('code'), ...codeFields }),
+    z.object({ id, type: z.literal('callout'), ...calloutFields }),
+    z.object({ id, type: z.literal('math'), ...mathFields }),
+    z.object({ id, type: z.literal('embed'), ...embedFields }),
   ]);
 };
 
@@ -180,6 +197,9 @@ export const postBlocks = (image: ImageFn) =>
     z.object({ id, type: z.literal('image'), ...picture(image), layout: z.enum(['wide', 'inline']).default('wide'), ...axes }),
     z.object({ id, type: z.literal('list'), ordered: z.boolean().default(false), items: z.array(inlineSchema), ...axes }),
     z.object({ id, type: z.literal('code'), ...codeFields, ...axes }),
+    z.object({ id, type: z.literal('callout'), ...calloutFields, ...axes }),
+    z.object({ id, type: z.literal('math'), ...mathFields, ...axes }),
+    z.object({ id, type: z.literal('embed'), ...embedFields, ...axes }),
     /** 双图并列 */
     z.object({ id, type: z.literal('pair'), images: z.array(z.object(picture(image))).length(2), ...axes }),
     /** 横向图组：竖向读法里是可左右滑动的一行；每张图可以缩放、上下错开 */

@@ -97,7 +97,7 @@
 .travel[data-mode="h"] .hgroup.own > .blk{top:calc(var(--y,.5)*100%);transform:translateY(calc(var(--y,.5)*-100%))}
 /* 长文字：脚本把它排成并排的几栏（scripts/travel.ts 的 flowText），高度用满、从顶部开始 */
 .travel[data-mode="h"] .b-text.cols{top:0;transform:none;column-width:var(--col-w);column-gap:var(--col-gap);column-fill:auto}
-.b-text.cols header,.b-text.cols h3,.b-text.cols blockquote,.b-text.cols figure,.b-text.cols li{break-inside:avoid}
+.b-text.cols header,.b-text.cols h3,.b-text.cols blockquote,.b-text.cols figure,.b-text.cols .callout,.b-text.cols .embed-card,.b-text.cols .math-block,.b-text.cols .embed-code,.b-text.cols li{break-inside:avoid}
 .b-text.cols header,.b-text.cols h3{break-after:avoid}
 .travel[data-mode="h"] .b-text.v{height:calc(var(--ph)*.92*var(--s,1))}
 .travel[data-mode="h"] .b-single img{height:calc(var(--ph)*var(--s,1));width:auto}

@@ -5,9 +5,11 @@
  */
 import Image from './Photo.astro';
 import CodeBlock from './CodeBlock.astro';
+import Callout from './Callout.astro';
+import Embed from './Embed.astro';
 import type { Inline, PostData } from '../schema/schema.ts';
 import type { Flow } from '../lib/flow.ts';
-import { numberNotes, renderInline } from '../lib/inline.ts';
+import { numberNotes, renderInline, texHtml } from '../lib/inline.ts';
 import { isPlaceOnly } from '../lib/flow.mjs';
 import { coord } from '../lib/geo.ts';
 import { t, vertical } from '../lib/i18n.ts';
@@ -55,6 +57,8 @@ const ht = {
   oli: `${li} py-[.2em] pl-[1.6em] before:absolute before:top-[.3em] before:left-0 before:text-meta before:leading-[2] before:text-muted-foreground before:content-[counter(li)]`,
   code: 'my-[1em] overflow-hidden rounded-[6px] bg-muted text-(--code-foreground) [--pad:14px] [font:.8em/1.75_var(--font-mono)]',
   pre: 'overflow-x-auto py-[.9em]',
+  /** 提示框、公式、网站卡片 */
+  box: '',
 };
 const vt = {
   stop: 'm-0 ml-[1.2em]',
@@ -72,6 +76,7 @@ const vt = {
   oli: `${li} border-0 p-0 before:static before:top-[.3em] before:left-0 before:[font-family:inherit] before:text-[1em] before:leading-[inherit] before:text-muted-foreground before:content-[counter(li,cjk-ideographic)_'、']`,
   code: 'm-0 mt-[.9em] flex max-h-full w-[22em] flex-col overflow-hidden rounded-[6px] bg-muted tracking-[0] text-(--code-foreground) [--pad:14px] [font:.8em/1.75_var(--font-mono)] [writing-mode:horizontal-tb]',
   pre: 'min-h-0 overflow-auto py-[.9em]',
+  box: 'm-0 mt-[.9em] w-[22em] max-w-none tracking-[0] [writing-mode:horizontal-tb]',
 };
 
 
@@ -133,6 +138,9 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
                       return <Tag class={b.ordered ? k.ol : k.ul} data-b={b.id}>{b.items.map((item) => <li class={b.ordered ? k.oli : k.uli} set:html={html(item)} />)}</Tag>;
                     }
                     case 'code': return <CodeBlock id={b.id} code={b.code} lang={b.lang} filename={b.filename} highlight={b.highlight} box={k.code} pre={k.pre} />;
+                    case 'callout': return <Callout id={b.id} kind={b.kind} paras={b.text.map(html)} class={k.box} />;
+                    case 'math': return <div class={`math-block ${k.box}`} data-b={b.id} set:html={texHtml(b.tex, true)} />;
+                    case 'embed': return <Embed id={b.id} url={b.url} class={k.box} code={{ box: k.code, pre: k.pre }} />;
                     default: {
                       const prev = c.blocks[bi - 1];
                       const afterP = prev?.type === 'p'; // 紧跟在另一段后面的段落隔开一点
