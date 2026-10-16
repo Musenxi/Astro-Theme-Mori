@@ -246,28 +246,58 @@ function init() {
   const tmap = document.querySelector<HTMLElement>('#tmap');
   const panel = tmap?.querySelector<HTMLElement>('[data-panel]'), shade = tmap?.querySelector<HTMLElement>('.absolute[data-close]');
   let view: Promise<import('./atlas.ts').AtlasView | undefined> | undefined;
-  const fromLoc = () => {
-    const pr = panel!.getBoundingClientRect(), lr = loc!.getBoundingClientRect();
-    return `inset(${lr.top - pr.top}px ${pr.right - lr.right}px ${pr.bottom - lr.bottom}px ${lr.left - pr.left}px round 999px)`;
+  // 开合：面板铺满整屏，裁切框在小地图和面板之间伸缩，圆角也跟着从小地图的变到面板的；里面的地图跟着从小地图那一点
+  // 放大、淡入。收回是倒过来：地图和框一起朝小地图缩、淡出，到最后面板淡出、小地图淡入接上。展开时小地图淡出
+  const inner = panel?.querySelector<HTMLElement>('[data-inner]');
+  const frames = () => {
+    const ir = inner!.getBoundingClientRect(), lr = loc!.getBoundingClientRect(), W = innerWidth, H = innerHeight;
+    const r = parseFloat(getComputedStyle(panel!).getPropertyValue('--r')) || 20;
+    const lrad = Math.min(parseFloat(getComputedStyle(loc!).borderTopLeftRadius) || 0, lr.height / 2);
+    return {
+      small: `inset(${lr.top}px ${W - lr.right}px ${H - lr.bottom}px ${lr.left}px round ${lrad}px)`,
+      full: `inset(${ir.top}px ${W - ir.right}px ${H - ir.bottom}px ${ir.left}px round ${r}px)`,
+      // 地图缩放的原点：小地图在里面的位置
+      origin: `${lr.left + lr.width / 2 - ir.left}px ${lr.top + lr.height / 2 - ir.top}px`,
+    };
   };
-  const zoomEase = 'cubic-bezier(.2,.8,.2,1)';
+  const SPRING = 'cubic-bezier(.32,.72,0,1)';
+  let anims: Animation[] = [];
+  const stop = () => { anims.forEach((x) => x.cancel()); anims = []; };
   function openMap() {
-    if (!tmap || !panel || tmap.classList.contains('open')) return;
+    if (!tmap || !panel || !inner || !loc || tmap.classList.contains('open')) return;
+    stop();
     tmap.classList.add('open');
     if (!reduce) {
-      panel.animate([{ clipPath: fromLoc() }, { clipPath: 'inset(0 round 20px)' }], { duration: 560, easing: zoomEase });
-      shade?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
-    }
+      const f = frames();
+      anims = [
+        panel.animate([{ clipPath: f.small }, { clipPath: f.full }], { duration: 520, easing: SPRING }),
+        shade!.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 360, easing: 'ease-out' }),
+        loc.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: 'ease-out', fill: 'forwards' }),
+        inner.animate([{ opacity: 0, transform: 'scale(.94)', transformOrigin: f.origin }, { opacity: 1, transform: 'none', transformOrigin: f.origin }], { duration: 520, delay: 40, easing: SPRING, fill: 'backwards' }),
+      ];
+    } else loc.style.opacity = '0';
     view ??= import('./atlas.ts').then((m) => m.mountAtlas(tmap.querySelector('[data-atlas]')!));
     view.then((v) => { v?.resize(); v?.focus(lastStop); });
     tmap.querySelector<HTMLElement>('button[data-close]')?.focus({ preventScroll: true });
   }
   function closeMap(then?: () => void) {
-    if (!tmap || !panel || !tmap.classList.contains('open')) return;
-    const done = () => { tmap.classList.remove('open'); loc?.focus({ preventScroll: true }); then?.(); };
-    if (reduce || !loc?.classList.contains('on')) return done();
-    panel.animate([{ clipPath: 'inset(0 round 20px)' }, { clipPath: fromLoc() }], { duration: 420, easing: zoomEase, fill: 'forwards' }).finished.then((a) => { done(); a.cancel(); });
-    shade?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, fill: 'forwards' }).finished.then((a) => a.cancel());
+    if (!tmap || !panel || !inner || !loc || !tmap.classList.contains('open')) return;
+    const done = () => { stop(); loc.style.opacity = ''; tmap.classList.remove('open'); loc.focus({ preventScroll: true }); then?.(); };
+    stop();
+    if (reduce || !loc.classList.contains('on')) return done();
+    // 收回：框一下就开始缩、越近越慢；框走到九成多（约 300ms）时面板正好淡完、小地图淡入接上，剩下的减速尾巴藏在透明里
+    // （等框完全停下再淡出，那段几乎不动的尾巴看起来像停住了）
+    const f = frames(), ease = 'cubic-bezier(.2,0,0,1)';
+    const fade = panel.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, delay: 180, easing: 'linear', fill: 'forwards' });
+    anims = [
+      panel.animate([{ clipPath: f.full }, { clipPath: f.small }], { duration: 500, easing: ease, fill: 'forwards' }),
+      // 地图跟着框缩，前大半程看得见，快到时才淡掉
+      inner.animate([{ opacity: 1, transform: 'none', transformOrigin: f.origin }, { opacity: 0.9, offset: 0.6 }, { opacity: 0, transform: 'scale(.94)', transformOrigin: f.origin }], { duration: 280, easing: 'linear', fill: 'forwards' }),
+      fade,
+      shade!.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, easing: 'ease-out', fill: 'forwards' }),
+      loc.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 130, delay: 170, fill: 'both' }),
+    ];
+    fade.finished.then(done, () => {});
   }
   if (tmap) {
     loc?.addEventListener('click', openMap);

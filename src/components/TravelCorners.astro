@@ -50,9 +50,12 @@ const stopData = stops.map((s) => ({ id: s.id, name: s.name || coord(s.lnglat), 
 {stops.length > 0 && atlas && (
   <div class="fixed inset-0 z-45 hidden [&.open]:block" id="tmap" role="dialog" aria-modal="true" aria-label={t('nav.map')}>
     <div class="absolute inset-0 bg-black/35 backdrop-blur-[3px]" data-close />
-    <div class="absolute inset-[clamp(16px,4vh,48px)_clamp(16px,4vw,64px)] overflow-hidden rounded-[20px] bg-background shadow-[0_30px_80px_-30px_rgba(0,0,0,.6)] narrow:inset-2 narrow:rounded-[14px]" data-panel>
+    {/* 面板铺满整屏，四周留白和圆角靠裁切框：开合时框能一直缩到小地图那里（小地图有一部分在留白里） */}
+    <div class="absolute inset-0 bg-background [--r:20px] [clip-path:inset(clamp(16px,4vh,48px)_clamp(16px,4vw,64px)_round_var(--r))] narrow:[--r:14px] narrow:[clip-path:inset(8px_round_var(--r))]" data-panel>
+      <div class="absolute inset-[clamp(16px,4vh,48px)_clamp(16px,4vw,64px)] narrow:inset-2" data-inner>
       <Atlas atlas={atlas} variant="post" />
       <button class="lg lg-btn absolute top-4 right-4 z-10 grid size-[39px] cursor-pointer place-items-center text-(--lg-fg) [transition:color_.3s,transform_.4s_cubic-bezier(.34,1.45,.5,1)] hover:text-(--lg-fg-on) active:[transform:scale(.92)] narrow:top-3 narrow:right-3" type="button" data-close title={t('js.lb.close')} aria-label={t('js.lb.close')} set:html={iconSvg('x', 'size-[18px]')} />
+      </div>
     </div>
   </div>
 )}
