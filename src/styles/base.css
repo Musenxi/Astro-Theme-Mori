@@ -12,6 +12,8 @@
   --primary: oklch(from var(--accent-base) min(l, 0.52) c h);
   --primary-foreground: var(--background);
   --ring: var(--primary);
+  /* 地图上火车、船、飞机这些远行的路线（走路、骑车、开车是主题色） */
+  --route-far: #b4532f;
   --land: #e4e1da;
   --land-edge: #cdc9c0;
   --gut: clamp(16px, 4vw, 56px);
@@ -60,6 +62,7 @@
     --muted-foreground: #808080;
     --border: #34302b;
     --primary: var(--accent-dark, oklch(from var(--accent-base) max(l, 0.7) min(c, 0.18) h));
+    --route-far: #e0906e;
     --land: #2a2723;
     --land-edge: #3d3832;
     --glass: color-mix(in srgb, var(--background) 56%, transparent);

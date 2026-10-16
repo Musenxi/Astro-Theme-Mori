@@ -57,7 +57,8 @@ const tileData = tiles.map((c) => c.cam.map(r2));
 // 一开始：第一个地点所在区域
 const [cx, cy, cw] = camData[0], z = W / cw;
 const [px, py] = placeData[0];
-// 线型按交通方式：步行是点，火车长虚线，飞机、船短虚线，其余实线（单位 --u = 一个屏幕像素）
+// 线型按交通方式：步行是点，火车长虚线，飞机、船短虚线，其余实线（单位 --u = 一个屏幕像素）；火车、船、飞机用远行的颜色
+const far = 'data-[by=train]:stroke-route-far data-[by=plane]:stroke-route-far data-[by=boat]:stroke-route-far';
 const dash = 'data-[by=walk]:[stroke-dasharray:0_calc(var(--u)*3)] data-[by=walk]:[stroke-linecap:round] data-[by=train]:[stroke-dasharray:calc(var(--u)*4)_calc(var(--u)*2)] data-[by=plane]:[stroke-dasharray:calc(var(--u)*2)_calc(var(--u)*3)] data-[by=boat]:[stroke-dasharray:calc(var(--u)*2)_calc(var(--u)*3)]';
 const land = 'fill-land stroke-land-edge stroke-1 transition-[fill] duration-400 [vector-effect:non-scaling-stroke]';
 const label = t('map.route', { list: places.map((s) => s.name).join(lang === 'en' ? ', ' : '、') });
@@ -73,7 +74,7 @@ const label = t('map.route', { list: places.map((s) => s.name).join(lang === 'en
         </mask>
         {legs.map((l) => <path d={l.d} fill="none" data-by={l.by} class:list={[dash, "stroke-muted-foreground opacity-40 [stroke-linejoin:round] [stroke-width:var(--u)]"]} />)}
         <g mask="url(#mini-reveal)">
-          {legs.map((l) => <path d={l.d} fill="none" data-by={l.by} class:list={[dash, "stroke-primary [stroke-linejoin:round] [stroke-width:calc(var(--u)*1.5)]"]} />)}
+          {legs.map((l) => <path d={l.d} fill="none" data-by={l.by} class:list={[dash, far, "stroke-primary [stroke-linejoin:round] [stroke-width:calc(var(--u)*1.5)]"]} />)}
         </g>
       </>
     )}

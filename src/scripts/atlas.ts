@@ -40,13 +40,14 @@ function rgbOf(el: Element, name: string) {
 }
 /** 交通方式 → 图标 */
 const BY_ICON: Record<string, string> = { walk: 'footprints', bike: 'bike', car: 'car', train: 'train-front', plane: 'plane', boat: 'ship' };
-/** 路线的几种线型（单位是线宽）；没写交通方式和骑车、开车是实线 */
-const DASHES: Array<[string, string[], number[] | null]> = [
-  ['walk', ['walk'], [0, 2]],
-  ['train', ['train'], [3, 1.6]],
-  ['dash', ['plane', 'boat'], [1.4, 2.2]],
-  ['solid', [], null],
+/** 路线的几种线型（单位是线宽）；没写交通方式和骑车、开车是实线。far：火车、船、飞机用远行的颜色，其余用主题色 */
+const DASHES: Array<[string, string[], number[] | null, boolean]> = [
+  ['walk', ['walk'], [0, 2], false],
+  ['train', ['train'], [3, 1.6], true],
+  ['dash', ['plane', 'boat'], [1.4, 2.2], true],
+  ['solid', [], null, false],
 ];
+const FAR = new Set(['train', 'plane', 'boat']);
 const deg = (at: [number, number]) => `${Math.abs(at[1]).toFixed(4)}°${at[1] >= 0 ? 'N' : 'S'}, ${Math.abs(at[0]).toFixed(4)}°${at[0] >= 0 ? 'E' : 'W'}`;
 const day = (p: AtlasPhoto) => p.exif.time?.split(' ')[0];
 const daysOf = (photos: AtlasPhoto[]) => {
@@ -170,14 +171,14 @@ export async function mountAtlas(root: HTMLElement): Promise<AtlasView | undefin
     map.addLayer({ id: 'photos-hit', type: 'circle', source: 'photos', paint: { 'circle-radius': 0, 'circle-opacity': 0 } });
     if (atlas.routes.length) {
       map.addSource('routes', { type: 'geojson', data: { type: 'FeatureCollection', features: atlas.routes.map((r) => ({ type: 'Feature', properties: { by: r.by ?? '' }, geometry: { type: 'LineString', coordinates: r.line } })) } });
-      const primary = rgbOf(host, '--primary');
+      const primary = rgbOf(host, '--primary'), far = rgbOf(host, '--route-far');
       const all = DASHES.flatMap(([, bys]) => bys);
-      for (const [id, bys, dash] of DASHES) {
+      for (const [id, bys, dash, isFar] of DASHES) {
         map.addLayer({
           id: `routes-${id}`, type: 'line', source: 'routes',
           filter: bys.length ? ['in', ['get', 'by'], ['literal', bys]] : ['!', ['in', ['get', 'by'], ['literal', all]]],
           layout: { 'line-cap': 'round', 'line-join': 'round' },
-          paint: { 'line-color': primary, 'line-width': id === 'walk' ? 3 : 2, 'line-opacity': 0.85, ...(dash ? { 'line-dasharray': dash } : {}) },
+          paint: { 'line-color': isFar ? far : primary, 'line-width': id === 'walk' ? 3 : 2, 'line-opacity': 0.85, ...(dash ? { 'line-dasharray': dash } : {}) },
         });
       }
     }
@@ -273,6 +274,7 @@ export async function mountAtlas(root: HTMLElement): Promise<AtlasView | undefin
   };
   const byMarkers = post ? atlas.routes.filter((r) => r.by && BY_ICON[r.by]).map((r) => {
     const el = h('span', 'atlas-by');
+    if (FAR.has(r.by!)) el.dataset.far = '';
     el.append(icon(BY_ICON[r.by!]));
     return new ml.Marker({ element: el }).setLngLat(midOf(r)).addTo(map);
   }) : [];

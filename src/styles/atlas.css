@@ -18,6 +18,7 @@
 /* 路线中间的交通方式：小圆底上一个图标 */
 .atlas-by{display:grid;place-items:center;width:24px;height:24px;border-radius:999px;background:var(--glass);-webkit-backdrop-filter:blur(12px) saturate(1.5);backdrop-filter:blur(12px) saturate(1.5);border:1px solid var(--glass-line);color:var(--primary);pointer-events:none}
 .atlas-by .atlas-i{width:14px;height:14px}
+.atlas-by[data-far]{color:var(--route-far)}
 .atlas-me{width:14px;height:14px;border-radius:999px;background:var(--foreground);box-shadow:0 0 0 3px var(--background),0 0 0 10px color-mix(in srgb,var(--foreground) 14%,transparent)}
 
 /* 预览和卡片：MapLibre 的 Popup 定位，外观是主题的玻璃卡 */

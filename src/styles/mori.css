@@ -90,6 +90,7 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-destructive: var(--destructive);
   --color-ring: var(--ring);
+  --color-route-far: var(--route-far);
   --color-land: var(--land);
   --color-land-edge: var(--land-edge);
   --color-border-soft: color-mix(in srgb, var(--border) 60%, transparent);
