@@ -1,15 +1,16 @@
 /**
  * 划词引用评论（spec §3.4）：读者选中正文里的一段文字，针对这段发表评论。
- *  - 选中后浮出一颗小玻璃按钮“引用评论”；点开是选区旁边的小输入框（手机上从底部弹出）；发完就收起，读者留在原处。
+ *  - 选中后浮出一颗小玻璃按钮“引用评论”；点开后，和文末一样的评论表单插在这一段下面，选中的文字一直标着；发完就收起，读者留在原处。
+ *    长卷的横向读法和竖排文字块里没法插进正文，表单浮在选区旁边（手机上从底部弹出）。
  *  - 划词发的评论也是评论：显示在文末评论区，带着引用的原文；点引用，回到正文里那一段并临时高亮（CSS Custom Highlight API，不改正文 DOM）。
  *  - 正文里被引用过的文字不留任何记号；读者划词时，如果选区和某条引用评论的原文重叠，选区下面浮出一张小卡，列出引用这段文字的评论。
  *  - 位置 = 块 id + 起止字符位置（跳过 data-skip 的旁注编号、标题序号等），另存原文和前后文，文章改了以后重新定位（anchor-text.ts）。
  *  - 只有使用 MORI 自建评论时才有；图片不能划词。
  */
 import { t } from './i18n.ts';
-import { chevronHtml } from '../lib/chevron.ts';
 import { locate, contextOf, type Anchor } from '../lib/anchor-text.ts';
-import { moriConfig, listComments, sendComment, mountTurnstile, remember, type MoriComment } from './cmt-api.ts';
+import { moriConfig, listComments, type MoriComment } from './cmt-api.ts';
+import { commentForm, h } from './cmt-form.ts';
 import { commentText } from '../lib/comment-md.mjs';
 
 /** 能划词的块：普通文章的段落 / 标题 / 引用，游记的文字块里的段落 */
@@ -150,21 +151,11 @@ function init() {
   const btn = document.createElement('button');
   btn.type = 'button'; btn.className = 'anno-btn glass'; btn.textContent = t('js.anno.btn'); btn.hidden = true;
 
-  const pop = document.createElement('form');
-  pop.className = 'anno-pop glass'; pop.hidden = true;
-  pop.innerHTML = `
-    <blockquote class="anno-q"></blockquote>
-    <div class="anno-row"><input name="name" placeholder="${t('js.cmt.name')}" required maxlength="40" autocomplete="nickname"><input name="email" type="email" placeholder="${t('js.anno.email')}" required maxlength="120" autocomplete="email"></div>
-    <input name="url" type="text" inputmode="url" placeholder="${t('js.cmt.url')}" maxlength="200" autocomplete="url">
-    <textarea name="body" placeholder="${t('js.anno.write')}" required rows="3" maxlength="4000"></textarea>
-    <input name="website" class="cmt-trap" tabindex="-1" autocomplete="off" aria-hidden="true">
-    <div class="anno-ts"></div>
-    <div class="anno-foot"><span class="anno-msg" role="status"></span><button type="button" class="anno-cancel linkbtn">${t('js.anno.cancel')}</button><button type="submit" class="anno-send">${t('js.cmt.send')}${chevronHtml()}</button></div>`;
   // 选区和已有引用评论的原文重叠时，列出引用它的评论
   const seen = document.createElement('div');
   seen.className = 'anno-seen glass'; seen.hidden = true;
   seen.addEventListener('pointerdown', (e) => e.preventDefault()); // 点卡片不能让选区丢掉
-  document.body.append(btn, seen, pop);
+  document.body.append(btn, seen);
 
   /** 已知的评论：评论区画好时给一份，读者刚发的补进来；文章一打开就先自己取一次，划词时不必等读者翻到文末 */
   let known: MoriComment[] = [];
@@ -189,16 +180,12 @@ function init() {
     }));
   }
 
-  const $ = <T extends HTMLElement>(s: string) => pop.querySelector<T>(s)!;
-  const name = $<HTMLInputElement>('[name=name]'), email = $<HTMLInputElement>('[name=email]'), url = $<HTMLInputElement>('[name=url]'), text = $<HTMLTextAreaElement>('[name=body]');
-  const trap = $<HTMLInputElement>('[name=website]'), msg = $('.anno-msg'), send = $<HTMLButtonElement>('.anno-send');
-
   let cur: ReturnType<typeof currentSelection> = null;
+  let pop: HTMLElement | null = null; // 打开着的表单
   let popOpen = false;
   let hasSeen = false;
-  let widget: { token(): string; reset(): void } | null = null;
 
-  /* 按钮 / 输入框跟着选区走：横向读法下文字会随滚动横移；输入框打开时暂停跟随，不让它在读者打字时滑出屏幕 */
+  /* 按钮跟着选区走：横向读法下文字会随滚动横移 */
   function place() {
     if (cur && !popOpen) {
       const rects = cur.range.getClientRects(), r = rects[rects.length - 1] ?? cur.range.getBoundingClientRect();
@@ -217,7 +204,7 @@ function init() {
         btn.style.top = Math.min(innerHeight - btn.offsetHeight - 8, top) + 'px';
       }
     }
-    if (!btn.hidden || popOpen) requestAnimationFrame(place);
+    if (!btn.hidden) requestAnimationFrame(place);
   }
   const show = () => { btn.hidden = false; requestAnimationFrame(place); };
 
@@ -238,48 +225,51 @@ function init() {
 
   // 点按钮时不能让选区丢掉
   btn.addEventListener('pointerdown', (e) => e.preventDefault());
-  btn.addEventListener('click', async () => {
+  btn.addEventListener('click', () => {
     if (!cur) return;
+    const s = cur;
     popOpen = true; btn.hidden = true; seen.hidden = true;
-    $('.anno-q').textContent = cur.anchor.quote;
-    name.value = remember.get('mori-cmt-name'); email.value = remember.get('mori-cmt-email'); url.value = remember.get('mori-cmt-url'); msg.textContent = '';
-    const r = cur.range.getBoundingClientRect(), rects = cur.range.getClientRects(), last = rects[rects.length - 1] ?? r;
-    pop.hidden = false;
-    // 桌面：贴着选区下方；手机：CSS 里改成从底部弹出
-    pop.style.left = Math.min(innerWidth - pop.offsetWidth - 12, Math.max(12, last.left)) + 'px';
-    const below = last.bottom + 10, fits = below + pop.offsetHeight < innerHeight - 12;
-    pop.style.top = (fits ? below : Math.max(12, r.top - pop.offsetHeight - 10)) + 'px';
-    (name.value ? text : name).focus();
-    if (!widget && cfg.turnstileSiteKey) widget = await mountTurnstile(cfg, $('.anno-ts'));
+    hold(s.range);
+    const f = commentForm(cfg, {
+      anchor: { ...s.anchor, block: s.block.dataset.b! },
+      onCancel: close,
+      onSent: (r) => { toast(r.status === 'approved' ? t('js.anno.posted') : t('js.anno.pending')); close(); },
+    });
+    const inline = !s.block.closest('.travel[data-mode="h"], .b-text.v');
+    pop = h('div', { class: inline ? 'anno-pop' : 'anno-pop float glass' }, f);
+    getSelection()?.removeAllRanges(); // 选区换成高亮：读者在框里打字时，正文里引用的那段还标着
+    if (inline) {
+      s.block.after(pop);
+      // 和这一段一样宽：正文是网格排的，段落还可能带着负的外边距
+      const cs = getComputedStyle(s.block);
+      Object.assign(pop.style, { gridColumn: cs.gridColumn, marginLeft: cs.marginLeft, marginRight: cs.marginRight });
+      pop.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+    } else {
+      document.body.append(pop);
+      // 桌面：贴着选区下方，放不下就放上方；手机：CSS 里改成从底部弹出
+      const r = s.range.getBoundingClientRect(), rects = s.range.getClientRects(), last = rects[rects.length - 1] ?? r;
+      pop.style.left = Math.min(innerWidth - pop.offsetWidth - 12, Math.max(12, last.left)) + 'px';
+      const below = last.bottom + 10, fits = below + pop.offsetHeight < innerHeight - 12;
+      pop.style.top = (fits ? below : Math.max(12, r.top - pop.offsetHeight - 10)) + 'px';
+    }
+    const name = f.querySelector<HTMLInputElement>('[name=name]')!;
+    (name.value ? f.querySelector('textarea')! : name).focus({ preventScroll: true });
   });
+
+  /** 表单开着的时候，引用的文字用高亮标着（不改正文 DOM） */
+  function hold(range: Range | null) {
+    const css = CSS as any;
+    if (!css.highlights || !(window as any).Highlight) return;
+    if (range) css.highlights.set('mori-anno-hold', new (window as any).Highlight(range)); else css.highlights.delete('mori-anno-hold');
+  }
 
   function close() {
-    popOpen = false; pop.hidden = true; btn.hidden = true; seen.hidden = true; hasSeen = false; cur = null;
-    text.value = '';
+    popOpen = false; pop?.remove(); pop = null; hold(null);
+    btn.hidden = true; seen.hidden = true; hasSeen = false; cur = null;
   }
-  $('.anno-cancel').addEventListener('click', close);
-  on(window, 'keydown', (e) => { if (e.key === 'Escape' && popOpen) close(); });
-  on(document, 'pointerdown', (e) => { if (popOpen && !(e.target as Element).closest('.anno-pop')) close(); });
-
-  pop.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!cur) return;
-    send.disabled = true; msg.textContent = t('js.cmt.sending'); msg.classList.remove('bad');
-    try {
-      const a = cur.anchor;
-      const r = await sendComment(cfg, {
-        entry: cfg.entry, block: cur.block.dataset.b, start: a.start, end: a.end, quote: a.quote, prefix: a.prefix, suffix: a.suffix,
-        name: name.value, email: email.value, url: url.value, body: text.value, website: trap.value, turnstile: widget?.token(),
-      });
-      remember.set('mori-cmt-name', name.value); remember.set('mori-cmt-email', email.value); remember.set('mori-cmt-url', url.value);
-      widget?.reset();
-      getSelection()?.removeAllRanges();
-      if (r.status === 'approved' && r.comment) document.dispatchEvent(new CustomEvent('mori:comment-added', { detail: r.comment }));
-      toast(r.status === 'approved' ? t('js.anno.posted') : t('js.anno.pending'));
-      close();
-    } catch (err: any) { msg.textContent = err.message; msg.classList.add('bad'); }
-    send.disabled = false;
-  });
+  on(window, 'keydown', (e) => { if (e.key === 'Escape' && popOpen && !document.querySelector('.anno-pop .cmt-emoji-panel:not([hidden])')) close(); });
+  // 浮着的表单点外面就收起；插在正文里的不收，免得读者写了一半的字丢了
+  on(document, 'pointerdown', (e) => { if (popOpen && pop?.classList.contains('float') && !(e.target as Element).closest('.anno-pop')) close(); });
 
   function toast(s: string) {
     const el = document.createElement('div');

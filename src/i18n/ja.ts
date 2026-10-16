@@ -36,7 +36,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'js.views': '{n}回閲覧', 'js.views.one': '1回閲覧',
   'js.online': '{n}人が閲覧中',
   'js.code.copy': 'コピー', 'js.code.copied': 'コピーしました',
-  'js.anno.btn': '引用してコメント', 'js.anno.email': 'メール *', 'js.anno.write': '感想を書く…', 'js.anno.cancel': 'キャンセル', 'js.anno.posted': 'コメントを投稿しました。末尾のコメント欄にあります', 'js.anno.pending': '受け付けました。承認されると末尾のコメント欄に表示されます',
+  'js.anno.btn': '引用してコメント', 'js.anno.cancel': 'キャンセル', 'js.anno.posted': 'コメントを投稿しました。末尾のコメント欄にあります', 'js.anno.pending': '受け付けました。承認されると末尾のコメント欄に表示されます',
   'js.search.count': '{n}件', 'js.search.none': '見つかりません。別の言葉で試してみてください。',
   'js.travel.mode.v': '縦', 'js.travel.mode.h': '横', 'js.travel.mode.m': '混合', 'js.travel.tip': '読み方：{mode}',
 };

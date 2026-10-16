@@ -7,19 +7,8 @@ import { mountEmbed } from './cmt-embed.ts';
 import { avatarUrl } from '../lib/avatar.mjs';
 import { parseComment } from '../lib/comment-md.mjs';
 import emoji from 'virtual:mori/emoji';
-import { emojiButton } from './emoji-picker.ts';
-import { moriConfig, listComments, sendComment, mountTurnstile, remember, numDate, type MoriComment, type MoriCommentsConfig } from './cmt-api.ts';
-
-type Child = Node | string | null | false | undefined;
-function h<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, any> = {}, ...kids: Child[]): HTMLElementTagNameMap[K] {
-  const e = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) {
-    if (v === undefined || v === false) continue;
-    if (k === 'class') e.className = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v === true ? '' : v);
-  }
-  for (const c of kids) if (c) e.append(c);
-  return e;
-}
+import { moriConfig, listComments, numDate, type MoriComment } from './cmt-api.ts';
+import { commentForm, h } from './cmt-form.ts';
 
 /** 评论正文（Markdown 节点，见 comment-md.mjs）→ DOM。全部用 createElement 和文字节点，不经过 innerHTML */
 function md(nodes: any[]): Node[] {
@@ -94,7 +83,7 @@ function init() {
       body.replaceChildren(h('p', { class: 'cmt-none' }, t('js.cmt.closed')), list);
       return;
     }
-    body.replaceChildren(form(cfg!, null), comments.length ? list : h('p', { class: 'cmt-none' }, t('js.cmt.none')));
+    body.replaceChildren(commentForm(cfg!), comments.length ? list : h('p', { class: 'cmt-none' }, t('js.cmt.none')));
   }
 
   function item(c: MoriComment, kids: MoriComment[]): HTMLLIElement {
@@ -143,7 +132,7 @@ function init() {
     const open = main.querySelector(':scope > form.cmt-form');
     if (open) { open.remove(); btn.textContent = t('js.cmt.reply'); return; }
     btn.textContent = t('js.cmt.cancelReply');
-    const f = form(cfg!, c);
+    const f = commentForm(cfg!, { parent: c });
     main.insertBefore(f, main.querySelector(':scope > .cmt-replies'));
     f.querySelector('textarea')!.focus();
   }
@@ -155,42 +144,6 @@ function init() {
   };
   document.addEventListener('mori:comment-added', added);
   offAdded = () => document.removeEventListener('mori:comment-added', added);
-}
-
-/** 发表 / 回复的表单。parent 有值就是回复 */
-function form(cfg: MoriCommentsConfig & { entry: string }, parent: MoriComment | null) {
-  const name = h('input', { name: 'name', placeholder: t('js.cmt.name'), required: true, maxlength: '40', autocomplete: 'nickname', value: remember.get('mori-cmt-name') });
-  const email = h('input', { name: 'email', type: 'email', placeholder: t('js.cmt.email'), required: true, maxlength: '120', autocomplete: 'email', value: remember.get('mori-cmt-email') });
-  const url = h('input', { name: 'url', type: 'text', inputmode: 'url', placeholder: t('js.cmt.url'), maxlength: '200', autocomplete: 'url', value: remember.get('mori-cmt-url') });
-  const text = h('textarea', { name: 'body', placeholder: parent ? t('js.cmt.replyTo', { name: parent.name }) : t('js.cmt.write'), required: true, rows: '4', maxlength: '4000' });
-  // 蜜罐：真人看不到，机器人会填
-  const trap = h('input', { name: 'website', class: 'cmt-trap', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true' });
-  const ts = h('div', { class: 'cmt-ts' });
-  const msg = h('p', { class: 'cmt-msg', role: 'status' });
-  const btn = h('button', { class: 'cmt-send', type: 'submit' }, (parent ? t('js.cmt.sendReply') : t('js.cmt.send')));
-  // 一个细线框：上面一栏是署名，中间写字，下面一栏是发表
-  const f = h('form', { class: 'cmt-form' }, h('div', { class: 'cmt-box' }, h('div', { class: 'cmt-row' }, name, email, url), text, h('div', { class: 'cmt-foot' }, emojiButton(text), btn)), trap, ts, msg);
-  let widget: { token(): string; reset(): void } | null = null;
-  // 人机验证控件在第一次聚焦时才加载
-  f.addEventListener('focusin', async () => { if (!widget && cfg.turnstileSiteKey) widget = await mountTurnstile(cfg, ts); }, { once: true });
-
-  f.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    btn.disabled = true; msg.textContent = t('js.cmt.sending'); msg.classList.remove('bad');
-    try {
-      // 回复的是一条回复时，评论服务把它挂在最上面那条下面（只有一层），正文开头点名，读的人才知道在回谁
-      const mention = parent?.parentId ? `@${parent.name} ` : '';
-      const r = await sendComment(cfg, { entry: cfg.entry, name: name.value, email: email.value, url: url.value, body: mention + text.value, website: trap.value, parentId: parent?.id, turnstile: widget?.token() });
-      remember.set('mori-cmt-name', name.value); remember.set('mori-cmt-email', email.value); remember.set('mori-cmt-url', url.value);
-      text.value = '';
-      widget?.reset();
-      if (r.status === 'approved' && r.comment) document.dispatchEvent(new CustomEvent('mori:comment-added', { detail: r.comment }));
-      else msg.textContent = t('js.cmt.pending');
-      if (r.status === 'approved') msg.textContent = '';
-    } catch (err: any) { msg.textContent = err.message; msg.classList.add('bad'); }
-    btn.disabled = false;
-  });
-  return f;
 }
 
 document.addEventListener('astro:page-load', init);

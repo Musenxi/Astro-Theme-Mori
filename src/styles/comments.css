@@ -81,7 +81,7 @@
   .cmt-send{flex:1 1 100%}
 }
 
-/* ───────── 划词引用评论：小玻璃按钮、输入框、回到正文时的临时高亮 ───────── */
+/* ───────── 划词引用评论：小玻璃按钮、插在段落下面的表单、正文里的临时高亮 ───────── */
 .anno-btn{position:fixed;z-index:40;padding:5px 14px;border-radius:999px;font-size:var(--text-meta);letter-spacing:.14em;color:var(--foreground);cursor:pointer;animation:anno-in .35s var(--ease-mori) both}
 .anno-btn:hover{color:var(--primary)}
 @keyframes anno-in{from{opacity:0;transform:translateY(4px) scale(.96)}}
@@ -90,26 +90,19 @@
 .anno-seen b{font-weight:400;font-size:var(--text-meta);color:var(--muted-foreground)}
 .anno-seen-t{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .anno-seen-r{margin:4px 0 0 .8em;padding-left:.8em;border-left:1px solid var(--glass-line);color:var(--soft-foreground);font-size:var(--text-meta);white-space:pre-wrap;overflow-wrap:anywhere}
-.anno-pop{position:fixed;z-index:41;width:min(340px,calc(100vw - 24px));padding:12px 14px 10px;border-radius:6px;animation:anno-in .35s var(--ease-mori) both}
-.anno-q{margin:0 0 10px;padding-left:10px;border-left:1px solid var(--primary);color:var(--soft-foreground);font-size:var(--text-meta);line-height:1.7;max-height:5.2em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
-.anno-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.anno-pop > input[name=url]{margin-top:4px}
-.anno-pop input:not(.cmt-trap),.anno-pop textarea{width:100%;font:inherit;font-size:var(--text-aux);color:inherit;background:none;border:0;border-bottom:1px solid var(--glass-line);padding:6px 0;outline:0}
-.anno-pop textarea{resize:none;line-height:1.7;margin-top:4px}
-.anno-pop input:focus,.anno-pop textarea:focus{border-bottom-color:var(--foreground)}
-.anno-foot{display:flex;align-items:center;gap:12px;margin-top:8px}
-.anno-msg{flex:1;font-size:var(--text-meta);color:var(--muted-foreground)}
-.anno-msg.bad{color:var(--destructive)}
-.anno-cancel{font-size:var(--text-meta);color:var(--muted-foreground)}
-.anno-send{font-size:var(--text-aux);letter-spacing:.06em}
-.anno-send .chev{color:var(--primary)}
-.anno-send[disabled]{opacity:.5}
+.anno-pop{margin:1.2em 0 2em;writing-mode:horizontal-tb;animation:anno-in .35s var(--ease-mori) both}
+.anno-pop > .cmt-form{margin:0}
+.anno-pop.float{position:fixed;z-index:41;margin:0;width:min(420px,calc(100vw - 24px));padding:10px;border-radius:24px}
+.cmt-form > .cmt-quote{margin:0 0 12px;cursor:default;-webkit-line-clamp:2}
+.cmt-form > .cmt-quote:hover{color:var(--soft-foreground);border-left-color:color-mix(in srgb,var(--primary) 55%,transparent)}
+.cmt-cancel{flex:none;padding:4px 6px;font-size:var(--text-meta);letter-spacing:.16em;color:var(--muted-foreground);transition:color .3s}
+.cmt-cancel:hover{color:var(--foreground)}
 .anno-toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:42;padding:7px 16px;border-radius:999px;color:var(--soft-foreground);animation:anno-in .4s var(--ease-mori) both;transition:opacity .5s}
 .anno-toast.out{opacity:0}
-::highlight(mori-anno){background-color:color-mix(in srgb,var(--primary) 26%,transparent);color:inherit}
+::highlight(mori-anno),::highlight(mori-anno-hold){background-color:color-mix(in srgb,var(--primary) 26%,transparent);color:inherit}
 ::highlight(mori-anno-fade){background-color:color-mix(in srgb,var(--primary) 11%,transparent);color:inherit}
 @media (max-width:760px){
-  /* 手机上输入框从底部弹出 */
-  .anno-pop{left:0!important;right:0;top:auto!important;bottom:0;width:100%;border-radius:12px 12px 0 0;padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+  /* 浮着的表单在手机上从底部弹出 */
+  .anno-pop.float{left:0!important;right:0;top:auto!important;bottom:0;width:100%;border-radius:20px 20px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
 }
 
