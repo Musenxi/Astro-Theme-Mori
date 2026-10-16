@@ -192,7 +192,7 @@ test('交通方式 by：写进 geo 地址、读回；不认识的值丢掉；每
   assert.equal(t.at[3], t.line.length - 1);
 });
 
-test('走路、骑车、开车查到道路路线就用它；轨迹优先；飞机不用', async () => {
+test('走路、骑车、开车、火车查到路线就用它；轨迹优先；飞机不用', async () => {
   const { tripOf, legKey } = await import('../src/lib/flow.mjs');
   const ps = [{ lnglat: [0, 0] }, { lnglat: [1, 0], by: 'car' }, { lnglat: [2, 0], by: 'plane' }];
   const routed = { [legKey('car', [0, 0], [1, 0])]: [[0, 0], [0.5, 0.2], [1, 0]], [legKey('plane', [1, 0], [2, 0])]: [[1, 0], [1.5, 0], [2, 0]] };

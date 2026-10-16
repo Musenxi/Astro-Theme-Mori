@@ -44,7 +44,7 @@ export interface Flow {
   reading: { default: Reading; allowed: Reading[]; direction: 'ltr' | 'rtl' };
 }
 
-/** routed：走路、骑车、开车查到的道路路线（routing.ts 的 routedOf），legKey → 折线 */
+/** routed：走路、骑车、开车、火车查到的路线（routing.ts 的 routedOf），legKey → 折线 */
 export function flowOf(d: Pick<PostData, 'blocks' | 'reading'> & { track?: PostData['track'] }, routed?: Record<string, Array<[number, number]>>): Flow {
   const raw = placesOf(d.blocks) as any[];
   const rg = regionsOf(raw);
