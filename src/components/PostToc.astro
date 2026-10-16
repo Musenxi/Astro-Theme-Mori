@@ -1,40 +1,45 @@
 ---
 /**
- * 文章目录：宽屏时放在正文右边，跟着滚动停在上方；当前读到的那一节用主题色标出（scripts/toc.ts）。
- * 叠在正文上面的一层同样的 12 栏网格，占第 10–12 栏，和旁注同一栏（旁注经过时目录隐去）；小标题少于两个、或窄屏时不出现。
+ * 文章目录（scripts/toc.ts）。小标题少于两个时不出现。
+ * 宽屏：叠在正文上面的一层同样的 12 栏网格，占第 10–12 栏，和旁注同一栏（旁注经过时目录隐去），跟着滚动停在上方。
+ * 窄屏：右下角一颗玻璃圆钮（长卷里叠在读法切换上面），点开从它那里弹出同样的目录。
+ * 二级标题带序号，三级标题缩进到正文那一列；当前读到的那一节字变深，左边的细线上有一段主题色跟着滑过去。
  */
 import type { PostData } from '../schema/schema.ts';
 import { plainText } from '../lib/inline.ts';
 import { t } from '../lib/i18n.ts';
+import { iconSvg } from '../lib/lucide.ts';
 
 interface Props {
   blocks: PostData['blocks'];
 }
 const { blocks } = Astro.props;
 
-const items = blocks.flatMap((b) => (b.type === 'h' ? [{ id: b.id, level: b.level, text: plainText(b.text) }] : []));
+let n = 0;
+const items = blocks.flatMap((b) => (b.type === 'h' ? [{ id: b.id, level: b.level, text: plainText(b.text), n: b.level === 2 ? String(++n).padStart(2, '0') : '' }] : []));
+const label = t('post.toc');
 ---
 
 {
   items.length >= 2 && (
-    <div class="wrap g pointer-events-none absolute inset-0 max-lg:hidden" data-toc>
-      <nav class="col-[10/13]" aria-label={t('post.toc')}>
-        <ol class="pointer-events-auto sticky top-(--toc-top) border-l border-l-border transition-opacity duration-300 [&.off]:pointer-events-none [&.off]:opacity-0">
-          {items.map((it) => (
-            <li>
-              <a
-                class:list={[
-                  '-ml-px block border-l border-l-transparent py-[.3em] pr-2 text-meta leading-[1.6] tracking-[.04em] text-muted-foreground [transition:color_.3s,border-color_.3s] hover:text-foreground aria-[current=location]:border-l-primary aria-[current=location]:text-foreground',
-                  it.level === 2 ? 'pl-3.5' : 'pl-7',
-                ]}
-                href={`#${it.id}`}
-              >
-                {it.text}
-              </a>
-            </li>
-          ))}
+    <>
+      <div class="wrap g pointer-events-none absolute inset-0 max-lg:hidden" data-toc>
+        <nav class="col-[10/13]" aria-label={label}>
+          <ol class="toc-list pointer-events-auto sticky top-(--toc-top) max-h-[calc(100vh-var(--toc-top)-48px)] overflow-y-auto overscroll-contain transition-opacity duration-300 [scrollbar-width:none] [&.off]:pointer-events-none [&.off]:opacity-0">
+            {items.map((it) => <li><a class="toc-a" href={`#${it.id}`} data-l={it.level}><span class="toc-n">{it.n}</span><span>{it.text}</span></a></li>)}
+          </ol>
+        </nav>
+      </div>
+
+      <svg class="absolute" width="0" height="0" aria-hidden="true"><defs data-toc-defs /></svg>
+      <button class="lg lg-btn fixed right-[18px] bottom-[18px] z-30 grid size-[39px] cursor-pointer place-items-center text-(--lg-fg) opacity-0 pointer-events-none [transform:translateY(12px)] [transition:transform_.6s_var(--ease-mori),opacity_.4s,color_.3s,background-color_.4s,box-shadow_.4s] hover:text-(--lg-fg-on) lg:hidden narrow:right-3 narrow:bottom-3 [&.on]:pointer-events-auto [&.on]:opacity-100 [&.on]:[transform:none]" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="toc-pop" aria-label={label} title={label} data-toc-btn set:html={iconSvg('table-of-contents', 'size-[17px]')} />
+      <div class="fixed inset-0 z-30 hidden lg:hidden [&.open]:block" data-toc-shade />
+      <nav class="toc-pop lg lg-panel fixed right-[18px] bottom-(--toc-pop-b,72px) z-30 flex max-h-[min(62vh,520px)] w-[min(300px,calc(100vw-24px))] origin-bottom-right flex-col rounded-[20px] p-2 opacity-0 invisible [transform:translateY(8px)_scale(.94)] [transition:transform_.45s_var(--ease-mori),opacity_.25s,visibility_0s_.45s,background-color_.4s,box-shadow_.4s] lg:hidden narrow:right-3 [&.open]:visible [&.open]:opacity-100 [&.open]:[transform:none] [&.open]:[transition:transform_.45s_var(--ease-mori),opacity_.25s,visibility_0s,background-color_.4s,box-shadow_.4s]" id="toc-pop" role="dialog" aria-label={label} data-toc-pop>
+        <ol class="toc-list min-h-0 overflow-y-auto overscroll-contain [scrollbar-width:none]">
+          {items.map((it) => <li><a class="toc-a" href={`#${it.id}`} data-l={it.level}><span class="toc-n">{it.n}</span><span>{it.text}</span></a></li>)}
         </ol>
       </nav>
-    </div>
+    </>
   )
 }
+

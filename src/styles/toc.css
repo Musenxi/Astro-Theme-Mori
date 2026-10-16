@@ -1,0 +1,19 @@
+/* 文章目录（PostToc.astro）：宽屏右栏的和窄屏弹出的共用一套行样式；当前一节由 toc.ts 标 aria-current，主题色那段的位置写进 --y / --h */
+.toc-list{position:relative;box-shadow:inset 1px 0 var(--border)}
+.toc-list::before{content:"";position:absolute;left:0;top:0;width:1px;height:var(--h,0);transform:translateY(var(--y,0));background:var(--primary);opacity:0;transition:transform .5s var(--ease-mori),height .5s var(--ease-mori),opacity .3s}
+.toc-list.mark::before{opacity:1}
+.toc-list.snap::before{transition:opacity .3s}
+/* 一行：序号一栏（三级标题空着，字和二级标题的字对齐）+ 标题；章与章之间稍隔开 */
+.toc-a{display:grid;grid-template-columns:2.1em 1fr;padding:.32em .5em .32em 1em;font-size:var(--text-meta);line-height:1.6;letter-spacing:.04em;color:var(--muted-foreground);transition:color .3s}
+.toc-a:hover,.toc-a[aria-current]{color:var(--foreground)}
+.toc-a[data-l="3"]{font-size:calc(var(--text-meta)*.93);padding-block:.22em}
+.toc-list li+li:has(>[data-l="2"]){margin-top:.35em}
+.toc-n{font-feature-settings:'tnum','lnum';letter-spacing:.02em;opacity:.7;transition:color .3s,opacity .3s}
+.toc-a[aria-current] .toc-n{color:var(--primary);opacity:1}
+/* 弹出的目录：字大一号、行高松一点，手指好点；不画细线，当前一节垫一颗亮玻璃（和页头栏目的选中透镜一样）；底色比搜索结果板浓些，压在图上也看得清 */
+.toc-pop{--lg-panel:rgba(255,255,255,.66);@variant dark{--lg-panel:rgba(24,22,20,.74)}}
+.toc-pop .toc-list{box-shadow:none}
+.toc-pop .toc-list::before{right:0;width:auto;border-radius:12px;background:var(--lg-lens);box-shadow:inset 0 0 0 .5px var(--lg-rim-2),inset 1px 1px 1px -.5px var(--lg-lens-rim),inset -1px -1px 1px -.5px var(--lg-rim-2),0 2px 8px -3px var(--lg-drop)}
+.toc-pop .toc-a{position:relative}
+.toc-pop .toc-a{font-size:var(--text-aux);padding-block:.5em;padding-left:.8em}
+.toc-pop .toc-a[data-l="3"]{font-size:var(--text-meta);padding-block:.4em}
