@@ -1,5 +1,5 @@
 /**
- * 文章目录（PostToc.astro）：滚动时标出当前读到的那一节；跨栏大图、旁注经过目录所在的位置时，目录先隐去，免得叠在上面。
+ * 文章目录（PostToc.astro）：滚动时标出当前读到的那一节；跨栏大图、旁注真压到目录上时（上下、左右都重叠），目录先隐去；只在正文栏里的代码块、图不算。
  * 点目录平滑滚到小标题（小标题的 scroll-margin 和目录的 top 相同，滚到后两者齐平）。
  * 窄屏：右下角的圆钮读到正文时才出来，点开弹出同一份目录；点外面、按 Esc、点了某一节都收起。
  */
@@ -62,7 +62,7 @@ function init() {
         if (r.height || k) mark(lists[k], as, first);
       });
     }
-    if (r.height) side.classList.toggle('off', blocks.some((f) => { const b = f.getBoundingClientRect(); return b.top < r.bottom + 24 && b.bottom > r.top - 24; }));
+    if (r.height) side.classList.toggle('off', blocks.some((f) => { const b = f.getBoundingClientRect(); return b.top < r.bottom + 24 && b.bottom > r.top - 24 && b.right > r.left - 24 && b.left < r.right + 24; }));
     // 窄屏的圆钮：正文占着屏幕中线时才出来
     const br = body.getBoundingClientRect();
     btn.classList.toggle('on', br.top < innerHeight * 0.5 && br.bottom > innerHeight * 0.5);
