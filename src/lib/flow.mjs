@@ -27,16 +27,19 @@ const num = (n) => String(+(+n).toFixed(6));
 const escHref = (s) => s.replace(/[%&=?()\s#]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0'));
 const unesc = (s) => { try { return decodeURIComponent(s); } catch { return s; } };
 
-/** 地点标记 → `geo:纬度,经度?en=…&date=…`（geo URI，RFC 5870） */
+/** 从上一处到这里的交通方式（地点的 by）。plane 画弧线，none 不连线 */
+export const TRANSPORTS = ['walk', 'bike', 'car', 'train', 'plane', 'boat', 'none'];
+
+/** 地点标记 → `geo:纬度,经度?en=…&date=…&by=…`（geo URI，RFC 5870） */
 export function placeHref(m) {
-  const q = [m.en ? `en=${escHref(m.en)}` : '', m.date ? `date=${escHref(m.date)}` : '', m.region ? `region=${m.region}` : ''].filter(Boolean).join('&');
+  const q = [m.en ? `en=${escHref(m.en)}` : '', m.date ? `date=${escHref(m.date)}` : '', m.region ? `region=${m.region}` : '', m.by ? `by=${m.by}` : ''].filter(Boolean).join('&');
   return `geo:${num(m.lnglat[1])},${num(m.lnglat[0])}${q ? `?${q}` : ''}`;
 }
 
 /**
  * `geo:…` → 地点标记；不是地点就返回 null
  * @param {string | undefined} href
- * @returns {{ type: 'place', lnglat: [number, number], en?: string, date?: string, region?: 'new' | 'same' } | null}
+ * @returns {{ type: 'place', lnglat: [number, number], en?: string, date?: string, region?: 'new' | 'same', by?: string } | null}
  */
 export function parsePlaceHref(href) {
   const m = /^geo:(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)(?:\?(.*))?$/.exec(href ?? '');
@@ -44,7 +47,7 @@ export function parsePlaceHref(href) {
   const lat = +m[1], lng = +m[2];
   if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
   const q = Object.fromEntries((m[3] ?? '').split('&').filter(Boolean).map((kv) => { const i = kv.indexOf('='); return i < 0 ? [kv, ''] : [kv.slice(0, i), unesc(kv.slice(i + 1))]; }));
-  return { type: 'place', lnglat: [lng, lat], ...(q.en ? { en: q.en } : {}), ...(q.date ? { date: q.date } : {}), ...(q.region === 'new' || q.region === 'same' ? { region: q.region } : {}) };
+  return { type: 'place', lnglat: [lng, lat], ...(q.en ? { en: q.en } : {}), ...(q.date ? { date: q.date } : {}), ...(q.region === 'new' || q.region === 'same' ? { region: q.region } : {}), ...(TRANSPORTS.includes(q.by) ? { by: q.by } : {}) };
 }
 
 /* ───────────── 正文里的地点 ───────────── */
@@ -83,7 +86,7 @@ export function placesOf(blocks) {
   const out = [];
   for (const b of blocks ?? []) {
     for (const spans of inlineOf(b)) {
-      for (const { label, mark } of placesInSpans(spans)) out.push({ n: out.length, block: b.id, label, lnglat: mark.lnglat, ...(mark.en ? { en: mark.en } : {}), ...(mark.date ? { date: mark.date } : {}), ...(mark.region ? { region: mark.region } : {}) });
+      for (const { label, mark } of placesInSpans(spans)) out.push({ n: out.length, block: b.id, label, lnglat: mark.lnglat, ...(mark.en ? { en: mark.en } : {}), ...(mark.date ? { date: mark.date } : {}), ...(mark.region ? { region: mark.region } : {}), ...(mark.by ? { by: mark.by } : {}) });
     }
   }
   return out;
@@ -168,25 +171,28 @@ export function arcBetween(a, b, bow = 0.16, n = 28) {
 }
 
 /**
- * 整趟行程的路线（一条折线），左下角小地图沿它往前画。相邻两处之间：轨迹里有这一段就用轨迹，
- * 没有的话同一区里直接连，跨区的大转移画一段弧。
- * @param {Array<{ lnglat: [number, number] }>} places
+ * 整趟行程的路线（一条折线），左下角小地图沿它往前画。相邻两处之间（一“段”）：
+ * 到达的地点写了 by=plane 画一段弧；轨迹里有这一段就用轨迹；没有的话同一区里直接连，跨区的大转移画一段弧。
+ * by=none 的那段也在折线里（小地图的标记要沿着走过去），只是不画出来。
+ * @param {Array<{ lnglat: [number, number], by?: string }>} places
  * @param {number[]} regionOf
  * @param {Array<[number, number]> | undefined} track
- * @returns {{ line: Array<[number, number]>, at: number[] }} at[地点序号] = 这个地点在折线里是第几个点
+ * @returns {{ line: Array<[number, number]>, at: number[], legs: Array<{ to: number, by?: string, line: Array<[number, number]> }> }}
+ *   at[地点序号] = 这个地点在折线里是第几个点；legs 是每一段（到第 to 个地点为止）
  */
 export function tripOf(places, regionOf, track) {
-  const line = [], at = [];
+  const line = [], at = [], legs = [];
   places.forEach((p, i) => {
     if (i === 0) line.push(p.lnglat);
     else {
       const a = places[i - 1].lnglat, b = p.lnglat;
-      const seg = trackBetween(track, a, b) ?? (regionOf[i] === regionOf[i - 1] ? [a, b] : arcBetween(a, b));
+      const seg = p.by === 'plane' ? (trackBetween(track, a, b) ?? arcBetween(a, b)) : trackBetween(track, a, b) ?? (regionOf[i] === regionOf[i - 1] ? [a, b] : arcBetween(a, b));
       line.push(...seg.slice(1));
+      legs.push({ to: i, ...(p.by ? { by: p.by } : {}), line: seg });
     }
     at.push(line.length - 1);
   });
-  return { line, at };
+  return { line, at, legs };
 }
 
 /** 地点的名字：就是标记住的文字。去掉两端空白 */

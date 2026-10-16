@@ -4,10 +4,12 @@
  * 悬停先出一张小预览；点一摞放大过去，放到最大还分不开（同一个地方拍的）就列出来；点单张选中它，弹出卡片：
  * 大图（点开是灯箱，img[data-lb]）、图注、出自哪篇、日期 / 相机 / 坐标。右下是范围信息，左下是缩放、我的位置、看全部。
  * 带 ?at=经度,纬度（灯箱的位置图点过来）时直接定位到那里、打开那个位置的照片。
- * 游记的地点、路线（atlas 的 places / routes）各是一层，有数据就画。昼夜切换时换底图样式，图层重新加上。换页时拆掉地图。
+ * 游记的地点、路线（atlas 的 places / routes）：路线按交通方式分几层画（步行点线、火车长虚线、飞机 / 船短虚线、其余实线），
+ * 地点是主题色的点。地图页上地点悬停看名字、点了去那篇；游记里的悬浮地图（post）地点带名字，点了回到正文那里（mori:place 事件），
+ * 每段路线中间标一个交通方式的小图标。昼夜切换时换底图样式，图层重新加上。换页时拆掉地图。
  */
 import type { Map as MlMap, GeoJSONSource, Marker, Popup, LngLatBoundsLike } from 'maplibre-gl';
-import type { Atlas, AtlasPhoto } from '../lib/atlas.ts';
+import type { Atlas, AtlasPhoto, AtlasRoute } from '../lib/atlas.ts';
 import { loadMaplibre, baseStyle, onThemeChange } from './map-kit.ts';
 import { glassButtons } from './lg.ts';
 import { t } from './i18n.ts';
@@ -16,11 +18,35 @@ const MAX = 17; // 再往里聚合也分不开（同一个地方拍的）
 let teardown: (() => void) | undefined;
 
 const h = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = '') => Object.assign(document.createElement(tag), { className: cls, textContent: text });
-/** 页面里预先画好的图标（lucide，服务端渲染在 #atlas-icons 里） */
+/** 页面里预先画好的图标（lucide，服务端渲染在 [data-atlas-icons] 里） */
+let iconRoot: ParentNode = document;
 const icon = (name: string) => {
-  const src = document.querySelector<HTMLTemplateElement>('#atlas-icons')?.content.querySelector(`[data-i="${name}"]`);
+  const src = iconRoot.querySelector<HTMLTemplateElement>('[data-atlas-icons]')?.content.querySelector(`[data-i="${name}"]`);
   return src ? (src.cloneNode(true) as HTMLElement) : h('span');
 };
+/** CSS 变量里的颜色换成 MapLibre 认得的 rgb（主题色是 oklch 相对颜色，它解析不了）：画到一像素的画布上读回来 */
+function rgbOf(el: Element, name: string) {
+  const probe = document.createElement('span');
+  probe.style.color = `var(${name})`;
+  el.append(probe);
+  const c = getComputedStyle(probe).color;
+  probe.remove();
+  const ctx = document.createElement('canvas').getContext('2d');
+  if (!ctx) return '#888';
+  ctx.fillStyle = c;
+  ctx.fillRect(0, 0, 1, 1);
+  const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+  return `rgb(${r},${g},${b})`;
+}
+/** 交通方式 → 图标 */
+const BY_ICON: Record<string, string> = { walk: 'footprints', bike: 'bike', car: 'car', train: 'train-front', plane: 'plane', boat: 'ship' };
+/** 路线的几种线型（单位是线宽）；没写交通方式和骑车、开车是实线 */
+const DASHES: Array<[string, string[], number[] | null]> = [
+  ['walk', ['walk'], [0, 2]],
+  ['train', ['train'], [3, 1.6]],
+  ['dash', ['plane', 'boat'], [1.4, 2.2]],
+  ['solid', [], null],
+];
 const deg = (at: [number, number]) => `${Math.abs(at[1]).toFixed(4)}°${at[1] >= 0 ? 'N' : 'S'}, ${Math.abs(at[0]).toFixed(4)}°${at[0] >= 0 ? 'E' : 'W'}`;
 const day = (p: AtlasPhoto) => p.exif.time?.split(' ')[0];
 const daysOf = (photos: AtlasPhoto[]) => {
@@ -60,8 +86,8 @@ function preview(photos: AtlasPhoto[], at: [number, number]) {
   return box;
 }
 
-/** 卡片：单张是大图 + 图注 + 出自哪篇 + 日期 / 相机 / 坐标；同一个地方的好几张是一排图 */
-function card(photos: AtlasPhoto[], at: [number, number], onClose: () => void) {
+/** 卡片：单张是大图 + 图注 + 出自哪篇（悬浮地图里就是这篇，不写）+ 日期 / 相机 / 坐标；同一个地方的好几张是一排图 */
+function card(photos: AtlasPhoto[], at: [number, number], onClose: () => void, post = false) {
   const box = h('div', 'atlas-card');
   const p = photos[0];
   const media = h('figure', 'atlas-card-media');
@@ -83,10 +109,12 @@ function card(photos: AtlasPhoto[], at: [number, number], onClose: () => void) {
 
   const body = h('div', 'atlas-card-body');
   if (photos.length === 1) {
-    const a = h('a', 'atlas-card-entry');
-    a.href = p.entry.href;
-    a.append(h('span', '', `《${p.entry.title}》`), icon('arrow-right'));
-    body.append(a);
+    if (!post) {
+      const a = h('a', 'atlas-card-entry');
+      a.href = p.entry.href;
+      a.append(h('span', '', `《${p.entry.title}》`), icon('arrow-right'));
+      body.append(a);
+    }
     if (day(p)) body.append(row('calendar', day(p)!));
     if (p.exif.camera) body.append(row('camera', p.exif.camera));
   } else {
@@ -99,16 +127,28 @@ function card(photos: AtlasPhoto[], at: [number, number], onClose: () => void) {
   return box;
 }
 
-async function init() {
-  const host = document.querySelector<HTMLElement>('#atlas');
+export interface AtlasView {
+  /** 标出第 n 个地点（游记里读到的那一处），不在视野里就移过去 */
+  focus(n: number): void;
+  /** 容器尺寸变了（悬浮窗口再次打开） */
+  resize(): void;
+  destroy(): void;
+}
+
+/** 在 [data-atlas] 里装地图。post 是游记里的悬浮地图 */
+export async function mountAtlas(root: HTMLElement): Promise<AtlasView | undefined> {
+  const host = root.querySelector<HTMLElement>('[data-atlas-map]');
   if (!host) return;
-  const atlas: Atlas = JSON.parse(document.querySelector('#atlas-data')!.textContent!);
+  const post = root.dataset.atlas === 'post';
+  iconRoot = root;
+  const atlas: Atlas = JSON.parse(root.querySelector('[data-atlas-json]')!.textContent!);
   const ml = await loadMaplibre();
   if (!host.isConnected) return;
 
   const pts = [...atlas.photos.map((p) => p.at), ...atlas.places.map((p) => p.at), ...atlas.routes.flatMap((r) => r.line)];
   const bounds = pts.length ? pts.reduce((b, p) => b.extend(p), new ml.LngLatBounds(pts[0], pts[0])) : null;
-  const pad = () => (innerWidth < 760 ? 56 : 120);
+  // 悬浮地图的地名写在点的右边：右边多留一些
+  const pad = () => { const n = innerWidth < 760 ? 56 : 120; return post ? { top: n, bottom: n, left: n, right: n + (innerWidth < 760 ? 48 : 80) } : n; };
   const map: MlMap = new ml.Map({
     container: host, style: baseStyle(),
     center: pts.length ? pts[0] : [110, 25], zoom: pts.length ? 11 : 1.6,
@@ -129,9 +169,17 @@ async function init() {
     // 看不见的一层：数据要挂在图层上，querySourceFeatures 才取得到
     map.addLayer({ id: 'photos-hit', type: 'circle', source: 'photos', paint: { 'circle-radius': 0, 'circle-opacity': 0 } });
     if (atlas.routes.length) {
-      map.addSource('routes', { type: 'geojson', data: { type: 'FeatureCollection', features: atlas.routes.map((r) => ({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: r.line } })) } });
-      const primary = getComputedStyle(host).getPropertyValue('--primary').trim() || '#888';
-      map.addLayer({ id: 'routes', type: 'line', source: 'routes', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': primary, 'line-width': 2, 'line-opacity': 0.8 } });
+      map.addSource('routes', { type: 'geojson', data: { type: 'FeatureCollection', features: atlas.routes.map((r) => ({ type: 'Feature', properties: { by: r.by ?? '' }, geometry: { type: 'LineString', coordinates: r.line } })) } });
+      const primary = rgbOf(host, '--primary');
+      const all = DASHES.flatMap(([, bys]) => bys);
+      for (const [id, bys, dash] of DASHES) {
+        map.addLayer({
+          id: `routes-${id}`, type: 'line', source: 'routes',
+          filter: bys.length ? ['in', ['get', 'by'], ['literal', bys]] : ['!', ['in', ['get', 'by'], ['literal', all]]],
+          layout: { 'line-cap': 'round', 'line-join': 'round' },
+          paint: { 'line-color': primary, 'line-width': id === 'walk' ? 3 : 2, 'line-opacity': 0.85, ...(dash ? { 'line-dasharray': dash } : {}) },
+        });
+      }
     }
   });
 
@@ -148,7 +196,7 @@ async function init() {
     pop?.remove();
     select(key);
     pop = new ml.Popup({ className: 'atlas-pop', closeButton: false, closeOnClick: false, offset: 26, maxWidth: 'none', focusAfterOpen: false })
-      .setLngLat(at).setDOMContent(card(photos, at, closeCard)).addTo(map);
+      .setLngLat(at).setDOMContent(card(photos, at, closeCard, post)).addTo(map);
   };
   const src = () => map.getSource('photos') as GeoJSONSource;
   const leavesOf = async (id: number) => (await src().getClusterLeaves(id, 60, 0)).map((f) => atlas.photos[(f.properties as { i: number }).i]);
@@ -203,7 +251,7 @@ async function init() {
   map.on('click', closeCard);
 
   // 从灯箱的位置图点过来（/map/?at=经度,纬度）：直接定位到那里，打开这个位置的照片
-  const q = new URLSearchParams(location.search).get('at')?.split(',').map(Number);
+  const q = post ? undefined : new URLSearchParams(location.search).get('at')?.split(',').map(Number);
   if (q?.length === 2 && q.every(Number.isFinite)) {
     const at = q as [number, number];
     const same = atlas.photos.map((p, i) => [p, i] as const).filter(([p]) => Math.abs(p.at[0] - at[0]) < 1e-5 && Math.abs(p.at[1] - at[1]) < 1e-5);
@@ -211,12 +259,37 @@ async function init() {
     if (same.length) map.once('idle', () => showCard(same.map(([p]) => p), same[0][0].at, same.length === 1 ? `p${same[0][1]}` : 'at'));
   }
 
-  // 游记的地点：主题色的点，悬停看名字，点开去那篇
+  // 悬浮地图：每段路线中间标交通方式（先加，地点的名字压在它上面）
+  const midOf = (r: AtlasRoute) => {
+    const ln = r.line;
+    let total = 0;
+    const seg = ln.slice(1).map((p, i) => { const d = Math.hypot(p[0] - ln[i][0], p[1] - ln[i][1]); total += d; return d; });
+    let half = total / 2;
+    for (let i = 0; i < seg.length; i++) {
+      if (half <= seg[i]) { const t = seg[i] ? half / seg[i] : 0; return [ln[i][0] + (ln[i + 1][0] - ln[i][0]) * t, ln[i][1] + (ln[i + 1][1] - ln[i][1]) * t] as [number, number]; }
+      half -= seg[i];
+    }
+    return ln[0];
+  };
+  const byMarkers = post ? atlas.routes.filter((r) => r.by && BY_ICON[r.by]).map((r) => {
+    const el = h('span', 'atlas-by');
+    el.append(icon(BY_ICON[r.by!]));
+    return new ml.Marker({ element: el }).setLngLat(midOf(r)).addTo(map);
+  }) : [];
+
+  // 游记的地点：主题色的点。地图页悬停看名字，点开去那篇的那一处；悬浮地图带名字，点了回到正文那里
+  const placeEls: HTMLElement[] = [];
   const placeMarkers = atlas.places.map((pl) => {
-    const el = h('a', 'atlas-place');
-    el.href = pl.entry.href;
-    el.title = `${pl.name} · 《${pl.entry.title}》`;
-    return new ml.Marker({ element: el }).setLngLat(pl.at).addTo(map);
+    const el = post ? h('button', 'atlas-place atlas-place-named') : h('a', 'atlas-place');
+    if (el instanceof HTMLAnchorElement) { el.href = `${pl.entry.href}#place-${pl.n}`; el.title = `${pl.name} · 《${pl.entry.title}》`; }
+    else {
+      (el as HTMLButtonElement).type = 'button';
+      el.append(h('span', '', pl.name));
+      el.addEventListener('click', (e) => { e.stopPropagation(); document.dispatchEvent(new CustomEvent('mori:place', { detail: { n: pl.n } })); });
+    }
+    el.setAttribute('aria-label', pl.name);
+    placeEls.push(el);
+    return new ml.Marker({ element: el, anchor: post ? 'left' : 'center', offset: post ? [-7, 0] : [0, 0] }).setLngLat(pl.at).addTo(map);
   });
 
   // 我的位置：浏览器给了就飞过去，放一个点
@@ -228,16 +301,31 @@ async function init() {
     map.flyTo({ center: at, zoom: Math.max(map.getZoom(), 13), duration: 1200 });
   }, () => {}, { timeout: 8000 });
 
-  const ctl = (id: string, fn: () => void) => document.querySelector(id)?.addEventListener('click', fn);
-  ctl('#atlas-in', () => map.zoomIn());
-  ctl('#atlas-out', () => map.zoomOut());
-  ctl('#atlas-me', locate);
-  ctl('#atlas-fit', () => { closeCard(); fit(); });
-  glassButtons([...document.querySelectorAll<HTMLElement>('#atlas-ctl .lg')], document.querySelector('#lg-defs-atlas'), 'lg-f-atlas');
+  const ctl = (act: string, fn: () => void) => root.querySelector(`[data-act="${act}"]`)?.addEventListener('click', fn);
+  ctl('in', () => map.zoomIn());
+  ctl('out', () => map.zoomOut());
+  ctl('me', locate);
+  ctl('fit', () => { closeCard(); fit(); });
+  glassButtons([...root.querySelectorAll<HTMLElement>('[data-atlas-ctl] .lg')], root.querySelector('[data-atlas-defs]'), `lg-f-atlas-${root.dataset.atlas}`);
 
   const offTheme = onThemeChange(() => map.setStyle(baseStyle()));
-  teardown = () => { offTheme(); pop?.remove(); peek?.remove(); markers.forEach((m) => m.remove()); placeMarkers.forEach((m) => m.remove()); me?.remove(); map.remove(); };
+  return {
+    focus(n) {
+      const i = atlas.places.findIndex((p) => p.n === n);
+      placeEls.forEach((el, k) => el.classList.toggle('on', k === i));
+      if (i >= 0 && !map.getBounds().contains(atlas.places[i].at)) map.easeTo({ center: atlas.places[i].at, duration: 600 });
+    },
+    resize() {
+      map.resize();
+      glassButtons([...root.querySelectorAll<HTMLElement>('[data-atlas-ctl] .lg')], root.querySelector('[data-atlas-defs]'), `lg-f-atlas-${root.dataset.atlas}`);
+    },
+    destroy() { offTheme(); pop?.remove(); peek?.remove(); markers.forEach((m) => m.remove()); placeMarkers.forEach((m) => m.remove()); byMarkers.forEach((m) => m.remove()); me?.remove(); map.remove(); },
+  };
 }
 
-document.addEventListener('astro:page-load', () => { init(); });
+// 地图页
+document.addEventListener('astro:page-load', async () => {
+  const root = document.querySelector<HTMLElement>('[data-atlas="page"]');
+  if (root) teardown = (await mountAtlas(root))?.destroy;
+});
 document.addEventListener('astro:before-swap', () => { teardown?.(); teardown = undefined; });

@@ -1,62 +1,19 @@
 ---
 /**
- * 地图：全站带定位的照片落在街道底图上（数据见 lib/atlas.ts，交互见 scripts/atlas.ts）。
- * 整屏，页头浮在上面，不要页脚。左下是缩放、我的位置、看全部；右下是张数、地点数，展开看范围。
- * 以后游记的地点、路线也画在这里（atlas 的 places / routes）。
+ * 地图：全站带定位的照片、游记的地点和路线，落在街道底图上（Atlas.astro）。整屏，页头浮在上面，不要页脚。
  */
 import Base from '../layouts/Base.astro';
-import { t, lang } from '../lib/i18n.ts';
-import { iconSvg } from '../lib/lucide.ts';
+import Atlas from '../components/Atlas.astro';
+import { t } from '../lib/i18n.ts';
 import { getAtlas } from '../lib/atlas.ts';
 import '../styles/atlas.css';
 
 const atlas = await getAtlas();
-// 内嵌进页面的 JSON：</script> 这类字样转义掉
-const json = JSON.stringify(atlas).replace(/</g, '\\u003c');
-const btn = 'lg lg-btn grid size-[39px] cursor-pointer place-items-center text-(--lg-fg) [transition:color_.3s,transform_.4s_cubic-bezier(.34,1.45,.5,1)] hover:text-(--lg-fg-on) active:[transform:scale(.92)]';
-const glyph = 'size-[18px]';
-
-// 右下的范围：张数、地点数（同一个位置算一处）、西南 / 东北角、覆盖面积
-const n = atlas.photos.length;
-const spots = new Set(atlas.photos.map((p) => p.at.map((v) => v.toFixed(4)).join())).size;
-const lngs = atlas.photos.map((p) => p.at[0]), lats = atlas.photos.map((p) => p.at[1]);
-const [w, e, s, nn] = n ? [Math.min(...lngs), Math.max(...lngs), Math.min(...lats), Math.max(...lats)] : [0, 0, 0, 0];
-const km = 111.32 * (nn - s) * 111.32 * (e - w) * Math.cos((((s + nn) / 2) * Math.PI) / 180);
-const area = km < 1 ? '< 1' : km < 100 ? km.toFixed(1) : Math.round(km).toLocaleString('en');
-const deg = (lat: number, lng: number) => `${Math.abs(lat).toFixed(4)}°${lat >= 0 ? 'N' : 'S'}, ${Math.abs(lng).toFixed(4)}°${lng >= 0 ? 'E' : 'W'}`;
-// 卡片、预览里用的小图标：服务端画好，脚本里复制
-const icons = ['x', 'calendar', 'camera', 'map-pin', 'arrow-right'];
 ---
 
 <Base title={t('nav.map')} bare>
   <main class="fixed inset-0 z-0 bg-background" data-page="map">
-    <div class="absolute inset-0 size-full" id="atlas" data-lang={lang} title="© OpenStreetMap · © CARTO"></div>
-    <script type="application/json" id="atlas-data" set:html={json} />
-    <template id="atlas-icons">{icons.map((i) => <span class="atlas-i" data-i={i} set:html={iconSvg(i, 'size-full')} />)}</template>
-    <svg class="absolute" width="0" height="0" aria-hidden="true"><defs id="lg-defs-atlas"></defs></svg>
-
-    <div class="absolute bottom-[22px] left-[22px] z-10 flex flex-col gap-2.5 narrow:bottom-4 narrow:left-4" id="atlas-ctl">
-      <button class={btn} id="atlas-in" type="button" title={t('map.zoomIn')} aria-label={t('map.zoomIn')} set:html={iconSvg('plus', glyph)} />
-      <button class={btn} id="atlas-out" type="button" title={t('map.zoomOut')} aria-label={t('map.zoomOut')} set:html={iconSvg('minus', glyph)} />
-      <button class:list={[btn, 'mt-2']} id="atlas-me" type="button" title={t('map.locate')} aria-label={t('map.locate')} set:html={iconSvg('navigation', glyph)} />
-      <button class={btn} id="atlas-fit" type="button" title={t('map.fit')} aria-label={t('map.fit')} set:html={iconSvg('scan', glyph)} />
-    </div>
-
-    {n > 0
-      ? (
-        <details class="atlas-info absolute right-[22px] bottom-[22px] z-10 narrow:right-4 narrow:bottom-4">
-          <summary>
-            <span>{t('js.map.n', { n })}</span><span class="atlas-info-sep">·</span><span>{t('map.spots', { n: spots })}</span>
-            <span class="atlas-info-chev" set:html={iconSvg('chevron-up', 'size-full')} />
-          </summary>
-          <dl>
-            <div><dt>{t('map.sw')}</dt><dd>{deg(s, w)}</dd></div>
-            <div><dt>{t('map.ne')}</dt><dd>{deg(nn, e)}</dd></div>
-            <div><dt /><dd>{t('map.area', { n: area })}</dd></div>
-          </dl>
-        </details>
-      )
-      : <p class="lg pointer-events-none absolute top-1/2 left-1/2 z-10 m-0 -translate-1/2 px-5 py-2.5 text-aux text-(--lg-fg)">{t('map.empty')}</p>}
+    <Atlas atlas={atlas} variant="page" />
   </main>
 </Base>
 

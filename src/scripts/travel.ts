@@ -145,15 +145,20 @@ function init() {
   mc?.addEventListener('click', (e) => { const b = (e.target as Element).closest<HTMLButtonElement>('button'); if (b) setMode(b.dataset.m as Mode); });
   syncModeUI();
 
-  // 行程表：点某个地点，滚到正文里标着它的那一块（横向读法下换算成横轴位置）
+  /** 滚到正文里标着某个地点的那一块（#place-<n>；横向读法下换算成横轴位置） */
+  function goPlace(id: string) {
+    let b = document.getElementById(id)?.closest<HTMLElement>('.blk') ?? null;
+    // 一列在横滚和竖滚里渲染了两份：标着地点的那份可能正藏着，滚到显示着的那份
+    if (b && b.offsetParent === null) b = [b.nextElementSibling, b.previousElementSibling].find((x): x is HTMLElement => x instanceof HTMLElement && x.classList.contains('blk') && x.offsetParent !== null) ?? b;
+    if (b) scrollToBlock(b);
+  }
+
+  // 行程表：点某个地点，滚到它那里
   travel.querySelector('.itin')?.addEventListener('click', (e) => {
     const a = (e.target as Element).closest<HTMLAnchorElement>('a');
     if (!a) return;
     e.preventDefault();
-    let b = document.getElementById(a.getAttribute('href')!.slice(1))?.closest<HTMLElement>('.blk') ?? null;
-    // 一列在横滚和竖滚里渲染了两份：标着地点的那份可能正藏着，滚到显示着的那份
-    if (b && b.offsetParent === null) b = [b.nextElementSibling, b.previousElementSibling].find((x): x is HTMLElement => x instanceof HTMLElement && x.classList.contains('blk') && x.offsetParent !== null) ?? b;
-    if (b) scrollToBlock(b);
+    goPlace(a.getAttribute('href')!.slice(1));
   });
 
   /** 竖向滚动 → 横向位移：外层高度撑出滚动距离，内层 sticky，位移带一点缓动（切换、缩放时直接到位） */
@@ -236,6 +241,55 @@ function init() {
     flight = requestAnimationFrame(step);
   }
 
+  // 点左下角的当前位置：从它那里放大出悬浮的大地图（Atlas.astro 的 post，scripts/atlas.ts 第一次打开时才载入）。
+  // 地图上点某个地点：关掉地图，回到正文那里。Esc、点外面、关闭钮都关；看大图（灯箱）开着时 Esc 先关灯箱
+  const tmap = document.querySelector<HTMLElement>('#tmap');
+  const panel = tmap?.querySelector<HTMLElement>('[data-panel]'), shade = tmap?.querySelector<HTMLElement>('.absolute[data-close]');
+  let view: Promise<import('./atlas.ts').AtlasView | undefined> | undefined;
+  const fromLoc = () => {
+    const pr = panel!.getBoundingClientRect(), lr = loc!.getBoundingClientRect();
+    return `inset(${lr.top - pr.top}px ${pr.right - lr.right}px ${pr.bottom - lr.bottom}px ${lr.left - pr.left}px round 999px)`;
+  };
+  const zoomEase = 'cubic-bezier(.2,.8,.2,1)';
+  function openMap() {
+    if (!tmap || !panel || tmap.classList.contains('open')) return;
+    tmap.classList.add('open');
+    if (!reduce) {
+      panel.animate([{ clipPath: fromLoc() }, { clipPath: 'inset(0 round 20px)' }], { duration: 560, easing: zoomEase });
+      shade?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
+    }
+    view ??= import('./atlas.ts').then((m) => m.mountAtlas(tmap.querySelector('[data-atlas]')!));
+    view.then((v) => { v?.resize(); v?.focus(lastStop); });
+    tmap.querySelector<HTMLElement>('button[data-close]')?.focus({ preventScroll: true });
+  }
+  function closeMap(then?: () => void) {
+    if (!tmap || !panel || !tmap.classList.contains('open')) return;
+    const done = () => { tmap.classList.remove('open'); loc?.focus({ preventScroll: true }); then?.(); };
+    if (reduce || !loc?.classList.contains('on')) return done();
+    panel.animate([{ clipPath: 'inset(0 round 20px)' }, { clipPath: fromLoc() }], { duration: 420, easing: zoomEase, fill: 'forwards' }).finished.then((a) => { done(); a.cancel(); });
+    shade?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, fill: 'forwards' }).finished.then((a) => a.cancel());
+  }
+  if (tmap) {
+    loc?.addEventListener('click', openMap);
+    tmap.addEventListener('click', (e) => { if ((e.target as Element).closest('[data-close]')) closeMap(); });
+    // 地图外面滚不动正文
+    const still = (e: Event) => { if (!(e.target as Element).closest('[data-atlas-map]')) e.preventDefault(); };
+    tmap.addEventListener('wheel', still, { passive: false });
+    tmap.addEventListener('touchmove', still, { passive: false });
+    const onKey = (e: KeyboardEvent) => {
+      if (!travel!.isConnected) return document.removeEventListener('keydown', onKey);
+      const lb = document.getElementById('lb');
+      if (e.key === 'Escape' && tmap.classList.contains('open') && (!lb || lb.hidden)) closeMap();
+    };
+    document.addEventListener('keydown', onKey);
+    const onPlace = (e: Event) => {
+      if (!travel!.isConnected) return document.removeEventListener('mori:place', onPlace);
+      closeMap(() => goPlace(`place-${(e as CustomEvent<{ n: number }>).detail.n}`));
+    };
+    document.addEventListener('mori:place', onPlace);
+    document.addEventListener('astro:before-swap', () => { view?.then((v) => v?.destroy()); }, { once: true });
+  }
+
   let lastStop = -1;
   function updateLoc() {
     if (!loc || !rbN || !rbName || !stops.length) return;
@@ -284,7 +338,9 @@ function init() {
   document.fonts?.ready.then(glass);
 
   layout();
-  document.fonts?.ready.then(() => { layout(); snap = true; });
+  // 从地图页点地点过来（#place-<n>）：横向读法下浏览器自己找不到位置，排好版后滚过去
+  const hash = location.hash.startsWith('#place-') ? location.hash.slice(1) : '';
+  document.fonts?.ready.then(() => { layout(); snap = true; if (hash) goPlace(hash); });
   addEventListener('load', () => { layout(); snap = true; }, { once: true });
   requestAnimationFrame(tick);
 }

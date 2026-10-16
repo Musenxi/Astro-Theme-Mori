@@ -2,18 +2,25 @@
 /**
  * 长卷的两个角落控件（玻璃）：右下角读法切换（竖 / 横 / 混），左下角当前位置（开着地图、正文里标了地点才有）。
  * 读者选读法并被记住；作者只决定默认值和允许哪几种（reading.default / allowed）。
+ * 点当前位置，从它那里放大出一个悬浮的大地图（Atlas.astro 的 post）：这一篇的地点、路线、带定位的照片。
  */
 import type { Flow } from '../lib/flow.ts';
 import MiniMap from './MiniMap.astro';
+import Atlas from './Atlas.astro';
+import type { Atlas as AtlasData } from '../lib/atlas.ts';
 import { t } from '../lib/i18n.ts';
+import { iconSvg } from '../lib/lucide.ts';
 import { coord } from '../lib/geo.ts';
+import '../styles/atlas.css';
 
 interface Props {
   allowed: Array<'v' | 'h' | 'm'>;
   /** 正文里的地点、区域和路线（没开地图就不给） */
   flow?: Pick<Flow, 'places' | 'regions' | 'trip'>;
+  /** 悬浮地图的数据（这一篇的） */
+  atlas?: AtlasData;
 }
-const { allowed, flow } = Astro.props;
+const { allowed, flow, atlas } = Astro.props;
 const stops = flow?.places ?? [];
 const LABEL = { v: [t('travel.mode.v'), t('travel.modeLabel.v')], h: [t('travel.mode.h'), t('travel.modeLabel.h')], m: [t('travel.mode.m'), t('travel.modeLabel.m')] } as const;
 const stopData = stops.map((s) => ({ id: s.id, name: s.name || coord(s.lnglat), date: s.date ?? '' }));
@@ -30,7 +37,7 @@ const stopData = stops.map((s) => ({ id: s.id, name: s.name || coord(s.lnglat), 
   )
 }
 
-{stops.length > 0 && <div class="lg lg-btn fixed bottom-[18px] left-[18px] z-20 flex items-center gap-3 py-2 pr-5 pl-3.5 opacity-0 pointer-events-none [transform:translateY(12px)] [transition:transform_.6s_var(--ease-mori),opacity_.4s,background-color_.4s,box-shadow_.4s] narrow:bottom-3 narrow:left-3 [&.on]:pointer-events-auto [&.on]:opacity-100 [&.on]:[transform:none]" id="loc" data-stops={JSON.stringify(stopData)}>
+{stops.length > 0 && <button type="button" aria-haspopup="dialog" aria-controls="tmap" class="lg lg-btn fixed cursor-pointer text-left bottom-[18px] left-[18px] z-20 flex items-center gap-3 py-2 pr-5 pl-3.5 opacity-0 pointer-events-none [transform:translateY(12px)] [transition:transform_.6s_var(--ease-mori),opacity_.4s,background-color_.4s,box-shadow_.4s] narrow:bottom-3 narrow:left-3 [&.on]:pointer-events-auto [&.on]:opacity-100 [&.on]:[transform:none]" id="loc" data-stops={JSON.stringify(stopData)}>
   <div class="relative aspect-[1000/720] w-[60px] flex-none overflow-hidden rounded-[8px]">
     <MiniMap flow={flow!} />
   </div>
@@ -38,4 +45,14 @@ const stopData = stops.map((s) => ({ id: s.id, name: s.name || coord(s.lnglat), 
     <span class="mono text-muted-foreground narrow:hidden empty:hidden" id="rb-n">{stopData[0].date}</span>
     <b class="block text-aux font-normal" id="rb-name">{stopData[0].name}</b>
   </div>
-</div>}
+</button>}
+
+{stops.length > 0 && atlas && (
+  <div class="fixed inset-0 z-45 hidden [&.open]:block" id="tmap" role="dialog" aria-modal="true" aria-label={t('nav.map')}>
+    <div class="absolute inset-0 bg-black/35 backdrop-blur-[3px]" data-close />
+    <div class="absolute inset-[clamp(16px,4vh,48px)_clamp(16px,4vw,64px)] overflow-hidden rounded-[20px] bg-background shadow-[0_30px_80px_-30px_rgba(0,0,0,.6)] narrow:inset-2 narrow:rounded-[14px]" data-panel>
+      <Atlas atlas={atlas} variant="post" />
+      <button class="lg lg-btn absolute top-4 right-4 z-10 grid size-[39px] cursor-pointer place-items-center text-(--lg-fg) [transition:color_.3s,transform_.4s_cubic-bezier(.34,1.45,.5,1)] hover:text-(--lg-fg-on) active:[transform:scale(.92)] narrow:top-3 narrow:right-3" type="button" data-close title={t('js.lb.close')} aria-label={t('js.lb.close')} set:html={iconSvg('x', 'size-[18px]')} />
+    </div>
+  </div>
+)}

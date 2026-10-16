@@ -3,7 +3,8 @@
  * 左下角“当前位置”里的小地图。所有图层共用一个墨卡托坐标（见 map.ts 的 miniTile），镜头停在当前地点所在的区域，
  * 换区域时由 travel.ts 把镜头飞过去（fly.ts）。镜头飞过的每一步都要有一层精度合适的陆地：构建时把相邻两区之间的
  * 飞行路径走一遍，哪一步没有合用的图层就在那里补一层；最后加一层整趟行程的，跳着读（一次跨好几区）时兜底。
- * 路线是整趟行程的一条线，随阅读往前画。
+ * 路线是整趟行程的一条线，随阅读往前画：一条看不见的整线（遮罩里，travel.ts 量它的长度、改它的 dashoffset）
+ * 决定画到哪，看得见的是一段段的线，线型按到达地点的交通方式（by），none 那段不画。
  */
 import type { Flow } from '../lib/flow.ts';
 import { miniCam, miniTile, miniXY, W, H, type LngLat } from '../lib/map.ts';
@@ -45,6 +46,7 @@ const pts = trip.line.map((p) => miniXY(p as LngLat).map((v) => +v.toFixed(2)));
 const cum = [0];
 for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
 const route = pts.length > 1 ? `M${pts.map((p) => p.join(',')).join('L')}` : '';
+const legs = trip.legs.filter((l) => l.by !== 'none').map((l) => ({ by: l.by ?? '', d: `M${l.line.map((p) => miniXY(p as LngLat).map((v) => +v.toFixed(2)).join(',')).join('L')}` }));
 const r2 = (v: number) => +v.toFixed(2);
 const len = r2(cum.at(-1)!);
 // 镜头：每个区域一个；地点：位置、所在区域、沿路线走了多远；图层：取景框，粗的在前（和 DOM 顺序一样）
@@ -55,6 +57,8 @@ const tileData = tiles.map((c) => c.cam.map(r2));
 // 一开始：第一个地点所在区域
 const [cx, cy, cw] = camData[0], z = W / cw;
 const [px, py] = placeData[0];
+// 线型按交通方式：步行是点，火车长虚线，飞机、船短虚线，其余实线（单位 --u = 一个屏幕像素）
+const dash = 'data-[by=walk]:[stroke-dasharray:0_calc(var(--u)*3)] data-[by=walk]:[stroke-linecap:round] data-[by=train]:[stroke-dasharray:calc(var(--u)*4)_calc(var(--u)*2)] data-[by=plane]:[stroke-dasharray:calc(var(--u)*2)_calc(var(--u)*3)] data-[by=boat]:[stroke-dasharray:calc(var(--u)*2)_calc(var(--u)*3)]';
 const land = 'fill-land stroke-land-edge stroke-1 transition-[fill] duration-400 [vector-effect:non-scaling-stroke]';
 const label = t('map.route', { list: places.map((s) => s.name).join(lang === 'en' ? ', ' : '、') });
 ---
@@ -62,8 +66,17 @@ const label = t('map.route', { list: places.map((s) => s.name).join(lang === 'en
 <svg class="map block size-full" viewBox={`0 0 ${W} ${H}`} data-map="mini" data-cams={JSON.stringify(camData)} data-places={JSON.stringify(placeData)} data-tiles={JSON.stringify(tileData)} data-len={len} style={{ '--u': `${cw / 60}px` }} role="img" aria-label={label}>
   <g class="cam" transform={`matrix(${z} 0 0 ${z} ${W / 2 - cx * z} ${H / 2 - cy * z})`}>
     {tiles.map((c) => <g class="tile" transform={`matrix(${c.k} 0 0 ${c.k} ${c.x} ${c.y})`}><path class={land} d={c.land} /></g>)}
-    {route && <path d={route} fill="none" class="stroke-muted-foreground stroke-1 opacity-40 [stroke-linejoin:round] [vector-effect:non-scaling-stroke]" />}
-    {route && <path d={route} fill="none" class="route-p stroke-primary [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:calc(var(--u)*1.5)]" style={{ strokeDasharray: len, strokeDashoffset: len }} />}
+    {route && (
+      <>
+        <mask id="mini-reveal" maskUnits="userSpaceOnUse" x="-1e7" y="-1e7" width="2e7" height="2e7">
+          <path d={route} fill="none" class="route-p stroke-white [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:calc(var(--u)*5)]" style={{ strokeDasharray: len, strokeDashoffset: len }} />
+        </mask>
+        {legs.map((l) => <path d={l.d} fill="none" data-by={l.by} class:list={[dash, "stroke-muted-foreground opacity-40 [stroke-linejoin:round] [stroke-width:var(--u)]"]} />)}
+        <g mask="url(#mini-reveal)">
+          {legs.map((l) => <path d={l.d} fill="none" data-by={l.by} class:list={[dash, "stroke-primary [stroke-linejoin:round] [stroke-width:calc(var(--u)*1.5)]"]} />)}
+        </g>
+      </>
+    )}
   </g>
   <g class="here" transform={`translate(${W / 2 + (px - cx) * z} ${H / 2 + (py - cy) * z})`}>
     <circle cx="0" cy="0" r="120" fill="var(--primary)" opacity=".12" />

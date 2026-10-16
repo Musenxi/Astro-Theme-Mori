@@ -9,8 +9,15 @@
 /* 一摞：主题色圆点写张数，外面两圈淡晕 */
 .atlas-dot{display:grid;place-items:center;width:34px;height:34px;padding:0;border:0;border-radius:999px;cursor:pointer;background:var(--primary);color:var(--background);font:500 var(--text-meta)/1 var(--font-serif);font-feature-settings:"tnum";box-shadow:0 0 0 5px color-mix(in srgb,var(--primary) 26%,transparent),0 0 0 11px color-mix(in srgb,var(--primary) 10%,transparent);transition:transform .35s cubic-bezier(.34,1.45,.5,1)}
 .atlas-dot:hover,.atlas-dot.on{transform:scale(1.1)}
-/* 游记的地点（以后接数据）；我的位置 */
-.atlas-place{width:12px;height:12px;border-radius:999px;background:var(--primary);box-shadow:0 0 0 2px var(--background),0 0 0 8px color-mix(in srgb,var(--primary) 18%,transparent)}
+/* 游记的地点：主题色的点。悬浮地图里带名字（点在左边，名字跟在右边），读到的那一处（.on）点大一圈；我的位置 */
+.atlas-place{display:block;width:12px;height:12px;border-radius:999px;background:var(--primary);box-shadow:0 0 0 2px var(--background),0 0 0 8px color-mix(in srgb,var(--primary) 18%,transparent)}
+.atlas-place.atlas-place-named{display:flex;align-items:center;gap:9px;width:auto;height:auto;padding:0;border:0;background:none;box-shadow:none;cursor:pointer;font:400 var(--text-aux)/1.3 var(--font-serif);letter-spacing:.04em;color:var(--foreground);white-space:nowrap;text-shadow:0 0 3px var(--background),0 0 6px var(--background)}
+.atlas-place-named::before{content:'';flex:none;width:12px;height:12px;border-radius:999px;background:var(--primary);box-shadow:0 0 0 2px var(--background),0 0 0 8px color-mix(in srgb,var(--primary) 18%,transparent);transition:transform .35s cubic-bezier(.34,1.45,.5,1)}
+.atlas-place-named:hover::before,.atlas-place-named.on::before{transform:scale(1.35)}
+.atlas-place-named.on{color:var(--primary)}
+/* 路线中间的交通方式：小圆底上一个图标 */
+.atlas-by{display:grid;place-items:center;width:24px;height:24px;border-radius:999px;background:var(--glass);-webkit-backdrop-filter:blur(12px) saturate(1.5);backdrop-filter:blur(12px) saturate(1.5);border:1px solid var(--glass-line);color:var(--primary);pointer-events:none}
+.atlas-by .atlas-i{width:14px;height:14px}
 .atlas-me{width:14px;height:14px;border-radius:999px;background:var(--foreground);box-shadow:0 0 0 3px var(--background),0 0 0 10px color-mix(in srgb,var(--foreground) 14%,transparent)}
 
 /* 预览和卡片：MapLibre 的 Popup 定位，外观是主题的玻璃卡 */

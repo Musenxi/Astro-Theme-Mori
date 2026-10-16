@@ -31,6 +31,8 @@ export const markSchema = z.discriminatedUnion('type', [
     date: z.string().optional(),
     /** 地图分区：new 从这里另起一个区域，same 接着上一处（不管多远）；不写就按远近自动分 */
     region: z.enum(['new', 'same']).optional(),
+    /** 从上一处怎么到这里的：路线按它画（plane 画弧线，none 不连线）；不写就是普通的线 */
+    by: z.enum(['walk', 'bike', 'car', 'train', 'plane', 'boat', 'none']).optional(),
   }),
   /** 旁注：宽屏放右栏，窄屏内联 */
   z.object({ type: z.literal('note'), ref: id }),

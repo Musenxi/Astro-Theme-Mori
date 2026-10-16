@@ -179,3 +179,15 @@ test('排成列：同一段文字横滚里竖排、竖滚里横排，两边写�
   assert.deepEqual(cols.map((c) => `${c.blocks.map((b: any) => b.id).join('')}:${c.writing}${c.vwriting}`), ['a:vv', 'b:vh', 'c:hv', 'd:hh']);
   assert.equal(cols[3].y, 0.4);
 });
+
+test('交通方式 by：写进 geo 地址、读回；不认识的值丢掉；每一段按到达地点的 by 画', async () => {
+  const { tripOf } = await import('../src/lib/flow.mjs');
+  const m = place([114.1694, 22.3193], { by: 'train' });
+  assert.equal(placeHref(m), 'geo:22.3193,114.1694?by=train');
+  assert.deepEqual(parsePlaceHref('geo:22.3193,114.1694?by=train'), m);
+  assert.deepEqual(parsePlaceHref('geo:22.3193,114.1694?by=rocket'), place([114.1694, 22.3193]));
+  const ps = [{ lnglat: [0, 0] }, { lnglat: [1, 0], by: 'walk' }, { lnglat: [2, 0], by: 'plane' }, { lnglat: [3, 0], by: 'none' }];
+  const t = tripOf(ps as any, [0, 0, 0, 0], undefined);
+  assert.deepEqual(t.legs.map((l: any) => [l.to, l.by, l.line.length]), [[1, 'walk', 2], [2, 'plane', 29], [3, 'none', 2]]);
+  assert.equal(t.at[3], t.line.length - 1);
+});

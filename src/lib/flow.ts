@@ -20,7 +20,13 @@ export interface FlowPlace {
   block: string;
   /** 所属的区域（第几个，从 0 起） */
   region: number;
+  /** 从上一处怎么到这里的 */
+  by?: Transport;
 }
+
+export type Transport = 'walk' | 'bike' | 'car' | 'train' | 'plane' | 'boat' | 'none';
+/** 路线的一段：从上一处到第 to 个地点 */
+export interface FlowLeg { to: number; by?: Transport; line: Array<[number, number]> }
 
 /** 地图的一个区域：挨在一起的几个地点 */
 export interface FlowRegion { k: number; places: number[]; /** 区域里的路线（整趟路线里对应的一段） */ line: Array<[number, number]> }
@@ -33,7 +39,7 @@ export interface Flow {
   places: FlowPlace[];
   regions: FlowRegion[];
   /** 整趟路线（经纬度折线），at[地点序号] = 这个地点是折线的第几个点 */
-  trip: { line: Array<[number, number]>; at: number[] };
+  trip: { line: Array<[number, number]>; at: number[]; legs: FlowLeg[] };
   columns: FlowColumn[];
   reading: { default: Reading; allowed: Reading[]; direction: 'ltr' | 'rtl' };
 }
@@ -41,7 +47,7 @@ export interface Flow {
 export function flowOf(d: Pick<PostData, 'blocks' | 'reading'> & { track?: PostData['track'] }): Flow {
   const raw = placesOf(d.blocks) as any[];
   const rg = regionsOf(raw);
-  const places: FlowPlace[] = raw.map((p: any) => ({ n: p.n, id: `p${p.n + 1}`, name: placeName(p), en: p.en && p.en !== placeName(p) ? p.en : undefined, lnglat: p.lnglat, date: p.date, block: p.block, region: rg.regionOf[p.n] }));
+  const places: FlowPlace[] = raw.map((p: any) => ({ n: p.n, id: `p${p.n + 1}`, name: placeName(p), en: p.en && p.en !== placeName(p) ? p.en : undefined, lnglat: p.lnglat, date: p.date, block: p.block, region: rg.regionOf[p.n], ...(p.by ? { by: p.by } : {}) }));
   let cur = -1;
   const cols: FlowColumn[] = (columns(d.blocks) as any[]).map((c) => {
     const ids = new Set<string>((c.kind === 'text' ? c.blocks : [c.block]).map((b: PostBlock) => b.id));
@@ -53,7 +59,7 @@ export function flowOf(d: Pick<PostData, 'blocks' | 'reading'> & { track?: PostD
   const r = d.reading;
   const allowed = (r?.allowed?.length ? r.allowed : ['v']) as Reading[];
   const def = (r?.default ?? 'v') as Reading;
-  const trip = tripOf(raw, rg.regionOf, d.track);
+  const trip = tripOf(raw, rg.regionOf, d.track) as Flow['trip'];
   const regions = rg.regions.map((g: { k: number; places: number[] }) => ({ ...g, line: trip.line.slice(trip.at[g.places[0]], trip.at[g.places.at(-1)!] + 1) }));
   return { places, regions, trip, columns: cols, reading: { default: allowed.includes(def) ? def : allowed[0], allowed, direction: r?.direction ?? 'ltr' } };
 }

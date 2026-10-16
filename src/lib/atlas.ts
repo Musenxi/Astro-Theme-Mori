@@ -1,13 +1,14 @@
 /**
- * 地图页（pages/map.astro）的数据：构建时把全站文章里带定位的照片收齐（EXIF 见 exif.ts）。
- * 分三层，地图页按层画：photos 照片（现在有）、places 地点、routes 路线（留给游记：游记的地点、路线以后从 flow 接进来，
- * 页面那边已经会画这两层，接上数据就行）。
+ * 地图（pages/map.astro 和游记里点开的悬浮地图）的数据，构建时收齐。分三层：
+ * photos 全站文章里带定位的照片（EXIF 见 exif.ts）；places 开了地图的文章正文里标的地点；routes 这些文章的路线，一段一条，带交通方式。
+ * 游记里的悬浮地图只要这一篇的：postAtlas。
  */
 import { getImage } from 'astro:assets';
-import { getEntries } from './entries.ts';
+import { getEntries, type Entry } from './entries.ts';
 import { remoteOf } from './cdn.ts';
 import { liveOf } from './live.ts';
 import { exifOf, type Exif } from './exif.ts';
+import { flowOf, type Flow, type Transport } from './flow.ts';
 
 export type LngLat = [number, number];
 
@@ -30,10 +31,10 @@ export interface AtlasPhoto {
   entry: { title: string; href: string };
 }
 
-/** 游记的一站：名字、位置、出自哪篇（以后接） */
-export interface AtlasPlace { at: LngLat; name: string; entry: { title: string; href: string } }
-/** 游记的一条路线（以后接） */
-export interface AtlasRoute { line: LngLat[]; entry: { title: string; href: string } }
+/** 正文里标的一个地点：名字、位置、是那篇的第几个地点（正文里是 #place-<n>）、出自哪篇 */
+export interface AtlasPlace { at: LngLat; name: string; n: number; date?: string; entry: { title: string; href: string } }
+/** 路线的一段：从上一处到第 to 个地点，by 是交通方式（none 的不收） */
+export interface AtlasRoute { line: LngLat[]; to: number; by?: Transport; entry: { title: string; href: string } }
 
 export interface Atlas { photos: AtlasPhoto[]; places: AtlasPlace[]; routes: AtlasRoute[] }
 
@@ -69,30 +70,55 @@ async function sizes(src: unknown) {
   };
 }
 
+/** 一篇文章里带定位的照片；seen 是已经收过的图（同一张图被几篇引用时只算一次） */
+async function photosOf(e: Entry, seen = new Set<string>()): Promise<AtlasPhoto[]> {
+  const out: AtlasPhoto[] = [];
+  for (const pic of picturesOf(e.data)) {
+    const file = (pic.src as { fsPath: string }).fsPath;
+    if (seen.has(file)) continue;
+    const exif = await exifOf(pic.src);
+    if (!exif?.gps) continue;
+    seen.add(file);
+    out.push({
+      at: exif.gps,
+      ...(await sizes(pic.src)),
+      alt: pic.alt ?? '',
+      caption: pic.caption,
+      exif,
+      live: liveOf(pic.src),
+      entry: { title: e.data.title, href: e.href },
+    });
+  }
+  return out;
+}
+
+/** 一篇开了地图的文章的地点和路线（交通方式是 none 的那段不画） */
+function trailOf(e: Entry, f: Flow): Pick<Atlas, 'places' | 'routes'> {
+  const entry = { title: e.data.title, href: e.href };
+  return {
+    places: f.places.map((p) => ({ at: p.lnglat, name: p.name, n: p.n, ...(p.date ? { date: p.date } : {}), entry })),
+    routes: f.trip.legs.filter((l) => l.by !== 'none').map((l) => ({ line: l.line, to: l.to, ...(l.by ? { by: l.by } : {}), entry })),
+  };
+}
+
 let memo: Promise<Atlas> | undefined;
 export function getAtlas(): Promise<Atlas> {
   return (memo ??= (async () => {
-    const photos: AtlasPhoto[] = [];
+    const photos: AtlasPhoto[] = [], places: AtlasPlace[] = [], routes: AtlasRoute[] = [];
     const seen = new Set<string>();
     // 旧的在前：同一张图被几篇引用时，算在最早那篇
     for (const e of (await getEntries()).reverse()) {
-      for (const pic of picturesOf(e.data)) {
-        const file = (pic.src as { fsPath: string }).fsPath;
-        if (seen.has(file)) continue;
-        const exif = await exifOf(pic.src);
-        if (!exif?.gps) continue;
-        seen.add(file);
-        photos.push({
-          at: exif.gps,
-          ...(await sizes(pic.src)),
-          alt: pic.alt ?? '',
-          caption: pic.caption,
-          exif,
-          live: liveOf(pic.src),
-          entry: { title: e.data.title, href: e.href },
-        });
-      }
+      photos.push(...(await photosOf(e, seen)));
+      if (!e.data.map) continue;
+      const t = trailOf(e, flowOf(e.data));
+      places.push(...t.places);
+      routes.push(...t.routes);
     }
-    return { photos, places: [], routes: [] };
+    return { photos, places, routes };
   })());
+}
+
+/** 一篇文章自己的地图数据（游记里的悬浮地图；隐藏的文章也有） */
+export async function postAtlas(e: Entry, f: Flow): Promise<Atlas> {
+  return { photos: await photosOf(e), ...trailOf(e, f) };
 }
