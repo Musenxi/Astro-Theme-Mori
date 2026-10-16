@@ -17,14 +17,15 @@ MORI 输出的是纯静态文件（`dist/`），有两条路：Cloudflare Pages�
 
 ```bash
 cd deploy
-cp .env.example .env        # 填 SITE_DOMAIN、ADMIN_TOKEN、SALT
+cp .env.example .env        # 填 SITE_DOMAIN、ADMIN_TOKEN
 mkdir site                  # 站点文件放这里
-docker compose up -d --build
+docker compose up -d
 ```
 
 - 域名要先解析到这台机器，Caddy 会自动申请证书。
 - 发布：在 `mori.config.ts` 里加 `publish: { target: 'rsync', dest: 'user@host:/path/to/deploy/site/' }`，Studio 里点“构建并发布”。
 - 评论服务放在同一个域名的 `/_comments` 下（不跨域）：站点配置里 `comments: { provider: 'mori', endpoint: 'https://你的域名/_comments' }`。
+- 升级评论服务：`docker compose pull && docker compose up -d`。
 - 备份：评论在 Docker 卷 `comments_data` 里的 `comments.db`（SQLite）。
 
 ## 三、GitHub Actions（可选）
