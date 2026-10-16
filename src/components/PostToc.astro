@@ -1,7 +1,7 @@
 ---
 /**
  * 文章目录（scripts/toc.ts）。小标题少于两个时不出现。
- * 宽屏：叠在正文上面的一层同样的 12 栏网格，占第 10–12 栏，和旁注同一栏（旁注经过时目录隐去），跟着滚动停在上方。
+ * 宽屏：叠在正文上面的一层同样的 12 栏网格（z-1：长卷的正文是定位元素，不抬高会盖住目录），占第 10–12 栏，和旁注同一栏（旁注经过时目录隐去），跟着滚动停在上方。
  * 窄屏：右下角一颗玻璃圆钮（长卷里叠在读法切换上面），点开从它那里弹出同样的目录。
  * 二级标题带序号，三级标题缩进到正文那一列；当前读到的那一节字变深，左边的细线上有一段主题色跟着滑过去。
  */
@@ -23,7 +23,7 @@ const label = t('post.toc');
 {
   items.length >= 2 && (
     <>
-      <div class="wrap g pointer-events-none absolute inset-0 max-lg:hidden" data-toc>
+      <div class="wrap g pointer-events-none absolute inset-0 z-1 max-lg:hidden" data-toc>
         <nav class="col-[10/13]" aria-label={label}>
           <ol class="toc-list pointer-events-auto sticky top-(--toc-top) max-h-[calc(100vh-var(--toc-top)-48px)] overflow-y-auto overscroll-contain transition-opacity duration-300 [scrollbar-width:none] [&.off]:pointer-events-none [&.off]:opacity-0">
             {items.map((it) => <li><a class="toc-a" href={`#${it.id}`} data-l={it.level}><span class="toc-n">{it.n}</span><span>{it.text}</span></a></li>)}
