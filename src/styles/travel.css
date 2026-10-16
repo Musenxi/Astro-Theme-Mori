@@ -122,6 +122,30 @@
 .travel[data-mode="h"] .b-grid .imgs > figure:last-child{grid-row:span 2}
 .travel[data-mode="h"] .b-free .canvas{height:var(--h);width:calc(var(--h)*var(--ar))}
 .travel[data-mode="h"] .b-strip{--sh:var(--h)}
+/* 浮起来的块（--x）：包在零宽的占位里，不占位置也不多出间距，从原来的位置左右挪 x 个屏高，压在别的块上面 */
+.travel:not([data-mode="h"]) .fslot{display:contents}
+.travel[data-mode="h"] .fslot{flex:none;align-self:stretch;width:0;position:relative;z-index:2}
+.travel[data-mode="h"] .t-track > .fslot{margin-left:calc(-1*var(--tg))}
+.travel[data-dir="rtl"][data-mode="h"] .t-track > .fslot{margin-left:0;margin-right:calc(-1*var(--tg))}
+.travel[data-mode="h"] .fslot > .blk{position:absolute;left:calc(var(--x)*100vh)}
+.travel[data-dir="rtl"][data-mode="h"] .fslot > .blk{left:auto;right:calc(var(--x)*-100vh)}
+.travel[data-mode="h"] .fslot > .blk:not(.b-text){width:max-content}
+.travel[data-mode="h"] .fslot > .b-text:not(.v){min-height:0}
+/* 一列文字自己的字号、行距（横滚、竖滚各一份） */
+.travel[data-mode="h"] .b-text.fz-h{font-size:calc(var(--fz-h)*1em)}
+.travel[data-mode="h"] .b-text.lz-h{line-height:var(--lz-h)}
+.travel:not([data-mode="h"]) .b-text.fz-v{font-size:calc(var(--fz-v)*1em)}
+.travel:not([data-mode="h"]) .b-text.lz-v{line-height:var(--lz-v)}
+/* 文本框的宽高（作者拖出来的）：横滚里是屏高的倍数，横排的字在框里换行、比框高就排成几栏；竖排的字按框高换列，框宽是最小宽度 */
+.travel[data-mode="h"] .b-text.bw-h:not(.v){width:min(calc(var(--bw-h)*100vh),96vw)}
+.travel[data-mode="h"] .b-text.bh-h:not(.v){min-height:min(calc(var(--bh-h)*100vh),var(--band))}
+.travel[data-mode="h"] .b-text.bh-h.v{height:min(calc(var(--bh-h)*100vh),var(--band))}
+.travel[data-mode="h"] .b-text.bw-h.v{min-width:calc(var(--bw-h)*100vh)}
+/* 竖滚里：框的左边在页面的 --x-v 处、宽 --bw-v（都是页宽的比例），高 --bh-v（屏高的倍数） */
+.travel:not([data-mode="h"]) .b-text.box-v[class]{grid-column:1/-1!important;justify-self:start!important;width:calc(var(--bw-v,.5)*100%);max-width:calc(100% - var(--x-v,.25)*100%);margin-left:calc(var(--x-v,.25)*100%)}
+.travel:not([data-mode="h"]) .b-text.box-v.v[class]{width:auto;min-width:calc(var(--bw-v,0)*100%);max-width:calc(100% - var(--x-v,0)*100%)}
+.travel:not([data-mode="h"]) .b-text.bh-v:not(.v){min-height:calc(var(--bh-v)*100vh)}
+.travel:not([data-mode="h"]) .b-text.bh-v.v{height:calc(var(--bh-v)*100vh)}
 /* 底边的进度线，上面一格一格是各章（二级标题）的位置，点了跳过去 */
 .h-progress{display:none}
 .travel[data-mode="h"] .h-progress{display:block;position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--border)}
@@ -153,4 +177,5 @@
   .travel:not([data-mode="h"]) .fnote{height:9em;justify-self:center}
   .travel:not([data-mode="h"]) .fnote.h{height:auto;justify-self:stretch;grid-column:1/-1}
   .travel[data-mode="h"]{--ph:min(60vh,116vw)}
+  .travel:not([data-mode="h"]) .b-text.box-v[class]{width:auto;margin-left:0}
 }

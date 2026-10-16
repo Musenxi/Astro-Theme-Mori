@@ -32,7 +32,7 @@ export interface FlowLeg { to: number; by?: Transport; line: Array<[number, numb
 export interface FlowRegion { k: number; places: number[]; /** 区域里的路线（整趟路线里对应的一段） */ line: Array<[number, number]> }
 
 export type FlowColumn =
-  | { kind: 'text'; blocks: PostBlock[]; writing: 'h' | 'v'; vwriting: 'h' | 'v'; align?: string; valign?: string; pos?: string; vpos?: string; y?: number; scale?: number; gap?: number; anchor?: boolean; head?: boolean; lead?: boolean; place: number; places: number[] }
+  | { kind: 'text'; blocks: PostBlock[]; writing: 'h' | 'v'; vwriting: 'h' | 'v'; align?: string; valign?: string; pos?: string; vpos?: string; y?: number; scale?: number; gap?: number; x?: number; fs?: number; lh?: number; bw?: number; bh?: number; vfs?: number; vlh?: number; vx?: number; vbw?: number; vbh?: number; anchor?: boolean; head?: boolean; lead?: boolean; place: number; places: number[] }
   | { kind: 'block'; block: PostBlock; place: number; places: number[] };
 
 export interface Flow {

@@ -213,3 +213,12 @@ test('和前一块的间距 gap：一列文字取第一个设了的块；标题�
   ]);
   assert.deepEqual(cols.map((c) => c.gap), [0, 2, undefined, 0.5]);
 });
+
+test('浮起来 x、字号行距：一列取第一个设了的块，横滚竖滚各一份；标题或文字浮起来就不挨着排', () => {
+  const cols = columns([
+    { id: 'h', type: 'h', level: 2, text: '题' },
+    { id: 'a', type: 'p', text: '1', h: { x: 0.3, fs: 1.5, lh: 2.4 }, v: { fs: 1.2 } },
+    { id: 'b', type: 'p', text: '2' },
+  ]);
+  assert.deepEqual([cols[0].lead, cols[1].x, cols[1].fs, cols[1].lh, cols[1].vfs, cols[1].vlh], [undefined, 0.3, 1.5, 2.4, 1.2, undefined]);
+});

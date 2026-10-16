@@ -80,11 +80,17 @@ const vt = {
 };
 
 
-/** 每一列（块）共有的属性：读到第几个地点；横滚里的上下位置、缩放、和前一块的间距 */
-const at = (c: { place: number; places: number[] }, h?: { y?: number; scale?: number; gap?: number }) => ({
+/** 每一列（块）共有的属性：读到第几个地点；横滚里的上下位置、缩放、和前一块的间距、浮起来的左右位置 */
+const at = (c: { place: number; places: number[] }, h?: { y?: number; scale?: number; gap?: number; x?: number }, more?: Record<string, number | undefined>) => ({
   'data-place': c.place >= 0 ? c.place : undefined,
   'data-places': c.places.length ? c.places.join(',') : undefined,
-  style: { '--y': h?.y, '--s': h?.scale, '--k': h?.gap },
+  style: { '--y': h?.y, '--s': h?.scale, '--k': h?.gap, '--x': h?.x, ...more },
+});
+/** 一列文字自己的字号、行距、文本框的宽高、竖滚里的左右位置（横滚、竖滚各一份）：有设的才加上类，样式里按读法取 */
+const type = (c: { fs?: number; lh?: number; bw?: number; bh?: number; vfs?: number; vlh?: number; vx?: number; vbw?: number; vbh?: number }) => ({
+  cls: [c.fs !== undefined && 'fz-h', c.lh !== undefined && 'lz-h', c.bw !== undefined && 'bw-h', c.bh !== undefined && 'bh-h',
+    c.vfs !== undefined && 'fz-v', c.vlh !== undefined && 'lz-v', (c.vx !== undefined || c.vbw !== undefined) && 'box-v', c.vbh !== undefined && 'bh-v'],
+  style: { '--fz-h': c.fs, '--lz-h': c.lh, '--bw-h': c.bw, '--bh-h': c.bh, '--fz-v': c.vfs, '--lz-v': c.vlh, '--x-v': c.vx, '--bw-v': c.vbw, '--bh-v': c.vbh },
 });
 /** 上下出血铺满整屏的图（横滚里） */
 const bleed = (b: { h?: { bleed?: boolean } }) => b.h?.bleed && 'bleed';
@@ -104,7 +110,7 @@ const bleed = (b: { h?: { bleed?: boolean } }) => b.h?.bleed && 'bleed';
             const v = variant.w === 'v' && vertical;
             const k = v ? vt : ht; // 竖排文字和横排文字的行内块样式不同，渲染时就选好
             return (
-              <section class:list={['blk', 'b-text', c.head && 'b-head', c.anchor && 'anchor', variant.axis && `ax-${variant.axis}`, v && 'v tracking-[.12em] leading-[2.05] [writing-mode:vertical-rl]']} data-align={variant.axis === 'v' ? c.valign : c.align} data-pos={variant.axis === 'v' ? c.vpos : c.pos} {...at(c, c)}>
+              <section class:list={['blk', 'b-text', c.head && 'b-head', c.anchor && 'anchor', variant.axis && `ax-${variant.axis}`, v && 'v tracking-[.12em] leading-[2.05] [writing-mode:vertical-rl]', ...type(c).cls]} data-align={variant.axis === 'v' ? c.valign : c.align} data-pos={variant.axis === 'v' ? c.vpos : c.pos} {...at(c, c, type(c).style)}>
                 {c.blocks.map((b, bi) => {
                   switch (b.type) {
                     case 'h': {
@@ -218,6 +224,8 @@ const bleed = (b: { h?: { bleed?: boolean } }) => b.h?.bleed && 'bleed';
               ) : null;
           }
         };
+        /** 浮起来的块（横滚里不占位置、按 x 挪）：包一层零宽的占位，竖滚里这层不起作用 */
+        const floated = (x: number | undefined, node: unknown) => (x === undefined ? node : <div class="fslot">{node}</div>);
         // 标题和紧跟着的那列文字挨着排（.hgroup）：标题没设上下位置就和文字一起挪，顶端对齐
         const out = [];
         for (let i = 0; i < columns.length; i++) {
@@ -229,7 +237,7 @@ const bleed = (b: { h?: { bleed?: boolean } }) => b.h?.bleed && 'bleed';
                 {col(c)}{col(t)}
               </div>,
             );
-          } else out.push(col(c));
+          } else out.push(floated(c.kind === 'text' ? c.x : c.block.h?.x, col(c)));
         }
         return out;
       })()}
