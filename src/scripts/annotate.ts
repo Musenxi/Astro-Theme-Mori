@@ -2,7 +2,7 @@
  * 划词引用评论（spec §3.4）：读者选中正文里的一段文字，针对这段发表评论。
  *  - 选中后浮出一颗小玻璃按钮“引用评论”；点开后，和文末一样的评论表单插在这一段下面，选中的文字一直标着；发完就收起，读者留在原处。
  *    长卷的横向读法和竖排文字块里没法插进正文，表单浮在选区旁边（手机上从底部弹出）。
- *  - 划词发的评论也是评论：显示在文末评论区，带着引用的原文；点引用，回到正文里那一段并临时高亮（CSS Custom Highlight API，不改正文 DOM）。
+ *  - 划词发的评论也是评论：显示在文末评论区，带着引用的原文；点引用，回到正文里那一段，引用的文字下面浮出一条色带再淡去（CSS Custom Highlight API，不改正文 DOM）。
  *  - 正文里被引用过的文字不留任何记号；读者划词时，如果选区和某条引用评论的原文重叠，选区下面浮出一张小卡，列出引用这段文字的评论。
  *  - 位置 = 块 id + 起止字符位置（跳过 data-skip 的旁注编号、标题序号等），另存原文和前后文，文章改了以后重新定位（anchor-text.ts）。
  *  - 只有使用 MORI 自建评论时才有；图片不能划词。
@@ -103,18 +103,31 @@ function whenSettled(cb: () => void) {
   idle = window.setTimeout(finish, reduce ? 0 : 500);
 }
 
-let fadeTimer = 0;
-function highlight(range: Range) {
+// 注册成数字才能过渡（@property 写在样式里会落进 @layer，浏览器不认）
+try { CSS.registerProperty({ name: '--anno-a', syntax: '<number>', inherits: true, initialValue: '1' }); } catch {}
+
+let fadeTimer = 0, lit: HTMLElement | null = null, litId = 0;
+/**
+ * 引用的文字下半截浮出一条色带：一点就淡入（跟着滚动一起到），滚动停下后再停一会儿，慢慢淡出。
+ * 浓淡由块上的 --anno-a 控制（上面注册过，能过渡）。返回“滚动停了”时要调的函数，从那时开始倒计时。
+ */
+function highlight(range: Range, block: HTMLElement): () => void {
   const css = CSS as any;
-  if (!css.highlights || !(window as any).Highlight) return;
+  if (!css.highlights || !(window as any).Highlight) return () => {};
   clearTimeout(fadeTimer);
+  const id = ++litId;
+  const clear = () => { css.highlights.delete('mori-anno'); lit?.style.removeProperty('--anno-a'); lit?.style.removeProperty('transition'); lit = null; };
+  clear();
+  lit = block;
+  const fade = (to: number, ms: number, ease = 'var(--ease-mori)') => { block.style.transition = reduce ? '' : `--anno-a ${ms}ms ${ease}`; block.style.setProperty('--anno-a', String(to)); };
+  fade(0, 0);
   css.highlights.set('mori-anno', new (window as any).Highlight(range));
-  // 先高亮一会儿，再淡一档，然后消失
-  fadeTimer = window.setTimeout(() => {
-    css.highlights.delete('mori-anno');
-    css.highlights.set('mori-anno-fade', new (window as any).Highlight(range));
-    fadeTimer = window.setTimeout(() => css.highlights.delete('mori-anno-fade'), 900);
-  }, 1800);
+  getComputedStyle(block).getPropertyValue('--anno-a'); // 先让 0 生效，再过渡到 1（不等下一帧）
+  fade(1, 400);
+  return () => {
+    if (id !== litId) return; // 期间又点了别的引用
+    fadeTimer = window.setTimeout(() => { fade(0, 1400, 'ease-in-out'); fadeTimer = window.setTimeout(clear, reduce ? 0 : 1400); }, 1800);
+  };
 }
 
 /** 同一列在横滚和竖滚里可能渲染了两份，取显示着的那份 */
@@ -286,8 +299,9 @@ function init() {
     const block = blockOf(c.block);
     const range = block && resolve(block, c);
     if (!block || !range) { quote?.classList.add('gone'); return; }
+    const settled = highlight(range, block); // 一点就亮，不等滚动
     reveal(block);
-    whenSettled(() => highlight(range)); // 等滚动到位再高亮
+    whenSettled(settled); // 滚动到位后才开始倒计时
   });
 
   // 评论区画好以后，检查每条引用评论在现在的正文里还找不找得到

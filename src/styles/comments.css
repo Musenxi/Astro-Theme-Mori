@@ -99,8 +99,8 @@
 .cmt-cancel:hover{color:var(--foreground)}
 .anno-toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:42;padding:7px 16px;border-radius:999px;color:var(--soft-foreground);animation:anno-in .4s var(--ease-mori) both;transition:opacity .5s}
 .anno-toast.out{opacity:0}
-::highlight(mori-anno),::highlight(mori-anno-hold){background-color:color-mix(in srgb,var(--primary) 26%,transparent);color:inherit}
-::highlight(mori-anno-fade){background-color:color-mix(in srgb,var(--primary) 11%,transparent);color:inherit}
+/* 引用的文字：下半截一条色带，像用笔划过。跳回正文时 --anno-a 从 0 到 1 再回到 0（annotate.ts 里注册，才能过渡）；写评论时一直是 1 */
+::highlight(mori-anno),::highlight(mori-anno-hold){color:inherit;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--primary) calc(var(--anno-a,1)*42%),transparent);text-decoration-thickness:.42em;text-underline-offset:-.28em;text-decoration-skip-ink:none}
 @media (max-width:760px){
   /* 浮着的表单在手机上从底部弹出 */
   .anno-pop.float{left:0!important;right:0;top:auto!important;bottom:0;width:100%;border-radius:20px 20px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
