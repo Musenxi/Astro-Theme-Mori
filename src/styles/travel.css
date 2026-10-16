@@ -79,7 +79,7 @@
 /* 版心：上面让出页头，下面让出角落的控件。--ph 图的基准高度，--band 版心高度（什么都不超出它，出血的图除外），
    --th 文字框的高度：横排、竖排的文字和标题都用这个高度、上下居中，所以没挪过的文字顶端在同一条线上 */
 .travel[data-mode="h"]{--ph:min(66vh,64vw);--pt:max(92px,11vh);--pb:max(84px,12vh);--band:calc(100vh - var(--pt) - var(--pb));--th:min(calc(var(--ph)*.92),var(--band));--tg:clamp(40px,6vw,104px)}
-.travel[data-mode="h"] .t-vp{position:sticky;top:0;height:100vh;overflow:hidden}
+.travel[data-mode="h"] .t-vp{position:sticky;top:0;height:100vh;overflow:hidden;will-change:transform}
 .travel[data-mode="h"] .t-track{display:flex;align-items:flex-start;height:100%;width:max-content;gap:var(--tg);padding:var(--pt) var(--edge) var(--pb);will-change:transform}
 /* --k：和前一块的间距（标准间距的倍数，0 紧贴，负数叠上去）。手卷从右往左排，“前一块”在右边 */
 .travel[data-mode="h"] .t-track > *{margin-left:calc((var(--k,1) - 1)*var(--tg))}

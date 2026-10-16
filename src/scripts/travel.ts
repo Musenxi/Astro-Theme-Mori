@@ -19,7 +19,7 @@ const store = {
 };
 const root = document.documentElement;
 
-type XTrack = HTMLElement & { _x?: number | null };
+type XTrack = HTMLElement & { _x?: number | null; _v?: number };
 let relayoutOnResize: (() => void) | null = null;
 addEventListener('resize', () => relayoutOnResize?.());
 
@@ -67,14 +67,17 @@ function init() {
     }
   }
 
+  /** 横卷走到头以后多出来的滚动距离（停住、再慢慢放行的那一段） */
+  const hold = () => Math.round(innerHeight * 0.3);
   function layout() {
     const m = mode();
     flowText();
     tbody.style.height = '';
-    for (const s of strips) { s.style.height = ''; const t = s.querySelector<XTrack>('.strip-track')!; t.style.transform = ''; t._x = null; }
-    track.style.transform = ''; track._x = null;
-    if (m === 'h') { tbody.style.height = Math.max(innerHeight, track.offsetWidth - vw() + innerHeight) + 'px'; drawTicks(); }
-    if (m === 'm') for (const s of strips) s.style.height = Math.max(innerHeight, s.querySelector<HTMLElement>('.strip-track')!.offsetWidth - vw() + innerHeight) + 'px';
+    for (const s of strips) { s.style.height = ''; const t = s.querySelector<XTrack>('.strip-track')!; t.style.transform = ''; t._x = null; t._v = 0; }
+    track.style.transform = ''; track._x = null; track._v = 0;
+    for (const v of travel!.querySelectorAll<HTMLElement>('.t-vp, .strip-vp')) v.style.transform = '';
+    if (m === 'h') { tbody.style.height = Math.max(innerHeight, track.offsetWidth - vw() + innerHeight) + hold() + 'px'; drawTicks(); }
+    if (m === 'm') for (const s of strips) s.style.height = Math.max(innerHeight, s.querySelector<HTMLElement>('.strip-track')!.offsetWidth - vw() + innerHeight) + hold() + 'px';
   }
   relayoutOnResize = () => { if (travel.isConnected) { layout(); snap = true; } };
 
@@ -180,20 +183,40 @@ function init() {
     goPlace(a.getAttribute('href')!.slice(1));
   });
 
-  /** 竖向滚动 → 横向位移：外层高度撑出滚动距离，内层 sticky，位移带一点缓动（切换、缩放时直接到位） */
-  function drive(outer: HTMLElement, tr: XTrack, prog?: HTMLElement | null) {
+  /**
+   * 竖向滚动 → 横向位移：外层高度撑出滚动距离，内层 sticky。位移跟着一根临界阻尼的弹簧走：
+   * 起步有个加速、停下来是慢慢收住，不会一格一格地跳，从竖滚转进横卷时也不突兀（切换、缩放时直接到位）。
+   * 按真实的时间算，高刷新率的屏幕上手感一样。
+   * 走到头以后还有一段 hold() 的滚动距离：画面从静止慢慢加速往上走，到 2·hold() 时正好接上正常的滚动
+   * （位移是 past² / 2L：起步速度 0，到终点速度 1，位置也正好接上 sticky 放开以后的位置）。
+   * 这一段里往下滚的滚轮量还要打折（见 resist），所以甩一下滑不过去，得接着推。
+   */
+  const STIFF = 9; // 弹簧的角频率：越小越“沉”，约 4/STIFF 秒停稳
+  function drive(outer: HTMLElement, tr: XTrack, dt: number, vp: HTMLElement, prog?: HTMLElement | null) {
     const r = outer.getBoundingClientRect();
     const max = Math.max(0, tr.offsetWidth - vw());
-    const span = r.height - innerHeight;
+    const H = hold(), span = Math.max(0, r.height - innerHeight - H), past = -r.top - span;
     const p = span > 0 ? clamp(-r.top / span, 0, 1) : 0;
     const target = p * max;
-    let x = tr._x ?? target;
-    x = snap || reduce ? target : x + (target - x) * 0.14;
-    if (Math.abs(target - x) < 0.25) x = target;
+    // 放行：画面应在的位置减去 sticky 给的位置，差的部分用 translateY 补上
+    const L = 2 * H, q = clamp(past, 0, L);
+    const shift = past > 0 && past < L ? Math.round(Math.max(0, past - H) - (q * q) / (2 * L)) : 0;
+    const ty = shift ? `translateY(${shift}px)` : '';
+    if (vp.style.transform !== ty) vp.style.transform = ty;
+    let x = tr._x ?? target, v = tr._v ?? 0;
+    if (snap || reduce) { x = target; v = 0; }
+    else {
+      // 临界阻尼：a = ω²(目标 − x) − 2ωv；一帧拆成几小步，掉帧时也稳
+      const n = Math.ceil(dt / (1 / 120));
+      for (let i = 0; i < n; i++) { const h = dt / n; v += (STIFF * STIFF * (target - x) - 2 * STIFF * v) * h; x += v * h; }
+      if (Math.abs(target - x) < 0.25 && Math.abs(v) < 5) { x = target; v = 0; }
+    }
+    tr._v = v;
     if (x !== tr._x) { tr._x = x; tr.style.transform = `translate3d(${rtl() ? x : -x}px,0,0)`; }
     if (prog) {
-      prog.style.transform = `scaleX(${max ? x / max : 0})`;
-      for (const m of marks) m.li.classList.toggle('on', max > 0 && x / max >= m.p - 0.001);
+      const q = max ? clamp(x / max, 0, 1) : 0;
+      prog.style.transform = `scaleX(${q})`;
+      for (const m of marks) m.li.classList.toggle('on', max > 0 && q >= m.p - 0.001);
     }
   }
 
@@ -356,11 +379,58 @@ function init() {
     rbName.textContent = stops[i].name;
   }
 
-  function tick() {
-    if (!travel!.isConnected) { relayoutOnResize = null; return; }
+  let last = performance.now();
+  const tvp = travel.querySelector<HTMLElement>('.t-vp')!;
+
+  // 横卷范围里的滚轮由这里接管（浏览器自己的平滑滚动会让一次甩动的事件都在页面滚到之前处理完，判断不了到没到头）：
+  // 滚轮的量记成目标位置 aim，tick 里每帧平滑地追过去（和画面的位移在同一帧算，不会错开一帧）。触控板左右扫也能拖横卷。
+  // 走到头：这一次滑动（连同它的惯性）停在结尾，剩下的量吃掉；再滑一次才接着往下（不再拦）。
+  // “再滑一次”：滚轮停了 150ms 以上，或者惯性在衰减时突然又变大（在惯性的尾巴上又推了一下）
+  let gesture = 0, lastWheel = 0, lastAbs = 0, heldAt = -1;
+  const resist = (e: WheelEvent) => {
+    if (!travel!.isConnected) return removeEventListener('wheel', resist);
+    if (e.ctrlKey || tmap?.classList.contains('open')) return;
     const m = mode();
-    if (m === 'h') drive(tbody, track, progress);
-    else if (m === 'm') for (const s of strips) drive(s, s.querySelector<XTrack>('.strip-track')!);
+    const outer = m === 'h' ? tbody : m === 'm' ? strips.find((x) => { const r = x.getBoundingClientRect(); return r.top <= 1 && r.bottom > 0; }) : null;
+    if (!outer) return;
+    const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1;
+    const dx = e.deltaX * unit, dy0 = e.deltaY * unit;
+    const dy = m === 'h' && Math.abs(dx) > Math.abs(dy0) ? (rtl() ? -dx : dx) : dy0;
+    const now = performance.now(), abs = Math.abs(dy);
+    if (now - lastWheel > 150 || (lastAbs < 40 && abs > lastAbs * 1.8 + 4)) gesture++;
+    lastWheel = now; lastAbs = abs;
+    const H = hold(), r = outer.getBoundingClientRect(), past = -r.top - Math.max(0, r.height - innerHeight - H);
+    // 还没追到的那段也算上：按目标位置判断到没到头
+    const from = aim ?? scrollY, ahead = past + (from - scrollY);
+    // 接管到横卷完全离开屏幕以后（画面停止被推动之后再交还浏览器，交接时不会和位移错开）；还在追的时候也继续接管，不丢掉没滚完的那段
+    const inside = r.top - (from - scrollY) <= 1 && ahead < 2 * H + innerHeight;
+    if (!inside && aim === null) return;
+    if (!dy) return;
+    e.preventDefault();
+    let move = dy;
+    if (dy > 0 && ahead < 0 && ahead + dy >= 0) { move = -ahead; heldAt = gesture; } // 这一次滑到头：停在结尾
+    else if (dy > 0 && ahead >= 0 && ahead < 1 && heldAt === gesture) move = 0; // 同一次滑动剩下的惯性：吃掉
+    if (ahead + move < 0) heldAt = -1; // 退回横卷里：下次到头再停
+    aim = clamp(from + move, 0, root.scrollHeight - innerHeight);
+  };
+  /** 追目标位置：约 90ms 的时间常数；中途被别的方式滚动了（拖滚动条、键盘）就不追了 */
+  let aim: number | null = null, setY = -1;
+  function chase(dt: number) {
+    if (aim === null) return;
+    if (setY >= 0 && Math.abs(scrollY - setY) > 2) { aim = null; setY = -1; return; }
+    let y = scrollY + (aim - scrollY) * (1 - Math.exp(-dt / 0.09));
+    if (Math.abs(aim - y) < 0.5) { y = aim; aim = null; }
+    scrollTo({ top: y, behavior: 'instant' });
+    setY = aim === null ? -1 : scrollY;
+  }
+  addEventListener('wheel', resist, { passive: false });
+  function tick(now = performance.now()) {
+    if (!travel!.isConnected) { relayoutOnResize = null; return; }
+    const m = mode(), dt = clamp((now - last) / 1000, 0, 0.05);
+    last = now;
+    chase(dt);
+    if (m === 'h') drive(tbody, track, dt, tvp, progress);
+    else if (m === 'm') for (const s of strips) drive(s, s.querySelector<XTrack>('.strip-track')!, dt, s.querySelector<HTMLElement>('.strip-vp')!);
     updateLoc();
     snap = false;
     requestAnimationFrame(tick);
