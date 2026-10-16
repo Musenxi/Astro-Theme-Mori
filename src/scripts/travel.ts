@@ -46,23 +46,21 @@ function init() {
   const saved = store.get('mori-mode') as Mode | null;
   if (saved && allowed.includes(saved)) travel.dataset.mode = saved;
 
-  // 横向读法里，横排的长文字排成并排的几栏（高度用满，宽度按栏数撑开）；短的一列就保持原样，按 y 摆
+  // 横向读法里，横排的长文字排成并排的几栏（每栏和文字框一样高，宽度按栏数撑开）；短的一列就保持原样，按 y 摆
   const texts = [...travel.querySelectorAll<HTMLElement>('.b-text:not(.v):not(.b-head)')];
   function flowText() {
     for (const el of texts) { el.classList.remove('cols'); el.style.width = ''; el.style.height = ''; }
     if (mode() !== 'h') return;
-    const cs = getComputedStyle(track);
-    const availH = track.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
     const gap = Math.round(clamp(vw() * 0.045, 36, 72));
     for (const el of texts) {
-      const colW = el.offsetWidth, h = el.offsetHeight;
-      if (!colW || h <= availH) continue;
+      const colW = el.offsetWidth, h = el.offsetHeight, th = parseFloat(getComputedStyle(el).minHeight) || h;
+      if (!colW || h <= th + 1) continue;
       el.classList.add('cols');
       el.style.setProperty('--col-w', colW + 'px');
       el.style.setProperty('--col-gap', gap + 'px');
-      el.style.height = availH + 'px';
+      el.style.height = th + 'px';
       // 从估计的栏数开始，装不下就多加一栏
-      for (let n = Math.max(2, Math.ceil(h / availH)); n < 60; n++) {
+      for (let n = Math.max(2, Math.ceil(h / th)); n < 60; n++) {
         el.style.width = n * colW + (n - 1) * gap + 'px';
         if (el.scrollWidth <= el.clientWidth + 1) break;
       }
@@ -75,10 +73,31 @@ function init() {
     tbody.style.height = '';
     for (const s of strips) { s.style.height = ''; const t = s.querySelector<XTrack>('.strip-track')!; t.style.transform = ''; t._x = null; }
     track.style.transform = ''; track._x = null;
-    if (m === 'h') tbody.style.height = Math.max(innerHeight, track.offsetWidth - vw() + innerHeight) + 'px';
+    if (m === 'h') { tbody.style.height = Math.max(innerHeight, track.offsetWidth - vw() + innerHeight) + 'px'; drawTicks(); }
     if (m === 'm') for (const s of strips) s.style.height = Math.max(innerHeight, s.querySelector<HTMLElement>('.strip-track')!.offsetWidth - vw() + innerHeight) + 'px';
   }
   relayoutOnResize = () => { if (travel.isConnected) { layout(); snap = true; } };
+
+  // 进度线上各章（二级标题）的位置：读到那一章时，进度正好走到它的刻度
+  const ticks = travel.querySelector<HTMLElement>('.h-ticks');
+  let marks: Array<{ el: HTMLElement; li: HTMLLIElement; p: number }> = [];
+  function drawTicks() {
+    if (!ticks) return;
+    const max = Math.max(1, track.offsetWidth - vw()), edge = parseFloat(getComputedStyle(track).paddingLeft);
+    const heads = [...track.querySelectorAll<HTMLElement>('.b-head')].filter((el) => el.offsetParent !== null);
+    marks = heads.map((el) => {
+      // 标题在标题组里时，量整组的位置
+      const b = el.parentElement?.classList.contains('hgroup') ? el.parentElement : el;
+      const x = rtl() ? track.offsetWidth - (b.offsetLeft + b.offsetWidth) - edge : b.offsetLeft - edge;
+      const li = document.createElement('li');
+      const p = clamp(x / max, 0, 1);
+      li.style.setProperty('--at', `${(rtl() ? 1 - p : p) * 100}%`);
+      li.title = el.querySelector('h2')?.textContent?.trim() ?? '';
+      li.addEventListener('click', () => { scrollToBlock(b); });
+      return { el: b, li, p };
+    });
+    ticks.replaceChildren(...marks.map((m) => m.li));
+  }
 
   /** 当前读到的块：横向按横轴上的一条线，竖向按屏幕偏上的一条线 */
   function current() {
@@ -172,7 +191,10 @@ function init() {
     x = snap || reduce ? target : x + (target - x) * 0.14;
     if (Math.abs(target - x) < 0.25) x = target;
     if (x !== tr._x) { tr._x = x; tr.style.transform = `translate3d(${rtl() ? x : -x}px,0,0)`; }
-    if (prog) prog.style.transform = `scaleX(${max ? x / max : 0})`;
+    if (prog) {
+      prog.style.transform = `scaleX(${max ? x / max : 0})`;
+      for (const m of marks) m.li.classList.toggle('on', max > 0 && x / max >= m.p - 0.001);
+    }
   }
 
   const hero = travel.querySelector('.t-hero')!, end = travel.querySelector('.t-end');

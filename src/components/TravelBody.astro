@@ -80,12 +80,14 @@ const vt = {
 };
 
 
-/** 每一列（块）共有的属性：读到第几个地点、位置和缩放 */
-const at = (c: { place: number; places: number[] }, y?: number, scale?: number) => ({
+/** 每一列（块）共有的属性：读到第几个地点；横滚里的上下位置、缩放、和前一块的间距 */
+const at = (c: { place: number; places: number[] }, h?: { y?: number; scale?: number; gap?: number }) => ({
   'data-place': c.place >= 0 ? c.place : undefined,
   'data-places': c.places.length ? c.places.join(',') : undefined,
-  style: { '--y': y, '--s': scale },
+  style: { '--y': h?.y, '--s': h?.scale, '--k': h?.gap },
 });
+/** 上下出血铺满整屏的图（横滚里） */
+const bleed = (b: { h?: { bleed?: boolean } }) => b.h?.bleed && 'bleed';
 ---
 
 <div class="t-body">
@@ -102,7 +104,7 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
             const v = variant.w === 'v' && vertical;
             const k = v ? vt : ht; // 竖排文字和横排文字的行内块样式不同，渲染时就选好
             return (
-              <section class:list={['blk', 'b-text', c.head && 'b-head', c.anchor && 'anchor', variant.axis && `ax-${variant.axis}`, v && 'v tracking-[.12em] leading-[2.05] [writing-mode:vertical-rl]']} data-align={variant.axis === 'v' ? c.valign : c.align} data-pos={variant.axis === 'v' ? c.vpos : c.pos} {...at(c, c.y, c.scale)}>
+              <section class:list={['blk', 'b-text', c.head && 'b-head', c.anchor && 'anchor', variant.axis && `ax-${variant.axis}`, v && 'v tracking-[.12em] leading-[2.05] [writing-mode:vertical-rl]']} data-align={variant.axis === 'v' ? c.valign : c.align} data-pos={variant.axis === 'v' ? c.vpos : c.pos} {...at(c, c)}>
                 {c.blocks.map((b, bi) => {
                   switch (b.type) {
                     case 'h': {
@@ -153,18 +155,18 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
             });
           }
           const b = c.block;
-          const pos = at(c, b.h?.y, b.h?.scale);
+          const pos = at(c, b.h);
           switch (b.type) {
             case 'image':
               return (
-                <figure class:list={['blk', 'b-single', 'rv', b.layout === 'inline' && 'inset']} data-b={b.id} {...pos}>
+                <figure class:list={['blk', 'b-single', 'rv', b.layout === 'inline' && 'inset', bleed(b)]} data-b={b.id} {...pos}>
                   <Image src={b.src} alt={b.alt} widths={[800, 1200, 1800, 2400]} sizes="100vw" />
                   {b.caption && <figcaption class="mt-2.5 text-meta text-muted-foreground">{b.caption}</figcaption>}
                 </figure>
               );
             case 'pair':
               return (
-                <figure class="blk b-pair rv" data-b={b.id} {...pos}>
+                <figure class:list={['blk b-pair rv', bleed(b)]} data-b={b.id} {...pos}>
                   <div class="imgs">
                     {b.images.map((im) => <figure><Image src={im.src} alt={im.alt} widths={[600, 900, 1400]} sizes="(max-width: 760px) 50vw, 45vw" />{im.caption && <figcaption class="mt-2 text-meta text-muted-foreground">{im.caption}</figcaption>}</figure>)}
                   </div>
@@ -172,7 +174,7 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
               );
             case 'strip':
               return (
-                <figure class="blk b-strip rv" data-b={b.id} {...pos}>
+                <figure class:list={['blk b-strip rv', bleed(b)]} data-b={b.id} {...pos}>
                   <div class="strip-vp">
                     <div class="strip-sc">
                       <div class="strip-track">
@@ -184,7 +186,7 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
               );
             case 'grid':
               return (
-                <figure class="blk b-grid rv" data-b={b.id} {...pos}>
+                <figure class:list={['blk b-grid rv', bleed(b)]} data-b={b.id} {...pos}>
                   <div class="imgs">
                     {b.images.map((im, i) => <figure><Image src={im.src} alt={im.alt} widths={[500, 900, 1400]} sizes={i === 0 ? '66vw' : '33vw'} />{im.caption && <figcaption class="mt-2 text-meta text-muted-foreground">{im.caption}</figcaption>}</figure>)}
                   </div>
@@ -192,7 +194,7 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
               );
             case 'free':
               return (
-                <div class="blk b-free rv" data-b={b.id} {...pos}>
+                <div class:list={['blk b-free rv', bleed(b)]} data-b={b.id} {...pos}>
                   <div class="canvas" style={{ '--ar': b.ar }}>
                     {b.items.map((it, i) =>
                       it.kind === 'image' ? (
@@ -223,7 +225,7 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
           if (c.kind === 'text' && c.lead && t?.kind === 'text') {
             i++;
             out.push(
-              <div class:list={['hgroup', c.y !== undefined && 'own', t.writing === 'v' && 'tv', c.writing !== 'v' && 'hh', c.vwriting === 'v' && t.vwriting === 'v' && 'vv']} data-pos={t.vpos} style={{ '--y': t.y }}>
+              <div class:list={['hgroup', c.y !== undefined && 'own', t.writing === 'v' && 'tv', c.writing !== 'v' && 'hh', c.vwriting === 'v' && t.vwriting === 'v' && 'vv']} data-pos={t.vpos} style={{ '--y': t.y, '--k': c.gap ?? t.gap }}>
                 {col(c)}{col(t)}
               </div>,
             );
@@ -232,7 +234,7 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
         return out;
       })()}
     </div>
-    <div class="h-progress"><i></i></div>
+    <div class="h-progress"><i></i><ol class="h-ticks"></ol></div>
   </div>
 </div>
 

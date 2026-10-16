@@ -10,7 +10,7 @@
 .place-only{height:0;margin:0!important;overflow:hidden}
 .b-text.anchor{height:0;pointer-events:none}
 .travel:not([data-mode="h"]) .b-text.anchor{margin-top:calc(-1*clamp(56px,9vw,128px))}
-.travel[data-mode="h"] .b-text.anchor:not(.v){width:0;margin-inline-end:calc(-1*clamp(40px,6vw,104px))}
+.travel[data-mode="h"] .b-text.anchor:not(.v){width:0;margin-inline-end:calc(-1*var(--tg))}
 .blk img{background:var(--muted);object-fit:cover;cursor:zoom-in}
 .rv img{clip-path:inset(5% 0 5% 0);transform:scale(1.035);opacity:0;transition:clip-path 1.1s var(--ease-mori),transform 1.4s var(--ease-mori),opacity .8s ease}
 .rv.in img{clip-path:inset(0);transform:none;opacity:1}
@@ -72,50 +72,72 @@
 .travel[data-mode="m"] .b-strip{--sh:min(66vh,70vw)}
 .travel[data-mode="m"] .strip-vp{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
 .travel[data-mode="m"] .strip-track{will-change:transform}
-.travel[data-mode="m"] 
 /* 侧边目录只给竖滚（竖向、混合读法）；横向读法是横着滚的，放不下 */
 .travel[data-mode="h"] [data-toc]{display:none}
 
 /* ---------- 横向 ---------- */
-.travel[data-mode="h"]{--ph:min(66vh,64vw)}
+/* 版心：上面让出页头，下面让出角落的控件。--ph 图的基准高度，--band 版心高度（什么都不超出它，出血的图除外），
+   --th 文字框的高度：横排、竖排的文字和标题都用这个高度、上下居中，所以没挪过的文字顶端在同一条线上 */
+.travel[data-mode="h"]{--ph:min(66vh,64vw);--pt:max(92px,11vh);--pb:max(84px,12vh);--band:calc(100vh - var(--pt) - var(--pb));--th:min(calc(var(--ph)*.92),var(--band));--tg:clamp(40px,6vw,104px)}
 .travel[data-mode="h"] .t-vp{position:sticky;top:0;height:100vh;overflow:hidden}
-.travel[data-mode="h"] .t-track{display:flex;align-items:flex-start;height:100%;width:max-content;gap:clamp(40px,6vw,104px);padding:8vh var(--edge) 13vh;will-change:transform}
-/* --y：块在上下方向的位置（0 顶 / 1 底），--s：缩放。默认居中、原尺寸 */
+.travel[data-mode="h"] .t-track{display:flex;align-items:flex-start;height:100%;width:max-content;gap:var(--tg);padding:var(--pt) var(--edge) var(--pb);will-change:transform}
+/* --k：和前一块的间距（标准间距的倍数，0 紧贴，负数叠上去）。手卷从右往左排，“前一块”在右边 */
+.travel[data-mode="h"] .t-track > *{margin-left:calc((var(--k,1) - 1)*var(--tg))}
+.travel[data-dir="rtl"][data-mode="h"] .t-track > *{margin-left:0;margin-right:calc((var(--k,1) - 1)*var(--tg))}
+/* --y：块在版心里的上下位置（0 顶 / 1 底），--s：缩放。默认居中、原尺寸 */
 .travel[data-mode="h"] .blk{flex:none;top:calc(var(--y,.5)*100%);transform:translateY(calc(var(--y,.5)*-100%))}
-.travel[data-mode="h"] .b-text:not(.v){width:min(23em,84vw)}
+/* 文字框：横排的宽度随缩放，高度至少是 --th（短文字也从那条线开始）；竖排的高度是 --th 乘缩放 */
+.travel[data-mode="h"] .b-text:not(.v){width:min(calc(23em*var(--s,1)),84vw);min-height:var(--th)}
+.travel[data-mode="h"] .b-text.v{height:min(calc(var(--th)*var(--s,1)),var(--band))}
 .travel[data-mode="h"] .b-head:not(.v){width:max-content;max-width:min(14em,60vw)}
-.travel[data-mode="h"] .b-text.b-head.v{height:max-content;max-height:calc(var(--ph)*.92)}
-/* 标题的框按字的长短，没设上下位置就在顶上（和以前标题在一列文字开头的位置一样） */
-.travel[data-mode="h"] .b-head{top:calc(var(--y,0)*100%);transform:translateY(calc(var(--y,0)*-100%))}
+.travel[data-mode="h"] .b-text.b-head.v{height:var(--th)}
+.travel[data-mode="h"] .b-text.anchor{min-height:0;height:0}
+/* 章节标题在横卷里大一号 */
+.travel[data-mode="h"] .b-head h2{font-size:calc(var(--text-chapter)*1.3)}
 /* 标题和后面那列文字挨着：竖排的文字（或右→左的手卷）标题在右边，横排在左边。
    标题没设上下位置：两块顶端对齐，一起按文字的 --y 摆；设了（.own）就各按各的 --y */
 .travel[data-mode="h"] .hgroup{flex:none;display:flex;align-items:flex-start;top:calc(var(--y,.5)*100%);transform:translateY(calc(var(--y,.5)*-100%))}
 .travel[data-mode="h"] .hgroup.hh{column-gap:2.4em}
+.travel[data-mode="h"] .hgroup:not(.hh){column-gap:1.2em}
 .travel[data-mode="h"] .hgroup.tv,.travel[data-dir="rtl"][data-mode="h"] .hgroup{flex-direction:row-reverse}
 .travel[data-mode="h"] .hgroup > .blk{top:0;transform:none}
 .travel[data-mode="h"] .hgroup.own{align-self:stretch;top:0;transform:none}
 .travel[data-mode="h"] .hgroup.own > .blk{top:calc(var(--y,.5)*100%);transform:translateY(calc(var(--y,.5)*-100%))}
-/* 长文字：脚本把它排成并排的几栏（scripts/travel.ts 的 flowText），高度用满、从顶部开始 */
-.travel[data-mode="h"] .b-text.cols{top:0;transform:none;column-width:var(--col-w);column-gap:var(--col-gap);column-fill:auto}
+/* 长文字：脚本把它排成并排的几栏（scripts/travel.ts 的 flowText），每栏和文字框一样高 */
+.travel[data-mode="h"] .b-text.cols{column-width:var(--col-w);column-gap:var(--col-gap);column-fill:auto}
 .b-text.cols header,.b-text.cols h3,.b-text.cols blockquote,.b-text.cols figure,.b-text.cols .callout,.b-text.cols .embed-card,.b-text.cols .math-block,.b-text.cols .embed-code,.b-text.cols li{break-inside:avoid}
 .b-text.cols header,.b-text.cols h3{break-after:avoid}
-.travel[data-mode="h"] .b-text.v{height:calc(var(--ph)*.92*var(--s,1))}
-.travel[data-mode="h"] .b-single img{height:calc(var(--ph)*var(--s,1));width:auto}
+/* 图：高度是 --ph 乘缩放，不超出版心；出血的图（.bleed）上下铺满整屏，图注压在图上 */
+.travel[data-mode="h"] .blk:not(.b-text){--h:min(calc(var(--ph)*var(--s,1)),var(--band))}
+.travel[data-mode="h"] .blk.bleed{--h:100vh;top:0;transform:translateY(calc(-1*var(--pt)))}
+.travel[data-mode="h"] .bleed figcaption{position:absolute;left:14px;bottom:12px;width:auto;min-width:0;margin:0;color:#fff;text-shadow:0 1px 6px rgb(0 0 0/.45)}
+.travel[data-mode="h"] .bleed .imgs > figure{position:relative}
+.travel[data-mode="h"] .b-single img{height:var(--h);width:auto}
 .travel[data-mode="h"] .b-pair .imgs{display:flex;gap:14px}
-.travel[data-mode="h"] .b-pair img{height:calc(var(--ph)*var(--s,1));width:auto}
-.travel[data-mode="h"] .b-grid .imgs{display:grid;grid-template-rows:repeat(2,calc(var(--ph)*var(--s,1)/2 - 5px));grid-auto-flow:column;grid-auto-columns:calc((var(--ph)*var(--s,1)/2 - 5px)*4/3);gap:10px}
+.travel[data-mode="h"] .bleed.b-pair .imgs{gap:0}
+.travel[data-mode="h"] .b-pair img{height:var(--h);width:auto}
+.travel[data-mode="h"] .b-grid .imgs{display:grid;grid-template-rows:repeat(2,calc(var(--h)/2 - 5px));grid-auto-flow:column;grid-auto-columns:calc((var(--h)/2 - 5px)*4/3);gap:10px}
 .travel[data-mode="h"] .b-grid img{width:100%;height:0}
 .travel[data-mode="h"] .b-grid .imgs > figure:first-child{grid-row:span 2;grid-column:span 2}
 .travel[data-mode="h"] .b-grid .imgs > figure:last-child{grid-row:span 2}
-.travel[data-mode="h"] .b-free .canvas{height:calc(var(--ph)*1.04*var(--s,1));width:calc(var(--ph)*1.04*var(--s,1)*var(--ar))}
-.travel[data-mode="h"] .b-strip{--sh:calc(var(--ph)*var(--s,1))}
+.travel[data-mode="h"] .b-free .canvas{height:var(--h);width:calc(var(--h)*var(--ar))}
+.travel[data-mode="h"] .b-strip{--sh:var(--h)}
+/* 底边的进度线，上面一格一格是各章（二级标题）的位置，点了跳过去 */
 .h-progress{display:none}
 .travel[data-mode="h"] .h-progress{display:block;position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--border)}
 .h-progress i{position:absolute;inset:0;background:var(--primary);transform-origin:0 50%;transform:scaleX(0)}
+.h-ticks{position:absolute;inset:0}
+.h-ticks li{position:absolute;bottom:0;left:var(--at);width:15px;height:15px;margin-left:-7px;cursor:pointer}
+.h-ticks li::after{content:'';position:absolute;left:7px;bottom:0;width:1px;height:6px;background:var(--muted-foreground);transition:height .3s var(--ease-mori),background-color .3s}
+.h-ticks li:hover::after{height:11px;background:var(--foreground)}
+.h-ticks li.on::after{background:var(--primary)}
 
 /* ---------- 横滚方向：右→左（作者按篇设置） ---------- */
 .travel[data-dir="rtl"][data-mode="h"] .t-vp{direction:rtl}
 .travel[data-dir="rtl"][data-mode="h"] .t-track > *{direction:ltr}
+/* 分栏的长文字也从右往左一栏一栏排（栏里的字还是从左往右） */
+.travel[data-dir="rtl"][data-mode="h"] .b-text.cols{direction:rtl}
+.travel[data-dir="rtl"][data-mode="h"] .b-text.cols > *{direction:ltr}
 .travel[data-dir="rtl"] .strip-sc,.travel[data-dir="rtl"][data-mode="m"] .strip-vp{direction:rtl}
 .travel[data-dir="rtl"] .strip-track figcaption{direction:ltr}
 .travel[data-dir="rtl"] .h-progress i{transform-origin:100% 50%}

@@ -241,13 +241,13 @@ export function migrateAxes(doc) {
 /**
  * 横滚时，相邻的文字块排成一列文字；图片、地图各自一块。
  * 二级标题自己是一块（head），后面的文字另起一列；竖排和横排不混在一列里（列表没有竖排设置，跟着所在的列走）。
- * 一列的上下位置和缩放取列里第一个设了的块（Studio 会写在列里每个块上，删掉第一个块也不丢）。
+ * 一列的上下位置、缩放、和前一块的间距取列里第一个设了的块（Studio 会写在列里每个块上，删掉第一个块也不丢）。
  * writing 是横滚读法里的写法，vwriting 是竖滚读法里的；两边任何一个不同就另起一列。
  *
  * 标题后面紧跟着文字时（lead），标题和这列文字挨着排（站点上包在 .hgroup 里）：
  *   标题没设的写法、对齐、位置都跟着这列文字（标题的框按字的长短，没有缩放）；
  *   标题没设上下位置（或和文字设的一样）就和文字顶端对齐，一起挪；设了就各摆各的。
- * @returns {Array<{ kind: 'text', blocks: any[], writing: 'h' | 'v', vwriting: 'h' | 'v', align?: string, valign?: string, pos?: string, vpos?: string, y?: number, scale?: number, anchor?: boolean, head?: boolean, lead?: boolean } | { kind: 'block', block: any }>}
+ * @returns {Array<{ kind: 'text', blocks: any[], writing: 'h' | 'v', vwriting: 'h' | 'v', align?: string, valign?: string, pos?: string, vpos?: string, y?: number, scale?: number, gap?: number, anchor?: boolean, head?: boolean, lead?: boolean } | { kind: 'block', block: any }>}
  */
 export function columns(blocks) {
   const out = [];
@@ -272,9 +272,7 @@ export function columns(blocks) {
     if (c.blocks.every(isPlaceOnly)) c.anchor = true; // 整列都是看不见的地点：只当一个锚点
     // 对齐、位置（一组字在框里靠左 / 居中 / 靠右）：横滚、竖滚各一份，取列里第一个设了的块（Studio 写在列里每个块上）
     for (const [k, axis, key] of [['align', 'h', 'align'], ['valign', 'v', 'align'], ['pos', 'h', 'pos'], ['vpos', 'v', 'pos']]) { const a = first(c, axis, key); if (a) c[k] = a; }
-    const y = c.blocks.map((b) => axisOf(b, 'h').y).find((n) => n !== undefined), scale = c.blocks.map((b) => axisOf(b, 'h').scale).find((n) => n !== undefined);
-    if (y !== undefined) c.y = y;
-    if (scale !== undefined) c.scale = scale;
+    for (const k of ['y', 'scale', 'gap']) { const n = c.blocks.map((b) => axisOf(b, 'h')[k]).find((x) => x !== undefined); if (n !== undefined) c[k] = n; }
   }
   // 标题：没设的跟着后面那列文字
   out.forEach((c, i) => {
@@ -286,6 +284,7 @@ export function columns(blocks) {
     c.vwriting = (v.writing ?? text?.vwriting) === 'v' ? 'v' : 'h';
     for (const [k, own] of [['align', h.align], ['valign', v.align], ['pos', h.pos], ['vpos', v.pos]]) { const a = own ?? text?.[k]; if (a !== undefined) c[k] = a; }
     if (h.y !== undefined && !(text && h.y === text.y)) c.y = h.y;
+    if (h.gap !== undefined) c.gap = h.gap;
     if (text) c.lead = true;
   });
   return out;

@@ -184,11 +184,12 @@ const posSchema = z.enum(['start', 'center', 'end']);
 
 /**
  * 横滚和竖滚各存各的摆法（见 flow.mjs 的 migrateAxes）：
- *   h：横滚读法——上下位置 y（0 顶、1 底，用比例所以不同屏幕上构图一致）、缩放 scale、writing 竖排（一列文字可以竖着写）、align 对齐、pos 位置
+ *   h：横滚读法——上下位置 y（0 顶、1 底，用比例所以不同屏幕上构图一致）、缩放 scale（图是高度，竖排文字是高度，横排文字是宽度）、
+ *      gap 和前一块的间距（标准间距的倍数，0 紧贴，负数叠上去）、bleed 图片上下出血铺满整屏、writing 竖排（一列文字可以竖着写）、align 对齐、pos 位置
  *   v：竖滚读法——writing（同一段文字可以在横滚里竖排、竖滚里横排）、align、pos
  */
 const axes = {
-  h: z.object({ y: unit.optional(), scale: z.number().positive().optional(), writing: z.enum(['h', 'v']).optional(), align: alignSchema.optional(), pos: posSchema.optional() }).optional(),
+  h: z.object({ y: unit.optional(), scale: z.number().positive().optional(), gap: z.number().min(-2).max(6).optional(), bleed: z.boolean().optional(), writing: z.enum(['h', 'v']).optional(), align: alignSchema.optional(), pos: posSchema.optional() }).optional(),
   v: z.object({ writing: z.enum(['h', 'v']).optional(), align: alignSchema.optional(), pos: posSchema.optional() }).optional(),
 };
 

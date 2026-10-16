@@ -202,3 +202,14 @@ test('走路、骑车、开车、火车查到路线就用它；轨迹优先；�
   const withTrack = tripOf(ps as any, [0, 0, 0], [[0, 0], [0.5, -0.1], [1, 0]], routed as any);
   assert.deepEqual(withTrack.legs[0].line, [[0, 0], [0.5, -0.1], [1, 0]]);
 });
+
+test('和前一块的间距 gap：一列文字取第一个设了的块；标题只看自己的', () => {
+  const cols = columns([
+    { id: 'h', type: 'h', level: 2, text: '题', h: { gap: 0 } },
+    { id: 'a', type: 'p', text: '1' },
+    { id: 'b', type: 'p', text: '2', h: { gap: 2 } },
+    { id: 'c', type: 'h', level: 2, text: '题二' },
+    { id: 'd', type: 'p', text: '3', h: { gap: 0.5 } },
+  ]);
+  assert.deepEqual(cols.map((c) => c.gap), [0, 2, undefined, 0.5]);
+});
