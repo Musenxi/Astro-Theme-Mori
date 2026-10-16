@@ -44,7 +44,8 @@ export interface Flow {
   reading: { default: Reading; allowed: Reading[]; direction: 'ltr' | 'rtl' };
 }
 
-export function flowOf(d: Pick<PostData, 'blocks' | 'reading'> & { track?: PostData['track'] }): Flow {
+/** routed：走路、骑车、开车查到的道路路线（routing.ts 的 routedOf），legKey → 折线 */
+export function flowOf(d: Pick<PostData, 'blocks' | 'reading'> & { track?: PostData['track'] }, routed?: Record<string, Array<[number, number]>>): Flow {
   const raw = placesOf(d.blocks) as any[];
   const rg = regionsOf(raw);
   const places: FlowPlace[] = raw.map((p: any) => ({ n: p.n, id: `p${p.n + 1}`, name: placeName(p), en: p.en && p.en !== placeName(p) ? p.en : undefined, lnglat: p.lnglat, date: p.date, block: p.block, region: rg.regionOf[p.n], ...(p.by ? { by: p.by } : {}) }));
@@ -59,7 +60,7 @@ export function flowOf(d: Pick<PostData, 'blocks' | 'reading'> & { track?: PostD
   const r = d.reading;
   const allowed = (r?.allowed?.length ? r.allowed : ['v']) as Reading[];
   const def = (r?.default ?? 'v') as Reading;
-  const trip = tripOf(raw, rg.regionOf, d.track) as Flow['trip'];
+  const trip = tripOf(raw, rg.regionOf, d.track, routed) as Flow['trip'];
   const regions = rg.regions.map((g: { k: number; places: number[] }) => ({ ...g, line: trip.line.slice(trip.at[g.places[0]], trip.at[g.places.at(-1)!] + 1) }));
   return { places, regions, trip, columns: cols, reading: { default: allowed.includes(def) ? def : allowed[0], allowed, direction: r?.direction ?? 'ltr' } };
 }

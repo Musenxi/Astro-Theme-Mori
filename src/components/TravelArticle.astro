@@ -39,7 +39,7 @@ const { chars, minutes } = readingOf(d);
             </dl>
           )}
         </div>
-        <div class="col-[6/13] narrow:-order-1"><RouteMap variant="hero" stops={flow.places} track={d.track} /></div>
+        <div class="col-[6/13] narrow:-order-1"><RouteMap variant="hero" stops={flow.places} track={flow.trip.line} /></div>
       </header>
     ) : (
       <div class="t-hero">

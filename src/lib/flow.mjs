@@ -170,23 +170,32 @@ export function arcBetween(a, b, bow = 0.16, n = 28) {
   });
 }
 
+/** 走路、骑车、开车这几种交通方式，路线可以按真实道路查（见 routing.ts） */
+export const ROAD_TRANSPORTS = ['walk', 'bike', 'car'];
+/** 一段路的查询键：交通方式 + 两头的坐标（保留 5 位小数，约 1 米） */
+export const legKey = (by, a, b) => `${by}:${a.map((v) => (+v).toFixed(5)).join(',')};${b.map((v) => (+v).toFixed(5)).join(',')}`;
+
 /**
- * 整趟行程的路线（一条折线），左下角小地图沿它往前画。相邻两处之间（一“段”）：
- * 到达的地点写了 by=plane 画一段弧；轨迹里有这一段就用轨迹；没有的话同一区里直接连，跨区的大转移画一段弧。
+ * 整趟行程的路线（一条折线），左下角小地图沿它往前画。相邻两处之间（一“段”）按顺序取：
+ * 轨迹里有这一段就用轨迹；到达的地点写了 by=plane 画一段弧；走路、骑车、开车查到了道路路线（routed）就用它；
+ * 再不然同一区里直接连，跨区的大转移画一段弧。
  * by=none 的那段也在折线里（小地图的标记要沿着走过去），只是不画出来。
  * @param {Array<{ lnglat: [number, number], by?: string }>} places
  * @param {number[]} regionOf
  * @param {Array<[number, number]> | undefined} track
+ * @param {Record<string, Array<[number, number]>>} [routed] legKey → 查到的道路路线
  * @returns {{ line: Array<[number, number]>, at: number[], legs: Array<{ to: number, by?: string, line: Array<[number, number]> }> }}
  *   at[地点序号] = 这个地点在折线里是第几个点；legs 是每一段（到第 to 个地点为止）
  */
-export function tripOf(places, regionOf, track) {
+export function tripOf(places, regionOf, track, routed) {
   const line = [], at = [], legs = [];
   places.forEach((p, i) => {
     if (i === 0) line.push(p.lnglat);
     else {
       const a = places[i - 1].lnglat, b = p.lnglat;
-      const seg = p.by === 'plane' ? (trackBetween(track, a, b) ?? arcBetween(a, b)) : trackBetween(track, a, b) ?? (regionOf[i] === regionOf[i - 1] ? [a, b] : arcBetween(a, b));
+      const road = p.by && routed?.[legKey(p.by, a, b)];
+      const seg = trackBetween(track, a, b)
+        ?? (p.by === 'plane' ? arcBetween(a, b) : road && road.length > 1 ? [a, ...road.slice(1, -1), b] : regionOf[i] === regionOf[i - 1] ? [a, b] : arcBetween(a, b));
       line.push(...seg.slice(1));
       legs.push({ to: i, ...(p.by ? { by: p.by } : {}), line: seg });
     }

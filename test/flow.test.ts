@@ -191,3 +191,14 @@ test('交通方式 by：写进 geo 地址、读回；不认识的值丢掉；每
   assert.deepEqual(t.legs.map((l: any) => [l.to, l.by, l.line.length]), [[1, 'walk', 2], [2, 'plane', 29], [3, 'none', 2]]);
   assert.equal(t.at[3], t.line.length - 1);
 });
+
+test('走路、骑车、开车查到道路路线就用它；轨迹优先；飞机不用', async () => {
+  const { tripOf, legKey } = await import('../src/lib/flow.mjs');
+  const ps = [{ lnglat: [0, 0] }, { lnglat: [1, 0], by: 'car' }, { lnglat: [2, 0], by: 'plane' }];
+  const routed = { [legKey('car', [0, 0], [1, 0])]: [[0, 0], [0.5, 0.2], [1, 0]], [legKey('plane', [1, 0], [2, 0])]: [[1, 0], [1.5, 0], [2, 0]] };
+  const t = tripOf(ps as any, [0, 0, 0], undefined, routed as any);
+  assert.deepEqual(t.legs[0].line, [[0, 0], [0.5, 0.2], [1, 0]]);
+  assert.equal(t.legs[1].line.length, 29);
+  const withTrack = tripOf(ps as any, [0, 0, 0], [[0, 0], [0.5, -0.1], [1, 0]], routed as any);
+  assert.deepEqual(withTrack.legs[0].line, [[0, 0], [0.5, -0.1], [1, 0]]);
+});

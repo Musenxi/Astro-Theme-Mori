@@ -15,6 +15,7 @@ import type { PostData } from '../../schema/schema.ts';
 import { readingOf } from '../../lib/inline.ts';
 import { flowOf } from '../../lib/flow.ts';
 import { postAtlas } from '../../lib/atlas.ts';
+import { routedOf } from '../../lib/routing.ts';
 import { usesFlow } from '../../lib/flow.mjs';
 import { numDate } from '../../lib/zh.ts';
 
@@ -30,7 +31,7 @@ const { entry, older, newer } = Astro.props as { entry: Entry; older?: Entry; ne
 const d = entry.data as PostData;
 const p = d;
 const longform = usesFlow(d);
-const flow = longform ? flowOf(d) : null;
+const flow = longform ? flowOf(d, d.map ? await routedOf(d) : undefined) : null;
 const here = flow && d.map && (d.mapView?.here ?? true) && flow.places.length ? flow : undefined;
 const atlas = here ? await postAtlas(entry, here) : undefined;
 const { chars, minutes } = readingOf(p);

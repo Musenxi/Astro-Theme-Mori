@@ -20,8 +20,8 @@ interface Props {
   flow: Flow;
 }
 const { post, flow } = Astro.props;
-const { notes, track } = post;
-const { places, columns, regions } = flow;
+const { notes } = post;
+const { places, columns, regions, trip } = flow;
 const map = post.map && places.length > 0;
 const itinerary = map && (post.mapView?.itinerary ?? true);
 
@@ -208,7 +208,7 @@ const at = (c: { place: number; places: number[] }, y?: number, scale?: number) 
               return map ? (
                 <div class="blk b-map" data-b={b.id} {...pos}>
                   {b.scope === 'route'
-                    ? <RouteMap variant="block" stops={places} track={track} />
+                    ? <RouteMap variant="block" stops={places} track={trip.line} />
                     : b.scope === 'near'
                       ? <RouteMap variant="block" stops={places} scope="stop" stopId={places[c.place >= 0 ? c.place : 0]?.id} />
                       : <RouteMap variant="block" stops={regions[places[c.place >= 0 ? c.place : 0].region].places.map((n) => places[n])} track={regions[places[c.place >= 0 ? c.place : 0].region].line} minSpan={0.4} />}

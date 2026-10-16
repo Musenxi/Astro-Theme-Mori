@@ -9,6 +9,7 @@ import { remoteOf } from './cdn.ts';
 import { liveOf } from './live.ts';
 import { exifOf, type Exif } from './exif.ts';
 import { flowOf, type Flow, type Transport } from './flow.ts';
+import { routedOf } from './routing.ts';
 
 export type LngLat = [number, number];
 
@@ -110,7 +111,7 @@ export function getAtlas(): Promise<Atlas> {
     for (const e of (await getEntries()).reverse()) {
       photos.push(...(await photosOf(e, seen)));
       if (!e.data.map) continue;
-      const t = trailOf(e, flowOf(e.data));
+      const t = trailOf(e, flowOf(e.data, await routedOf(e.data)));
       places.push(...t.places);
       routes.push(...t.routes);
     }
