@@ -36,8 +36,18 @@ const base = (c: MoriCommentsConfig) => (c.endpoint ?? '').replace(/\/$/, '');
 /** 网络层面连不上（服务没启动、地址写错、被跨域拦下）：给一句人话，带上地址方便排查 */
 const offline = (c: MoriCommentsConfig) => () => { throw new Error(`${t('js.cmt.offline')} (${base(c) || 'endpoint'})`); };
 
-export async function listComments(c: MoriCommentsConfig, entry: string): Promise<MoriComment[]> {
-  const r = await fetch(`${base(c)}/comments?entry=${encodeURIComponent(entry)}`).catch(offline(c));
+export interface CommentPage { comments: MoriComment[]; total: number; page: number; pages: number }
+
+/** 文末评论：取第 page 页（顶层评论 limit 条，回复跟在后面），total 是全部评论数 */
+export async function listComments(c: MoriCommentsConfig, entry: string, page = 1, limit = 20): Promise<CommentPage> {
+  const r = await fetch(`${base(c)}/comments?entry=${encodeURIComponent(entry)}&page=${page}&limit=${limit}`).catch(offline(c));
+  if (!r.ok) throw new Error(t('js.cmt.loadFail', { status: r.status }));
+  return (await r.json()) as CommentPage;
+}
+
+/** 这篇文章全部引用评论和它们的回复（正文标注、划词用，不分页） */
+export async function listAnnotations(c: MoriCommentsConfig, entry: string): Promise<MoriComment[]> {
+  const r = await fetch(`${base(c)}/comments?entry=${encodeURIComponent(entry)}&annotations=1`).catch(offline(c));
   if (!r.ok) throw new Error(t('js.cmt.loadFail', { status: r.status }));
   return ((await r.json()) as { comments: MoriComment[] }).comments;
 }

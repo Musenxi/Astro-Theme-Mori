@@ -9,7 +9,7 @@
  */
 import { t } from './i18n.ts';
 import { locate, contextOf, type Anchor } from '../lib/anchor-text.ts';
-import { moriConfig, listComments, type MoriComment } from './cmt-api.ts';
+import { moriConfig, listAnnotations, type MoriComment } from './cmt-api.ts';
 import { commentForm, h } from './cmt-form.ts';
 import { commentText } from '../lib/comment-md.mjs';
 
@@ -170,9 +170,9 @@ function init() {
   seen.addEventListener('pointerdown', (e) => e.preventDefault()); // 点卡片不能让选区丢掉
   document.body.append(btn, seen);
 
-  /** 已知的评论：评论区画好时给一份，读者刚发的补进来；文章一打开就先自己取一次，划词时不必等读者翻到文末 */
+  /** 已知的引用评论（和它们的回复）：文章一打开就取一次，读者刚发的补进来，划词时不必等读者翻到文末 */
   let known: MoriComment[] = [];
-  listComments(cfg, cfg.entry).then((l) => { if (!known.length) known = l; }).catch(() => {});
+  listAnnotations(cfg, cfg.entry).then((l) => { for (const c of l) if (!known.some((x) => x.id === c.id)) known.push(c); }).catch(() => {});
   on(document, 'mori:comment-added', (e) => { const c = (e as CustomEvent<MoriComment>).detail; if (c && !known.some((x) => x.id === c.id)) known.push(c); });
 
   /** 引用了选区文字的引用评论（原文位置和选区有重叠），按时间 */
@@ -305,7 +305,7 @@ function init() {
   });
 
   // 评论区画好以后，检查每条引用评论在现在的正文里还找不找得到
-  on(document, 'mori:comments-rendered', (e) => { known = (e as CustomEvent<MoriComment[]>).detail; markGone(known); });
+  on(document, 'mori:comments-rendered', (e) => markGone((e as CustomEvent<MoriComment[]>).detail));
 }
 
 // 换页后这些浮层是新的一份：init 靠 body 上的标记避免重复，换页时 body 被替换所以标记自然消失

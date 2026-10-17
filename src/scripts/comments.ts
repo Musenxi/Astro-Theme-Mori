@@ -1,5 +1,5 @@
 /**
- * 文末评论区（自建评论）：进入视口才加载；列表按时间排，回复缩进一层；引用评论在列表里带一段引用的原文，点一下回到正文（annotate.ts 处理）。
+ * 文末评论区（自建评论）：进入视口才加载；列表最新在前、按页向服务取，回复缩进一层；引用评论在列表里带一段引用的原文，点一下回到正文（annotate.ts 处理）。
  * 第三方评论（giscus / waline / twikoo / artalk）见 cmt-embed.ts。
  */
 import { t } from './i18n.ts';
@@ -60,44 +60,45 @@ function init() {
   const readonly = cfg.status === 'readonly'; // 禁用但留着历史评论：不给表单，也不给回复
   const body = section.querySelector<HTMLElement>('[data-body]')!;
   const count = section.querySelector<HTMLElement>('[data-count]')!;
-  let comments: MoriComment[] = [];
-  let page = 1;
-  const pageSize = Number.isInteger(cfg.pageSize) && cfg.pageSize! > 0 ? cfg.pageSize! : 20;
+  let comments: MoriComment[] = []; // 当前这一页：顶层评论和它们的回复
+  let page = 1, pages = 1, total = 0;
+  const pageSize = Number.isInteger(cfg.pageSize) && cfg.pageSize! > 0 ? Math.min(cfg.pageSize!, 50) : 20;
 
   const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); load(); } }, { rootMargin: '500px' }); // 快速滚动时一次会收到多条记录，不能只看第一条
   io.observe(section);
 
-  async function load() {
-    body.replaceChildren(h('p', { class: 'meta' }, t('js.cmt.loading')));
-    try { comments = await listComments(cfg!, cfg!.entry); render(); } catch (e: any) {
-      body.replaceChildren(h('p', { class: 'meta' }, `${e.message} `, h('button', { class: 'linkbtn', onclick: load }, t('js.cmt.retry'))));
+  /** 取第 n 页；换页时不清空列表，取回来再换 */
+  async function load(n = page) {
+    if (!comments.length) body.replaceChildren(h('p', { class: 'meta' }, t('js.cmt.loading')));
+    try {
+      const r = await listComments(cfg!, cfg!.entry, n, pageSize);
+      comments = r.comments; page = r.page; pages = r.pages; total = r.total;
+      render();
+    } catch (e: any) {
+      body.replaceChildren(h('p', { class: 'meta' }, `${e.message} `, h('button', { class: 'linkbtn', onclick: () => load(n) }, t('js.cmt.retry'))));
     }
   }
 
   function render() {
-    // 顶层评论新的在前，回复跟着父评论从早到晚；按顶层评论分页
-    const asc = (a: MoriComment, b: MoriComment) => a.createdAt - b.createdAt || a.id - b.id;
-    const all = comments.filter((c) => !c.parentId).sort((a, b) => asc(b, a));
-    const pages = Math.max(1, Math.ceil(all.length / pageSize));
-    page = Math.min(page, pages);
-    const top = all.slice((page - 1) * pageSize, page * pageSize);
-    const replies = (id: number) => comments.filter((c) => c.parentId === id).sort(asc);
-    count.textContent = comments.length ? t('js.cmt.count', { n: comments.length }) : '';
+    // 服务端已经按页取好：顶层评论新的在前，回复从早到晚
+    const top = comments.filter((c) => !c.parentId);
+    const replies = (id: number) => comments.filter((c) => c.parentId === id);
+    count.textContent = total ? t('js.cmt.count', { n: total }) : '';
     queueMicrotask(() => document.dispatchEvent(new CustomEvent('mori:comments-rendered', { detail: comments })));
     const list = h('ol', { class: 'cmt-list' }, ...top.map((c) => item(c, replies(c.id))));
-    const nav = pager(pages);
+    const nav = pager();
     if (readonly) {
-      section!.hidden = !comments.length;
+      section!.hidden = !total;
       body.replaceChildren(h('p', { class: 'cmt-none' }, t('js.cmt.closed')), list, ...(nav ? [nav] : []));
       return;
     }
-    body.replaceChildren(commentForm(cfg!), ...(comments.length ? [list, ...(nav ? [nav] : [])] : [h('p', { class: 'cmt-none' }, t('js.cmt.none'))]));
+    body.replaceChildren(commentForm(cfg!), ...(total ? [list, ...(nav ? [nav] : [])] : [h('p', { class: 'cmt-none' }, t('js.cmt.none'))]));
   }
 
   /** 页码：上一页、数字、下一页；只有一页时不画。切页后回到评论区顶部 */
-  function pager(pages: number) {
+  function pager() {
     if (pages < 2) return null;
-    const go = (n: number) => { page = n; render(); section!.scrollIntoView({ block: 'start' }); };
+    const go = async (n: number) => { await load(n); section!.scrollIntoView({ block: 'start' }); };
     const btn = (label: string, n: number, cls = '', cur = false) =>
       h('button', { class: `cmt-page ${cls}`.trim(), type: 'button', disabled: cur || n < 1 || n > pages ? '' : undefined, 'aria-current': cur ? 'page' : undefined, onclick: () => go(n) }, label);
     const nums = [...new Set([1, page - 1, page, page + 1, pages])].filter((n) => n >= 1 && n <= pages).sort((a, b) => a - b);
@@ -164,7 +165,7 @@ function init() {
   offAdded?.(); // 换页前的监听先拆掉
   const added = (e: Event) => {
     const c = (e as CustomEvent<MoriComment>).detail;
-    if (c && !comments.some((x) => x.id === c.id)) { comments.push(c); if (!c.parentId) page = 1; render(); }
+    if (c) load(c.parentId ? page : 1); // 刚发的顶层评论在第一页；回复留在当前页
   };
   document.addEventListener('mori:comment-added', added);
   offAdded = () => document.removeEventListener('mori:comment-added', added);
