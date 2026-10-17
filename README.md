@@ -89,7 +89,35 @@ comments: { provider: 'giscus', repo: '…', repoId: '…', category: '…', cat
 
 自建评论的部署和升级见 [Mori-Comment](https://github.com/Musenxi/Mori-Comment)。第一次留言的人先审后发，有蜜罐、按 IP 限流和可选的 Turnstile；邮箱和 IP 只在 Studio 里看得到。头像按 `comments.avatar` 取：`cravatar`（默认）、`gravatar`、`none`，或含 `{hash}` 的自定义地址。阅读量和点赞只用浏览器里随机生成的 id 区分读者，服务端存加盐哈希。
 
-### 发布
+## 部署
+
+站点构建出来是纯静态文件（`dist/`）。构建只读 Studio 里点过“发布”的内容（`src/published/`），这个目录要一起提交。
+
+### Cloudflare Workers（连 GitHub 自动构建）
+
+1. 在仓库根目录放一个 `wrangler.jsonc`：
+
+   ```jsonc
+   // wrangler.jsonc
+   {
+     "name": "blog",
+     "compatibility_date": "2026-10-01",
+     "assets": { "directory": "./dist", "not_found_handling": "404-page" }
+   }
+   ```
+
+2. Cloudflare 控制台 → Workers 和 Pages → 创建 → 导入 GitHub 仓库：
+
+   | 栏 | 填什么 |
+   | --- | --- |
+   | 项目名称 | 和 `wrangler.jsonc` 的 `name` 一致 |
+   | 构建命令 | `pnpm build` |
+   | 部署命令 | `npx wrangler deploy` |
+   | 构建变量 | `NODE_VERSION` = `22` |
+
+3. 以后推送到 main 就自动构建、上线。`public/_headers` 里 RSS 的类型和缓存设置 Workers 也认。
+
+### Studio 的“构建并发布”
 
 ```ts
 publish: { target: 'rsync', dest: 'user@host:/var/www/site/' }   // VPS（本机能 ssh 过去）
