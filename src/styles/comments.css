@@ -106,3 +106,10 @@
   .anno-pop.float{left:0!important;right:0;top:auto!important;bottom:0;width:100%;border-radius:20px 20px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
 }
 
+/* 分页 */
+.cmt-pager{display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:4px;margin-top:28px;font-size:var(--text-meta);letter-spacing:.08em}
+.cmt-page{min-width:2em;padding:2px 10px;border-radius:999px;color:var(--muted-foreground);font-feature-settings:"tnum","lnum";transition:color .3s,background-color .3s}
+.cmt-page:hover:not(:disabled){color:var(--foreground);background:color-mix(in srgb,var(--muted) 80%,transparent)}
+.cmt-page[aria-current]{color:var(--foreground)}
+.cmt-page:disabled:not([aria-current]){opacity:.35}
+.cmt-gap{color:var(--muted-foreground)}

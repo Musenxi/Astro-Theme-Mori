@@ -61,6 +61,8 @@ function init() {
   const body = section.querySelector<HTMLElement>('[data-body]')!;
   const count = section.querySelector<HTMLElement>('[data-count]')!;
   let comments: MoriComment[] = [];
+  let page = 1;
+  const pageSize = Number.isInteger(cfg.pageSize) && cfg.pageSize! > 0 ? cfg.pageSize! : 20;
 
   const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); load(); } }, { rootMargin: '500px' }); // 快速滚动时一次会收到多条记录，不能只看第一条
   io.observe(section);
@@ -73,17 +75,39 @@ function init() {
   }
 
   function render() {
-    const top = comments.filter((c) => !c.parentId);
-    const replies = (id: number) => comments.filter((c) => c.parentId === id);
+    // 顶层评论新的在前，回复跟着父评论从早到晚；按顶层评论分页
+    const asc = (a: MoriComment, b: MoriComment) => a.createdAt - b.createdAt || a.id - b.id;
+    const all = comments.filter((c) => !c.parentId).sort((a, b) => asc(b, a));
+    const pages = Math.max(1, Math.ceil(all.length / pageSize));
+    page = Math.min(page, pages);
+    const top = all.slice((page - 1) * pageSize, page * pageSize);
+    const replies = (id: number) => comments.filter((c) => c.parentId === id).sort(asc);
     count.textContent = comments.length ? t('js.cmt.count', { n: comments.length }) : '';
     queueMicrotask(() => document.dispatchEvent(new CustomEvent('mori:comments-rendered', { detail: comments })));
     const list = h('ol', { class: 'cmt-list' }, ...top.map((c) => item(c, replies(c.id))));
+    const nav = pager(pages);
     if (readonly) {
       section!.hidden = !comments.length;
-      body.replaceChildren(h('p', { class: 'cmt-none' }, t('js.cmt.closed')), list);
+      body.replaceChildren(h('p', { class: 'cmt-none' }, t('js.cmt.closed')), list, ...(nav ? [nav] : []));
       return;
     }
-    body.replaceChildren(commentForm(cfg!), comments.length ? list : h('p', { class: 'cmt-none' }, t('js.cmt.none')));
+    body.replaceChildren(commentForm(cfg!), ...(comments.length ? [list, ...(nav ? [nav] : [])] : [h('p', { class: 'cmt-none' }, t('js.cmt.none'))]));
+  }
+
+  /** 页码：上一页、数字、下一页；只有一页时不画。切页后回到评论区顶部 */
+  function pager(pages: number) {
+    if (pages < 2) return null;
+    const go = (n: number) => { page = n; render(); section!.scrollIntoView({ block: 'start' }); };
+    const btn = (label: string, n: number, cls = '', cur = false) =>
+      h('button', { class: `cmt-page ${cls}`.trim(), type: 'button', disabled: cur || n < 1 || n > pages ? '' : undefined, 'aria-current': cur ? 'page' : undefined, onclick: () => go(n) }, label);
+    const nums = [...new Set([1, page - 1, page, page + 1, pages])].filter((n) => n >= 1 && n <= pages).sort((a, b) => a - b);
+    const items: Node[] = [btn(t('js.cmt.prev'), page - 1, 'cmt-step')];
+    nums.forEach((n, i) => {
+      if (i && n - nums[i - 1] > 1) items.push(h('span', { class: 'cmt-gap' }, '…'));
+      items.push(btn(String(n), n, '', n === page));
+    });
+    items.push(btn(t('js.cmt.next'), page + 1, 'cmt-step'));
+    return h('nav', { class: 'cmt-pager', 'aria-label': t('comments.title') }, ...items);
   }
 
   function item(c: MoriComment, kids: MoriComment[]): HTMLLIElement {
@@ -140,7 +164,7 @@ function init() {
   offAdded?.(); // 换页前的监听先拆掉
   const added = (e: Event) => {
     const c = (e as CustomEvent<MoriComment>).detail;
-    if (c && !comments.some((x) => x.id === c.id)) { comments.push(c); render(); }
+    if (c && !comments.some((x) => x.id === c.id)) { comments.push(c); if (!c.parentId) page = 1; render(); }
   };
   document.addEventListener('mori:comment-added', added);
   offAdded = () => document.removeEventListener('mori:comment-added', added);
