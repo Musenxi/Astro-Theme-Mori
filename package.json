@@ -1,7 +1,7 @@
 {
   "name": "astro-mori",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "MORI — a quiet, editorial Astro blog theme with vertical text and travel journals.",
   "license": "MIT",
   "type": "module",
