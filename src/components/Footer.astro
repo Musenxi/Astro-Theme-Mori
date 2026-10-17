@@ -18,7 +18,7 @@ const names = stats ? Object.fromEntries([
 ]) : null;
 ---
 
-<footer class="wrap meta mt-10 flex flex-col items-center gap-1.5 pt-4 pb-10 text-center narrow:pb-[72px]">
+<footer class="wrap meta mt-10 flex flex-col items-center gap-1.5 pt-4 pb-10 text-center narrow:mt-4 narrow:pb-8">
   <span class="relative">© {years} <a class={link} href={home}>{config.title}</a> · <a class={link} href="/search/">{t('footer.search')}</a> · <a class={link} href="/feed">{t('footer.rss')}</a>{stats && <span class="group/online relative phone:static" id="online" data-names={JSON.stringify(names)} hidden> · <button class="cursor-default text-soft-foreground" type="button" aria-describedby="online-pages" data-n></button><span class="invisible absolute bottom-full left-0 z-10 pb-2 opacity-0 transition-[opacity,visibility] duration-200 group-hover/online:visible group-hover/online:opacity-100 group-focus-within/online:visible group-focus-within/online:opacity-100" id="online-pages" role="tooltip"><ul class="max-h-[50vh] w-max max-w-[min(340px,calc(100vw-32px))] overflow-y-auto rounded-[14px] border border-(--glass-line) bg-(--glass) p-2 shadow-[0_12px_32px_-18px_rgba(0,0,0,.5)] backdrop-blur-[20px] backdrop-saturate-150" data-list></ul></span></span>}</span>
   <span>Powered by <a class={link} href="https://github.com/Musenxi/Astro-Theme-Mori">Mori</a></span>
 </footer>
