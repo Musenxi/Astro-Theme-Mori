@@ -65,6 +65,7 @@ export default defineMoriConfig({
   title: '我的博客',                    // 刊名
   icon: 'navy',                        // 站点图标：navy / blue / ink / paper，或 public/ 里自己的图
   author: { name: '…', email: '…', url: '…' },
+  since: 2019,                         // 建站年份：页脚写成 © 2019–今年
   lang: 'zh-CN',                       // zh-CN / zh-TW / en / ja（英文站自动关闭竖排）
   accent: '#002fa7',                   // 唯一的强调色，亮暗两版自动推出
   categories: [

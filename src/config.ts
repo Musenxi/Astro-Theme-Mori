@@ -61,6 +61,8 @@ export interface MoriUserConfig {
   /** 界面语言：zh-CN（默认）/ zh-TW / en / ja。英文站自动关闭竖排和手卷方向 */
   lang?: Lang;
   description?: string;
+  /** 建站年份：页脚的版权写成“这一年–今年”；不写或是今年就只写今年 */
+  since?: number;
   /** 主题色（唯一的强调色），默认克莱因蓝 #002fa7；亮暗两个版本由 OKLCH 自动推出 */
   accent?: string;
   /** 暗色下的主题色；不写就从 accent 自动推（保持色相和饱和度，亮度托底） */
@@ -106,6 +108,7 @@ export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'ico
   accentDark?: string;
   comments?: MoriComments;
   description: string;
+  since?: number;
   home: { style: 'quote' | 'cover' | 'list'; count: number; direction: 'h' | 'v'; tocDirection: 'h' | 'v'; editorNote: string };
   archive: { direction: 'h' | 'v' };
   /** nav 是用户在配置里设定的（false 时页头在内置入口后面自动接上所有页面） */
@@ -130,6 +133,7 @@ export function resolveConfig(c: MoriUserConfig): MoriConfig {
     title: c.title ?? 'MORI',
     icon: c.icon?.trim() || DEFAULT_ICON,
     description: c.description ?? '',
+    since: Number.isInteger(c.since) ? c.since : undefined,
     accent: c.accent ?? '#002fa7',
     accentDark: c.accentDark,
     comments: c.comments,
