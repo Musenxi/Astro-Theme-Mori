@@ -4,20 +4,11 @@ import { validateEntry } from '../src/schema/validate.ts';
 
 const meta = { title: 'T', date: '2025-01-01', category: 'a', excerpt: 'x' };
 const post = { ...meta, blocks: [{ id: 'b1', type: 'p', text: 'hi' }] };
-const legacy = { ...meta, stops: [{ id: 's1', name: '甲', lnglat: [0, 0] }], blocks: [{ id: 't1', type: 'text', stop: 's1', paras: [{ id: 'p1', text: 'hi' }] }] };
 const place = { type: 'place', lnglat: [135.76, 35.01], en: 'Kyoto', date: '09.20' };
 
 test('文章：没写 kind 也行；写了 article 也行', () => {
   assert.equal(validateEntry('post', post).ok, true);
   assert.equal(validateEntry(undefined, { ...post, kind: 'article' }).ok, true);
-});
-
-test('老游记：有 stops 就是游记（不写 kind），写了 travel 也行；读取时转成现在的结构', () => {
-  assert.equal(validateEntry('travel', legacy).ok, true);
-  assert.equal(validateEntry('travel', { ...legacy, kind: 'travel' }).ok, true);
-  const bad = validateEntry('travel', { ...legacy, stops: [{ id: 's1', name: '甲', lnglat: [999, 0] }] });
-  assert.equal(bad.ok, false); // 站点的经纬度越界：错误指向转换后站名上的地点标记
-  assert.ok(bad.errors.some((e) => e.path.startsWith('blocks.0.text.0.marks.0.lnglat')));
 });
 
 test('读法、地图、地点：每篇文章都能开；读法至少允许一种', () => {

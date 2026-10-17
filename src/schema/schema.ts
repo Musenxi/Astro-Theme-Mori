@@ -2,11 +2,9 @@
  * MORI 内容格式（spec §3.3）：一篇文章 = 元信息 + 块序列。
  * 每个块有创建后不变的 id（划词引用评论靠它定位）；段落内部是“文字 + 标注”的序列，不在字符串里嵌 Markdown。
  * 文章只有一种结构：读法（横滚）和地图是每篇自己的设置，地点是正文里的行内标记。
- * 老游记（stops + 每个块属于一站）读取时自动转成这种结构（见 lib/flow.mjs）。
  */
 import { z } from 'astro/zod';
 import type { SchemaContext } from 'astro/content/config';
-import { normalizeDoc } from '../lib/flow.mjs';
 
 type ImageFn = SchemaContext['image'];
 
@@ -183,7 +181,7 @@ const alignSchema = z.enum(['start', 'center', 'end', 'justify']);
 const posSchema = z.enum(['start', 'center', 'end']);
 
 /**
- * 横滚和竖滚各存各的摆法（见 flow.mjs 的 migrateAxes）：
+ * 横滚和竖滚各存各的摆法：
  *   h：横滚读法——上下位置 y（0 顶、1 底，用比例所以不同屏幕上构图一致）、缩放 scale（图是高度，竖排文字是高度，横排文字是宽度）、
  *      gap 和前一块的间距（标准间距的倍数，0 紧贴，负数叠上去）、bleed 图片上下出血铺满整屏、
  *      x 浮起来：不占位置，从原来的位置左右挪 x 个屏高（可以压在别的块上）、bw / bh 文本框的宽和高（屏高的倍数）、fs 字号倍数、lh 行距、writing 竖排（一列文字可以竖着写）、align 对齐、pos 位置
@@ -267,7 +265,7 @@ export const postSchema = ({ image }: SchemaContext) =>
 /* ───────────── 页面（关于、留言……）与友人帐 ───────────── */
 
 /** 页面的网址就是文件名：/about/。这些名字已经被站点自己用了，页面不能取 */
-export const RESERVED_SLUGS = ['posts', 'archive', 'category', 'search', 'travels', 'feed', 'rss', '404', 'sitemap', 'robots', 'favicon', '_astro', 'api', 'live', 'map'];
+export const RESERVED_SLUGS = ['posts', 'archive', 'category', 'search', 'feed', 'rss', '404', 'sitemap', 'robots', 'favicon', '_astro', 'api', 'live', 'map'];
 
 /** 独立页面：正文和文章用同一套块。template 为 friends 的页面，正文后面接友人帐 */
 export const pageSchema = ({ image }: SchemaContext) =>
@@ -297,10 +295,8 @@ export const friendSchema = ({ image }: SchemaContext) =>
     order: z.number().int().min(0).max(99).default(0),
   });
 
-/**
- * 一篇文章，放在 src/content/posts/ 下。老游记（有 stops）先转成现在的结构再校验。
- */
-export const entrySchema = (ctx: SchemaContext) => z.preprocess((v) => (v && typeof v === 'object' ? normalizeDoc(v) : v), postSchema(ctx));
+/** 一篇文章，放在 src/content/posts/ 下 */
+export const entrySchema = (ctx: SchemaContext) => postSchema(ctx);
 
 export type PostData = z.infer<ReturnType<typeof postSchema>>;
 export type EntryData = PostData;

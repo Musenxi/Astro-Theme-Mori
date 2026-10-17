@@ -1,7 +1,7 @@
 import type zhCN from './zh-CN.ts';
 /** 日本語 */
 const d: Record<keyof typeof zhCN, string> = {
-  'nav.posts': '記事', 'nav.travels': '旅の記', 'nav.archive': 'アーカイブ', 'nav.category': 'カテゴリ',
+  'nav.posts': '記事', 'nav.archive': 'アーカイブ', 'nav.category': 'カテゴリ',
   'a11y.mainNav': 'メインナビゲーション', 'theme.toggle': '昼夜の切り替え', 'theme.toLight': '昼', 'theme.toDark': '夜',
   'toc.title': '目次', 'toc.sub': 'Contents', 'toc.editor': '編集後記',
   'yearSeason': '{year}年 · {season}',
@@ -11,7 +11,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'post.prev': '前の記事', 'post.next': '次の記事', 'post.toc': '目次', 'post.nav': '前の記事 / 次の記事', 'post.meta': '{chars}字 · 約{min}分',
   'post.like': 'いいね', 'post.top': 'トップへ',
   'fig': '図 {n}', 'notes.foot': '脚注', 'notes.all': '注',
-  'kind.travel': '旅行記', 'travel.stop': '第{n}地点', 'travel.stops': '地点', 'travel.itinerary': '行程',
+  'travel.stop': '第{n}地点', 'travel.stops': '地点', 'travel.itinerary': '行程',
   'travel.readingGroup': '読み方',
   'travel.mode.v': '縦', 'travel.mode.h': '横', 'travel.mode.m': '混',
   'travel.modeLabel.v': '縦に読む', 'travel.modeLabel.h': '横に読む', 'travel.modeLabel.m': '混合で読む',

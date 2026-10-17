@@ -99,7 +99,7 @@ VPS 的 Docker Compose + Caddy 模板和 GitHub Actions 模板在 [deploy/](depl
 
 ## 页面
 
-`/`、`/posts/`、`/posts/<id>/`、`/archive/`、`/category/<id>/`、`/map/`、`/search/`、`/<页面名>/`、`/feed`（RSS，`/rss.xml` 是别名）、`/sitemap.xml`、`/robots.txt`、`/favicon.svg`。旧的 `/travels/…` 会跳转到 `/posts/…`。
+`/`、`/posts/`、`/posts/<id>/`、`/archive/`、`/category/<id>/`、`/map/`、`/search/`、`/<页面名>/`、`/feed`（RSS，`/rss.xml` 是别名）、`/sitemap.xml`、`/robots.txt`、`/favicon.svg`。
 
 ## 目录
 

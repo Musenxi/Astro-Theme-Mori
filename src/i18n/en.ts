@@ -1,7 +1,7 @@
 import type zhCN from './zh-CN.ts';
 /** English */
 const d: Record<keyof typeof zhCN, string> = {
-  'nav.posts': 'Posts', 'nav.travels': 'Journeys', 'nav.archive': 'Archive', 'nav.category': 'Categories',
+  'nav.posts': 'Posts', 'nav.archive': 'Archive', 'nav.category': 'Categories',
   'a11y.mainNav': 'Main navigation', 'theme.toggle': 'Toggle light / dark', 'theme.toLight': 'Day', 'theme.toDark': 'Night',
   'toc.title': 'Contents', 'toc.sub': '', 'toc.editor': 'Editor’s note',
   'yearSeason': '{season} {year}',
@@ -11,7 +11,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'post.prev': 'Previous', 'post.next': 'Next', 'post.toc': 'Contents', 'post.nav': 'Previous / next', 'post.meta': '{chars} words · ~{min} min',
   'post.like': 'Like', 'post.top': 'Back to top',
   'fig': 'Fig. {n}', 'notes.foot': 'Footnotes', 'notes.all': 'Notes',
-  'kind.travel': 'Journey', 'travel.stop': 'Stop {n}', 'travel.stops': 'Places', 'travel.itinerary': 'Itinerary',
+  'travel.stop': 'Stop {n}', 'travel.stops': 'Places', 'travel.itinerary': 'Itinerary',
   'travel.readingGroup': 'Reading mode',
   'travel.mode.v': 'V', 'travel.mode.h': 'H', 'travel.mode.m': 'M',
   'travel.modeLabel.v': 'Vertical reading', 'travel.modeLabel.h': 'Horizontal reading', 'travel.modeLabel.m': 'Mixed reading',

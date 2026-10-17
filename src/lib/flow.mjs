@@ -3,7 +3,6 @@
  *
  * 内容只有一种结构：块的序列。读法（竖向 / 横向 / 混合）和地图是每篇文章自己的设置，
  * 地点是正文里的行内标记 `{ type: 'place', lnglat: [经度, 纬度], en?, date? }`，不绑定标题。
- * 以前的游记（`stops` + 每个块属于一站）读取时用 fromLegacyTravel 转成这种结构。
  */
 
 /** 一列文字里能放的块 */
@@ -14,8 +13,6 @@ export const LAYOUT_BLOCKS = new Set(['pair', 'strip', 'grid', 'free', 'map']);
 export const WRITING_BLOCKS = new Set(['p', 'h', 'quote', 'list']);
 
 export const DEFAULT_READING = { default: 'v', allowed: ['v', 'h', 'mix'], direction: 'ltr' };
-
-export const isLegacyTravel = (d) => d?.kind === 'travel' || (d?.kind === undefined && Array.isArray(d?.stops));
 
 /** 这篇文章要用长卷版式渲染吗：开了地图、设了读法，或者用了长卷才有的块 */
 export const usesFlow = (d) => !!d?.map || !!d?.reading || (d?.blocks ?? []).some((b) => LAYOUT_BLOCKS.has(b.type));
@@ -218,23 +215,9 @@ export const isPlaceOnly = (b) => {
 
 /**
  * 块上有两份“怎么摆”的设置：`h` 是横滚读法（上下位置 y、缩放 scale、writing 横排 / 竖排），`v` 是竖滚读法（writing）。
- * 同一段文字可以在横滚里竖排、到了竖滚改成横排。以前写在块上的 y / scale / writing 是老格式：
- * 读取时（migrateAxes）y、scale 归横滚，writing 两边都用，再从块上去掉。
+ * 同一段文字可以在横滚里竖排、到了竖滚改成横排。
  */
-export const axisOf = (b, axis) => ({ ...(axis === 'h' ? { y: b.y, scale: b.scale } : {}), writing: b.writing, ...(b[axis] ?? {}) });
-
-/** 老格式的 y / scale / writing 挪进 h / v；已经是新格式的不动 */
-export function migrateAxes(doc) {
-  if (!doc || !Array.isArray(doc.blocks) || !doc.blocks.some((b) => 'y' in b || 'scale' in b || 'writing' in b)) return doc;
-  return { ...doc, blocks: doc.blocks.map((b) => {
-    if (!('y' in b || 'scale' in b || 'writing' in b)) return b;
-    const { y, scale, writing, ...rest } = b;
-    const w = writing === 'v' && WRITING_BLOCKS.has(b.type) ? 'v' : undefined;
-    const h = { ...(y !== undefined ? { y } : {}), ...(scale !== undefined ? { scale } : {}), ...(w ? { writing: w } : {}), ...(b.h ?? {}) };
-    const v = { ...(w ? { writing: w } : {}), ...(b.v ?? {}) };
-    return { ...rest, ...(Object.keys(h).length ? { h } : {}), ...(Object.keys(v).length ? { v } : {}) };
-  }) };
-}
+export const axisOf = (b, axis) => b[axis] ?? {};
 
 /* ───────────── 把块排成“列” ───────────── */
 
@@ -295,53 +278,3 @@ export function columns(blocks) {
 
 /** 一列（或一块）里的所有块 */
 export const blocksOf = (col) => (col.kind === 'text' ? col.blocks : [col.block]);
-
-/* ───────────── 老游记 → 现在的结构 ───────────── */
-
-const located = (s) => Array.isArray(s.lnglat) && (s.lnglat[0] !== 0 || s.lnglat[1] !== 0);
-
-/**
- * 老游记（`stops` + 每个块有 `stop`）→ 现在的结构：
- *   站点 → 二级标题，站名上标着地点（没填经纬度的站只有标题）
- *   文字块 → 一个个段落 / 标题 / 引用 / 列表 / 代码块（沿用段落 id，读者的引用评论不丢），竖排和位置抄到每个块上
- *   单图 → 图片；双图、图组、网格、自由排布、地图原样（地图的“只看这一站”改叫“只看这一处附近”）
- *   读法、事实、轨迹、旁注原样；地图开着
- * 同一份内容转换结果每次都一样（标题 id 由站点 id 定）。
- */
-export function fromLegacyTravel(doc) {
-  const { kind: _k, stops = [], blocks = [], reading, ...rest } = doc;
-  const taken = new Set(blocks.flatMap((b) => [b.id, ...(b.paras ?? []).map((p) => p.id)]));
-  const headId = (s) => { let id = `h-${s.id}`; while (taken.has(id)) id += '_'; taken.add(id); return id; };
-  const pos = (b) => (b.y !== undefined || b.scale !== undefined ? { h: { ...(b.y !== undefined ? { y: b.y } : {}), ...(b.scale !== undefined ? { scale: b.scale } : {}) } } : {});
-
-  const convert = (b) => {
-    switch (b.type) {
-      case 'text': return (b.paras ?? []).map((p) => {
-        const type = p.type ?? 'p';
-        const vert = b.writing === 'v' && WRITING_BLOCKS.has(type);
-        const body = type === 'h' ? { level: 3, text: p.text }
-          : type === 'quote' ? { text: p.text, ...(p.cite ? { cite: p.cite } : {}) }
-          : type === 'list' ? { ordered: !!p.ordered, items: p.items }
-          : type === 'code' ? { ...(p.lang ? { lang: p.lang } : {}), ...(p.filename ? { filename: p.filename } : {}), ...(p.highlight ? { highlight: p.highlight } : {}), code: p.code }
-          : { text: p.text };
-        const h = { ...(b.y !== undefined ? { y: b.y } : {}), ...(b.scale !== undefined ? { scale: b.scale } : {}), ...(vert ? { writing: 'v' } : {}) };
-        return { id: p.id, type, ...body, ...(Object.keys(h).length ? { h } : {}), ...(vert ? { v: { writing: 'v' } } : {}) };
-      });
-      case 'single': return [{ id: b.id, type: 'image', src: b.src, alt: b.alt ?? '', ...(b.caption ? { caption: b.caption } : {}), layout: b.layout === 'inset' ? 'inline' : 'wide', ...pos(b) }];
-      case 'map': return [{ id: b.id, type: 'map', scope: b.scope === 'stop' ? 'near' : 'route', ...pos(b) }];
-      default: { const { stop: _s, ...r } = b; return [r]; }
-    }
-  };
-
-  const out = [];
-  for (const s of stops) {
-    const mark = located(s) ? [{ type: 'place', lnglat: s.lnglat, ...(s.en ? { en: s.en } : {}), ...(s.date ? { date: s.date } : {}) }] : undefined;
-    out.push({ id: headId(s), type: 'h', level: 2, text: [{ t: s.name ?? '', ...(mark ? { marks: mark } : {}) }] });
-    for (const b of blocks) if (b.stop === s.id) out.push(...convert(b));
-  }
-  for (const b of blocks) if (!stops.some((s) => s.id === b.stop)) out.push(...convert(b)); // 不属于任何站点的块：留着，别悄悄丢
-  return { ...rest, map: true, reading: reading ?? DEFAULT_READING, blocks: out };
-}
-
-/** 读取时统一成现在的结构：老游记转换，其余原样 */
-export const normalizeDoc = (d) => migrateAxes(isLegacyTravel(d) ? fromLegacyTravel(d) : d);

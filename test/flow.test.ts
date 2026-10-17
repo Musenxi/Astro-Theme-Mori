@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { columns, fromLegacyTravel, isLegacyTravel, normalizeDoc, parsePlaceHref, placeHref, placesOf, usesFlow } from '../src/lib/flow.mjs';
+import { columns, parsePlaceHref, placeHref, placesOf, usesFlow } from '../src/lib/flow.mjs';
 
 const place = (lnglat: [number, number], extra = {}) => ({ type: 'place', lnglat, ...extra });
 
@@ -36,9 +36,9 @@ test('长卷版式：开了地图、设了读法或用了长卷的块才走长�
 
 test('排成列：相邻文字一列，二级标题自己一块，图片单独，竖排和横排不混', () => {
   const blocks = [
-    { id: 'a', type: 'p', text: '1', y: 0.2 }, { id: 'b', type: 'p', text: '2' }, { id: 'c', type: 'h', level: 3, text: '小' },
+    { id: 'a', type: 'p', text: '1', h: { y: 0.2 } }, { id: 'b', type: 'p', text: '2' }, { id: 'c', type: 'h', level: 3, text: '小' },
     { id: 'd', type: 'image', src: 'x' },
-    { id: 'e', type: 'h', level: 2, text: '章' }, { id: 'f', type: 'p', text: '3', writing: 'v' }, { id: 'g', type: 'code', code: 'x' }, { id: 'h', type: 'p', text: '4' },
+    { id: 'e', type: 'h', level: 2, text: '章' }, { id: 'f', type: 'p', text: '3', h: { writing: 'v' } }, { id: 'g', type: 'code', code: 'x' }, { id: 'h', type: 'p', text: '4' },
   ];
   const cols = columns(blocks);
   const show = (c: any) => (c.kind === 'text' ? `${c.blocks.map((b: any) => b.id).join('')}:${c.writing}` : c.block.id);
@@ -59,51 +59,6 @@ test('二级标题：没设的写法、对齐跟着后面的文字；上下位�
   // 后面不是文字：自己一块，不跟谁
   [h] = columns([H(), { id: 'm', type: 'map' }]) as any[];
   assert.deepEqual([h.lead, h.writing], [undefined, 'h']);
-});
-
-const legacy = {
-  kind: 'travel', title: 'T', date: '2025-06-20', category: 'j', excerpt: 'x', facts: [{ label: '路线', value: '环岛' }], notes: {},
-  stops: [
-    { id: 'rey', name: '雷克雅未克', en: 'Reykjavík', lnglat: [-21.9, 64.1], date: '06.20' },
-    { id: 's2', name: '起点', lnglat: [0, 0] },
-  ],
-  reading: { default: 'h', allowed: ['v', 'h'], direction: 'rtl' },
-  blocks: [
-    { id: 't1', type: 'text', stop: 'rey', writing: 'v', y: 0.3, paras: [{ id: 't1p1', text: '一' }, { id: 't1p2', type: 'quote', text: '引', cite: '谁' }, { id: 't1p3', type: 'code', code: 'x' }] },
-    { id: 's1', type: 'single', stop: 'rey', src: 'a.jpg', alt: '', layout: 'inset' },
-    { id: 'm1', type: 'map', stop: 'rey', scope: 'stop' },
-    { id: 'p1', type: 'pair', stop: 's2', images: [{ src: 'a', alt: '' }, { src: 'b', alt: '' }] },
-  ],
-};
-
-test('老游记：站点变成二级标题（站名上标着地点），块按站点顺序，沿用段落 id', () => {
-  assert.equal(isLegacyTravel(legacy), true);
-  const d = fromLegacyTravel(legacy);
-  assert.equal(d.kind, undefined);
-  assert.equal(d.stops, undefined);
-  assert.equal(d.map, true);
-  assert.deepEqual(d.reading, legacy.reading);
-  assert.deepEqual(d.facts, legacy.facts);
-  assert.deepEqual(d.blocks.map((b: any) => b.id), ['h-rey', 't1p1', 't1p2', 't1p3', 's1', 'm1', 'h-s2', 'p1']);
-  assert.deepEqual(d.blocks[0], { id: 'h-rey', type: 'h', level: 2, text: [{ t: '雷克雅未克', marks: [place([-21.9, 64.1], { en: 'Reykjavík', date: '06.20' })] }] });
-  // 竖排和位置抄到每个块上；代码没有竖排设置
-  assert.deepEqual(d.blocks[1], { id: 't1p1', type: 'p', text: '一', h: { y: 0.3, writing: 'v' }, v: { writing: 'v' } });
-  assert.deepEqual(d.blocks[2], { id: 't1p2', type: 'quote', text: '引', cite: '谁', h: { y: 0.3, writing: 'v' }, v: { writing: 'v' } });
-  assert.deepEqual(d.blocks[3], { id: 't1p3', type: 'code', code: 'x', h: { y: 0.3 } });
-  assert.deepEqual(d.blocks[4], { id: 's1', type: 'image', src: 'a.jpg', alt: '', layout: 'inline' });
-  assert.deepEqual(d.blocks[5], { id: 'm1', type: 'map', scope: 'near' });
-  // 没填经纬度的站只有标题；双图原样（去掉 stop）
-  assert.deepEqual(d.blocks[6].text, [{ t: '起点' }]);
-  assert.equal('stop' in d.blocks[7], false);
-  assert.deepEqual(fromLegacyTravel(legacy), d); // 每次转换结果一样
-  assert.equal(usesFlow(d), true);
-});
-
-test('老游记：没写读法就是三种都允许；不属于任何站点的块留在最后', () => {
-  const { reading: _r, ...noReading } = legacy;
-  const d = fromLegacyTravel({ ...noReading, blocks: [...legacy.blocks, { id: 'x1', type: 'single', stop: 'gone', src: 'z.jpg', alt: '' }] });
-  assert.deepEqual(d.reading.allowed, ['v', 'h', 'mix']);
-  assert.equal(d.blocks.at(-1).id, 'x1');
 });
 
 test('不写地名的地点：整列都是它时只当锚点，混在文字里的那一段不单独成列；名字缺省用英文名', async () => {
@@ -158,14 +113,6 @@ test('整趟路线：同一区里直接连，跨区画弧，有轨迹用轨迹�
   assert.ok(t.at[2] - t.at[1] > 10); // 跨区：一段弧
   const withTrack = tripOf(ps as any, [0, 0, 1, 1], [[0, 0], [0.5, 0], [5, 3], [10, 0], [12, 1]]);
   assert.deepEqual(withTrack.line.slice(withTrack.at[1], withTrack.at[2] + 1), [[0.5, 0], [5, 3], [10, 0]]);
-});
-
-test('横滚和竖滚各存各的：老格式的 y / scale / writing 读取时挪进 h / v', () => {
-  const d = normalizeDoc({ blocks: [{ id: 'a', type: 'p', text: '1', writing: 'v', y: 0.3, scale: 1.2 }, { id: 'b', type: 'image', src: 'x', y: 0.6 }, { id: 'c', type: 'quote', text: 'q', writing: 'h' }, { id: 'd', type: 'p', text: '新', h: { writing: 'v' }, v: {} }] });
-  assert.deepEqual(d.blocks[0], { id: 'a', type: 'p', text: '1', h: { y: 0.3, scale: 1.2, writing: 'v' }, v: { writing: 'v' } });
-  assert.deepEqual(d.blocks[1], { id: 'b', type: 'image', src: 'x', h: { y: 0.6 } });
-  assert.deepEqual(d.blocks[2], { id: 'c', type: 'quote', text: 'q' });
-  assert.deepEqual(d.blocks[3], { id: 'd', type: 'p', text: '新', h: { writing: 'v' }, v: {} });
 });
 
 test('排成列：同一段文字横滚里竖排、竖滚里横排，两边写法不同就各自成列', () => {

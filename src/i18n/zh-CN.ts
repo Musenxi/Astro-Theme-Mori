@@ -1,6 +1,6 @@
 /** 简体中文：词条的母版。其他语言必须覆盖同样的键（见 index.ts 的类型约束）。`{x}` 是占位符；`js.` 开头的会内嵌进页面给浏览器里的脚本用 */
 export default {
-  'nav.posts': '文章', 'nav.travels': '游记', 'nav.archive': '归档', 'nav.category': '分类',
+  'nav.posts': '文章', 'nav.archive': '归档', 'nav.category': '分类',
   'a11y.mainNav': '主导航', 'theme.toggle': '切换昼夜', 'theme.toLight': '昼', 'theme.toDark': '夜',
   'toc.title': '目次', 'toc.sub': 'Contents', 'toc.editor': '编者按',
   'yearSeason': '{year}年 · {season}',
@@ -10,7 +10,7 @@ export default {
   'post.prev': '上一篇', 'post.next': '下一篇', 'post.toc': '目录', 'post.nav': '上一篇 / 下一篇', 'post.meta': '{chars} 字 · 约 {min} 分钟',
   'post.like': '赞', 'post.top': '回到顶部',
   'fig': '图 {n}', 'notes.foot': '脚注', 'notes.all': '注',
-  'kind.travel': '游记', 'travel.stop': '第{n}站', 'travel.stops': '地点', 'travel.itinerary': '行程',
+  'travel.stop': '第{n}站', 'travel.stops': '地点', 'travel.itinerary': '行程',
   'travel.readingGroup': '阅读方式',
   'travel.mode.v': '竖', 'travel.mode.h': '横', 'travel.mode.m': '混',
   'travel.modeLabel.v': '竖向阅读', 'travel.modeLabel.h': '横向阅读', 'travel.modeLabel.m': '混合阅读',

@@ -1,7 +1,7 @@
 import type zhCN from './zh-CN.ts';
 /** 繁體中文 */
 const d: Record<keyof typeof zhCN, string> = {
-  'nav.posts': '文章', 'nav.travels': '遊記', 'nav.archive': '歸檔', 'nav.category': '分類',
+  'nav.posts': '文章', 'nav.archive': '歸檔', 'nav.category': '分類',
   'a11y.mainNav': '主導覽', 'theme.toggle': '切換晝夜', 'theme.toLight': '晝', 'theme.toDark': '夜',
   'toc.title': '目次', 'toc.sub': 'Contents', 'toc.editor': '編者按',
   'yearSeason': '{year}年 · {season}',
@@ -11,7 +11,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'post.prev': '上一篇', 'post.next': '下一篇', 'post.toc': '目錄', 'post.nav': '上一篇 / 下一篇', 'post.meta': '{chars} 字 · 約 {min} 分鐘',
   'post.like': '讚', 'post.top': '回到頂部',
   'fig': '圖 {n}', 'notes.foot': '腳註', 'notes.all': '註',
-  'kind.travel': '遊記', 'travel.stop': '第{n}站', 'travel.stops': '地點', 'travel.itinerary': '行程',
+  'travel.stop': '第{n}站', 'travel.stops': '地點', 'travel.itinerary': '行程',
   'travel.readingGroup': '閱讀方式',
   'travel.mode.v': '直', 'travel.mode.h': '橫', 'travel.mode.m': '混',
   'travel.modeLabel.v': '直向閱讀', 'travel.modeLabel.h': '橫向閱讀', 'travel.modeLabel.m': '混合閱讀',
