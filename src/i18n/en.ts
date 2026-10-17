@@ -9,6 +9,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'home.feature': 'Feature', 'home.pinned': 'Pinned', 'home.region': 'In this issue', 'home.title': 'Title', 'home.date': 'Date', 'home.length': 'Length', 'home.time': 'Reading time', 'meta.chars': '{n} words', 'meta.min': '~{n} min', 'home.readMore': 'Read', 'home.empty': 'Nothing here yet.',
   'count.one': '{n} piece', 'count.other': '{n} pieces',
   'post.prev': 'Previous', 'post.next': 'Next', 'post.toc': 'Contents', 'post.nav': 'Previous / next', 'post.meta': '{chars} words · ~{min} min',
+  'post.like': 'Like', 'post.top': 'Back to top',
   'fig': 'Fig. {n}', 'notes.foot': 'Footnotes', 'notes.all': 'Notes',
   'kind.travel': 'Journey', 'travel.stop': 'Stop {n}', 'travel.stops': 'Places', 'travel.itinerary': 'Itinerary',
   'travel.readingGroup': 'Reading mode',

@@ -15,7 +15,7 @@ const read = () => {
 };
 
 let id = '';
-function visitor() {
+export function visitor() {
   if (id) return id;
   try { id = localStorage.getItem('mori-visitor') ?? ''; } catch {}
   if (!/^[A-Za-z0-9_-]{16,64}$/.test(id)) {

@@ -1,0 +1,24 @@
+---
+/**
+ * 文章页右下角的一列玻璃圆钮：回到顶部（往下读了半屏才出来）、点赞（开了自建评论服务、取到数才出来）。
+ * 叠在目录圆钮、读法切换的上面（位置由 dock.ts 跟着它们调）。
+ */
+import config from 'virtual:mori/config';
+import { t } from '../lib/i18n.ts';
+import { iconSvg } from '../lib/lucide.ts';
+
+const likes = config.comments?.provider === 'mori';
+const btn = 'lg lg-btn cursor-pointer text-(--lg-fg) [transition:transform_.6s_var(--ease-mori),opacity_.4s,color_.3s,background-color_.4s,box-shadow_.4s] hover:text-(--lg-fg-on)';
+---
+
+<div class="fixed right-[18px] bottom-(--dock-b,18px) z-20 flex flex-col items-center gap-2.5 [transition:bottom_.6s_var(--ease-mori)] narrow:right-3 narrow:bottom-(--dock-b,12px)" id="dock">
+  <svg class="absolute" width="0" height="0" aria-hidden="true"><defs data-dock-defs></defs></svg>
+  <button class:list={[btn, 'grid size-[39px] place-items-center opacity-0 pointer-events-none [transform:translateY(12px)] [&.on]:pointer-events-auto [&.on]:opacity-100 [&.on]:[transform:none]']} type="button" aria-label={t('post.top')} title={t('post.top')} data-top set:html={iconSvg('arrow-up', 'size-[17px]')} />
+  {likes && (
+    <button class:list={[btn, 'grid size-[39px] place-items-center aria-pressed:text-primary [&[aria-pressed=true]_svg]:fill-current [&.pop_svg]:animate-[like-pop_.45s_var(--ease-mori)]']} type="button" aria-pressed="false" aria-label={t('post.like')} title={t('post.like')} data-like hidden>
+      <Fragment set:html={iconSvg('heart', 'size-[17px] transition-[fill] duration-300')} />
+      <span class="absolute -top-1 -right-1 z-1 min-w-[17px] rounded-full bg-primary px-[5px] text-center text-[10.5px] leading-[17px] text-primary-foreground tabular-nums empty:hidden" data-n></span>
+    </button>
+  )}
+</div>
+

@@ -33,3 +33,5 @@
   -webkit-backdrop-filter:blur(16px) saturate(1.7) brightness(1.05);backdrop-filter:blur(16px) saturate(1.7) brightness(1.05);
   @variant dark{--lg-panel:rgba(24,22,20,.5)}}
 :root.lg-refract .lg-panel{-webkit-backdrop-filter:url(#lg-f-panel) blur(16px) saturate(1.7) brightness(1.05);backdrop-filter:url(#lg-f-panel) blur(16px) saturate(1.7) brightness(1.05)}
+/* 文章页右下角的点赞：点下去心跳一下 */
+@keyframes like-pop{40%{transform:scale(1.28)}}

@@ -8,6 +8,7 @@ export default {
   'home.feature': '本期特稿', 'home.pinned': '置顶', 'home.region': '本期收录', 'home.title': '篇名', 'home.date': '日期', 'home.length': '篇幅', 'home.time': '阅读时间', 'meta.chars': '{n} 字', 'meta.min': '约 {n} 分钟', 'home.readMore': '阅读全文', 'home.empty': '还没有文章。',
   'count.one': '{n}篇', 'count.other': '{n}篇',
   'post.prev': '上一篇', 'post.next': '下一篇', 'post.toc': '目录', 'post.nav': '上一篇 / 下一篇', 'post.meta': '{chars} 字 · 约 {min} 分钟',
+  'post.like': '赞', 'post.top': '回到顶部',
   'fig': '图 {n}', 'notes.foot': '脚注', 'notes.all': '注',
   'kind.travel': '游记', 'travel.stop': '第{n}站', 'travel.stops': '地点', 'travel.itinerary': '行程',
   'travel.readingGroup': '阅读方式',

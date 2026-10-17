@@ -9,6 +9,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'home.feature': '特集', 'home.pinned': 'ピン留め', 'home.region': '今号の収録', 'home.title': '題', 'home.date': '日付', 'home.length': '文字数', 'home.time': '読了時間', 'meta.chars': '{n}字', 'meta.min': '約{n}分', 'home.readMore': '全文を読む', 'home.empty': 'まだ記事がありません。',
   'count.one': '{n}篇', 'count.other': '{n}篇',
   'post.prev': '前の記事', 'post.next': '次の記事', 'post.toc': '目次', 'post.nav': '前の記事 / 次の記事', 'post.meta': '{chars}字 · 約{min}分',
+  'post.like': 'いいね', 'post.top': 'トップへ',
   'fig': '図 {n}', 'notes.foot': '脚注', 'notes.all': '注',
   'kind.travel': '旅行記', 'travel.stop': '第{n}地点', 'travel.stops': '地点', 'travel.itinerary': '行程',
   'travel.readingGroup': '読み方',
