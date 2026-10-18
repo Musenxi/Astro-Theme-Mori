@@ -6,7 +6,8 @@ const year = new Date().getFullYear();
 const years = config.since && config.since < year ? `${config.since}–${year}` : String(year);
 // 站名链接到站点的完整网址；没填网址时退回首页
 const home = config.site || '/';
-const link = 'text-soft-foreground transition-[color] duration-300 hover:text-primary aria-[current]:text-primary';
+// 和周围的灰字只差一点颜色，加一道淡下划线才认得出是链接
+const link = 'text-soft-foreground underline decoration-muted-foreground/40 underline-offset-[.3em] transition-[color,text-decoration-color] duration-300 hover:text-primary hover:decoration-current aria-[current]:text-primary';
 // 在线访客记在自建评论服务里；悬停时列出在读的页面，文章标题从 /search.json 取，其余页面的名字在这里给
 const stats = config.comments?.provider === 'mori';
 const names = stats ? Object.fromEntries([

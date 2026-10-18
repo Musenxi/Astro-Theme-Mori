@@ -59,7 +59,7 @@
     --muted: #282828;
     --foreground: #ececec;
     --soft-foreground: #ababab;
-    --muted-foreground: #808080;
+    --muted-foreground: #838383;
     --border: #34302b;
     --primary: var(--accent-dark, oklch(from var(--accent-base) max(l, 0.7) min(c, 0.18) h));
     --route-far: #e0906e;
