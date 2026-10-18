@@ -68,7 +68,9 @@ const fd: any = feature.data;
     <div class="grow-[2]" aria-hidden="true"></div>
     <div class="f-ruler relative mt-[clamp(36px,7vh,80px)] h-[46px] border-t border-t-border">
       {years.map((k) => <span class="absolute top-0 left-(--l) h-3 border-l border-l-muted-foreground" style={{ '--l': `${k.left}%` }}><i class="absolute top-4 left-[5px] block text-meta leading-[normal] tracking-[.06em] whitespace-nowrap text-muted-foreground">{k.y}</i></span>)}
-      {points.map((p) => <a class:list={['pt absolute -top-1 left-(--l) -ml-[3.5px] size-[7px] rounded-[50%] after:pointer-events-none after:absolute after:bottom-4 after:left-1/2 after:[transform:translate(-50%,4px)] after:whitespace-nowrap after:text-foreground after:opacity-0 after:[font:14px/1.4_var(--font-serif)] after:tracking-[.04em] after:[transition:opacity_.3s,transform_.4s_var(--ease-mori)] after:content-[attr(data-t)] hover:after:[transform:translate(-50%,0)] hover:after:opacity-100', 'bg-foreground']} href={p.e.href} data-t={p.e.data.title} style={{ '--l': `${p.left}%`, '--i': p.i }} aria-label={p.e.data.title}></a>)}
+      {/* 窄屏上点挤在一起点不准，也没有悬停看标题：换成不能点的圆点，样子不变 */}
+      {points.map((p) => <span class="pt absolute -top-1 left-(--l) -ml-[3.5px] hidden size-[7px] rounded-[50%] bg-foreground narrow:block" style={{ '--l': `${p.left}%`, '--i': p.i }} aria-hidden="true"></span>)}
+      {points.map((p) => <a class:list={['pt absolute narrow:hidden -top-1 left-(--l) -ml-[3.5px] size-[7px] rounded-[50%] after:pointer-events-none after:absolute after:bottom-4 after:left-1/2 after:[transform:translate(-50%,4px)] after:whitespace-nowrap after:text-foreground after:opacity-0 after:[font:14px/1.4_var(--font-serif)] after:tracking-[.04em] after:[transition:opacity_.3s,transform_.4s_var(--ease-mori)] after:content-[attr(data-t)] hover:after:[transform:translate(-50%,0)] hover:after:opacity-100', 'bg-foreground']} href={p.e.href} data-t={p.e.data.title} style={{ '--l': `${p.left}%`, '--i': p.i }} aria-label={p.e.data.title}></a>)}
     </div>
   </div>
 </section>
