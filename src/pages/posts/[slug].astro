@@ -39,7 +39,7 @@ const { chars, minutes } = readingOf(p);
 const short = (m: 'v' | 'h' | 'mix') => (m === 'mix' ? 'm' : m) as 'v' | 'h' | 'm';
 ---
 
-<Base title={d.title} description={d.excerpt} type="article" entry={`posts/${entry.id}`}>
+<Base title={d.title} description={d.excerpt || undefined} type="article" entry={`posts/${entry.id}`}>
   <CommentStyles slot="head" />
   {flow ? (
     <main data-page="travel">
