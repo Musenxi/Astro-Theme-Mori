@@ -31,8 +31,9 @@ export default function mori(userConfig: MoriUserConfig): AstroIntegration {
   return {
     name: 'astro-mori',
     hooks: {
-      'astro:config:setup': ({ config: astro, logger, updateConfig }) => {
+      'astro:config:setup': ({ config: astro, command, logger, updateConfig }) => {
         const publicDir = fileURLToPath(astro.publicDir);
+        if (command === 'build' && !config.site && !astro.site) logger.warn('mori.config.ts 没填 site（站点网址），RSS、sitemap 里的链接会是 http://localhost:4321');
         updateConfig({
           vite: {
             plugins: [

@@ -63,6 +63,7 @@ import { defineMoriConfig } from './src/config.ts';
 
 export default defineMoriConfig({
   title: '我的博客',                    // 刊名
+  site: 'https://example.com',         // 站点网址：RSS、sitemap 里的链接要用
   icon: 'navy',                        // 站点图标：navy / blue / ink / paper，或 public/ 里自己的图
   author: { name: '…', email: '…', url: '…' },
   since: 2019,                         // 建站年份：页脚写成 © 2019–今年
