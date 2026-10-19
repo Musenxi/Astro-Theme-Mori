@@ -2,7 +2,7 @@ import type zhCN from './zh-CN.ts';
 /** 繁體中文 */
 const d: Record<keyof typeof zhCN, string> = {
   'nav.posts': '文章', 'nav.archive': '歸檔', 'nav.category': '分類',
-  'a11y.mainNav': '主導覽', 'theme.toggle': '切換晝夜', 'theme.toLight': '晝', 'theme.toDark': '夜',
+  'a11y.menu': '選單', 'a11y.mainNav': '主導覽', 'theme.toggle': '切換晝夜', 'theme.toLight': '晝', 'theme.toDark': '夜',
   'toc.title': '目次', 'toc.sub': 'Contents', 'toc.editor': '編者按',
   'yearSeason': '{year}年 · {season}',
   'season.spring': '春', 'season.summer': '夏', 'season.autumn': '秋', 'season.winter': '冬',

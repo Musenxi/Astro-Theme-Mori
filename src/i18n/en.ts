@@ -2,7 +2,7 @@ import type zhCN from './zh-CN.ts';
 /** English */
 const d: Record<keyof typeof zhCN, string> = {
   'nav.posts': 'Posts', 'nav.archive': 'Archive', 'nav.category': 'Categories',
-  'a11y.mainNav': 'Main navigation', 'theme.toggle': 'Toggle light / dark', 'theme.toLight': 'Day', 'theme.toDark': 'Night',
+  'a11y.menu': 'Menu', 'a11y.mainNav': 'Main navigation', 'theme.toggle': 'Toggle light / dark', 'theme.toLight': 'Day', 'theme.toDark': 'Night',
   'toc.title': 'Contents', 'toc.sub': '', 'toc.editor': 'Editor’s note',
   'yearSeason': '{season} {year}',
   'season.spring': 'Spring', 'season.summer': 'Summer', 'season.autumn': 'Autumn', 'season.winter': 'Winter',

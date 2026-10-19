@@ -134,7 +134,7 @@ document.addEventListener('astro:after-swap', () => {
 });
 
 // 右侧的操作：合并时是 #lg-actions 一个胶囊，分开时是它里面每个操作各一个；一个都没有时不存在
-const actionBoxes = [...document.querySelectorAll<HTMLElement>('#lg-actions.lg-btn, #lg-actions > .lg-btn')];
+const actionBoxes = [...document.querySelectorAll<HTMLElement>('#lg-actions.lg-btn, #lg-actions > .lg-btn, #burger')];
 const glassEls = [nav, ...actionBoxes];
 function lgRefract() {
   for (const el of glassEls) {
@@ -150,6 +150,20 @@ function lgRefract() {
 const markRefract = () => { if (refractOk) root.classList.add('lg-refract'); };
 markRefract();
 document.addEventListener('astro:after-swap', markRefract);
+
+// 手机上的全屏入口：汉堡按钮开合，开着时锁住滚动；点链接或换页后收起
+const burger = $('#burger'), menu = $('#menu');
+const setMenu = (on: boolean) => {
+  burger.setAttribute('aria-expanded', String(on));
+  menu.classList.toggle('on', on);
+  root.style.overflow = on ? 'hidden' : '';
+  if (on) site.classList.remove('hide');
+};
+burger.addEventListener('click', () => setMenu(burger.getAttribute('aria-expanded') !== 'true'));
+menu.addEventListener('click', (e) => { if ((e.target as Element).closest('a')) setMenu(false); });
+addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+matchMedia('(min-width: 561px)').addEventListener('change', (e) => { if (e.matches) setMenu(false); });
+document.addEventListener('astro:before-swap', () => setMenu(false));
 
 const refresh = () => { lgRefract(); lgLens(); };
 addEventListener('resize', refresh);
