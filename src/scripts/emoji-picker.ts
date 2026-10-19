@@ -51,6 +51,7 @@ export function emojiButton(text: HTMLTextAreaElement): HTMLElement | null {
         text.setRangeText(tag, a, z, 'end');
         text.dispatchEvent(new Event('input', { bubbles: true }));
         text.focus();
+        set(false);
       });
       return b;
     }));
