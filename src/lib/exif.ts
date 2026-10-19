@@ -3,8 +3,11 @@
  * 有定位的带上经纬度和海拔（位置图由 scripts/lightbox.ts 用街道底图瓦片拼）。另外算红绿蓝三个通道的直方图。
  * 只读 ImageMetadata 上不可枚举的 fsPath（同 cdn.ts）：上传到图床的图，本地原图还在，照样能读。
  */
-import { openSync, readSync, closeSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { openSync, readSync, closeSync, existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import exifReader from 'exif-reader';
+import { assetPathOf } from './cdn.ts';
 
 export interface Exif {
   camera?: string;
@@ -36,6 +39,46 @@ export interface Exif {
 }
 
 const cache = new Map<string, Promise<Exif | undefined>>();
+
+/**
+ * 持久缓存 src/assets/exif.json（随项目提交，同 cdn.json）：原图路径 → { h: 内容的 sha256, v: 结果 }。
+ * 构建机每次都是新克隆的仓库，直方图要把原图全分辨率解码一遍，很慢；哈希对得上就直接用，对不上（图换了）才重算。
+ * 原图不在本机时用缓存里的结果。读写失败都不报错，只是少了缓存。
+ */
+interface Rec { h: string; v: Exif | null }
+const STORE = join(process.cwd(), 'src/assets/exif.json');
+let store: Record<string, Rec> | undefined;
+let dirty = false, timer: ReturnType<typeof setTimeout> | undefined;
+
+function records() {
+  if (!store) {
+    try { store = JSON.parse(readFileSync(STORE, 'utf8')); } catch { store = {}; }
+    if (!store || typeof store !== 'object' || Array.isArray(store)) store = {};
+  }
+  return store;
+}
+
+function flush() {
+  timer = undefined;
+  if (!dirty || !store) return;
+  dirty = false;
+  try {
+    const sorted = Object.fromEntries(Object.entries(store).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
+    mkdirSync(dirname(STORE), { recursive: true });
+    writeFileSync(STORE, JSON.stringify(sorted, null, 1) + '\n');
+  } catch { /* 只是缓存 */ }
+}
+
+function remember(key: string, rec: Rec) {
+  records()[key] = rec;
+  dirty = true;
+  clearTimeout(timer);
+  timer = setTimeout(flush, 300);
+  timer.unref?.();
+}
+process.once('beforeExit', flush);
+
+const hashOf = (file: string) => { try { return createHash('sha256').update(readFileSync(file)).digest('hex'); } catch { return undefined; } };
 
 /** JPEG 开头那一段：APP1（Exif\0\0 打头）和 SOF 里的尺寸。只读前 256KB，这些都在最前面 */
 function head(file: string): { app1?: Buffer; size?: [number, number] } {
@@ -139,9 +182,22 @@ async function read(file: string): Promise<Exif | undefined> {
   } catch { return undefined; } // 读不出来就不显示
 }
 
+async function cached(file: string): Promise<Exif | undefined> {
+  const key = assetPathOf({ fsPath: file }) ?? file;
+  const rec = records()[key];
+  if (!existsSync(file)) return rec?.v ?? undefined;
+  const h = hashOf(file);
+  if (!h) return rec?.v ?? undefined;
+  if (rec && rec.h === h) return rec.v ?? undefined;
+  const v = await read(file);
+  // 没装 sharp 时读出来的没有直方图，别存进去
+  if (key !== file && (!v || v.hist)) remember(key, { h, v: v ?? null });
+  return v;
+}
+
 export function exifOf(src: unknown): Promise<Exif | undefined> {
   const file = (src as { fsPath?: string } | null | undefined)?.fsPath;
   if (!file || !/\.jpe?g$/i.test(file)) return Promise.resolve(undefined);
-  if (!cache.has(file)) cache.set(file, read(file));
+  if (!cache.has(file)) cache.set(file, cached(file));
   return cache.get(file)!;
 }
