@@ -1,5 +1,5 @@
 import type { AstroIntegration } from 'astro';
-import { existsSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
@@ -64,7 +64,10 @@ export default function mori(userConfig: MoriUserConfig): AstroIntegration {
           },
         });
       },
-      'astro:build:done': ({ dir, logger }) => dropUploadedOriginals(fileURLToPath(dir), logger),
+      'astro:build:done': ({ dir, logger }) => {
+        dropUploadedOriginals(fileURLToPath(dir), logger);
+        stripHtmlComments(fileURLToPath(dir));
+      },
     },
   };
 }
@@ -90,4 +93,20 @@ function dropUploadedOriginals(out: string, logger: { info: (m: string) => void 
   const unused = candidates.filter((f) => !texts.some((t) => t.includes(f)));
   for (const f of unused) rmSync(join(astroDir, f));
   if (unused.length) logger.info(`图床：去掉 ${unused.length} 张已上传的原图`);
+}
+
+/** 模板里的 HTML 注释是写给自己看的，构建后的页面里去掉（保留 IE 条件注释） */
+function stripHtmlComments(out: string) {
+  const walk = (d: string) => {
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      const f = join(d, e.name);
+      if (e.isDirectory()) walk(f);
+      else if (e.name.endsWith('.html')) {
+        const src = readFileSync(f, 'utf8');
+        const next = src.replace(/<!--(?!\[if|<!)[\s\S]*?-->/g, '');
+        if (next !== src) writeFileSync(f, next);
+      }
+    }
+  };
+  walk(out);
 }
