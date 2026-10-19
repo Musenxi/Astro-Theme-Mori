@@ -160,7 +160,14 @@ const setMenu = (on: boolean) => {
   if (on) site.classList.remove('hide');
 };
 burger.addEventListener('click', () => setMenu(burger.getAttribute('aria-expanded') !== 'true'));
-menu.addEventListener('click', (e) => { if ((e.target as Element).closest('a')) setMenu(false); });
+menu.addEventListener('click', (e) => {
+  const sub = (e.target as Element).closest<HTMLElement>('[data-sub]');
+  if (sub) {
+    const open = sub.getAttribute('aria-expanded') !== 'true';
+    sub.setAttribute('aria-expanded', String(open));
+    document.getElementById(sub.dataset.sub!)?.toggleAttribute('data-open', open);
+    return;
+  } if ((e.target as Element).closest('a')) setMenu(false); });
 addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
 matchMedia('(min-width: 561px)').addEventListener('change', (e) => { if (e.matches) setMenu(false); });
 document.addEventListener('astro:before-swap', () => setMenu(false));

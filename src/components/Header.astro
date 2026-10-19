@@ -62,18 +62,24 @@ const split = config.actionsLayout === 'split';
     <span class="grid place-items-center" data-when="closed" set:html={iconSvg('menu', glyph)} />
     <span class="grid place-items-center" data-when="open" set:html={iconSvg('x', glyph)} />
   </button>
-  <div class="invisible fixed inset-0 z-0 hidden overflow-y-auto bg-background px-(--edge) py-24 opacity-0 [transition:opacity_.3s,visibility_0s_.3s] phone:flex phone:flex-col phone:justify-center [&.on]:visible [&.on]:opacity-100 [&.on]:[transition-delay:0s]" id="menu" aria-label={t('a11y.mainNav')}>
-    <nav class="flex flex-col text-center">
-      {items.map((n) => (
-        <a class="border-b border-border/60 py-5 text-[1.9rem] tracking-[.16em] text-foreground aria-[current]:font-bold" href={n.href}>{n.label}</a>
-      ))}
+  <div class="invisible fixed inset-0 z-0 hidden overflow-y-auto bg-background px-(--edge) py-24 opacity-0 [transition:opacity_.3s,visibility_0s_.3s] phone:flex phone:flex-col [&.on]:visible [&.on]:opacity-100 [&.on]:[transition-delay:0s]" id="menu" aria-label={t('a11y.mainNav')}>
+    <nav class="my-auto flex flex-col text-center">
+      {items.map((n) => {
+        const link = 'py-4 text-[1.5rem] tracking-[.14em] text-foreground aria-[current]:font-bold';
+        return n.href === '/category/' && drop.length > 0 ? (
+          <div class="border-b border-border/60">
+            <div class="relative flex items-center justify-center">
+              <a class={link} href={n.href}>{n.label}</a>
+              <button class="absolute right-0 grid size-11 place-items-center text-(--lg-fg) [transition:transform_.3s] aria-expanded:rotate-180" type="button" data-sub="menu-sub" aria-expanded="false" aria-label={t('nav.category')} set:html={iconSvg('chevron-down', glyph)} />
+            </div>
+            <ul class="hidden flex-col pb-4 data-[open]:flex" id="menu-sub">
+              {drop.map(({ c, count }) => (
+                <li><a class="flex items-baseline justify-center gap-3 py-2.5 text-[1.1rem] tracking-[.1em] text-foreground" href={`/category/${c.id}/`}><span>{c.zh}</span><span class="meta">{tn('count', count, { n: fmt.num(count) })}</span></a></li>
+              ))}
+            </ul>
+          </div>
+        ) : <a class={`border-b border-border/60 ${link}`} href={n.href}>{n.label}</a>;
+      })}
     </nav>
-    {drop.length > 0 && (
-      <ul class="mt-8 flex flex-col text-center">
-        {drop.map(({ c, count }) => (
-          <li><a class="flex items-baseline justify-center gap-3 py-2.5 text-[1.3rem] tracking-[.1em] text-foreground" href={`/category/${c.id}/`}><span>{c.zh}</span><span class="meta">{tn('count', count, { n: fmt.num(count) })}</span></a></li>
-        ))}
-      </ul>
-    )}
   </div>
 </header>
