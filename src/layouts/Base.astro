@@ -1,5 +1,6 @@
 ---
-import { existsSync, readdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ClientRouter } from 'astro:transitions';
 import config from 'virtual:mori/config';
@@ -15,10 +16,16 @@ import ebGaramond from '../../fonts/EBGaramond/eb-garamond-latin-wght-normal.wof
 import '@fontsource/special-elite/latin-400.css';
 import '../styles/mori.css';
 
-// 东观体 fontLoad: 'sync'：三个字重的样式表在 <head> 里同步载入，常规和粗体里最常用的字块（c- 开头）预加载
+// 东观体：woff2 的文件名带内容哈希，样式表 font.css 的地址后面带内容哈希，这样整个 /fonts/ 都能缓存一年（见 public/_headers）
+// fontLoad: 'sync'：三个字重的样式表在 <head> 里同步载入，常用的字块（c- 开头）预加载
 const STD = ['regular', 'light', 'bold'];
+const stdVer: Record<string, string> = {};
+for (const w of STD) {
+  try { stdVer[w] = createHash('md5').update(readFileSync(join(process.cwd(), 'public/fonts/STD', w, 'font.css'))).digest('hex').slice(0, 8); } catch { /* 没有这个字重 */ }
+}
+const stdCss = (w: string) => `/fonts/STD/${w}/font.css${stdVer[w] ? `?v=${stdVer[w]}` : ''}`;
 const stdPreload = config.fontLoad === 'sync'
-  ? ['regular', 'bold'].flatMap((w) => {
+  ? STD.flatMap((w) => {
       const dir = join(process.cwd(), 'public/fonts/STD', w);
       return existsSync(dir) ? readdirSync(dir).filter((f) => /^c-.*\.woff2$/.test(f)).map((f) => `/fonts/STD/${w}/${f}`) : [];
     })
@@ -68,17 +75,17 @@ const iconType = ({ svg: 'image/svg+xml', png: 'image/png', ico: 'image/x-icon',
     {config.fontLoad === 'sync' ? (
       <>
         {stdPreload.map((href) => <link rel="preload" as="font" type="font/woff2" href={href} crossorigin />)}
-        {STD.map((w) => <link rel="stylesheet" href={`/fonts/STD/${w}/font.css`} data-font-std={w} />)}
+        {STD.map((w) => <link rel="stylesheet" href={stdCss(w)} data-font-std={w} />)}
       </>
     ) : (
-    <script is:inline>
+    <script is:inline define:vars={{ stdVer }}>
       (() => {
         const load = () => {
           for (const w of ['regular', 'light', 'bold']) {
             if (document.querySelector(`link[data-font-std="${w}"]`)) continue;
             const l = document.createElement('link');
             l.rel = 'stylesheet';
-            l.href = `/fonts/STD/${w}/font.css`;
+            l.href = `/fonts/STD/${w}/font.css${stdVer[w] ? '?v=' + stdVer[w] : ''}`;
             l.dataset.fontStd = w;
             document.head.append(l);
           }

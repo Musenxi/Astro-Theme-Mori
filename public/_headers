@@ -6,6 +6,6 @@
 # 构建出来的文件名带哈希，永远不会变
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
-# 东观体：woff2 的文件名是内容哈希，font.css 一周
+# 东观体：woff2 的文件名是内容哈希，font.css 的地址带内容哈希，一年
 /fonts/*
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=31536000, immutable
