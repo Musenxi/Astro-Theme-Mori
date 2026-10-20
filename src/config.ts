@@ -100,6 +100,8 @@ export interface MoriUserConfig {
   comments?: MoriComments;
   /** 原样插进每个页面 <head> 末尾的代码，如 Google Analytics 之类的统计脚本。只在构建出来的站点里有，astro dev 的预览里没有（免得把自己的访问也统计进去） */
   head?: string;
+  /** 东观体什么时候载入：defer（默认）页面载入后再载入，首屏先用系统宋体，之后会换一下字；sync 在 <head> 里同步载入并预加载常用的字块，不换字（字体要足够小，见 public/fonts/STD） */
+  fontLoad?: 'defer' | 'sync';
 }
 
 export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'icon' | 'accent' | 'categories' | 'nav'>> {
@@ -118,6 +120,7 @@ export interface MoriConfig extends Required<Pick<MoriUserConfig, 'title' | 'ico
   spoiler: 'particles' | 'blur' | 'ink';
   feed: { content: 'excerpt' | 'full' };
   head: string;
+  fontLoad: 'defer' | 'sync';
 }
 
 export const defineMoriConfig = (c: MoriUserConfig) => c;
@@ -151,5 +154,6 @@ export function resolveConfig(c: MoriUserConfig): MoriConfig {
     spoiler: c.spoiler === 'blur' || c.spoiler === 'ink' ? c.spoiler : 'particles',
     feed: { content: c.feed?.content === 'full' ? 'full' : 'excerpt' },
     head: typeof c.head === 'string' ? c.head.trim() : '',
+    fontLoad: c.fontLoad === 'sync' ? 'sync' : 'defer',
   };
 }

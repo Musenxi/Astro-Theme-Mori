@@ -1,4 +1,6 @@
 ---
+import { existsSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
 import { ClientRouter } from 'astro:transitions';
 import config from 'virtual:mori/config';
 import Header from '../components/Header.astro';
@@ -11,6 +13,15 @@ import SearchPanel from '../components/SearchPanel.astro';
 import '../../fonts/EBGaramond/font.css';
 import '@fontsource/special-elite/latin-400.css';
 import '../styles/mori.css';
+
+// 东观体 fontLoad: 'sync'：三个字重的样式表在 <head> 里同步载入，常规和粗体里最常用的字块（c- 开头）预加载
+const STD = ['regular', 'light', 'bold'];
+const stdPreload = config.fontLoad === 'sync'
+  ? ['regular', 'bold'].flatMap((w) => {
+      const dir = join(process.cwd(), 'public/fonts/STD', w);
+      return existsSync(dir) ? readdirSync(dir).filter((f) => /^c-.*\.woff2$/.test(f)).map((f) => `/fonts/STD/${w}/${f}`) : [];
+    })
+  : [];
 
 interface Props {
   title?: string;
@@ -51,6 +62,12 @@ const iconType = ({ svg: 'image/svg+xml', png: 'image/png', ico: 'image/x-icon',
     <!-- 东观体：@font-face 有四百多条（unicode-range 切片），放进首屏样式表要多传两百多 KB，字体文件本身也要几百 KB。
          所以首屏先用系统的宋体，页面 load 之后再载入东观体（单独成文件，在 public/fonts/ 下）。
          换页时 Astro 会删掉新页面 <head> 里没有的元素，所以换页前把这几个 <link> 抄进新页面，它就认作同一个、原样留着 -->
+    {config.fontLoad === 'sync' ? (
+      <>
+        {stdPreload.map((href) => <link rel="preload" as="font" type="font/woff2" href={href} crossorigin />)}
+        {STD.map((w) => <link rel="stylesheet" href={`/fonts/STD/${w}/font.css`} data-font-std={w} />)}
+      </>
+    ) : (
     <script is:inline>
       (() => {
         const load = () => {
@@ -70,6 +87,7 @@ const iconType = ({ svg: 'image/svg+xml', png: 'image/png', ico: 'image/x-icon',
         else addEventListener('load', () => setTimeout(load, 0), { once: true });
       })();
     </script>
+    )}
     <link rel="alternate" type="application/rss+xml" title={config.title} href="/feed" />
     <!-- 昼夜：先于首次绘制，避免闪一下；换页时 <html> 的属性会被换掉，所以每次换页后再补上 -->
     <script is:inline>
