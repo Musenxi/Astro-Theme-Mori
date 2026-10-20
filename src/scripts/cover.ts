@@ -59,8 +59,7 @@ function init() {
     if (!timeline) root.style.setProperty('--p', Math.min(1, scrollY / end).toFixed(4));
   }
 
-  // 进场（第一次打开）：刊名自下而上露出，细线从左画开，小点依次落下
-  if (!reduce) { fc.classList.remove('play'); void fc.offsetWidth; fc.classList.add('play'); }
+  // 进场（刊名自下而上露出，细线从左画开，小点依次落下）的 play 类在 Cover.astro 里就写好了，首次绘制就开始播；这里不再补加，不然会先看到成品再重播一遍
   fit();
   if (!timeline) addEventListener('scroll', onScroll, { passive: true });
   addEventListener('resize', fit);

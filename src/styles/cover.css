@@ -9,6 +9,7 @@
 .fc.play .f-ruler{animation:rule-in 1.2s var(--ease-mori) .8s both}
 .fc.play .f-ruler .pt{animation:pt-in .5s var(--ease-mori) calc(1.2s + var(--i)*55ms) both}
 @keyframes pt-in{from{transform:scale(0)}}
+@media (prefers-reduced-motion:reduce){.fc.play .f-mast span,.fc.play .f-rule,.fc.play .f-strap,.fc.play .f-cover,.fc.play .f-ruler,.fc.play .f-ruler .pt{animation:none}}
 /* 往下滚：刊名缩小、移到页头站名的位置，最后一段先淡出、再淡入页头站名：两者字重和字距不同，叠着淡会有重影。
    跟着滚动条走的动画（animation-timeline），由合成线程按滚动位置直接算，不等 JS，所以不会拖拍、抖动。
    animation-timeline 经过变量写：构建时压缩工具会把它并进 animation 简写里，有的浏览器不认简写里的 scroll()，整条动画就失效、刊名停在页面上
