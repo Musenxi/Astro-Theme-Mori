@@ -11,6 +11,7 @@ import Lightbox from '../components/Lightbox.astro';
 import SearchPanel from '../components/SearchPanel.astro';
 
 import '../../fonts/EBGaramond/font.css';
+import ebGaramond from '../../fonts/EBGaramond/eb-garamond-latin-wght-normal.woff2?url';
 import '@fontsource/special-elite/latin-400.css';
 import '../styles/mori.css';
 
@@ -62,6 +63,8 @@ const iconType = ({ svg: 'image/svg+xml', png: 'image/png', ico: 'image/x-icon',
     <!-- 东观体：@font-face 有四百多条（unicode-range 切片），放进首屏样式表要多传两百多 KB，字体文件本身也要几百 KB。
          所以首屏先用系统的宋体，页面 load 之后再载入东观体（单独成文件，在 public/fonts/ 下）。
          换页时 Astro 会删掉新页面 <head> 里没有的元素，所以换页前把这几个 <link> 抄进新页面，它就认作同一个、原样留着 -->
+    {/* 西文和数字用的 EB Garamond 覆盖整个 ASCII（含空格和标点）：先于首次绘制预加载、不先用备用字体，免得整页文字先用别的字体排一遍再换 */}
+    <link rel="preload" as="font" type="font/woff2" href={ebGaramond} crossorigin />
     {config.fontLoad === 'sync' ? (
       <>
         {stdPreload.map((href) => <link rel="preload" as="font" type="font/woff2" href={href} crossorigin />)}
