@@ -82,7 +82,10 @@ function init() {
   function render() {
     // 服务端已经按页取好：顶层评论新的在前，回复从早到晚
     const top = comments.filter((c) => !c.parentId);
-    const replies = (id: number) => comments.filter((c) => c.parentId === id);
+    // 回复的回复也挂在顶层评论下，同一层展示
+    const byId = new Map(comments.map((c) => [c.id, c]));
+    const rootOf = (c: MoriComment) => { for (let n = 0; c.parentId && byId.has(c.parentId) && n < 50; n++) c = byId.get(c.parentId)!; return c.id; };
+    const replies = (id: number) => comments.filter((c) => c.parentId && rootOf(c) === id).sort((a, b) => a.createdAt - b.createdAt || a.id - b.id);
     count.textContent = total ? t('js.cmt.count', { n: total }) : '';
     queueMicrotask(() => document.dispatchEvent(new CustomEvent('mori:comments-rendered', { detail: comments })));
     const list = h('ol', { class: 'cmt-list' }, ...top.map((c) => item(c, replies(c.id))));
