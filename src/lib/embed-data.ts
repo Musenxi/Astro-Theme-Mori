@@ -23,6 +23,8 @@ export interface Card {
   player?: string;
   /** X：作者 */
   author?: { name: string; handle: string; avatar?: string };
+  /** X：配图（最多四张；视频、动图给的是封面） */
+  media?: Array<{ src: string; w: number; h: number; video?: boolean; alt?: string }>;
   date?: string;
   /** GitHub 文件、Gist：代码 */
   files?: CardCode[];
@@ -97,7 +99,10 @@ async function fetchCard(c: Site): Promise<Omit<Card, 'url' | 'site' | 'kind' | 
       const d = await get(`https://cdn.syndication.twimg.com/tweet-result?id=${c.id}&token=${token}&lang=zh`);
       if (!d?.text) throw new Error('x');
       const text = String(d.text).slice(...(d.display_text_range ?? [0, d.text.length]) as [number, number]);
-      return { desc: text, author: { name: d.user?.name, handle: d.user?.screen_name, avatar: d.user?.profile_image_url_https }, date: d.created_at && day(new Date(d.created_at).toISOString()) };
+      const media = ((d.mediaDetails ?? []) as Array<{ type: string; media_url_https: string; original_info?: { width: number; height: number }; ext_alt_text?: string }>)
+        .filter((m) => m.media_url_https).slice(0, 4)
+        .map((m) => ({ src: m.media_url_https, w: m.original_info?.width ?? 1, h: m.original_info?.height ?? 1, ...(m.type !== 'photo' ? { video: true } : {}), ...(m.ext_alt_text ? { alt: m.ext_alt_text } : {}) }));
+      return { desc: text, author: { name: d.user?.name, handle: d.user?.screen_name, avatar: d.user?.profile_image_url_https }, date: d.created_at && day(new Date(d.created_at).toISOString()), ...(media.length ? { media } : {}) };
     }
   }
   throw new Error(`不认识的网站 ${c.site}`);

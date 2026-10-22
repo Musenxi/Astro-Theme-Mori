@@ -55,6 +55,11 @@
 .embed-meta{font-size:var(--text-meta);letter-spacing:.04em;color:var(--muted-foreground);font-feature-settings:"tnum"}
 .embed-author{display:flex;align-items:center;gap:.5em;font-size:var(--text-meta);color:var(--muted-foreground)}
 .embed-author img{width:22px;height:22px;border-radius:50%}
+/* X 帖子的配图：一张按原比例（太高的裁成竖幅）；两张并排；三张左大右二；四张田字格。和 X 自己的排法一样 */
+.embed-media{display:grid;gap:3px;margin-top:.45em;overflow:hidden;border-radius:6px;aspect-ratio:16/9;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.embed-media[data-n="1"]{aspect-ratio:var(--ar);max-height:min(36em,80vh);grid-template-columns:1fr;grid-template-rows:1fr}
+.embed-media[data-n="2"] > *{grid-row:span 2}
+.embed-media[data-n="3"] > :first-child{grid-row:span 2}
 .embed-video{margin-block:.6em 1.8em}
 .embed-code{margin-block:.4em 1.6em}
 .embed-code>.code{margin-block:0 .8em!important}

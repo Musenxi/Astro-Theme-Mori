@@ -1,7 +1,7 @@
 ---
 /**
  * 网站卡片（单独一行的知名网站链接）：数据在构建时取（lib/embed-data.ts）。
- * GitHub 仓库 / Issue / PR / 提交、X 的帖子是一张链接卡；GitHub 文件、Gist 直接显示代码；YouTube、哔哩哔哩先显示封面，点了才加载播放器（scripts/embed.ts）。
+ * GitHub 仓库 / Issue / PR / 提交、X 的帖子是一张链接卡（X 的帖子带配图）；GitHub 文件、Gist 直接显示代码；YouTube、哔哩哔哩先显示封面，点了才加载播放器（scripts/embed.ts）。
  * 数据取不到时退成只有网址的链接卡。
  */
 import { getCard } from '../lib/embed-data.ts';
@@ -28,6 +28,9 @@ const meta = (card?.meta ?? []).map((m) => STATE[m] ?? m);
 const shortUrl = url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
 // 哔哩哔哩的封面原图有一两千像素宽：按显示宽度向图床要缩好的 webp。缩过之后只有几十 KB，不必懒加载（常在首屏，懒加载会拖慢首屏）
 const thumbSet = card?.thumb && /\.hdslb\.com\//.test(card.thumb) ? [480, 960, 1440].map((w) => `${card.thumb}@${w}w_${(w * 9) / 16}h_1c.webp ${w}w`).join(', ') : undefined;
+// X 的配图：图床按 name= 给几种宽度（small 680、medium 1200、large 2048）
+const twimg = (src: string, name: string) => `${src.replace(/\.(jpe?g|png|webp)$/i, '')}?format=${/\.png$/i.test(src) ? 'png' : 'jpg'}&name=${name}`;
+const media = card?.ok ? card.media ?? [] : [];
 ---
 
 {
@@ -58,6 +61,16 @@ const thumbSet = card?.thumb && /\.hdslb\.com\//.test(card.thumb) ? [480, 960, 1
             <span>@{card.author.handle}</span>
           </span>
           <span class="embed-text">{card.desc}</span>
+          {media.length > 0 && (
+            <span class="embed-media" data-n={media.length} style={media.length === 1 ? { '--ar': `${media[0].w} / ${media[0].h}` } : undefined}>
+              {media.map((m) => (
+                <span class="relative block overflow-hidden bg-muted">
+                  <img class="size-full object-cover" src={twimg(m.src, 'medium')} srcset={`${twimg(m.src, 'small')} 680w, ${twimg(m.src, 'medium')} 1200w, ${twimg(m.src, 'large')} 2048w`} sizes="(max-width: 760px) 100vw, 640px" width={m.w} height={m.h} alt={m.alt ?? ''} loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  {m.video && <span class="lg lg-btn absolute top-1/2 left-1/2 grid size-[44px] -translate-1/2 place-items-center text-(--lg-fg)" set:html={iconSvg('play', 'size-[16px] translate-x-[1px]')} />}
+                </span>
+              ))}
+            </span>
+          )}
           {card.date && <span class="embed-meta">{card.date}</span>}
         </>
       ) : card?.ok ? (
