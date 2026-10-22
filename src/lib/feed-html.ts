@@ -86,6 +86,11 @@ export async function postHtml(d: PostData, ctx: FeedCtx): Promise<string> {
       case 'free':
         for (const it of b.items) out.push(it.kind === 'image' ? await figure(ctx, it.src, it.alt, it.caption) : `<p>${inline(it.text, ctx.base, nums)}</p>`);
         break;
+      case 'interlude':
+        out.push('<hr />');
+        for (const it of b.items) out.push(it.kind === 'text' ? `<p>${inline(it.text, ctx.base, nums)}</p>` : await figure(ctx, it.src, it.alt, it.caption));
+        out.push('<hr />');
+        break;
       // 地图是构建时画的矢量图，订阅里不放
     }
   }

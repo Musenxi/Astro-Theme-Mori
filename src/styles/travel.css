@@ -1,5 +1,5 @@
 /* 长卷（横滚、地图）：三种读法（竖向 / 混合 / 横向）的版式、图片块、进场显现。由 <div.travel data-mode> 的属性驱动，所以留在 CSS 里；文字、封面、行程表、角落控件的样式在各自的组件里 */
-.t-body,.t-vp,.t-track,.blk,.hgroup{position:relative}
+.t-body,.t-reel,.t-vp,.t-track,.blk,.hgroup{position:relative}
 
 /* 正文里的地点：地名用主题色，前面一个定位图标（lucide 的 map-pin，用 mask 着色）；标题里的保持标题的样子 */
 .place{color:var(--primary)}
@@ -155,15 +155,37 @@
 .travel:not([data-mode="h"]) .b-text.box-v.v[class]{width:auto;min-width:calc(var(--bw-v,0)*100%);max-width:calc(100% - var(--x-v,0)*100%)}
 .travel:not([data-mode="h"]) .b-text.bh-v:not(.v){min-height:calc(var(--bh-v)*100vh)}
 .travel:not([data-mode="h"]) .b-text.bh-v.v{height:calc(var(--bh-v)*100vh)}
-/* 底边的进度线，上面一格一格是各章（二级标题）的位置，点了跳过去 */
+/* 网页底边的进度线（管整篇），上面一格一格是各章（二级标题）的位置，点了跳过去 */
 .h-progress{display:none}
-.travel[data-mode="h"] .h-progress{display:block;position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--border)}
+.travel[data-mode="h"] .h-progress{display:block;position:fixed;z-index:20;left:0;right:0;bottom:0;height:1px;background:var(--border);opacity:0;transition:opacity .4s}
+/* 读到正文里才出来（脚本加 .on），读完正文、到评论区就收起来 */
+.travel[data-mode="h"] .h-progress.on{opacity:1}
+.h-progress:not(.on) .h-ticks{pointer-events:none}
 .h-progress i{position:absolute;inset:0;background:var(--primary);transform-origin:0 50%;transform:scaleX(0)}
 .h-ticks{position:absolute;inset:0}
 .h-ticks li{position:absolute;bottom:0;left:var(--at);width:15px;height:15px;margin-left:-7px;cursor:pointer}
 .h-ticks li::after{content:'';position:absolute;left:7px;bottom:0;width:1px;height:6px;background:var(--muted-foreground);transition:height .3s var(--ease-mori),background-color .3s}
 .h-ticks li:hover::after{height:11px;background:var(--foreground)}
 .h-ticks li.on::after{background:var(--primary)}
+
+/* ---------- 幕间：横卷分段处的一屏停顿 ---------- */
+/* 比一屏高出一截，中间那屏钉住，多出来的滚动距离用来让东西依次落下。
+   那一屏是一张画布（--ar 宽高比，整张放进屏幕里），文字和图片按 --x / --y（左上角）、--w（宽）、--rot（角度）摆；字号按画布宽缩放，换了屏幕构图不变。
+   每样东西的 --e（0→1）由 scripts/travel.ts 按滚动进度给，没有脚本时就是 1（直接摆好） */
+.t-inter{position:relative;height:210vh}
+.travel:not([data-mode="h"]) .t-inter{height:170vh;margin-block:clamp(56px,9vw,128px)}
+.ti-stage{position:sticky;top:0;display:flex;height:100vh;align-items:center;justify-content:center;overflow:hidden}
+.ti-canvas{position:relative;width:min(calc(100vw - 2*var(--gut)),calc((100vh - 2*clamp(48px,9vh,112px))*var(--ar,1.6)));aspect-ratio:var(--ar,1.6);container-type:inline-size;font-size:1.7cqw}
+.ti-it{position:absolute;left:calc(var(--x)*100%);top:calc(var(--y)*100%);width:calc(var(--w)*100%);margin:0;rotate:calc(var(--rot,0deg) + (1 - var(--e,1))*7deg);transform-origin:50% 50%}
+.ti-a{opacity:var(--e,1);translate:0 calc((1 - var(--e,1))*3.2rem)}
+.ti-text{font-size:calc(var(--size,1)*1em);line-height:1.9;letter-spacing:.06em;text-wrap:pretty}
+.ti-text.auto{width:max-content;max-width:calc((1 - var(--x))*100%)}
+.ti-text.v{width:auto;max-height:calc((1 - var(--y))*100%);writing-mode:vertical-rl;letter-spacing:.14em;line-height:2.05}
+.ti-text[data-align="center"]{text-align:center}
+.ti-text[data-align="end"]{text-align:end}
+.ti-text[data-align="justify"]{text-align:justify}
+.ti-img img{display:block;width:100%;height:auto;background:var(--muted);cursor:zoom-in}
+.ti-img figcaption{font-size:max(var(--text-meta),.8em)}
 
 /* ---------- 横滚方向：右→左（作者按篇设置） ---------- */
 .travel[data-dir="rtl"][data-mode="h"] .t-vp{direction:rtl}
@@ -189,5 +211,12 @@
   .travel[data-mode="h"]{--ph:min(60vh,116vw)}
   .travel:not([data-mode="h"]) .b-text.box-v[class]{width:auto;margin-left:0}
   .travel:not([data-mode="h"]) .b-single.box-v[class]{width:auto;margin-left:0}
+  /* 手机上画布放不下：幕间不钉住，东西按顺序一样一样往下排 */
+  .t-inter,.travel:not([data-mode="h"]) .t-inter{height:auto;padding-block:14vh}
+  .ti-stage{position:static;height:auto;padding-inline:var(--gut);overflow:visible}
+  .ti-canvas{display:flex;width:100%;aspect-ratio:auto;flex-direction:column;align-items:center;gap:2.2em;font-size:var(--text-body)}
+  .ti-it,.ti-text.auto{position:static;width:100%;max-width:none}
+  .ti-text.v{width:auto;max-height:60vh}
+  .ti-img{width:min(100%,calc(var(--w)*200%))}
   .travel:not([data-mode="h"]) .wfig[class]{float:none;width:auto;max-width:none;margin:0 0 1.6em}
 }

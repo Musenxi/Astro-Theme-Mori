@@ -3,7 +3,7 @@
  * 横向不劫持滚轮：页面仍是原生竖向滚动，横移由 position:sticky + transform 实现（触控板、键盘、滚动条都能用）。
  *  - 竖向（v）：一路往下；横向图组是可以左右滑动的一行。
  *  - 混合（m）：一路往下；横向图组钉住，由竖向滚动驱动横移。
- *  - 横向（h）：整篇排进横轴，竖向滚动驱动整条轨道横移。
+ *  - 横向（h）：整篇排进横轴，竖向滚动驱动整条轨道横移。幕间把横卷分成几段（.t-reel），各段各自横移，中间的幕间竖着滚过。
  * 切换读法时回到当前读到的那一块，不丢阅读位置。
  * 读到哪个地点：每一列带 data-place（第几个地点）；正文里的地点标记是 #place-<n>。
  */
@@ -29,10 +29,21 @@ function init() {
   travel.dataset.ready = '1';
 
   const tbody = travel.querySelector<HTMLElement>('.t-body')!;
-  const track = travel.querySelector<XTrack>('.t-track')!;
+  /** 一段横卷：外层撑出滚动距离，里面钉住的视口、横移的轨道 */
+  type Reel = { el: HTMLElement; vp: HTMLElement; track: XTrack };
+  const reels: Reel[] = [...travel.querySelectorAll<HTMLElement>('.t-reel')].map((el) => ({ el, vp: el.querySelector<HTMLElement>('.t-vp')!, track: el.querySelector<XTrack>('.t-track')! }));
+  /** 网页底边的进度线（横向读法，管整篇）和上面各章的刻度 */
+  const bar = travel.querySelector<HTMLElement>('.h-progress'), progress = bar?.querySelector<HTMLElement>('i'), ticks = bar?.querySelector<HTMLElement>('.h-ticks');
+  let marks: Array<{ li: HTMLLIElement; p: number }> = [];
+  const reelOf = (el: Element) => reels.find((r) => r.track.contains(el));
+  /** 一段横卷在页面里的顶端（它的横移从这里开始算） */
+  const reelTop = (r: Reel) => r.el.getBoundingClientRect().top + scrollY;
   const strips = [...travel.querySelectorAll<HTMLElement>('.b-strip')];
-  const blocks = [...travel.querySelectorAll<HTMLElement>('.t-track .blk')];
-  const progress = travel.querySelector<HTMLElement>('.h-progress i');
+  const blocks = [...travel.querySelectorAll<HTMLElement>('.t-track .blk, .t-inter')];
+  /** 幕间里依次落下的东西，--d 是开始落下的进度 */
+  const inters = [...travel.querySelectorAll<HTMLElement>('.t-inter')].map((el) => ({
+    el, things: [...el.querySelectorAll<HTMLElement>('.ti-a')].map((x) => ({ x, d: parseFloat(x.style.getPropertyValue('--d')) || 0, e: -1 })),
+  }));
   const mc = document.querySelector<HTMLElement>('#mc');
   const loc = document.querySelector<HTMLElement>('#loc');
   const allowed = (mc?.dataset.modes?.split(',') ?? [travel.dataset.mode!]) as Mode[];
@@ -73,35 +84,57 @@ function init() {
   function layout() {
     const m = mode();
     flowText();
-    tbody.style.height = '';
     for (const s of strips) { s.style.height = ''; const t = s.querySelector<XTrack>('.strip-track')!; t.style.transform = ''; t._x = null; t._v = 0; }
-    track.style.transform = ''; track._x = null; track._v = 0;
+    for (const r of reels) { r.el.style.height = ''; r.track.style.transform = ''; r.track._x = null; r.track._v = 0; }
     for (const v of travel!.querySelectorAll<HTMLElement>('.t-vp, .strip-vp')) v.style.transform = '';
-    if (m === 'h') { tbody.style.height = Math.max(innerHeight, track.offsetWidth - vw() + innerHeight) + hold() + 'px'; drawTicks(); }
+    if (m === 'h') { for (const r of reels) r.el.style.height = Math.max(innerHeight, r.track.offsetWidth - vw() + innerHeight) + hold() + 'px'; drawTicks(); }
     if (m === 'm') for (const s of strips) s.style.height = Math.max(innerHeight, s.querySelector<HTMLElement>('.strip-track')!.offsetWidth - vw() + innerHeight) + hold() + 'px';
   }
   relayoutOnResize = () => { if (travel.isConnected) { layout(); snap = true; } };
 
+  /** 整篇在页面里的滚动范围：从第一段横卷的顶端，到正文最后离开屏幕 */
+  const span = () => { const top = tbody.getBoundingClientRect().top + scrollY; return { top, len: Math.max(1, tbody.offsetHeight - innerHeight) }; };
+  /** 一块在横卷里走到阅读起点时，页面滚到哪儿（和 scrollToBlock 一样算） */
+  function reelY(reel: Reel, b: HTMLElement) {
+    const { track } = reel;
+    const edge = parseFloat(getComputedStyle(track).paddingLeft);
+    const x = rtl() ? track.offsetWidth - (b.offsetLeft + b.offsetWidth) - edge : b.offsetLeft - edge;
+    return reelTop(reel) + clamp(x, 0, Math.max(0, track.offsetWidth - vw()));
+  }
   // 进度线上各章（二级标题）的位置：读到那一章时，进度正好走到它的刻度
-  const ticks = travel.querySelector<HTMLElement>('.h-ticks');
-  let marks: Array<{ el: HTMLElement; li: HTMLLIElement; p: number }> = [];
   function drawTicks() {
     if (!ticks) return;
-    const max = Math.max(1, track.offsetWidth - vw()), edge = parseFloat(getComputedStyle(track).paddingLeft);
-    const heads = [...track.querySelectorAll<HTMLElement>('.b-head')].filter((el) => el.offsetParent !== null);
-    marks = heads.map((el) => {
+    const { top, len } = span();
+    marks = reels.flatMap((reel) => [...reel.track.querySelectorAll<HTMLElement>('.b-head')].filter((el) => el.offsetParent !== null).map((el) => {
       // 标题在标题组里时，量整组的位置
       const b = el.parentElement?.classList.contains('hgroup') ? el.parentElement : el;
-      const x = rtl() ? track.offsetWidth - (b.offsetLeft + b.offsetWidth) - edge : b.offsetLeft - edge;
+      const p = clamp((reelY(reel, b) - top) / len, 0, 1);
       const li = document.createElement('li');
-      const p = clamp(x / max, 0, 1);
       li.style.setProperty('--at', `${(rtl() ? 1 - p : p) * 100}%`);
       li.title = el.querySelector('h2')?.textContent?.trim() ?? '';
       li.addEventListener('click', () => { scrollToBlock(b); });
-      return { el: b, li, p };
-    });
+      return { li, p };
+    }));
     ticks.replaceChildren(...marks.map((m) => m.li));
   }
+  /** 进度：横移的那一段按画面上横卷实际走到哪儿算（跟着弹簧，不会比画面快），别处按滚动位置 */
+  function drawProgress() {
+    if (!bar || !progress) return;
+    const r = tbody.getBoundingClientRect(), on = mode() === 'h' && r.top < innerHeight * 0.5 && r.bottom > innerHeight * 0.5;
+    if (bar.classList.contains('on') !== on) bar.classList.toggle('on', on);
+    if (!on) return;
+    const { top, len } = span();
+    let y = scrollY;
+    for (const reel of reels) {
+      const t = reelTop(reel), max = Math.max(0, reel.track.offsetWidth - vw());
+      if (scrollY >= t && scrollY <= t + max && reel.track._x != null) { y = t + reel.track._x; break; }
+    }
+    const q = clamp((y - top) / len, 0, 1);
+    progress.style.transform = `scaleX(${q})`;
+    for (const m of marks) m.li.classList.toggle('on', q >= m.p - 0.001);
+  }
+  /** 横卷里的东西要不要按横轴算：横向读法里、在某段横卷里、而且那段横卷正在屏幕上（别的段在屏幕外，横轴上的位置不作数） */
+  const onReel = (el: Element, r: DOMRect) => mode() === 'h' && !!reelOf(el) && r.bottom > 0 && r.top < innerHeight;
 
   /** 当前读到的块：横向按横轴上的一条线，竖向按屏幕偏上的一条线 */
   function current() {
@@ -110,19 +143,19 @@ function init() {
     for (const b of blocks) {
       if (b.offsetParent === null) continue;
       const r = b.getBoundingClientRect();
-      const d = mode() === 'h' ? (X < r.left ? r.left - X : X > r.right ? X - r.right : 0) : (Y < r.top ? r.top - Y : Y > r.bottom ? Y - r.bottom : 0);
+      if (mode() === 'h' && reelOf(b) && (r.bottom <= 0 || r.top >= innerHeight)) continue;
+      const d = onReel(b, r) ? (X < r.left ? r.left - X : X > r.right ? X - r.right : 0) : (Y < r.top ? r.top - Y : Y > r.bottom ? Y - r.bottom : 0);
       if (d < bd) { bd = d; best = b; }
     }
     return best;
   }
 
   function scrollToBlock(b: HTMLElement) {
-    if (mode() === 'h') {
-      const top = tbody.getBoundingClientRect().top + scrollY;
-      const edge = parseFloat(getComputedStyle(track).paddingLeft);
-      const max = Math.max(0, track.offsetWidth - vw());
-      const x = rtl() ? track.offsetWidth - (b.offsetLeft + b.offsetWidth) - edge : b.offsetLeft - edge;
-      scrollTo(0, top + clamp(x, 0, max));
+    const reel = mode() === 'h' ? reelOf(b) : undefined;
+    if (reel) scrollTo(0, reelY(reel, b));
+    else if (b.classList.contains('t-inter')) {
+      // 幕间：停在里面的东西都落好的地方
+      scrollTo(0, b.getBoundingClientRect().top + scrollY + Math.max(0, b.offsetHeight - innerHeight) * 0.75);
     } else scrollTo(0, b.getBoundingClientRect().top + scrollY - innerHeight * 0.2);
   }
 
@@ -131,11 +164,12 @@ function init() {
     if (!travel!.isConnected) { document.removeEventListener('mori:reveal', onReveal); return; }
     const el = (e as CustomEvent<{ el: Element; handled: boolean }>).detail.el;
     const b = el.closest<HTMLElement>('.t-track .blk');
-    if (!b || mode() !== 'h') return; // 竖向 / 混合读法：交给原生滚动
-    const top = tbody.getBoundingClientRect().top + scrollY;
+    const reel = b && reelOf(b);
+    if (!b || !reel || mode() !== 'h') return; // 竖向 / 混合读法、幕间：交给原生滚动
+    const { track } = reel;
     const max = Math.max(0, track.offsetWidth - vw());
     const x = rtl() ? track.offsetWidth - b.offsetLeft - b.offsetWidth / 2 - vw() / 2 : b.offsetLeft + b.offsetWidth / 2 - vw() / 2;
-    scrollTo({ top: top + clamp(x, 0, max), behavior: reduce ? 'auto' : 'smooth' });
+    scrollTo({ top: reelTop(reel) + clamp(x, 0, max), behavior: reduce ? 'auto' : 'smooth' });
     (e as CustomEvent).detail.handled = true;
   };
   document.addEventListener('mori:reveal', onReveal);
@@ -165,26 +199,34 @@ function init() {
   const upright = (el: Element) => getComputedStyle(el).writingMode.startsWith('vertical');
   /** 上一次切换时放回去的那一处：横向里一列的几段叠在同一条竖线上，分不出读到哪段；读者没离开它（还压在阅读线上）就照旧用它，来回切也不会丢 */
   let kept: { id: string; p: number } | null = null;
+  /** 正文里能当位置的东西：横卷、竖滚里的各段，和幕间 */
+  const marked = (id?: string) => travel!.querySelectorAll<HTMLElement>(id ? `.t-track [data-b="${CSS.escape(id)}"], .t-inter[data-b="${CSS.escape(id)}"]` : '.t-track [data-b], .t-inter[data-b]');
   function reading(): { id: string; p: number } | null {
     const h = mode() === 'h', X = lineX(), Y = lineY();
-    const dist = (r: DOMRect) => (h ? (X < r.left ? r.left - X : X > r.right ? X - r.right : 0) : (Y < r.top ? r.top - Y : Y > r.bottom ? Y - r.bottom : 0));
+    // 正在屏幕上的那段横卷里按横轴量，别的（竖滚、幕间）按竖轴量
+    const dist = (el: Element, r: DOMRect) => (onReel(el, r) ? (X < r.left ? r.left - X : X > r.right ? X - r.right : 0) : (Y < r.top ? r.top - Y : Y > r.bottom ? Y - r.bottom : 0));
     let best: HTMLElement | null = null, bd = Infinity;
-    for (const el of track.querySelectorAll<HTMLElement>('[data-b]')) {
-      for (const r of boxes(el)) { const d = dist(r); if (d < bd) { bd = d; best = el; } }
+    for (const el of marked()) {
+      for (const r of boxes(el)) {
+        if (h && reelOf(el) && (r.bottom <= 0 || r.top >= innerHeight)) continue; // 不在屏幕上的那几段横卷
+        const d = dist(el, r);
+        if (d < bd) { bd = d; best = el; }
+      }
     }
     if (!best) return null;
-    if (h && kept) { const el = shown(kept.id); if (el && dist(boxAt(el, kept.p)) <= bd + 1) return kept; }
+    if (h && kept) { const el = shown(kept.id); if (el && reelOf(el) && dist(el, boxAt(el, kept.p)) <= bd + 1) return kept; }
     const rs = boxes(best);
     let p = 0;
     if (upright(best)) {
       // 竖排：从右往左读；竖滚里的竖排框是横着滚的，按横向算
-      const r = rs[0], at = h ? X : r.left + r.width / 2;
+      const r = rs[0], at = onReel(best, r) ? X : r.left + r.width / 2;
       p = clamp((r.right - at) / r.width, 0, 1);
-    } else if (h) {
+    } else if (onReel(best, rs[0])) {
       // 横排分栏：压在阅读线上的是第几栏（按栏的中间算；手卷里第一栏在最右边，所以按距离找）
       const total = rs.reduce((n, r) => n + r.height, 0);
       let i = 0;
-      rs.forEach((r, k) => { if (dist(r) < dist(rs[i])) i = k; });
+      const b = best;
+      rs.forEach((r, k) => { if (dist(b, r) < dist(b, rs[i])) i = k; });
       p = clamp((rs.slice(0, i).reduce((n, r) => n + r.height, 0) + rs[i].height / 2) / total, 0, 1);
     } else {
       const total = rs.reduce((n, r) => n + r.height, 0);
@@ -194,7 +236,7 @@ function init() {
     return { id: best.dataset.b!, p };
   }
   /** 一段在新读法里显示着的那一份（横滚、竖滚写法不同的一列渲染了两份） */
-  const shown = (id: string) => [...track.querySelectorAll<HTMLElement>(`[data-b="${CSS.escape(id)}"]`)].find((x) => boxes(x).length);
+  const shown = (id: string) => [...marked(id)].find((x) => boxes(x).length);
   /** 一段读到 p 处落在它的哪个框里（分栏的长文字是第几栏） */
   function boxAt(el: Element, p: number) {
     const rs = boxes(el), total = rs.reduce((n, r) => n + r.height, 0);
@@ -207,13 +249,13 @@ function init() {
     const el = shown(at.id);
     if (!el) { if (fallback && fallback.offsetParent !== null) scrollToBlock(fallback); return; }
     const rs = boxes(el), total = rs.reduce((n, r) => n + r.height, 0);
-    if (mode() === 'h') {
+    const reel = mode() === 'h' ? reelOf(el) : undefined;
+    if (reel) {
       // layout() 刚把横卷的位移清零：现在量到的就是位移为 0 时的位置
       const r = boxAt(el, at.p);
       const x = upright(el) ? rs[0].right - at.p * rs[0].width : r.left + r.width / 2;
-      const top = tbody.getBoundingClientRect().top + scrollY;
-      const max = Math.max(0, track.offsetWidth - vw());
-      scrollTo(0, top + clamp(rtl() ? lineX() - x : x - lineX(), 0, max));
+      const max = Math.max(0, reel.track.offsetWidth - vw());
+      scrollTo(0, reelTop(reel) + clamp(rtl() ? lineX() - x : x - lineX(), 0, max));
     } else {
       let y = rs[0].top;
       if (!upright(el)) { let before = 0; for (const q of rs) { if (before + q.height >= at.p * total) { y = q.top + (at.p * total - before); break; } before += q.height; } }
@@ -262,7 +304,7 @@ function init() {
    * 这一段里往下滚的滚轮量还要打折（见 resist），所以甩一下滑不过去，得接着推。
    */
   const STIFF = 9; // 弹簧的角频率：越小越“沉”，约 4/STIFF 秒停稳
-  function drive(outer: HTMLElement, tr: XTrack, dt: number, vp: HTMLElement, prog?: HTMLElement | null) {
+  function drive(outer: HTMLElement, tr: XTrack, dt: number, vp: HTMLElement) {
     const r = outer.getBoundingClientRect();
     const max = Math.max(0, tr.offsetWidth - vw());
     const H = hold(), span = Math.max(0, r.height - innerHeight - H), past = -r.top - span;
@@ -283,11 +325,6 @@ function init() {
     }
     tr._v = v;
     if (x !== tr._x) { tr._x = x; tr.style.transform = `translate3d(${rtl() ? x : -x}px,0,0)`; }
-    if (prog) {
-      const q = max ? clamp(x / max, 0, 1) : 0;
-      prog.style.transform = `scaleX(${q})`;
-      for (const m of marks) m.li.classList.toggle('on', max > 0 && q >= m.p - 0.001);
-    }
   }
 
   const hero = travel.querySelector('.t-hero')!, end = travel.querySelector('.t-end');
@@ -450,7 +487,24 @@ function init() {
   }
 
   let last = performance.now();
-  const tvp = travel.querySelector<HTMLElement>('.t-vp')!;
+
+  /**
+   * 幕间：从顶端进到屏幕六成处开始，到钉住的那一屏走过七成为止，画布上的文字和图片按各自的 --d 依次落下
+   * （每样走两成半的进度，先快后慢）。手机上幕间不钉住，按进场的进度算
+   */
+  const easeOut = (x: number) => 1 - (1 - x) ** 3;
+  function inter() {
+    for (const it of inters) {
+      const r = it.el.getBoundingClientRect();
+      if (r.bottom < -innerHeight || r.top > innerHeight * 2) continue;
+      const span = Math.max(0, r.height - innerHeight);
+      const p = clamp((innerHeight * 0.6 - r.top) / (innerHeight * 0.6 + span * 0.7 || 1), 0, 1);
+      for (const t of it.things) {
+        const e = reduce ? 1 : Math.round(easeOut(clamp((p - t.d) / 0.25, 0, 1)) * 1000) / 1000;
+        if (e !== t.e) { t.e = e; t.x.style.setProperty('--e', String(e)); }
+      }
+    }
+  }
 
   // 横卷范围里的滚轮由这里接管（浏览器自己的平滑滚动会让一次甩动的事件都在页面滚到之前处理完，判断不了到没到头）：
   // 滚轮的量记成目标位置 aim，tick 里每帧平滑地追过去（和画面的位移在同一帧算，不会错开一帧）。触控板左右扫也能拖横卷。
@@ -461,14 +515,18 @@ function init() {
     if (!travel!.isConnected) return removeEventListener('wheel', resist);
     if (e.ctrlKey || tmap?.classList.contains('open')) return;
     const m = mode();
-    const outer = m === 'h' ? tbody : m === 'm' ? strips.find((x) => { const r = x.getBoundingClientRect(); return r.top <= 1 && r.bottom > 0; }) : null;
-    if (!outer) return;
+    // 横向：已经进到的最后一段横卷（按还没追完的目标位置算，幕间里就是上面那段）；混合：钉住的那个图组
+    const ahead0 = (aim ?? scrollY) - scrollY;
+    const outer = m === 'h' ? reels.filter((r) => r.el.getBoundingClientRect().top - ahead0 <= 1).at(-1)?.el : m === 'm' ? strips.find((x) => { const r = x.getBoundingClientRect(); return r.top <= 1 && r.bottom > 0; }) : null;
+    if (!outer && aim === null) return;
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1;
     const dx = e.deltaX * unit, dy0 = e.deltaY * unit;
     const dy = m === 'h' && Math.abs(dx) > Math.abs(dy0) ? (rtl() ? -dx : dx) : dy0;
     const now = performance.now(), abs = Math.abs(dy);
     if (now - lastWheel > 150 || (lastAbs < 40 && abs > lastAbs * 1.8 + 4)) gesture++;
     lastWheel = now; lastAbs = abs;
+    // 还在追、但已经不在任何一段横卷里（第一段之前）：接着把这段滚完
+    if (!outer) { if (dy) { e.preventDefault(); aim = clamp(aim! + dy, 0, root.scrollHeight - innerHeight); } return; }
     const H = hold(), r = outer.getBoundingClientRect(), past = -r.top - Math.max(0, r.height - innerHeight - H);
     // 还没追到的那段也算上：按目标位置判断到没到头
     const from = aim ?? scrollY, ahead = past + (from - scrollY);
@@ -499,8 +557,10 @@ function init() {
     const m = mode(), dt = clamp((now - last) / 1000, 0, 0.05);
     last = now;
     chase(dt);
-    if (m === 'h') drive(tbody, track, dt, tvp, progress);
+    if (m === 'h') for (const r of reels) drive(r.el, r.track, dt, r.vp);
     else if (m === 'm') for (const s of strips) drive(s, s.querySelector<XTrack>('.strip-track')!, dt, s.querySelector<HTMLElement>('.strip-vp')!);
+    inter();
+    drawProgress();
     updateLoc();
     snap = false;
     requestAnimationFrame(tick);

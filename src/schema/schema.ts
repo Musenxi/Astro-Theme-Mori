@@ -175,6 +175,8 @@ export const articleBlocks = (image: ImageFn) => {
 };
 
 const unit = z.number().min(0).max(1);
+/** 转的角度（度） */
+const rotSchema = z.number().min(-180).max(180).optional();
 /** 文字自己的对齐（排版软件那样）：start 横排靠左 / 竖排靠上，end 靠右 / 靠下，justify 两端对齐；不写是各块自己的默认 */
 const alignSchema = z.enum(['start', 'center', 'end', 'justify']);
 /** 一组文字在块的框里的位置：start 靠左，center 居中，end 靠右（竖排的字不写是靠右）；横排的字撑满框，没有位置可调 */
@@ -193,7 +195,7 @@ const axes = {
   v: z.object({ writing: z.enum(['h', 'v']).optional(), x: z.number().min(0).max(1).optional(), bw: z.number().positive().max(1).optional(), bh: z.number().positive().max(1).optional(), fs: z.number().min(0.5).max(4).optional(), lh: z.number().min(1).max(4).optional(), align: alignSchema.optional(), pos: posSchema.optional(), wrap: z.enum(['start', 'end']).optional() }).optional(),
 };
 
-/** 文章正文里的块：文字和图片，加上长卷（横滚）版式才有的图组、自由排布、地图 */
+/** 文章正文里的块：文字和图片，加上长卷（横滚）版式才有的图组、自由排布、地图、幕间 */
 export const postBlocks = (image: ImageFn) =>
   z.discriminatedUnion('type', [
     z.object({ id, type: z.literal('p'), text: inlineSchema, ...axes }),
@@ -230,6 +232,20 @@ export const postBlocks = (image: ImageFn) =>
     }),
     /** 地图：region 当前读到的地点所在的区域（默认），route 全程路线，near 只看当前读到的地点附近 */
     z.object({ id, type: z.literal('map'), scope: z.enum(['region', 'route', 'near']).default('region'), ...axes }),
+    /**
+     * 幕间：把横卷分成几段。横滚到这里先结束这一段，页面往下走过一屏停顿，再接下一段横卷；竖滚里是章节之间同样的一屏停顿。
+     * 这一屏是一张画布（宽高比 ar，放进屏幕里），上面的文字、图片由作者随意摆：x / y 是左上角在画布里的位置，
+     * w 是宽（画布宽的比例），rot 是转的角度。滚进来时按顺序一样一样落下
+     */
+    z.object({
+      id, type: z.literal('interlude'),
+      ar: z.number().positive().default(1.6),
+      items: z.array(z.discriminatedUnion('kind', [
+        /** 文字：横排给宽度，竖排不给（按画布高换列）；size 字号倍数，align 对齐 */
+        z.object({ kind: z.literal('text'), text: inlineSchema, x: unit, y: unit, w: z.number().positive().max(1).optional(), rot: rotSchema, writing: z.enum(['h', 'v']).default('h'), size: z.number().min(0.5).max(6).optional(), align: alignSchema.optional() }),
+        z.object({ kind: z.literal('image'), ...picture(image), x: unit, y: unit, w: z.number().positive().max(1), rot: rotSchema }),
+      ])).default([]),
+    }),
   ]);
 
 export const postSchema = ({ image }: SchemaContext) =>

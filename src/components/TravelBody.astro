@@ -107,8 +107,6 @@ const bleed = (b: { h?: { bleed?: boolean } }) => b.h?.bleed && 'bleed';
 ---
 
 <div class="t-body">
-  <div class="t-vp">
-    <div class="t-track">
       {(() => {
         const col = (c: Flow['columns'][number]) => {
           if (c.kind === 'text') {
@@ -247,9 +245,10 @@ const bleed = (b: { h?: { bleed?: boolean } }) => b.h?.bleed && 'bleed';
         /** 浮起来的块（横滚里不占位置、按 x 挪）：包一层零宽的占位，竖滚里这层不起作用 */
         const floated = (x: number | undefined, node: unknown) => (x === undefined ? node : <div class="fslot">{node}</div>);
         // 标题和紧跟着的那列文字挨着排（.hgroup）：标题没设上下位置就和文字一起挪，顶端对齐
+        const reel = (cols: Flow['columns']) => {
         const out = [];
-        for (let i = 0; i < columns.length; i++) {
-          const c = columns[i], t = columns[i + 1];
+        for (let i = 0; i < cols.length; i++) {
+          const c = cols[i], t = cols[i + 1];
           if (c.kind === 'text' && c.lead && t?.kind === 'text') {
             i++;
             out.push(
@@ -260,10 +259,53 @@ const bleed = (b: { h?: { bleed?: boolean } }) => b.h?.bleed && 'bleed';
           } else out.push(floated(c.kind === 'text' ? c.x : c.block.h?.x, col(c)));
         }
         return out;
+        };
+        /**
+         * 幕间：一屏的停顿，作者在一张画布上随意摆的文字和图片，滚进来时按顺序一样一样落下
+         * （scripts/travel.ts 按滚动进度给每样东西 --e，--d 是它开始落下的进度）
+         */
+        const interlude = (c: Extract<Flow['columns'][number], { kind: 'block' }>) => {
+          const b = c.block as Extract<PostData['blocks'][number], { type: 'interlude' }>;
+          const n = b.items.length;
+          // 东西越多，一样接一样落得越密，最后一样总在钉住的那一屏走完前落好
+          const d = (i: number) => (n > 1 ? 0.06 + (i / (n - 1)) * Math.min(0.5, 0.12 * (n - 1)) : 0.1);
+          return (
+            <section class="t-inter" data-b={b.id} {...at(c)}>
+              <div class="ti-stage">
+                <div class="ti-canvas" style={{ '--ar': b.ar }}>
+                  {b.items.map((it, i) => {
+                    const style = { '--x': it.x, '--y': it.y, '--w': it.w, '--rot': it.rot !== undefined ? `${it.rot}deg` : undefined, '--d': d(i) };
+                    if (it.kind === 'text') return <p class:list={['ti-it ti-a ti-text', it.writing === 'v' && 'v', it.w === undefined && 'auto']} data-align={it.align} style={{ ...style, '--size': it.size }} set:html={html(it.text)} />;
+                    return (
+                      <figure class="ti-it ti-a ti-img" style={style}>
+                        <Image src={it.src} alt={it.alt} widths={[400, 800, 1200, 1600]} sizes={`${Math.round(it.w * 100)}vw`} />
+                        {it.caption && <figcaption class="mt-2 text-meta text-muted-foreground">{it.caption}</figcaption>}
+                      </figure>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+          );
+        };
+        // 幕间把横卷分成几段：每段一条自己的横卷，幕间夹在中间竖着滚过
+        const parts: Array<{ cols: Flow['columns'] } | { inter: Extract<Flow['columns'][number], { kind: 'block' }> }> = [];
+        let cur: Flow['columns'] = [];
+        for (const c of columns) {
+          if (c.kind === 'block' && c.block.type === 'interlude') { if (cur.length) parts.push({ cols: cur }); cur = []; parts.push({ inter: c }); }
+          else cur.push(c);
+        }
+        if (cur.length) parts.push({ cols: cur });
+        return parts.map((p) => ('cols' in p ? (
+          <section class="t-reel">
+            <div class="t-vp">
+              <div class="t-track">{reel(p.cols)}</div>
+            </div>
+          </section>
+        ) : interlude(p.inter)));
       })()}
-    </div>
-    <div class="h-progress"><i></i><ol class="h-ticks"></ol></div>
-  </div>
+  {/* 横向读法：网页底边一根进度线管整篇（几段横卷和中间的幕间），上面一格一格是各章的位置 */}
+  <div class="h-progress"><i></i><ol class="h-ticks"></ol></div>
 </div>
 
 {

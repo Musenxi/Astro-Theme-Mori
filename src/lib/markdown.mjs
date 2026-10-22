@@ -247,7 +247,7 @@ export function blockMd(b) {
 const imgLine = (im) => `![${im.alt ?? ''}](${im.src ?? ''}${im.caption ? ` "${im.caption}"` : ''})`;
 
 /**
- * 块摊平成 Markdown 里的一项一项：文字块一项，图片一项；双图、图组、网格、自由排布里每张图一项；地图和自由排布里的小字不在文本里。
+ * 块摊平成 Markdown 里的一项一项：文字块一项，图片一项；双图、图组、网格、自由排布里每张图一项；地图、幕间和自由排布里的小字不在文本里。
  * 项：{ block（块 id）, k（是这个块里的第几项）, kind（p / h / quote / list / code / img）, md, 以及图的 src / alt / caption }
  */
 export function mdItems(blocks) {
@@ -258,7 +258,7 @@ export function mdItems(blocks) {
       case 'image': img(b, 0); break;
       case 'pair': case 'strip': case 'grid': (b.images ?? []).forEach(img); break;
       case 'free': (b.items ?? []).forEach((it, k) => { if (it.kind === 'image') img(it, k); }); break;
-      case 'map': break;
+      case 'map': case 'interlude': break;
       default: { const md = blockMd(b); if (md) items.push({ block: b.id, k: 0, kind: b.type, md }); }
     }
   }
