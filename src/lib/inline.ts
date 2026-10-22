@@ -72,7 +72,9 @@ export function renderInline(spans: Inline, numbers: NoteNumbers): string {
   return spans
     .map((s) => {
       const base = s.marks?.some((m) => m.type === 'math') ? texHtml(s.t, false) : s.marks?.some((m) => m.type === 'emoji') ? emojiHtml(s.t) : escapeHtml(s.t).replace(/\n/g, '<br>');
-      const html = (s.marks ?? []).reduceRight((h, mark) => wrap(h, mark, numbers), base);
+      // 同一段文字只认一个链接（a 里不能再套 a），重复的标注只算一次
+      const marks = (s.marks ?? []).filter((m, i, all) => all.findIndex((x) => (m.type === 'link' ? x.type === 'link' : JSON.stringify(x) === JSON.stringify(m))) === i);
+      const html = marks.reduceRight((h, mark) => wrap(h, mark, numbers), base);
       const place = (s.marks ?? []).find((m) => m.type === 'place');
       if (!place || !numbers.place) { prev = ''; return html; }
       // 被粗体之类拆开的同一个地点只编一个号，id 只给第一段
