@@ -1,6 +1,6 @@
 /**
  * 实况照片：src/assets 里和图片同名的 .mp4（Studio 导入 iPhone 的 HEIC + MOV 时转出来的）。
- * 视频地址：上传到图床的用图床外链（见 cdn.ts）；没上传的由 pages/live/[...path].ts 提供，地址是 /live/<路径>.mp4。
+ * 视频地址：构建时上传到图床的用图床外链（见 cdn.ts）；没上传的（和开发预览里的全部）由 pages/live/[...path].ts 提供，地址是 /live/<路径>.mp4。
  * 时间点是 Studio 转码时写在 mp4 注释里的（mori-photo-time=1.4667）；没有就交给播放器自己估。
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
