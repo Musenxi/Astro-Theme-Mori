@@ -124,7 +124,7 @@ const bleed = (b: { h?: { bleed?: boolean } }) => b.h?.bleed && 'bleed';
             return (
               <section class:list={['blk', 'b-text', c.head && 'b-head', c.anchor && 'anchor', variant.axis && `ax-${variant.axis}`, v && 'v tracking-[.12em] leading-[2.05] [writing-mode:vertical-rl]', ...type(c).cls]} data-align={variant.axis === 'v' ? c.valign : c.align} data-pos={variant.axis === 'v' ? c.vpos : c.pos} {...at(c, c, type(c).style)}>
                 {wrapped && wrapped.type === 'image' && variant.axis !== 'h' && variant.w !== 'v' && (
-                  <figure class="wfig rv" data-side={wrapOf(wrapped)} style={{ '--bw-v': axisOf(wrapped, 'v').bw }}>
+                  <figure class="wfig rv" data-side={wrapOf(wrapped)} data-b={wrapped.id} style={{ '--bw-v': axisOf(wrapped, 'v').bw }}>
                     <Image src={wrapped.src} alt={wrapped.alt} widths={[480, 800, 1200]} sizes="(max-width: 760px) 100vw, 40vw" />
                     {wrapped.caption && <figcaption class="mt-2 text-meta text-muted-foreground">{wrapped.caption}</figcaption>}
                   </figure>

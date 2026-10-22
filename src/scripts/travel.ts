@@ -156,13 +156,82 @@ function init() {
     mc.style.setProperty('--i', String(allowed.indexOf(m)));
   }
 
+  /**
+   * 切换读法时记住读到哪儿：阅读线（横向是屏宽 0.4 处的竖线，竖向是屏高 0.45 处的横线）上的那一段（[data-b]），和读到这一段的几成。
+   * 一段可能分成几栏（横向的长文字）或几行，按它的各个框（getClientRects）依次算；竖排的字从右往左读
+   */
+  const lineX = () => vw() * (rtl() ? 0.6 : 0.4), lineY = () => innerHeight * 0.45;
+  const boxes = (el: Element) => [...el.getClientRects()].filter((r) => r.width && r.height);
+  const upright = (el: Element) => getComputedStyle(el).writingMode.startsWith('vertical');
+  /** 上一次切换时放回去的那一处：横向里一列的几段叠在同一条竖线上，分不出读到哪段；读者没离开它（还压在阅读线上）就照旧用它，来回切也不会丢 */
+  let kept: { id: string; p: number } | null = null;
+  function reading(): { id: string; p: number } | null {
+    const h = mode() === 'h', X = lineX(), Y = lineY();
+    const dist = (r: DOMRect) => (h ? (X < r.left ? r.left - X : X > r.right ? X - r.right : 0) : (Y < r.top ? r.top - Y : Y > r.bottom ? Y - r.bottom : 0));
+    let best: HTMLElement | null = null, bd = Infinity;
+    for (const el of track.querySelectorAll<HTMLElement>('[data-b]')) {
+      for (const r of boxes(el)) { const d = dist(r); if (d < bd) { bd = d; best = el; } }
+    }
+    if (!best) return null;
+    if (h && kept) { const el = shown(kept.id); if (el && dist(boxAt(el, kept.p)) <= bd + 1) return kept; }
+    const rs = boxes(best);
+    let p = 0;
+    if (upright(best)) {
+      // 竖排：从右往左读；竖滚里的竖排框是横着滚的，按横向算
+      const r = rs[0], at = h ? X : r.left + r.width / 2;
+      p = clamp((r.right - at) / r.width, 0, 1);
+    } else if (h) {
+      // 横排分栏：压在阅读线上的是第几栏（按栏的中间算；手卷里第一栏在最右边，所以按距离找）
+      const total = rs.reduce((n, r) => n + r.height, 0);
+      let i = 0;
+      rs.forEach((r, k) => { if (dist(r) < dist(rs[i])) i = k; });
+      p = clamp((rs.slice(0, i).reduce((n, r) => n + r.height, 0) + rs[i].height / 2) / total, 0, 1);
+    } else {
+      const total = rs.reduce((n, r) => n + r.height, 0);
+      let before = 0;
+      for (const r of rs) { if (Y <= r.bottom || r === rs.at(-1)) { p = clamp((before + clamp(Y - r.top, 0, r.height)) / total, 0, 1); break; } before += r.height; }
+    }
+    return { id: best.dataset.b!, p };
+  }
+  /** 一段在新读法里显示着的那一份（横滚、竖滚写法不同的一列渲染了两份） */
+  const shown = (id: string) => [...track.querySelectorAll<HTMLElement>(`[data-b="${CSS.escape(id)}"]`)].find((x) => boxes(x).length);
+  /** 一段读到 p 处落在它的哪个框里（分栏的长文字是第几栏） */
+  function boxAt(el: Element, p: number) {
+    const rs = boxes(el), total = rs.reduce((n, r) => n + r.height, 0);
+    let before = 0;
+    for (const r of rs) { if (before + r.height >= p * total) return r; before += r.height; }
+    return rs.at(-1)!;
+  }
+  /** 把记下的那一段的那一处放回阅读线上（新读法里显示着的那一份）；找不到就退回到块 */
+  function restore(at: { id: string; p: number }, fallback: HTMLElement | null) {
+    const el = shown(at.id);
+    if (!el) { if (fallback && fallback.offsetParent !== null) scrollToBlock(fallback); return; }
+    const rs = boxes(el), total = rs.reduce((n, r) => n + r.height, 0);
+    if (mode() === 'h') {
+      // layout() 刚把横卷的位移清零：现在量到的就是位移为 0 时的位置
+      const r = boxAt(el, at.p);
+      const x = upright(el) ? rs[0].right - at.p * rs[0].width : r.left + r.width / 2;
+      const top = tbody.getBoundingClientRect().top + scrollY;
+      const max = Math.max(0, track.offsetWidth - vw());
+      scrollTo(0, top + clamp(rtl() ? lineX() - x : x - lineX(), 0, max));
+    } else {
+      let y = rs[0].top;
+      if (!upright(el)) { let before = 0; for (const q of rs) { if (before + q.height >= at.p * total) { y = q.top + (at.p * total - before); break; } before += q.height; } }
+      scrollTo(0, y + scrollY - lineY());
+    }
+  }
+
   function setMode(m: Mode) {
     if (mode() === m) return;
-    const anchor = tbody.getBoundingClientRect().top < innerHeight * 0.5 ? current() : null;
+    const inside = tbody.getBoundingClientRect().top < innerHeight * 0.5;
+    const at = inside ? reading() : null, block = inside ? current() : null;
     withTransition(() => {
       travel!.dataset.mode = m; store.set('mori-mode', m);
+      aim = null; setY = -1; // 滚轮还没追完的目标是上一种读法的，不要了
       syncModeUI(); layout(); snap = true;
-      if (anchor) scrollToBlock(anchor);
+      kept = at;
+      if (at) restore(at, block);
+      else if (block) scrollToBlock(block);
     });
   }
   mc?.addEventListener('click', (e) => { const b = (e.target as Element).closest<HTMLButtonElement>('button'); if (b) setMode(b.dataset.m as Mode); });
