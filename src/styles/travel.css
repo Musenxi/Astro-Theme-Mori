@@ -67,7 +67,7 @@
 .travel:not([data-mode="h"]) .strip-track{padding:0 var(--edge)}
 .travel[data-mode="v"] .b-strip{--sh:min(58vh,70vw)}
 .travel[data-mode="v"] .b-strip{width:min(1104px,100vw);margin-left:calc(50% - min(1104px,100vw)/2)}
-.travel[data-mode="v"] .strip-sc{overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;overscroll-behavior-x:contain}
+.travel[data-mode="v"] .strip-sc{overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:var(--border) transparent;overscroll-behavior-x:contain}
 .travel[data-mode="v"] .strip-track{padding:0;gap:14px}
 .travel[data-mode="m"] .b-strip{--sh:min(66vh,70vw)}
 .travel[data-mode="m"] .strip-vp{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
