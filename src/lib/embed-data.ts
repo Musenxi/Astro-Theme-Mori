@@ -32,7 +32,9 @@ export interface Card {
 
 const FILE = join(process.cwd(), 'node_modules/.cache/mori/embeds.json');
 const FRESH = 24 * 3600 * 1000;
-let cache: Record<string, { at: number; card: Card }> | null = null;
+/** 卡片数据的格式版本：加了字段（比如 X 的配图）就加一，旧格式的缓存当作过期，重新去取 */
+const V = 2;
+let cache: Record<string, { at: number; v?: number; card: Card }> | null = null;
 const load = () => {
   if (cache) return cache;
   try { cache = JSON.parse(readFileSync(FILE, 'utf8')); } catch { cache = {}; }
@@ -114,10 +116,10 @@ export async function getCard(url: string): Promise<Card | null> {
   if (!c) return null;
   const base = { url, site: c.site, kind: c.kind } as Card;
   const store = load(), hit = store[url];
-  if (hit && Date.now() - hit.at < FRESH) return hit.card;
+  if (hit && hit.v === V && Date.now() - hit.at < FRESH) return hit.card;
   try {
     const card = { ...base, ok: true, ...(await fetchCard(c)) };
-    store[url] = { at: Date.now(), card };
+    store[url] = { at: Date.now(), v: V, card };
     save();
     return card;
   } catch {
