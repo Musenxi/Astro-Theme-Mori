@@ -5,7 +5,7 @@ import Callout from './Callout.astro';
 import Embed from './Embed.astro';
 import type { Inline, PostData } from '../schema/schema.ts';
 import { numberNotes, renderInline, sideRefs, texHtml } from '../lib/inline.ts';
-import { axisOf } from '../lib/flow.mjs';
+import { axisOf, wrapOf } from '../lib/flow.mjs';
 import { t, vertical } from '../lib/i18n.ts';
 
 interface Props {
@@ -30,7 +30,8 @@ const li = "relative py-[.2em] pl-[1.6em] text-pretty before:absolute before:top
 const al = (b: object) => axisOf(b as never, 'v').align as string | undefined;
 const pos = (b: object) => axisOf(b as never, 'v').pos as string | undefined;
 const isV = (b: { type: string }) => vertical && ['p', 'h', 'quote', 'list'].includes(b.type) && axisOf(b, 'v').writing === 'v';
-type Item = { group: typeof blocks } | { b: (typeof blocks)[number] };
+type Block = (typeof blocks)[number];
+type Item = { group: typeof blocks } | { b: Block } | { wrap: Extract<Block, { type: 'image' }>; with: typeof blocks };
 const items: Item[] = [];
 for (const b of blocks) {
   const last = items.at(-1);
@@ -38,14 +39,56 @@ for (const b of blocks) {
   else if (last && 'group' in last && !(b.type === 'h' && b.level !== 3)) last.group.push(b);
   else items.push({ group: [b] });
 }
+// 设了文字环绕的单图：和后面紧跟着的横排段落（没有旁注的）、列表、小标题包在一起，图浮在里面
+const flowing = (b: Block) => (b.type === 'p' && !sideRefs(b.text).length) || b.type === 'list' || (b.type === 'h' && b.level === 3);
+for (let i = 0; i < items.length; i++) {
+  const it = items[i];
+  if (!('b' in it) || it.b.type !== 'image' || !wrapOf(it.b)) continue;
+  let j = i + 1;
+  while (j < items.length && 'b' in items[j] && flowing((items[j] as { b: Block }).b)) j++;
+  if (j > i + 1) items.splice(i, j - i, { wrap: it.b, with: items.slice(i + 1, j).map((x) => (x as { b: Block }).b) });
+}
+/** 竖滚里排过的单图：宽 --bw、左边 --x（都是页宽的比例，高按原图比例）；只设了宽的居中。环绕的图默认三成页宽 */
+const boxOf = (b: Extract<Block, { type: 'image' }>) => {
+  const v = axisOf(b, 'v') as { x?: number; bw?: number };
+  if (wrapOf(b)) return { style: { '--bw': v.bw ?? 0.3 } };
+  if (v.bw === undefined && v.x === undefined) return undefined;
+  const bw = v.bw ?? (b.layout === 'inline' ? 0.67 : 1);
+  return { style: { '--bw': bw, '--x': v.x ?? (1 - bw) / 2 } };
+};
 const vcol = 'col-[2/10] my-[1.6em] h-[min(21em,64vh)] max-w-full justify-self-end overflow-x-auto overflow-y-hidden tracking-[.12em] leading-[2.05] [scrollbar-width:thin] [writing-mode:vertical-rl]';
 const vgap = '[margin-block-start:.9em] first:[margin-block-start:0]';
 const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref]?.text ?? [] }));
 ---
 
-<article class="wrap g prose pb-20 in-data-[page=page]:pb-6">
+<article class="wrap g prose pb-20 @container in-data-[page=page]:pb-6">
   {
     items.map((it) => {
+      if ('wrap' in it) {
+        const b = it.wrap;
+        fig += 1;
+        return (
+          <div class={`${main} flow-root`}>
+            <figure class:list={['rv mt-[.5em] mb-[1em] w-[calc(var(--bw)*100cqw)] max-w-[70%] narrow:float-none narrow:mx-0 narrow:mb-[1.6em] narrow:w-full narrow:max-w-none', wrapOf(b) === 'end' ? 'float-right ml-[1.8em]' : 'float-left mr-[1.8em]']} data-b={b.id} {...boxOf(b)}>
+              <Image class="h-auto w-full cursor-zoom-in" src={b.src} alt={b.alt} widths={[480, 800, 1200]} sizes="(max-width: 760px) 100vw, 40vw" />
+              {b.caption && (
+                <figcaption class="mt-2 flex items-baseline gap-3 text-meta text-muted-foreground">
+                  <span class="mono flex-none">{t('fig', { n: fig })}</span>
+                  {b.caption}
+                </figcaption>
+              )}
+            </figure>
+            {it.with.map((x) => {
+              if (x.type === 'list') {
+                const Tag = x.ordered ? 'ol' : 'ul';
+                return <Tag class="mb-[1.2em] flow-root" data-b={x.id}>{x.items.map((item) => <li class={li} set:html={html(item)} />)}</Tag>;
+              }
+              if (x.type === 'h') return <h3 class="scroll-mt-(--toc-top)" id={x.id} data-b={x.id} data-align={al(x)} set:html={html(x.text)} />;
+              return <p class={p} data-b={x.id} data-align={al(x)} set:html={html((x as { text: Inline }).text)} />;
+            })}
+          </div>
+        );
+      }
       // 单独一个竖排引用照旧（下面 quote 那一支）；其余竖排块成组
       if ('group' in it && !(it.group.length === 1 && it.group[0].type === 'quote')) {
         const notes_ = it.group.flatMap((g) => (g.type === 'p' ? sideRefs(g.text) : []));
@@ -123,8 +166,9 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
         }
         case 'image': {
           fig += 1;
+          const box = boxOf(b);
           return (
-            <figure class:list={['rv mt-[2em] mb-[2.4em]', b.layout === 'inline' ? `inline ${main}` : 'col-[2/12]']} data-b={b.id}>
+            <figure class:list={['rv mt-[2em] mb-[2.4em]', box ? 'col-[1/-1] ml-[calc(var(--x)*100%)] w-[calc(var(--bw)*100%)] narrow:ml-0 narrow:w-full' : b.layout === 'inline' ? `inline ${main}` : 'col-[2/12]']} data-b={b.id} {...box}>
               <Image class="h-auto w-full cursor-zoom-in" src={b.src} alt={b.alt} widths={[640, 960, 1280, 1600]} sizes="(max-width: 760px) 100vw, 83vw" />
               {b.caption && (
                 <figcaption class="mt-2.5 flex items-baseline gap-3 text-meta text-muted-foreground">

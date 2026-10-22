@@ -219,6 +219,9 @@ export const isPlaceOnly = (b) => {
  */
 export const axisOf = (b, axis) => b[axis] ?? {};
 
+/** 竖滚里单图的文字环绕（v.wrap）：start 图在左、end 图在右。紧跟着的是一列横排文字才环绕，否则照常单独一块 */
+export const wrapOf = (b) => { const w = b?.type === 'image' ? axisOf(b, 'v').wrap : undefined; return w === 'start' || w === 'end' ? w : undefined; };
+
 /* ───────────── 把块排成“列” ───────────── */
 
 /**

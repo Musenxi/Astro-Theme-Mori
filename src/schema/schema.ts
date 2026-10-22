@@ -185,11 +185,12 @@ const posSchema = z.enum(['start', 'center', 'end']);
  *   h：横滚读法——上下位置 y（0 顶、1 底，用比例所以不同屏幕上构图一致）、缩放 scale（图是高度，竖排文字是高度，横排文字是宽度）、
  *      gap 和前一块的间距（标准间距的倍数，0 紧贴，负数叠上去）、bleed 图片上下出血铺满整屏、
  *      x 浮起来：不占位置，从原来的位置左右挪 x 个屏高（可以压在别的块上）、bw / bh 文本框的宽和高（屏高的倍数）、fs 字号倍数、lh 行距、writing 竖排（一列文字可以竖着写）、align 对齐、pos 位置
- *   v：竖滚读法——writing（同一段文字可以在横滚里竖排、竖滚里横排）、x 文本框左边在页面的哪里（页宽的比例）、bw 宽（页宽的比例）、bh 高（屏高的倍数）、fs、lh、align、pos
+ *   v：竖滚读法——writing（同一段文字可以在横滚里竖排、竖滚里横排）、x 文本框（单图）左边在页面的哪里（页宽的比例）、bw 宽（页宽的比例；单图的高按原图比例）、bh 高（屏高的倍数）、fs、lh、align、pos、
+ *      wrap 单图浮在后面那段横排文字里、文字绕着排（start 图在左，end 图在右）
  */
 const axes = {
   h: z.object({ y: unit.optional(), scale: z.number().positive().optional(), gap: z.number().min(-2).max(6).optional(), bleed: z.boolean().optional(), x: z.number().min(-20).max(20).optional(), bw: z.number().positive().max(10).optional(), bh: z.number().positive().max(1).optional(), fs: z.number().min(0.5).max(4).optional(), lh: z.number().min(1).max(4).optional(), writing: z.enum(['h', 'v']).optional(), align: alignSchema.optional(), pos: posSchema.optional() }).optional(),
-  v: z.object({ writing: z.enum(['h', 'v']).optional(), x: z.number().min(0).max(1).optional(), bw: z.number().positive().max(1).optional(), bh: z.number().positive().max(1).optional(), fs: z.number().min(0.5).max(4).optional(), lh: z.number().min(1).max(4).optional(), align: alignSchema.optional(), pos: posSchema.optional() }).optional(),
+  v: z.object({ writing: z.enum(['h', 'v']).optional(), x: z.number().min(0).max(1).optional(), bw: z.number().positive().max(1).optional(), bh: z.number().positive().max(1).optional(), fs: z.number().min(0.5).max(4).optional(), lh: z.number().min(1).max(4).optional(), align: alignSchema.optional(), pos: posSchema.optional(), wrap: z.enum(['start', 'end']).optional() }).optional(),
 };
 
 /** 文章正文里的块：文字和图片，加上长卷（横滚）版式才有的图组、自由排布、地图 */

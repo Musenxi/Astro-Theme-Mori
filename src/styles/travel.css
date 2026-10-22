@@ -51,6 +51,15 @@
 .travel:not([data-mode="h"]) .b-single{grid-column:1/-1}
 .travel:not([data-mode="h"]) .b-single.inset{grid-column:3/11}
 .travel:not([data-mode="h"]) .b-single img{width:100%}
+.travel:not([data-mode="h"]) .b-single.box-v[class]{grid-column:1/-1;width:calc(var(--bw-v)*100%);margin-left:calc(var(--x-v)*100%)}
+/* 环绕文字的单图：竖滚里浮在后面那列文字里（--bw-v 页宽的比例，默认三成），原来那一块藏起来；横滚里反过来 */
+.travel:not([data-mode="h"]) .t-track{container-type:inline-size}
+.wfig,.travel:not([data-mode="h"]) .b-single.wrapped{display:none}
+.travel:not([data-mode="h"]) .wfig{display:block;float:left;width:calc(var(--bw-v,.3)*100cqw);max-width:70%;margin:.5em 1.8em 1em 0}
+.travel:not([data-mode="h"]) .wfig[data-side="end"]{float:right;margin:.5em 0 1em 1.8em}
+.travel:not([data-mode="h"]) .wfig img{width:100%}
+.travel:not([data-mode="h"]) .b-text:has(> .wfig) :is(ul,ol){display:flow-root}
+.travel:not([data-mode="h"]) .b-text:has(> .wfig){display:flow-root}
 .travel:not([data-mode="h"]) .b-pair{grid-column:2/12}
 .travel:not([data-mode="h"]) .b-pair .imgs{display:grid;grid-template-columns:1fr 1fr;gap:clamp(8px,1.2vw,16px)}
 .travel:not([data-mode="h"]) .b-pair img{width:100%}
@@ -178,4 +187,6 @@
   .travel:not([data-mode="h"]) .fnote.h{height:auto;justify-self:stretch;grid-column:1/-1}
   .travel[data-mode="h"]{--ph:min(60vh,116vw)}
   .travel:not([data-mode="h"]) .b-text.box-v[class]{width:auto;margin-left:0}
+  .travel:not([data-mode="h"]) .b-single.box-v[class]{width:auto;margin-left:0}
+  .travel:not([data-mode="h"]) .wfig[class]{float:none;width:auto;max-width:none;margin:0 0 1.6em}
 }
