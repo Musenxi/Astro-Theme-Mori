@@ -202,7 +202,8 @@ const bleed = (b: { h?: { bleed?: boolean } }) => b.h?.bleed && 'bleed';
                   <div class="strip-vp">
                     <div class="strip-sc">
                       <div class="strip-track">
-                        {b.images.map((im) => <figure style={{ '--s': im.scale, '--o': im.offset }}><Image src={im.src} alt={im.alt} height={900} widths={[600, 900, 1400]} sizes="60vw" />{im.caption && <figcaption class="mt-2 text-meta text-muted-foreground">{im.caption}</figcaption>}</figure>)}
+                        {/* 每张图的左下角是第几张 / 共几张，后面接图注 */}
+                        {b.images.map((im, i) => <figure style={{ '--s': im.scale, '--o': im.offset }}><Image src={im.src} alt={im.alt} height={900} widths={[600, 900, 1400]} sizes="60vw" /><figcaption class="mt-2 flex items-baseline gap-3 text-meta text-muted-foreground"><span class="mono flex-none">{i + 1}/{b.images.length}</span>{im.caption}</figcaption></figure>)}
                       </div>
                     </div>
                   </div>
