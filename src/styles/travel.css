@@ -171,8 +171,9 @@
 /* 分栏的长文字也从右往左一栏一栏排（栏里的字还是从左往右） */
 .travel[data-dir="rtl"][data-mode="h"] .b-text.cols{direction:rtl}
 .travel[data-dir="rtl"][data-mode="h"] .b-text.cols > *{direction:ltr}
-.travel[data-dir="rtl"] .strip-sc,.travel[data-dir="rtl"][data-mode="m"] .strip-vp{direction:rtl}
-.travel[data-dir="rtl"] .strip-track figcaption{direction:ltr}
+/* 手卷的方向只管横向读法；竖向、混合读法里的图组照常从左往右 */
+.travel[data-dir="rtl"][data-mode="h"] .strip-sc{direction:rtl}
+.travel[data-dir="rtl"][data-mode="h"] .strip-track figcaption{direction:ltr}
 .travel[data-dir="rtl"] .h-progress i{transform-origin:100% 50%}
 
 /* —— 以下是主题包自己加的 —— */

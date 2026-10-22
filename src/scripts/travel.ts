@@ -37,9 +37,10 @@ function init() {
   const loc = document.querySelector<HTMLElement>('#loc');
   const allowed = (mc?.dataset.modes?.split(',') ?? [travel.dataset.mode!]) as Mode[];
   const stops: Array<{ id: string; name: string; date: string }> = JSON.parse(loc?.dataset.stops ?? '[]');
-  const rtl = () => travel.dataset.dir === 'rtl';
-  const vw = () => root.clientWidth;
   const mode = () => travel.dataset.mode as Mode;
+  /** 从右往左的手卷：只管横向读法，竖向、混合读法里的图组照常从左往右 */
+  const rtl = () => travel.dataset.dir === 'rtl' && mode() === 'h';
+  const vw = () => root.clientWidth;
   let snap = true;
 
   // 读者上次的选择；不在允许范围内就用作者的默认值
