@@ -96,7 +96,7 @@ const type = (c: { fs?: number; lh?: number; bw?: number; bh?: number; vfs?: num
 /** 竖滚里环绕着文字的单图：后面紧跟着一列（不是标题的）竖滚里横排的文字才环绕 */
 type Col = Flow['columns'][number];
 const wraps = (c: Col | undefined, next: Col | undefined) => c?.kind === 'block' && !!wrapOf(c.block) && next?.kind === 'text' && !next.head && next.vwriting !== 'v';
-/** 竖滚里排过的单图：左边 --x-v、宽 --bw-v（页宽的比例），只设了宽的居中 */
+/** 竖滚里排过的单图、视频：左边 --x-v、宽 --bw-v（页宽的比例），只设了宽的居中 */
 const vbox = (b: { layout?: string; v?: { x?: number; bw?: number } }) => {
   const v = b.v ?? {};
   if (v.bw === undefined && v.x === undefined) return undefined;
@@ -189,8 +189,10 @@ const bleed = (b: { h?: { bleed?: boolean } }) => b.h?.bleed && 'bleed';
                 </figure>
               );
             }
-            case 'video':
-              return <Video src={b.src} poster={b.poster} alt={b.alt} caption={b.caption} class={b.layout === 'inline' ? 'blk b-single b-video inset' : 'blk b-single b-video'} data-b={b.id} {...pos} />;
+            case 'video': {
+              const box = vbox(b);
+              return <Video src={b.src} poster={b.poster} alt={b.alt} caption={b.caption} class:list={['blk b-single b-video', b.layout === 'inline' && 'inset', box && 'box-v']} data-b={b.id} {...at(c, b.h, box)} />;
+            }
             case 'pair':
               return (
                 <figure class:list={['blk b-pair rv', bleed(b)]} data-b={b.id} {...pos}>

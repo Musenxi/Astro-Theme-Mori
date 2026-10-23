@@ -49,8 +49,8 @@ for (let i = 0; i < items.length; i++) {
   while (j < items.length && 'b' in items[j] && flowing((items[j] as { b: Block }).b)) j++;
   if (j > i + 1) items.splice(i, j - i, { wrap: it.b, with: items.slice(i + 1, j).map((x) => (x as { b: Block }).b) });
 }
-/** 竖滚里排过的单图：宽 --bw、左边 --x（都是页宽的比例，高按原图比例）；只设了宽的居中。环绕的图默认三成页宽 */
-const boxOf = (b: Extract<Block, { type: 'image' }>) => {
+/** 竖滚里排过的单图、视频：宽 --bw、左边 --x（都是页宽的比例，高按原比例）；只设了宽的居中。环绕的图默认三成页宽 */
+const boxOf = (b: Extract<Block, { type: 'image' | 'video' }>) => {
   const v = axisOf(b, 'v') as { x?: number; bw?: number };
   if (wrapOf(b)) return { style: { '--bw': v.bw ?? 0.3 } };
   if (v.bw === undefined && v.x === undefined) return undefined;
@@ -180,8 +180,10 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
             </figure>
           );
         }
-        case 'video':
-          return <Video src={b.src} poster={b.poster} alt={b.alt} caption={b.caption} class={b.layout === 'inline' ? 'rv mt-[2em] mb-[2.4em] col-[3/9] -mr-(--main-plus) narrow:mr-0' : 'rv mt-[2em] mb-[2.4em] col-[2/12]'} data-b={b.id} />;
+        case 'video': {
+          const box = boxOf(b);
+          return <Video src={b.src} poster={b.poster} alt={b.alt} caption={b.caption} class={box ? 'rv mt-[2em] mb-[2.4em] col-[1/-1] ml-[calc(var(--x)*100%)] w-[calc(var(--bw)*100%)] narrow:ml-0 narrow:w-full' : b.layout === 'inline' ? 'rv mt-[2em] mb-[2.4em] col-[3/9] -mr-(--main-plus) narrow:mr-0' : 'rv mt-[2em] mb-[2.4em] col-[2/12]'} data-b={b.id} {...box} />;
+        }
         case 'list': {
           const Tag = b.ordered ? 'ol' : 'ul';
           return (
