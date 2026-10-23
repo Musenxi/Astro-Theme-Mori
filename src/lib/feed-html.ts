@@ -15,6 +15,8 @@ export interface FeedCtx {
   base: string;
   /** 把内容里的图片（Astro 的 ImageMetadata）变成可以放进订阅的绝对图片地址 */
   image: (src: any) => Promise<string>;
+  /** 视频的地址（图床外链或站内地址）；不给就用内容里写的 */
+  video?: (src: string) => string;
   /** 词条（提示框的类型名）；不给就用键名 */
   t?: (key: string) => string;
 }
@@ -73,6 +75,11 @@ export async function postHtml(d: PostData, ctx: FeedCtx): Promise<string> {
       case 'h': out.push(`<h${b.level}>${inline(b.text, ctx.base, nums)}</h${b.level}>`); break;
       case 'quote': out.push(`<blockquote><p>${inline(b.text, ctx.base, nums)}</p>${b.cite ? `<p>—— ${esc(b.cite)}</p>` : ''}</blockquote>`); break;
       case 'image': out.push(await figure(ctx, b.src, b.alt, b.caption)); break;
+      case 'video': {
+        const poster = b.poster ? ` poster="${esc(await ctx.image(b.poster))}"` : '';
+        out.push(`<figure><video src="${esc(abs(ctx.base, ctx.video ? ctx.video(b.src) : b.src))}"${poster} controls muted playsinline></video>${b.caption ? `<figcaption>${esc(b.caption)}</figcaption>` : ''}</figure>`);
+        break;
+      }
       case 'list': {
         const tag = b.ordered ? 'ol' : 'ul';
         out.push(`<${tag}>${b.items.map((it) => `<li>${inline(it, ctx.base, nums)}</li>`).join('')}</${tag}>`);

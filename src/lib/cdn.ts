@@ -4,7 +4,7 @@
  * 只用 ImageMetadata 上不可枚举的 fsPath 找路径：碰别的属性 Astro 会把原图复制进构建产物。
  */
 interface Rec { width: number; height: number; src: string; widths: number[]; live?: string; time?: number }
-interface Manifest { base: string; images: Record<string, Rec> }
+interface Manifest { base: string; images: Record<string, Rec>; videos?: Record<string, { sha: string; src: string }> }
 
 const files = import.meta.glob<Manifest>('/src/assets/cdn.json', { eager: true, import: 'default' });
 const manifest: Manifest | undefined = files['/src/assets/cdn.json'];
@@ -52,3 +52,16 @@ export function remoteOf(src: unknown): Remote | undefined {
     time: r.time,
   };
 }
+
+/** 内容里视频的写法（../../assets/<路径>）→ 在 src/assets 下的路径；外链返回 undefined */
+export const videoPathOf = (src: string) => { const at = src.indexOf('assets/'); return /^[a-z]+:/i.test(src) || at < 0 ? undefined : src.slice(at + 'assets/'.length); };
+
+/** 视频的地址：构建时传到图床的用外链；其余（和开发预览里的全部）由 pages/live/[...path].ts 提供；本来就是外链的原样 */
+export function videoUrl(src: string) {
+  const path = videoPathOf(src);
+  if (!path) return src;
+  const r = useCdn ? manifest?.videos?.[path] : undefined;
+  return r ? `${manifest!.base}/${r.src}` : `${import.meta.env.BASE_URL.replace(/\/$/, '')}/live/${path}`;
+}
+/** 这个视频（在 src/assets 下的路径）构建时用图床 */
+export const videoOnCdn = (path: string) => useCdn && !!manifest?.videos?.[path];

@@ -14,6 +14,7 @@ import { axisOf, isPlaceOnly, wrapOf } from '../lib/flow.mjs';
 import { coord } from '../lib/geo.ts';
 import { t, vertical } from '../lib/i18n.ts';
 import RouteMap from './RouteMap.astro';
+import Video from './Video.astro';
 
 interface Props {
   post: PostData;
@@ -188,6 +189,8 @@ const bleed = (b: { h?: { bleed?: boolean } }) => b.h?.bleed && 'bleed';
                 </figure>
               );
             }
+            case 'video':
+              return <Video src={b.src} poster={b.poster} alt={b.alt} caption={b.caption} class={b.layout === 'inline' ? 'blk b-single b-video inset' : 'blk b-single b-video'} data-b={b.id} {...pos} />;
             case 'pair':
               return (
                 <figure class:list={['blk b-pair rv', bleed(b)]} data-b={b.id} {...pos}>

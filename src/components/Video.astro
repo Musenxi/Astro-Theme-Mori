@@ -1,0 +1,30 @@
+---
+/**
+ * 正文里的视频：滚到眼前时静音自动播放、循环（scripts/video.ts），右下角一个按钮开关声音，点画面暂停 / 接着放。
+ * 封面是 Studio 取的一帧（构建时传到图床的用外链）；宽高按封面定，加载前就占好位置。
+ */
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { remoteOf, videoUrl } from '../lib/cdn.ts';
+import { iconSvg } from '../lib/lucide.ts';
+import { t } from '../lib/i18n.ts';
+
+interface Props { src: string; poster?: ImageMetadata; alt?: string; caption?: string; class?: string; [attr: string]: unknown }
+const { src, poster, alt, caption, class: cls, ...rest } = Astro.props;
+const remote = poster && remoteOf(poster);
+const still = poster && !remote ? await getImage({ src: poster, width: 1600, format: 'webp' }) : undefined;
+const posterUrl = remote ? remote.url(1600) : still?.src;
+const w = remote ? remote.width : (still?.attributes.width as number | undefined);
+const h = remote ? remote.height : (still?.attributes.height as number | undefined);
+---
+
+<figure class:list={['vid', cls]} {...rest}>
+  <div class="relative">
+    <video src={videoUrl(src)} poster={posterUrl} width={w} height={h} muted loop playsinline preload="metadata" aria-label={alt || undefined} data-vid></video>
+    <button class="lg lg-btn absolute right-3 bottom-3 grid size-[38px] place-items-center text-(--lg-fg)" type="button" aria-pressed="false" aria-label={t('video.unmute')} data-sound data-mute={t('video.mute')} data-unmute={t('video.unmute')}>
+      <span class="contents" data-off set:html={iconSvg('volume-x', 'size-[16px]')} />
+      <span class="hidden" data-on set:html={iconSvg('volume-2', 'size-[16px]')} />
+    </button>
+  </div>
+  {caption && <figcaption class="mt-2.5 text-meta text-muted-foreground">{caption}</figcaption>}
+</figure>

@@ -146,7 +146,8 @@ export function parseBlocks(body) {
 
     const img = line.match(/^!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)\s*$/);
     if (img) {
-      blocks.push({ id: id(), type: 'image', src: img[2], alt: img[1], ...(img[3] ? { caption: img[3] } : {}) });
+      // 地址是视频文件的是视频块，写法和图片一样
+      blocks.push({ id: id(), type: VIDEO_EXT.test(img[2]) ? 'video' : 'image', src: img[2], alt: img[1], ...(img[3] ? { caption: img[3] } : {}) });
       i++; continue;
     }
 
@@ -229,12 +230,15 @@ function fenceMeta(meta) {
 }
 
 /** 一个文字块或图片 → Markdown；图组、地图这类长卷的块没有对应的写法，返回空 */
+/** 视频文件的扩展名：Markdown 里 ![](…) 指向它们的是视频块 */
+export const VIDEO_EXT = /\.(mp4|m4v|mov|webm)$/i;
+
 export function blockMd(b) {
   switch (b.type) {
     case 'p': return inlineMd(b.text);
     case 'h': return `${'#'.repeat(b.level ?? 2)} ${inlineMd(b.text)}`;
     case 'quote': return `> ${inlineMd(b.text)}${b.cite ? `\n> —— ${b.cite}` : ''}`;
-    case 'image': return `![${b.alt ?? ''}](${b.src}${b.caption ? ` "${b.caption}"` : ''})`;
+    case 'image': case 'video': return `![${b.alt ?? ''}](${b.src}${b.caption ? ` "${b.caption}"` : ''})`;
     case 'list': return b.items.map((it, k) => `${b.ordered ? `${k + 1}.` : '-'} ${inlineMd(it)}`).join('\n');
     case 'callout': return [`> [!${(b.kind ?? 'note').toUpperCase()}]`, ...b.text.map(inlineMd).flatMap((t, k) => (k ? ['>', `> ${t}`] : [`> ${t}`]))].join('\n');
     case 'math': return `$$\n${b.tex}\n$$`;
@@ -247,7 +251,7 @@ export function blockMd(b) {
 const imgLine = (im) => `![${im.alt ?? ''}](${im.src ?? ''}${im.caption ? ` "${im.caption}"` : ''})`;
 
 /**
- * 块摊平成 Markdown 里的一项一项：文字块一项，图片一项；双图、图组、网格、自由排布里每张图一项；地图、幕间和自由排布里的小字不在文本里。
+ * 块摊平成 Markdown 里的一项一项：文字块一项，图片、视频一项；双图、图组、网格、自由排布里每张图一项；地图、幕间和自由排布里的小字不在文本里。
  * 项：{ block（块 id）, k（是这个块里的第几项）, kind（p / h / quote / list / code / img）, md, 以及图的 src / alt / caption }
  */
 export function mdItems(blocks) {
@@ -255,7 +259,7 @@ export function mdItems(blocks) {
   for (const b of blocks ?? []) {
     const img = (im, k) => items.push({ block: b.id, k, kind: 'img', md: imgLine(im), src: im.src, alt: im.alt, caption: im.caption });
     switch (b.type) {
-      case 'image': img(b, 0); break;
+      case 'image': case 'video': img(b, 0); break;
       case 'pair': case 'strip': case 'grid': (b.images ?? []).forEach(img); break;
       case 'free': (b.items ?? []).forEach((it, k) => { if (it.kind === 'image') img(it, k); }); break;
       case 'map': case 'interlude': break;

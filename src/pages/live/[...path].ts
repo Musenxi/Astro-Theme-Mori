@@ -1,4 +1,4 @@
-/** 实况照片的视频（还没上传到图床的）：/live/<在 src/assets 下的路径>.mp4 */
+/** 视频（实况照片的、正文里视频块的，还没上传到图床的）：/live/<在 src/assets 下的路径>.mp4 */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { APIRoute } from 'astro';

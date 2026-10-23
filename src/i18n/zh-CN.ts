@@ -14,6 +14,7 @@ export default {
   'travel.readingGroup': '阅读方式',
   'travel.mode.v': '竖', 'travel.mode.h': '横', 'travel.mode.m': '混',
   'travel.modeLabel.v': '竖向阅读', 'travel.modeLabel.h': '横向阅读', 'travel.modeLabel.m': '混合阅读',
+  'video.unmute': '打开声音', 'video.mute': '静音',
   'map.route': '路线：{list}', 'map.arctic': '北极圈 66°33′N', 'map.tropicN': '北回归线 23°26′N', 'map.equator': '赤道 0°', 'map.tropicS': '南回归线 23°26′S', 'map.antarctic': '南极圈 66°33′S', 'empty.all': '没写东西',
   'archive.title': '全部文章',
   'footer.search': '搜索', 'footer.rss': '订阅',

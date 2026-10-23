@@ -3,6 +3,7 @@ import Image from './Photo.astro';
 import CodeBlock from './CodeBlock.astro';
 import Callout from './Callout.astro';
 import Embed from './Embed.astro';
+import Video from './Video.astro';
 import type { Inline, PostData } from '../schema/schema.ts';
 import { numberNotes, renderInline, sideRefs, texHtml } from '../lib/inline.ts';
 import { axisOf, wrapOf } from '../lib/flow.mjs';
@@ -179,6 +180,8 @@ const footnotes = [...numbers.foot].map(([ref, n]) => ({ ref, n, text: notes[ref
             </figure>
           );
         }
+        case 'video':
+          return <Video src={b.src} poster={b.poster} alt={b.alt} caption={b.caption} class={b.layout === 'inline' ? 'rv mt-[2em] mb-[2.4em] col-[3/9] -mr-(--main-plus) narrow:mr-0' : 'rv mt-[2em] mb-[2.4em] col-[2/12]'} data-b={b.id} />;
         case 'list': {
           const Tag = b.ordered ? 'ol' : 'ul';
           return (

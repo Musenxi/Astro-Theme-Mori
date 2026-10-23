@@ -61,5 +61,7 @@
 .embed-media[data-n="2"] > *{grid-row:span 2}
 .embed-media[data-n="3"] > :first-child{grid-row:span 2}
 .embed-video{margin-block:.6em 1.8em}
+/* 正文里的视频（Video.astro）：宽度跟着栏，高按封面比例；点画面暂停 / 接着放 */
+.vid video{display:block;width:100%;height:auto;background:var(--muted);cursor:pointer}
 .embed-code{margin-block:.4em 1.6em}
 .embed-code>.code{margin-block:0 .8em!important}

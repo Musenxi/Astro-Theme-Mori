@@ -15,6 +15,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'travel.readingGroup': '閱讀方式',
   'travel.mode.v': '直', 'travel.mode.h': '橫', 'travel.mode.m': '混',
   'travel.modeLabel.v': '直向閱讀', 'travel.modeLabel.h': '橫向閱讀', 'travel.modeLabel.m': '混合閱讀',
+  'video.unmute': '開啟聲音', 'video.mute': '靜音',
   'map.route': '路線：{list}', 'map.arctic': '北極圈 66°33′N', 'map.tropicN': '北回歸線 23°26′N', 'map.equator': '赤道 0°', 'map.tropicS': '南回歸線 23°26′S', 'map.antarctic': '南極圈 66°33′S', 'empty.all': '沒寫東西',
   'archive.title': '全部文章',
   'footer.search': '搜尋', 'footer.rss': '訂閱',

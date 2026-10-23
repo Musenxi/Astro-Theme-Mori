@@ -15,6 +15,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'travel.readingGroup': 'Reading mode',
   'travel.mode.v': 'V', 'travel.mode.h': 'H', 'travel.mode.m': 'M',
   'travel.modeLabel.v': 'Vertical reading', 'travel.modeLabel.h': 'Horizontal reading', 'travel.modeLabel.m': 'Mixed reading',
+  'video.unmute': 'Unmute', 'video.mute': 'Mute',
   'map.route': 'Route: {list}', 'map.arctic': 'Arctic Circle 66°33′N', 'map.tropicN': 'Tropic of Cancer 23°26′N', 'map.equator': 'Equator 0°', 'map.tropicS': 'Tropic of Capricorn 23°26′S', 'map.antarctic': 'Antarctic Circle 66°33′S', 'empty.all': 'nothing written',
   'archive.title': 'All posts',
   'footer.search': 'Search', 'footer.rss': 'Subscribe',

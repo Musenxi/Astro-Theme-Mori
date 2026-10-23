@@ -5,7 +5,7 @@
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { assetPathOf, remoteOf } from './cdn.ts';
+import { assetPathOf, remoteOf, videoOnCdn } from './cdn.ts';
 
 const ASSETS = join(process.cwd(), 'src/assets');
 const times = new Map<string, number | undefined>();
@@ -34,7 +34,7 @@ export function liveOf(src: unknown): { video: string; time?: number } | undefin
   return { video: `${import.meta.env.BASE_URL.replace(/\/$/, '')}/live/${videoOf(path)}`, time: photoTime(file) };
 }
 
-/** 要由站点自己提供的视频：本地有、还没上传到图床的（路径相对 src/assets） */
+/** 要由站点自己提供的视频（实况照片的和正文里的视频块）：本地有、还没上传到图床的（路径相对 src/assets） */
 export function localVideos() {
   const out: string[] = [];
   const walk = (dir: string, pre: string) => {
@@ -45,7 +45,7 @@ export function localVideos() {
     }
   };
   if (existsSync(ASSETS)) walk(ASSETS, '');
-  return out.filter((v) => !remoteOfAny(v));
+  return out.filter((v) => !remoteOfAny(v) && !videoOnCdn(v));
 }
 
 /** 这个视频对应的图片（任意扩展名）已经把视频传到图床了 */

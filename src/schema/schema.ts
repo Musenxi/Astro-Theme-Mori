@@ -149,6 +149,11 @@ const calloutFields = {
 };
 /** 公式块：TeX */
 const mathFields = { tex: z.string() };
+/**
+ * 视频：src 是 src/assets 里的 mp4（../../assets/…，Studio 插入时转好），poster 是 Studio 取的一帧当封面，caption 图注。
+ * 滚到眼前时静音自动播放、循环，读者可以打开声音
+ */
+const videoFields = (image: ImageFn) => ({ src: z.string(), poster: image().optional(), alt: z.string().default(''), caption: z.string().optional() });
 /** 网站卡片：单独一行的知名网站链接（GitHub、YouTube 等），构建时取标题、简介做成卡片；认不出的网站当普通链接 */
 const embedFields = { url: z.string().url() };
 
@@ -166,6 +171,7 @@ export const articleBlocks = (image: ImageFn) => {
       /** wide：跨出正文栏；inline：与正文同宽 */
       layout: z.enum(['wide', 'inline']).default('wide'),
     }),
+    z.object({ id, type: z.literal('video'), ...videoFields(image), layout: z.enum(['wide', 'inline']).default('wide') }),
     z.object({ id, type: z.literal('list'), ordered: z.boolean().default(false), items: z.array(inlineSchema) }),
     z.object({ id, type: z.literal('code'), ...codeFields }),
     z.object({ id, type: z.literal('callout'), ...calloutFields }),
@@ -202,6 +208,7 @@ export const postBlocks = (image: ImageFn) =>
     z.object({ id, type: z.literal('h'), level: z.union([z.literal(2), z.literal(3)]).default(2), text: inlineSchema, ...axes }),
     z.object({ id, type: z.literal('quote'), text: inlineSchema, cite: z.string().optional(), ...axes }),
     z.object({ id, type: z.literal('image'), ...picture(image), layout: z.enum(['wide', 'inline']).default('wide'), ...axes }),
+    z.object({ id, type: z.literal('video'), ...videoFields(image), layout: z.enum(['wide', 'inline']).default('wide'), ...axes }),
     z.object({ id, type: z.literal('list'), ordered: z.boolean().default(false), items: z.array(inlineSchema), ...axes }),
     z.object({ id, type: z.literal('code'), ...codeFields, ...axes }),
     z.object({ id, type: z.literal('callout'), ...calloutFields, ...axes }),

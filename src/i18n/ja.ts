@@ -15,6 +15,7 @@ const d: Record<keyof typeof zhCN, string> = {
   'travel.readingGroup': '読み方',
   'travel.mode.v': '縦', 'travel.mode.h': '横', 'travel.mode.m': '混',
   'travel.modeLabel.v': '縦に読む', 'travel.modeLabel.h': '横に読む', 'travel.modeLabel.m': '混合で読む',
+  'video.unmute': '音声をオン', 'video.mute': 'ミュート',
   'map.route': '経路：{list}', 'map.arctic': '北極圏 66°33′N', 'map.tropicN': '北回帰線 23°26′N', 'map.equator': '赤道 0°', 'map.tropicS': '南回帰線 23°26′S', 'map.antarctic': '南極圏 66°33′S', 'empty.all': '何も書いていない',
   'archive.title': 'すべての記事',
   'footer.search': '検索', 'footer.rss': '購読',

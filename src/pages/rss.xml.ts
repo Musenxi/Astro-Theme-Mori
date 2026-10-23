@@ -1,7 +1,7 @@
 import { t } from '../lib/i18n.ts';
 import type { APIRoute } from 'astro';
 import { getImage } from 'astro:assets';
-import { remoteOf } from '../lib/cdn.ts';
+import { remoteOf, videoUrl } from '../lib/cdn.ts';
 import config from 'virtual:mori/config';
 import { getEntries } from '../lib/entries.ts';
 import { siteUrl, xmlEscape } from '../lib/site.ts';
@@ -20,6 +20,7 @@ export const GET: APIRoute = async ({ site }) => {
     // 订阅里的图不能太大：缩到 1200 宽的 jpeg，并换成绝对地址
     // 上传到图床的直接用外链；其余由 Astro 压一张 1200 宽的
     t: (k: string) => t(k as never),
+    video: videoUrl,
     image: async (src: any) => { const r = remoteOf(src); if (r) return r.url(1200); const im = await getImage({ src, width: 1200, format: 'jpeg' }); return im.src.startsWith('/') ? base + im.src : im.src; },
   };
   const bodies = full ? await Promise.all(entries.map((e) => postHtml(e.data, ctx))) : [];
