@@ -167,14 +167,14 @@ export function arcBetween(a, b, bow = 0.16, n = 28) {
   });
 }
 
-/** 走路、骑车、开车、火车这几种交通方式，路线可以按真实的道路、铁路查（见 routing.ts） */
-export const ROUTED_TRANSPORTS = ['walk', 'bike', 'car', 'train'];
+/** 走路、骑车、开车、火车、船这几种交通方式，路线可以按真实的道路、铁路、航线查（见 routing.ts） */
+export const ROUTED_TRANSPORTS = ['walk', 'bike', 'car', 'train', 'boat'];
 /** 一段路的查询键：交通方式 + 两头的坐标（保留 5 位小数，约 1 米） */
 export const legKey = (by, a, b) => `${by}:${a.map((v) => (+v).toFixed(5)).join(',')};${b.map((v) => (+v).toFixed(5)).join(',')}`;
 
 /**
  * 整趟行程的路线（一条折线），左下角小地图沿它往前画。相邻两处之间（一“段”）按顺序取：
- * 轨迹里有这一段就用轨迹；到达的地点写了 by=plane 画一段弧；走路、骑车、开车、火车查到了真实路线（routed）就用它；
+ * 轨迹里有这一段就用轨迹；到达的地点写了 by=plane 画一段弧；走路、骑车、开车、火车、船查到了真实路线（routed）就用它；
  * 再不然同一区里直接连，跨区的大转移画一段弧。
  * by=none 的那段也在折线里（小地图的标记要沿着走过去），只是不画出来。
  * @param {Array<{ lnglat: [number, number], by?: string }>} places
